@@ -5,14 +5,14 @@ This follows the rules from the GTP spec.
 """
 
 handicap_pattern = [
-    ['C3', 'G7'],
-    ['C3', 'G7', 'C7'],
-    ['C3', 'G7', 'C7', 'G3'],
-    ['C3', 'G7', 'C7', 'G3', 'E5'],
-    ['C3', 'G7', 'C7', 'G3', 'C5', 'G5'],
-    ['C3', 'G7', 'C7', 'G3', 'C5', 'G5', 'E5'],
-    ['C3', 'G7', 'C7', 'G3', 'C5', 'G5', 'E3', 'E7'],
-    ['C3', 'G7', 'C7', 'G3', 'C5', 'G5', 'E3', 'E7', 'E5'],
+    ['00', '22'],
+    ['00', '22', '20'],
+    ['00', '22', '20', '02'],
+    ['00', '22', '20', '02', '11'],
+    ['00', '22', '20', '02', '10', '12'],
+    ['00', '22', '20', '02', '10', '12', '11'],
+    ['00', '22', '20', '02', '10', '12', '01', '21'],
+    ['00', '22', '20', '02', '10', '12', '01', '21', '11'],
 ]
 
 def handicap_points(number_of_stones, board_size):
@@ -38,10 +38,8 @@ def handicap_points(number_of_stones, board_size):
         altitude = 2
     else:
         altitude = 3
-    low = altitude
-    mid = (board_size - 1) / 2
-    high = board_size - altitude - 1
-    row_map = {'3' : low, '5' : mid, '7' : high}
-    col_map = {'C' : low, 'E' : mid, 'G' : high}
-    return [(row_map[s[1]], col_map[s[0]])
+    pos = {'0' : altitude,
+           '1' : (board_size - 1) / 2,
+           '2' : board_size - altitude - 1}
+    return [(pos[s[0]], pos[s[1]])
             for s in handicap_pattern[number_of_stones-2]]
