@@ -1,7 +1,6 @@
 """Run a game between two GTP engines."""
 
 from gomill_common import *
-from gomill import gtp
 from gomill import gtp_controller
 from gomill import boards
 from gomill import sgf
@@ -238,8 +237,8 @@ class Game(object):
             self.seen_claim = True
             return
         try:
-            move = gtp.interpret_vertex(move_s, self.board_size)
-        except gtp.GtpError, e:
+            move = coords_from_vertex(move_s, self.board_size)
+        except ValueError:
             self.winner = opponent
             self.forfeited = True
             self.forfeit_reason = "%s attempted ill-formed move %s" % (

@@ -65,26 +65,11 @@ def interpret_vertex(arg, board_size):
     vertex specification for a board of size 'board_size'.
 
     """
-    assert 0 < board_size <= 25
-    s = arg.lower()
-    if s == "pass":
-        return None
     try:
-        col_c = s[0]
-        if (not "a" <= col_c <= "z") or col_c == "i":
-            raise ValueError
-        if col_c > "i":
-            col = ord(col_c) - ord("b")
-        else:
-            col = ord(col_c) - ord("a")
-        row = int(s[1:]) - 1
-        if row < 0:
-            raise ValueError
-    except (IndexError, ValueError):
-        raise GtpError("invalid vertex: '%s'" % s)
-    if not (col < board_size and row < board_size):
-        raise GtpError("vertex is off board: '%s'" % s)
-    return row, col
+        return coords_from_vertex(arg, board_size)
+    except ValueError, e:
+        raise GtpError(str(e))
+
 
 _gtp_int_max = 2**31-1
 
@@ -139,7 +124,6 @@ def format_gtp_boolean(b):
     else:
         return "false"
 
-column_letters = "ABCDEFGHJKLMNOPQRSTUVWXZ"
 def format_vertex_from_coords(row, col):
     """Format coordinates as a GTP vertex string."""
     return column_letters[col] + str(row+1)
