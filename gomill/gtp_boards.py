@@ -5,8 +5,9 @@ import math
 from gomill_common import *
 from gomill import ascii_boards
 from gomill import boards
-from gomill import gtp
+from gomill import gtp_engine
 from gomill import sgf_reader
+from gomill.gtp_engine import GtpError
 
 # FIXME
 BLACK = 'b'
@@ -168,11 +169,11 @@ class Gtp_board(object):
 
     def handle_boardsize(self, args):
         try:
-            size = gtp.interpret_int(args[0])
+            size = gtp_engine.interpret_int(args[0])
         except IndexError:
-            gtp.report_bad_arguments()
+            gtp_engine.report_bad_arguments()
         if size not in self.acceptable_sizes:
-            raise gtp.GtpError("unacceptable size")
+            raise GtpError("unacceptable size")
         self.board_size = size
         self.reset()
 
@@ -181,51 +182,51 @@ class Gtp_board(object):
 
     def handle_komi(self, args):
         try:
-            f = gtp.interpret_float(args[0])
+            f = gtp_engine.interpret_float(args[0])
         except IndexError:
-            gtp.report_bad_arguments()
+            gtp_engine.report_bad_arguments()
         self.set_komi(f)
 
     def handle_fixed_handicap(self, args):
         if self.board_size != 9:
-            raise gtp.GtpError("handicap not supported on this size board")
+            raise GtpError("handicap not supported on this size board")
         try:
-            number_of_stones = gtp.interpret_int(args[0])
+            number_of_stones = gtp_engine.interpret_int(args[0])
         except IndexError:
-            gtp.report_bad_arguments()
+            gtp_engine.report_bad_arguments()
         if not 2 <= number_of_stones <= 9:
-            raise gtp.GtpError("invalid number of stones")
+            raise GtpError("invalid number of stones")
         if not self.board.is_empty():
-            raise gtp.GtpError("board not empty")
+            raise GtpError("board not empty")
         points = handicap_9x9[number_of_stones-2]
         for vertex in points:
-            row, col = gtp.interpret_vertex(vertex, self.board_size)
+            row, col = gtp_engine.interpret_vertex(vertex, self.board_size)
             self.board.play(row, col, BLACK)
             self.move_history.append((BLACK, (row, col)))
         self.simple_ko_point = None
 
     def handle_set_free_handicap(self, args):
         if len(args) < 2:
-            gtp.report_bad_arguments()
+            gtp_engine.report_bad_arguments()
         for vertex_s in args:
-            row, col = gtp.interpret_vertex(vertex_s, self.board_size)
+            row, col = gtp_engine.interpret_vertex(vertex_s, self.board_size)
             try:
                 self.board.play(row, col, BLACK)
             except ValueError:
-                raise gtp.GtpError("engine error: %s is occupied" % vertex)
+                raise GtpError("engine error: %s is occupied" % vertex)
             self.move_history.append((BLACK, (row, col)))
         self.simple_ko_point = None
 
     def handle_place_free_handicap(self, args):
         try:
-            number_of_stones = gtp.interpret_int(args[0])
+            number_of_stones = gtp_engine.interpret_int(args[0])
         except IndexError:
-            gtp.report_bad_arguments()
+            gtp_engine.report_bad_arguments()
         max_points = self.board_size * self.board_size - 1
         if not 2 <= number_of_stones <= max_points:
-            raise gtp.GtpError("invalid number of stones")
+            raise GtpError("invalid number of stones")
         if not self.board.is_empty():
-            raise gtp.GtpError("board not empty")
+            raise GtpError("board not empty")
         if number_of_stones == max_points:
             number_of_stones = max_points - 1
         moves = []
@@ -247,20 +248,20 @@ class Gtp_board(object):
             try:
                 self.board.play(row, col, BLACK)
             except ValueError:
-                raise gtp.GtpError("engine error: tried to play %s" % vertex)
+                raise GtpError("engine error: tried to play %s" % vertex)
             self.move_history.append((BLACK, generated.move))
             moves.append(generated.move)
         self.simple_ko_point = None
-        return " ".join(gtp.format_vertex_from_coords(row, col)
+        return " ".join(gtp_engine.format_vertex_from_coords(row, col)
                         for (row, col) in moves)
 
     def handle_play(self, args):
         try:
             colour_s, vertex_s = args[:2]
         except ValueError:
-            gtp.report_bad_arguments()
-        gtp_colour = gtp.interpret_colour(colour_s)
-        coords = gtp.interpret_vertex(vertex_s, self.board_size)
+            gtp_engine.report_bad_arguments()
+        gtp_colour = gtp_engine.interpret_colour(colour_s)
+        coords = gtp_engine.interpret_vertex(vertex_s, self.board_size)
         colour = colour_from_gtp(gtp_colour)
         if coords is None:
             self.simple_ko_point = None
@@ -271,7 +272,7 @@ class Gtp_board(object):
             self.simple_ko_point = self.board.play(row, col, colour)
             self.simple_ko_player = opponent_of(colour)
         except ValueError:
-            raise gtp.GtpError("illegal move")
+            raise GtpError("illegal move")
         self.move_history.append((colour, coords))
 
     def handle_showboard(self, args):
@@ -289,9 +290,9 @@ class Gtp_board(object):
     def _handle_genmove(self, args, for_regression=False, allow_claim=False):
         """Common implementation for genmove commands."""
         try:
-            gtp_colour = gtp.interpret_colour(args[0])
+            gtp_colour = gtp_engine.interpret_colour(args[0])
         except IndexError:
-            gtp.report_bad_arguments()
+            gtp_engine.report_bad_arguments()
         colour = colour_from_gtp(gtp_colour)
         game_state = Game_state()
         game_state.size = self.board_size
@@ -315,13 +316,13 @@ class Gtp_board(object):
                 self.move_history.append((colour, None))
             return 'pass'
         row, col = generated.move
-        vertex = gtp.format_vertex_from_coords(row, col)
+        vertex = gtp_engine.format_vertex_from_coords(row, col)
         if not for_regression:
             try:
                 self.simple_ko_point = self.board.play(row, col, colour)
                 self.simple_ko_player = opponent_of(colour)
             except ValueError:
-                raise gtp.GtpError("engine error: tried to play %s" % vertex)
+                raise GtpError("engine error: tried to play %s" % vertex)
             self.move_history.append((colour, generated.move))
         return vertex
 
@@ -338,20 +339,20 @@ class Gtp_board(object):
         # GTP spec says we shouldn't undo handicap moves, but it isn't worth the
         # effort to treat them specially.
         if not self.move_history:
-            raise gtp.GtpError("cannot undo")
+            raise GtpError("cannot undo")
         self.move_history.pop(-1)
         try:
             self.reset_to_moves(self.move_history)
         except ValueError:
-            raise gtp.GtpError("corrupt history")
+            raise GtpError("corrupt history")
 
     def handle_loadsgf(self, args):
         try:
             pathname = args[0]
         except IndexError:
-            gtp.report_bad_arguments()
+            gtp_engine.report_bad_arguments()
         if len(args) > 1:
-            move_number = gtp.interpret_int(args[1])
+            move_number = gtp_engine.interpret_int(args[1])
         else:
             move_number = 10000
         try:
@@ -359,14 +360,14 @@ class Gtp_board(object):
             s = f.read()
             f.close()
         except EnvironmentError:
-            raise gtp.GtpError("cannot load file")
+            raise GtpError("cannot load file")
         try:
             sgf = sgf_reader.read_sgf(s)
         except ValueError:
-            raise gtp.GtpError("cannot load file")
+            raise GtpError("cannot load file")
         new_size = sgf.get_size()
         if new_size not in self.acceptable_sizes:
-            raise gtp.GtpError("unacceptable size")
+            raise GtpError("unacceptable size")
         self.board_size = new_size
         try:
             komi_s = sgf.nodes[0].get("KM")
@@ -376,7 +377,7 @@ class Gtp_board(object):
             try:
                 komi = float(komi_s)
             except ValueError:
-                raise gtp.GtpError("bad komi")
+                raise GtpError("bad komi")
         seen_moves = 0
         new_move_history = []
         colour_map = {'B' : BLACK, 'W' : WHITE}
@@ -384,7 +385,7 @@ class Gtp_board(object):
             if seen_moves >= move_number:
                 break
             if node.has_prop("AB") or node.has_prop("AW"):
-                raise gtp.GtpError(
+                raise GtpError(
                     "setup stones (including handicap) not supported")
             colour, move = node.get_move()
             if colour is None:
@@ -397,19 +398,19 @@ class Gtp_board(object):
             try:
                 self.reset_to_moves(self.move_history)
             except ValueError:
-                raise gtp.GtpError("bad move in file and corrupt history")
-            raise gtp.GtpError("bad move in file")
+                raise GtpError("bad move in file and corrupt history")
+            raise GtpError("bad move in file")
         self.set_komi(komi)
         self.move_history = new_move_history
 
     def handle_time_left(self, args):
         # colour time stones
         try:
-            gtp_colour = gtp.interpret_colour(args[0])
-            time_remaining = gtp.interpret_int(args[1])
-            stones_remaining = gtp.interpret_int(args[2])
+            gtp_colour = gtp_engine.interpret_colour(args[0])
+            time_remaining = gtp_engine.interpret_int(args[1])
+            stones_remaining = gtp_engine.interpret_int(args[2])
         except IndexError:
-            gtp.report_bad_arguments()
+            gtp_engine.report_bad_arguments()
         if stones_remaining == 0:
             stones_remaining = None
         self.time_status[colour_from_gtp(gtp_colour)] = \

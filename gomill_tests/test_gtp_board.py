@@ -1,8 +1,7 @@
 import random
 import sys
 
-from gomill import gtp
-
+from gomill import gtp_engine
 from gomill import gtp_boards
 
 def handle_name(args):
@@ -17,7 +16,7 @@ def handle_help(args):
             "See http://www.lysator.liu.se/~gunnar/gtp/ for information.\n")
 
 def kiai_dummy_engine(gtp_board):
-    engine = gtp.Gtp_engine_protocol()
+    engine = gtp_engine.Gtp_engine_protocol()
     engine.add_protocol_commands()
     engine.add_commands({
         'help'    : handle_help,
@@ -46,7 +45,7 @@ def test():
     gtp_board = gtp_boards.Gtp_board(dummy_move_generator, [13])
     engine = kiai_dummy_engine(gtp_board)
     try:
-        gtp.run_interactive_gtp_session(engine)
+        gtp_engine.run_interactive_gtp_session(engine)
     except KeyboardInterrupt:
         sys.exit(1)
 
