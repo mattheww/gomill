@@ -6,20 +6,10 @@ from gomill_common import *
 from gomill import ascii_boards
 from gomill import boards
 from gomill import gtp_engine
+from gomill import handicap_layout
 from gomill import sgf_reader
 from gomill.gtp_engine import GtpError
 
-
-handicap_9x9 = [
-    ['C3', 'G7'],
-    ['C3', 'G7', 'C7'],
-    ['C3', 'G7', 'C7', 'G3'],
-    ['C3', 'G7', 'C7', 'G3', 'E5'],
-    ['C3', 'G7', 'C7', 'G3', 'C5', 'G5'],
-    ['C3', 'G7', 'C7', 'G3', 'C5', 'G5', 'E5'],
-    ['C3', 'G7', 'C7', 'G3', 'C5', 'G5', 'E3', 'E7'],
-    ['C3', 'G7', 'C7', 'G3', 'C5', 'G5', 'E3', 'E7', 'E5'],
-]
 
 class Game_state(object):
     """Data passed to a move generator.
@@ -181,19 +171,18 @@ class Gtp_board(object):
         self.set_komi(f)
 
     def handle_fixed_handicap(self, args):
-        if self.board_size != 9:
-            raise GtpError("handicap not supported on this size board")
         try:
             number_of_stones = gtp_engine.interpret_int(args[0])
         except IndexError:
             gtp_engine.report_bad_arguments()
-        if not 2 <= number_of_stones <= 9:
-            raise GtpError("invalid number of stones")
         if not self.board.is_empty():
             raise GtpError("board not empty")
-        points = handicap_9x9[number_of_stones-2]
-        for vertex in points:
-            row, col = gtp_engine.interpret_vertex(vertex, self.board_size)
+        try:
+            points = handicap_layout.handicap_points(
+                number_of_stones, self.board_size)
+        except ValueError:
+            raise GtpError("invalid number of stones")
+        for row, col in points:
             self.board.play(row, col, 'b')
             self.move_history.append(('b', (row, col)))
         self.simple_ko_point = None
