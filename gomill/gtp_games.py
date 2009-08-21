@@ -219,7 +219,7 @@ class Game(object):
             genmove_command = "kiai-genmove_claim"
             may_claim = True
         else:
-            genmove_command = genmove
+            genmove_command = "genmove"
             may_claim = False
         try:
             move_s = self.send_command(colour, genmove_command, colour).lower()
