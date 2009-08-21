@@ -9,6 +9,7 @@ import re
 import sys
 import os
 
+from gomill_common import *
 from gomill import compact_tracebacks
 
 
@@ -22,16 +23,6 @@ class GtpQuit(Exception):
     """Request to end session from a command handler."""
 
 
-_gtp_opponents = {"b":"w", "w":"b"}
-def opponent_of(colour):
-    """Return the opponent colour.
-
-    colour -- 'b' or 'w'
-
-    Returns 'b' or 'w'.
-
-    """
-    return _gtp_opponents[colour]
 
 
 ### Handler support

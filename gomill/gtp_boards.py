@@ -2,11 +2,11 @@
 
 import math
 
+from gomill_common import *
 from gomill import ascii_boards
 from gomill import boards
 from gomill import gtp
 from gomill import sgf_reader
-from gomill.gtp import opponent_of
 
 # FIXME
 BLACK = 'b'

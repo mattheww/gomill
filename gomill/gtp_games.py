@@ -1,5 +1,6 @@
 """Run a game between two GTP engines."""
 
+from gomill_common import *
 from gomill import gtp
 from gomill import gtp_controller
 from gomill import boards
@@ -214,7 +215,7 @@ class Game(object):
             self.engine_descriptions[player] = desc
 
     def _play_move(self, colour):
-        opponent = gtp.opponent_of(colour)
+        opponent = opponent_of(colour)
         if self.controller.known_command(colour, "kiai-genmove_claim"):
             genmove_command = "kiai-genmove_claim"
             may_claim = True
@@ -330,7 +331,7 @@ class Game(object):
                 break
             if self.winner is not None:
                 break
-            player = gtp.opponent_of(player)
+            player = opponent_of(player)
             move_count += 1
         else:
             self.hit_move_limit = True

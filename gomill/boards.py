@@ -1,10 +1,10 @@
 """Go board capable of area scoring."""
 
+from gomill_common import *
+
 BLACK = 'b'
 WHITE = 'w'
 EMPTY = ''
-
-opponents = {"b":"w", "w":"b"}
 
 
 class Group(object):
@@ -135,7 +135,7 @@ class Referee_board(object):
                 to_capture = captured
             else:
                 to_capture = [group for group in captured
-                              if group.colour == opponents[colour]]
+                              if group.colour == opponent_of(colour)]
             for group in to_capture:
                 for r, c in group.points:
                     self.board[r][c] = EMPTY
@@ -314,7 +314,7 @@ class Play_board(Board_base):
                 to_capture = captured
             else:
                 to_capture = [group for group in captured
-                              if group.colour == opponents[colour]]
+                              if group.colour == opponent_of(colour)]
                 if (len(to_capture) == 1 and
                     len(to_capture[0].points) == 1 and
                     len(self.groups_by_point[row, col].points) == 1):
