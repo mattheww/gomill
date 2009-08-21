@@ -136,7 +136,7 @@ class Gtp_board(object):
         Raises ValueError if there is an invalid move in the list.
 
         """
-        self.board = Play_board(self.board_size)
+        self.board = boards.Play_board(self.board_size)
         simple_ko_point = None
         colour = BLACK
         for colour, coords in moves:
@@ -367,7 +367,7 @@ class Gtp_board(object):
         new_size = sgf.get_size()
         if new_size not in self.acceptable_sizes:
             raise gtp.GtpError("unacceptable size")
-        self.board_size = size
+        self.board_size = new_size
         try:
             komi_s = sgf.nodes[0].get("KM")
         except KeyError:
