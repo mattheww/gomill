@@ -1,7 +1,7 @@
 from gomill import gtp_controller
 
-#from gomill_tests import test_gtp_board
-from kiai import gtp_boards
+from gomill_tests import test_gtp_board
+from gomill import gtp_boards
 
 
 def test():
@@ -10,12 +10,12 @@ def test():
         "./kiai9 kiai/simple_montecarlo_player.py".split())
     controller.add_channel("first", c1)
 
-    #gtp_board = gtp_boards.Gtp_board(test_gtp_board.dummy_move_generator)
-    #engine = test_gtp_board.kiai_dummy_engine(gtp_board)
-    #c2 = gtp_controller.Internal_gtp_channel(engine)
+    gtp_board = gtp_boards.Gtp_board(test_gtp_board.dummy_move_generator, [9])
+    engine = test_gtp_board.kiai_dummy_engine(gtp_board)
+    c2 = gtp_controller.Internal_gtp_channel(engine)
 
-    c2 = gtp_controller.Subprocess_gtp_channel(
-        "gnugo --mode=gtp --boardsize=9".split())
+    #c2 = gtp_controller.Subprocess_gtp_channel(
+    #    "gnugo --mode=gtp --boardsize=9".split())
 
     controller.add_channel("second", c2)
 

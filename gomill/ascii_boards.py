@@ -1,0 +1,27 @@
+"""ASCII board representation."""
+
+column_letters = "ABCDEFGHJKLMNOPQRSTUVWXZ"
+
+def render_board(point_formatter, size):
+    """Render a board-shaped grid in ascii.
+
+    point_formatter -- function (row, col) -> string of length 2.
+
+    Returns a list of strings.
+
+    """
+    column_header_string = "  ".join(column_letters[i] for i in range(size))
+    result = []
+    if size > 9:
+        rowstart = "%2d "
+        padding = " "
+    else:
+        rowstart = "%d "
+        padding = ""
+    for row in range(size-1, -1, -1):
+        result.append(rowstart % (row+1) +
+                      " ".join(point_formatter(row, col)
+                      for col in range(size)))
+    result.append(padding + "   " + column_header_string)
+    return result
+
