@@ -16,14 +16,6 @@ from gomill.gtp_controller import (
     GtpProtocolError, GtpTransportError, GtpEngineError)
 
 
-def read_python_file(pathname, provided_globals):
-    result = {}
-    f = open(pathname)
-    exec f in provided_globals.copy(), result
-    f.close()
-    return result
-
-
 def json_decode_game_result(dct):
     if 'winning_colour' not in dct:
         return dct
@@ -128,6 +120,7 @@ class Play_game_job(object):
         f.write(sgf_game.as_string())
         f.close()
 
+
 class Player_config(object):
     """Player description for use in tournament files."""
     def __init__(self, command_string):
@@ -137,6 +130,19 @@ class Player_config(object):
 tournament_globals = {
     'Player' : Player_config,
     }
+
+def read_tourn_file(pathname):
+    """Read the specified file as a .tourn file.
+
+    A copy of tournament_globals is used as the global namespace. Returns this
+    namespace as a dict.
+
+    """
+    result = tournament_globals.copy()
+    f = open(pathname)
+    exec f in result
+    f.close()
+    return result
 
 
 class TournamentError(StandardError):
@@ -162,7 +168,7 @@ class Tournament(object):
         self.sgf_dir_pathname = stem + ".games"
 
         try:
-            config = read_python_file(tourn_pathname, tournament_globals)
+            config = read_tourn_file(tourn_pathname)
         except EnvironmentError, e:
             raise TournamentError("failed to open tournament file:\n%s" % e)
         except:
