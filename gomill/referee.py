@@ -54,6 +54,7 @@ class Play_game_job(object):
       game_number
       players
       commands
+      gtp_translations
       board_size
       komi
       move_limit
@@ -72,6 +73,7 @@ class Play_game_job(object):
             game.use_internal_scorer()
         elif self.preferred_scorers:
             game.use_players_to_score(self.preferred_scorers)
+        game.set_gtp_translations(self.gtp_translations)
         try:
             game.start_players()
             game.request_engine_descriptions()
@@ -123,9 +125,14 @@ class Play_game_job(object):
 
 class Player_config(object):
     """Player description for use in tournament files."""
-    def __init__(self, command_string):
+    def __init__(self, command_string, gtp_translations=None):
+        # Ought to validate
         self.cmd_args = command_string.split()
         self.cmd_args[0] = os.path.expanduser(self.cmd_args[0])
+        if gtp_translations is None:
+            self.gtp_translations = {}
+        else:
+            self.gtp_translations = gtp_translations
 
 tournament_globals = {
     'Player' : Player_config,
@@ -426,6 +433,8 @@ class Tournament(object):
         player_b, player_w = self.matchups[game_number % len(self.matchups)]
         commands = {'b' : self.players[player_b].cmd_args,
                     'w' : self.players[player_w].cmd_args}
+        gtp_translations = {'b' : self.players[player_b].gtp_translations,
+                         'w' : self.players[player_w].gtp_translations}
         players = {'b' : player_b, 'w' : player_w}
         start_msg = "starting game %d: %s (b) vs %s (w)" % (
             game_number, player_b, player_w)
@@ -446,6 +455,7 @@ class Tournament(object):
         job.game_number = game_number
         job.players = players
         job.commands = commands
+        job.gtp_translations = gtp_translations
         job.board_size = self.board_size
         job.komi = self.komi
         job.move_limit = self.move_limit

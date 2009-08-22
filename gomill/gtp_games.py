@@ -97,6 +97,7 @@ class Game(object):
         self.engine_names = {'b' : "unknown", 'w' : "unknown"}
         self.engine_descriptions = {'b' : "unknown", 'w' : "unknown"}
         self.engine_resource_usage = {'b' : None, 'w' : None}
+        self.gtp_translations = {}
 
     def use_internal_scorer(self, b=True):
         """Set the scoring method to internal.
@@ -122,18 +123,18 @@ class Game(object):
                 if player == self.players['w']:
                     self.player_scorers.append('w')
 
-    def send_command(self, colour, command, *arguments):
-        """Send the specified GTP command to one of the players.
+    def set_gtp_translations(self, translations):
+        """Set GTP command translations.
 
-        colour    -- player to talk to ('b' or 'w')
-        command   -- gtp command (list of strings)
-        arguments -- gtp arguments (strings)
-
-        Returns the response as a string.
-
-        Raises GtpEngineError if the engine returns an error response.
+        translations -- map colour -> (map command string -> command string)
 
         """
+        self.gtp_translations = translations
+
+    def _translate_gtp_command(self, colour, command):
+        return self.gtp_translations[colour].get(command, command)
+
+    def _send_command(self, colour, command, arguments):
         try:
             response = self.controller.do_command(colour, command, *arguments)
         except GtpEngineError, e:
@@ -150,6 +151,21 @@ class Game(object):
                 (command, self.players[colour], e))
         return response
 
+    def send_command(self, colour, command, *arguments):
+        """Send the specified GTP command to one of the players.
+
+        colour    -- player to talk to ('b' or 'w')
+        command   -- gtp command (list of strings)
+        arguments -- gtp arguments (strings)
+
+        Returns the response as a string.
+
+        Raises GtpEngineError if the engine returns an error response.
+
+        """
+        command = self._translate_gtp_command(colour, command)
+        return self._send_command(colour, command, arguments)
+
     def maybe_send_command(self, colour, command, *arguments):
         """Send the specified GTP command, if supported.
 
@@ -157,9 +173,10 @@ class Game(object):
         or gives an error response, returns None.
 
         """
+        command = self._translate_gtp_command(colour, command)
         if self.controller.known_command(colour, command):
             try:
-                result = self.send_command(colour, command, *arguments)
+                result = self._send_command(colour, command, arguments)
             except GtpEngineError:
                 result = None
         else:
