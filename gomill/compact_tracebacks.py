@@ -82,7 +82,7 @@ def format_error_and_line_from_info(exception_type, value, tb):
     return log.getvalue()
 
 def log_error_and_line(dst=sys.stderr):
-    """Log a the current exception briefly to 'dst'.
+    """Log the current exception briefly to 'dst'.
 
     dst  -- writeable file-like object
 
