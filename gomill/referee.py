@@ -185,7 +185,7 @@ class Tournament(object):
         self.board_size = config['board_size']
         self.komi = config['komi']
         self.move_limit = config['move_limit']
-        self.number_of_games = config['number_of_games']
+        self.number_of_games = config.get('number_of_games')
         self.record_games = config['record_games']
         self.use_internal_scorer = False
         self.preferred_scorers = None
@@ -412,7 +412,8 @@ class Tournament(object):
             self.max_games_this_run -= 1
 
         games_played = self.games_played()
-        if games_played + self.games_in_progress >= self.number_of_games:
+        if (self.number_of_games is not None and
+            games_played + self.games_in_progress >= self.number_of_games):
             return job_manager.NoJobAvailable
         game_number = self.next_game_number
         self.next_game_number += 1
@@ -423,8 +424,12 @@ class Tournament(object):
         start_msg = "starting game %d: %s (b) vs %s (w)" % (
             game_number, player_b, player_w)
         if self.chatty:
-            print "%d/%d games played; %d in progress" % (
-                games_played, self.number_of_games, self.games_in_progress)
+            if self.number_of_games is None:
+                print "%d games played; %d in progress" % (
+                    games_played, self.games_in_progress)
+            else:
+                print "%d/%d games played; %d in progress" % (
+                    games_played, self.number_of_games, self.games_in_progress)
             print start_msg
             if self.max_games_this_run is not None:
                 print ("will start at most %d more games in this run" %
@@ -486,12 +491,17 @@ def do_tournament(tourn_pathname, worker_count=None, quiet=False,
     if tournament.status_file_exists():
         print "status file exists; continuing"
         tournament.load_status()
-    games_remaining = tournament.number_of_games - tournament.games_played()
-    if games_remaining <= 0:
-        print "tournament already complete"
-    if not tournament.chatty:
-        print "%d/%d games to play" % (
-            games_remaining, tournament.number_of_games)
+    if tournament.number_of_games is None:
+        print "no limit on number of games"
+        if not tournament.chatty:
+            print "%d games played so far" % tournament.games_played()
+    else:
+        games_remaining = tournament.number_of_games - tournament.games_played()
+        if games_remaining <= 0:
+            print "tournament already complete"
+        if not tournament.chatty:
+            print "%d/%d games to play" % (
+                games_remaining, tournament.number_of_games)
     if worker_count is not None:
         print "using %d workers" % worker_count
         tournament.set_parallel_worker_count(worker_count)
