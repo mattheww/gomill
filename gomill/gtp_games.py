@@ -183,6 +183,11 @@ class Game(object):
             result = None
         return result
 
+    def known_command(self, colour, command):
+        """Check whether the specified GTP command is supported."""
+        command = self._translate_gtp_command(colour, command)
+        return self.controller.known_command(colour, command)
+
     def start_players(self):
         """Start the engine subprocesses."""
         self.controller = gtp_controller.Gtp_controller_protocol()
@@ -232,7 +237,7 @@ class Game(object):
 
     def _play_move(self, colour):
         opponent = opponent_of(colour)
-        if self.controller.known_command(colour, "gomill-genmove_claim"):
+        if self.known_command(colour, "gomill-genmove_claim"):
             genmove_command = "gomill-genmove_claim"
             may_claim = True
         else:
@@ -388,7 +393,7 @@ class Game(object):
         # but give an error.
         result.cpu_times = {}
         for colour in ('b', 'w'):
-            if self.controller.known_command(colour, 'gomill-cpu_time'):
+            if self.known_command(colour, 'gomill-cpu_time'):
                 try:
                     s = self.send_command(colour, 'gomill-cpu_time')
                     cpu_time = float(s)
