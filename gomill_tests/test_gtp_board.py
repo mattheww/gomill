@@ -5,7 +5,7 @@ from gomill import gtp_engine
 from gomill import gtp_boards
 
 def handle_name(args):
-    return "Kiai-dummy"
+    return "Gomill-dummy"
 
 def handle_version(args):
     return ""
