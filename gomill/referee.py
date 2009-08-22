@@ -4,6 +4,7 @@ from __future__ import division
 
 import datetime
 import os
+import shlex
 import sys
 from optparse import OptionParser
 
@@ -127,7 +128,7 @@ class Player_config(object):
     """Player description for use in tournament files."""
     def __init__(self, command_string, gtp_translations=None):
         # Ought to validate
-        self.cmd_args = command_string.split()
+        self.cmd_args = shlex.split(command_string)
         self.cmd_args[0] = os.path.expanduser(self.cmd_args[0])
         if gtp_translations is None:
             self.gtp_translations = {}
