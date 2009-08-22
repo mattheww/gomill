@@ -16,11 +16,10 @@ from gomill.gtp_controller import (
     GtpProtocolError, GtpTransportError, GtpEngineError)
 
 
-def read_python_file(pathname):
-    dummy = {}
+def read_python_file(pathname, provided_globals):
     result = {}
     f = open(pathname)
-    exec f in dummy, result
+    exec f in provided_globals.copy(), result
     f.close()
     return result
 
@@ -129,6 +128,17 @@ class Play_game_job(object):
         f.write(sgf_game.as_string())
         f.close()
 
+class Player_config(object):
+    """Player description for use in tournament files."""
+    def __init__(self, command_string):
+        self.cmd_args = command_string.split()
+        self.cmd_args[0] = os.path.expanduser(self.cmd_args[0])
+
+tournament_globals = {
+    'Player' : Player_config,
+    }
+
+
 class TournamentError(StandardError):
     """Error reported by a Tournament."""
 
@@ -152,7 +162,7 @@ class Tournament(object):
         self.sgf_dir_pathname = stem + ".games"
 
         try:
-            config = read_python_file(tourn_pathname)
+            config = read_python_file(tourn_pathname, tournament_globals)
         except EnvironmentError, e:
             raise TournamentError("failed to open tournament file:\n%s" % e)
         except:
@@ -168,11 +178,10 @@ class Tournament(object):
 
         # Ought to validate.
         self.description = config['description']
-        self.player_commands = {}
-        for player, s in config['player_commands'].items():
-            cmd_args = s.split()
-            cmd_args[0] = os.path.expanduser(cmd_args[0])
-            self.player_commands[player] = cmd_args
+        self.players = config.get('players', {})
+        for player, s in config.get('player_commands', {}).items():
+            self.players[player] = Player_config(s)
+
         self.board_size = config['board_size']
         self.komi = config['komi']
         self.move_limit = config['move_limit']
@@ -200,7 +209,7 @@ class Tournament(object):
         else:
             self.matchups = config['matchups']
         for p1, p2 in self.matchups:
-            if p1 not in self.player_commands or p2 not in self.player_commands:
+            if p1 not in self.players or p2 not in self.players:
                 raise ValueError
 
         self.engine_names = {}
@@ -408,8 +417,8 @@ class Tournament(object):
         game_number = self.next_game_number
         self.next_game_number += 1
         player_b, player_w = self.matchups[game_number % len(self.matchups)]
-        commands = {'b' : self.player_commands[player_b],
-                    'w' : self.player_commands[player_w]}
+        commands = {'b' : self.players[player_b].cmd_args,
+                    'w' : self.players[player_w].cmd_args}
         players = {'b' : player_b, 'w' : player_w}
         start_msg = "starting game %d: %s (b) vs %s (w)" % (
             game_number, player_b, player_w)
