@@ -106,7 +106,7 @@ class Play_game_job(object):
         w_player = game.players['w']
 
         sgf_game = game.make_sgf()
-        sgf_game.set('application', "kiai-referee:?")
+        sgf_game.set('application', "gomill-referee:?")
         sgf_game.set('event', self.tournament_code)
         sgf_game.set('round', self.game_number)
         notes = [
