@@ -28,8 +28,8 @@ class Game_result(object):
     Winning colour and winning player are None for a jigo, unknown result, or
     void game.
 
-    cpu_times are user time + system time. '?' means that kiai-cpu_time gave an
-    error.
+    cpu_times are user time + system time. '?' means that gomill-cpu_time gave
+    an error.
 
     """
     def describe(self):
@@ -225,15 +225,15 @@ class Game(object):
             except GtpEngineError:
                 pass
             self.engine_names[player] = name
-            s = self.maybe_send_command(colour, "kiai-describe_engine")
+            s = self.maybe_send_command(colour, "gomill-describe_engine")
             if s is not None:
                 desc = s
             self.engine_descriptions[player] = desc
 
     def _play_move(self, colour):
         opponent = opponent_of(colour)
-        if self.controller.known_command(colour, "kiai-genmove_claim"):
-            genmove_command = "kiai-genmove_claim"
+        if self.controller.known_command(colour, "gomill-genmove_claim"):
+            genmove_command = "gomill-genmove_claim"
             may_claim = True
         else:
             genmove_command = "genmove"
@@ -261,7 +261,7 @@ class Game(object):
             self.forfeit_reason = "%s attempted ill-formed move %s" % (
                 self.players[colour], move_s)
             return
-        comment = self.maybe_send_command(colour, "kiai-explain_last_move")
+        comment = self.maybe_send_command(colour, "gomill-explain_last_move")
         if comment == "":
             comment = None
         if move is not None:
@@ -384,13 +384,13 @@ class Game(object):
             result.sgf_result = "%s+F" % self.winner.upper()
             result.detail = "unknown margin/reason"
         # The ugliness with cpu_time '?' is to avoid using the cpu time reported
-        # by channel close() for engines which claim to support kiai-cpu_time
+        # by channel close() for engines which claim to support gomill-cpu_time
         # but give an error.
         result.cpu_times = {}
         for colour in ('b', 'w'):
-            if self.controller.known_command(colour, 'kiai-cpu_time'):
+            if self.controller.known_command(colour, 'gomill-cpu_time'):
                 try:
-                    s = self.send_command(colour, 'kiai-cpu_time')
+                    s = self.send_command(colour, 'gomill-cpu_time')
                     cpu_time = float(s)
                 except (GtpEngineError, ValueError):
                     cpu_time = "?"

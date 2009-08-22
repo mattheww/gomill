@@ -45,7 +45,7 @@ class Move_generator_result(object):
       resign    -- bool
       pass_move -- bool
       move      -- (row, col), or None
-      claim     -- bool (for kiai-genmove_claim)
+      claim     -- bool (for gomill-genmove_claim)
 
     Exactly one of the first three attributes should be set to a nondefault
     value.
@@ -399,19 +399,19 @@ class Gtp_board(object):
         pass
 
     def get_handlers(self):
-        return {'boardsize'           : self.handle_boardsize,
-                'clear_board'         : self.handle_clear_board,
-                'komi'                : self.handle_komi,
-                'fixed_handicap'      : self.handle_fixed_handicap,
-                'set_free_handicap'   : self.handle_set_free_handicap,
-                'place_free_handicap' : self.handle_place_free_handicap,
-                'play'                : self.handle_play,
-                'genmove'             : self.handle_genmove,
-                'kiai-genmove_claim'  : self.handle_genmove_claim,
-                'reg_genmove'         : self.handle_reg_genmove,
-                'undo'                : self.handle_undo,
-                'showboard'           : self.handle_showboard,
-                'loadsgf'             : self.handle_loadsgf,
+        return {'boardsize'            : self.handle_boardsize,
+                'clear_board'          : self.handle_clear_board,
+                'komi'                 : self.handle_komi,
+                'fixed_handicap'       : self.handle_fixed_handicap,
+                'set_free_handicap'    : self.handle_set_free_handicap,
+                'place_free_handicap'  : self.handle_place_free_handicap,
+                'play'                 : self.handle_play,
+                'genmove'              : self.handle_genmove,
+                'gomill-genmove_claim' : self.handle_genmove_claim,
+                'reg_genmove'          : self.handle_reg_genmove,
+                'undo'                 : self.handle_undo,
+                'showboard'            : self.handle_showboard,
+                'loadsgf'              : self.handle_loadsgf,
                 }
 
     def get_time_handlers(self):
