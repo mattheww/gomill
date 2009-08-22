@@ -37,7 +37,7 @@ def interpret_boolean(arg):
 
     """
     try:
-        return {'true': True, 'false': False}[arg]
+        return gtp_boolean(arg)
     except KeyError:
         raise GtpError("invalid boolean: '%s'" % arg)
 

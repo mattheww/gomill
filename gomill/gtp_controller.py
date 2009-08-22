@@ -9,7 +9,7 @@ import re
 import signal
 import subprocess
 
-from gomill.gtp import interpret_boolean
+from gomill_common import *
 
 
 class GtpProtocolError(StandardError):
@@ -339,7 +339,10 @@ class Gtp_controller_protocol(object):
         except GtpEngineError:
             known = False
         else:
-            known = interpret_boolean(response)
+            try:
+                known = gtp_boolean(response)
+            except ValueError:
+                known = False
         self.known_commands[channel_id, command] = known
         return known
 
