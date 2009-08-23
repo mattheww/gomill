@@ -121,7 +121,7 @@ class Node(object):
 
         Returns a pair (colour, coords)
 
-        colour is 'B' or 'W'.
+        colour is 'b' or 'w'.
 
         coords are (row, col), using GTP standard coordinates, or None for a
         pass.
@@ -132,11 +132,11 @@ class Node(object):
         size = self.owner.get_size()
         prop = self.props_by_id.get("B")
         if prop is not None:
-            colour = "B"
+            colour = "b"
         else:
             prop = self.props_by_id.get("W")
             if prop is not None:
-                colour = "W"
+                colour = "w"
             else:
                 return None, None
         return colour, interpret_point(prop.value, size)

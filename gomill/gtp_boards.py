@@ -370,7 +370,7 @@ class Gtp_board(object):
             if colour is None:
                 continue
             seen_moves += 1
-            new_move_history.append((colour.lower(), move))
+            new_move_history.append((colour, move))
         try:
             self.reset_to_moves(new_move_history)
         except ValueError:
