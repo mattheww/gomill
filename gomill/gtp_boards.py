@@ -258,9 +258,9 @@ class Gtp_board(object):
 
     def handle_showboard(self, args):
         point_strings = {
-            ''  : " .",
-            'b' : " #",
-            'w' : " o",
+            None  : " .",
+            'b'   : " #",
+            'w'   : " o",
             }
         def format_pt(row, col):
             return point_strings.get(self.board.get(row, col), " ?")

@@ -2,10 +2,6 @@
 
 from gomill_common import *
 
-BLACK = 'b'
-WHITE = 'w'
-EMPTY = ''
-
 
 class Group(object):
     """Represent a solidly-connected group.
@@ -45,7 +41,7 @@ class Board(object):
                              for _col in range(side)]
         self.board = []
         for row in range(side):
-            self.board.append([EMPTY] * side)
+            self.board.append([None] * side)
 
     def _make_group(self, row, col, colour):
         points = set()
@@ -61,7 +57,7 @@ class Board(object):
                 if not ((0 <= r1 < self.side) and (0 <= c1 < self.side)):
                     continue
                 neigh_colour = self.board[r1][c1]
-                if neigh_colour == EMPTY:
+                if neigh_colour is None:
                     is_captured = False
                 elif neigh_colour == colour:
                     if coords not in points:
@@ -86,7 +82,7 @@ class Board(object):
                 if not ((0 <= r1 < self.side) and (0 <= c1 < self.side)):
                     continue
                 neigh_colour = self.board[r1][c1]
-                if neigh_colour == EMPTY:
+                if neigh_colour is None:
                     if coords not in points:
                         to_handle.add(coords)
                 else:
@@ -106,7 +102,7 @@ class Board(object):
         handled = set()
         for (row, col) in self.board_coords:
             colour = self.board[row][col]
-            if colour == EMPTY:
+            if colour is None:
                 continue
             coords = (row, col)
             if coords in handled:
@@ -120,7 +116,7 @@ class Board(object):
     def get(self, row, col):
         """Return the state of the specified point.
 
-        Returns a colour, or '' for an empty point.
+        Returns a colour, or None for an empty point.
 
         """
         return self.board[row][col]
@@ -136,7 +132,7 @@ class Board(object):
         Returns the point forbidden by simple ko, or None
 
         """
-        if self.board[row][col] != EMPTY:
+        if self.board[row][col] is not None:
             raise ValueError
         self.board[row][col] = colour
         captured = self._find_captured_groups()
@@ -155,7 +151,7 @@ class Board(object):
                         simple_ko_point = iter(to_capture[0].points).next()
             for group in to_capture:
                 for r, c in group.points:
-                    self.board[r][c] = EMPTY
+                    self.board[r][c] = None
         return simple_ko_point
 
     def area_score(self):
@@ -168,12 +164,12 @@ class Board(object):
         Doesn't take komi into account.
 
         """
-        scores = {BLACK : 0, WHITE : 0}
+        scores = {'b' : 0, 'w' : 0}
         captured = []
         handled = set()
         for (row, col) in self.board_coords:
             colour = self.board[row][col]
-            if colour != EMPTY:
+            if colour is not None:
                 scores[colour] += 1
                 continue
             coords = (row, col)
@@ -181,9 +177,9 @@ class Board(object):
                 continue
             region = self._make_empty_region(row, col)
             region_size = len(region.points)
-            for colour in (BLACK, WHITE):
+            for colour in ('b', 'w'):
                 if colour in region.neighbouring_colours:
                     scores[colour] += region_size
             handled.update(region.points)
-        return scores[BLACK] - scores[WHITE]
+        return scores['b'] - scores['w']
 
