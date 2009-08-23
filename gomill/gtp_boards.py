@@ -16,7 +16,7 @@ class Game_state(object):
 
     Public attributes:
       size                      -- int
-      board                     -- boards.Play_board
+      board                     -- boards.Board
       komi                      -- float
       move_history              -- list of tuples (colour, point)
       ko_point                  -- point forbidden by the simple ko rule
@@ -105,7 +105,7 @@ class Gtp_board(object):
         self.reset()
 
     def reset(self):
-        self.board = boards.Play_board(self.board_size)
+        self.board = boards.Board(self.board_size)
         self.simple_ko_point = None
         # Player that any simple_ko_point is banned for
         self.simple_ko_player = None
@@ -120,7 +120,7 @@ class Gtp_board(object):
         Raises ValueError if there is an invalid move in the list.
 
         """
-        self.board = boards.Play_board(self.board_size)
+        self.board = boards.Board(self.board_size)
         simple_ko_point = None
         colour = 'b'
         for colour, coords in moves:

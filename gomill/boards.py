@@ -1,4 +1,4 @@
-"""Go board capable of area scoring."""
+"""Go board representation."""
 
 from gomill_common import *
 
@@ -187,6 +187,3 @@ class Board(object):
             handled.update(region.points)
         return scores[BLACK] - scores[WHITE]
 
-# FIXME
-Referee_board = Board
-Play_board = Board

@@ -78,7 +78,7 @@ def play_diagram(board, diagram):
             board.play(row, col, colour)
 
 def main():
-    b = boards.Referee_board(9)
+    b = boards.Board(9)
     assert b.area_score() == 0
     b.play(2, 3, 'b')
     assert b.area_score() == 81
@@ -86,13 +86,13 @@ def main():
     assert b.area_score() == 0
 
     for code, moves, diagram, score in play_tests:
-        b = boards.Referee_board(9)
+        b = boards.Board(9)
         for colour, row, col in moves:
             b.play(row, col, colour)
         assert b.area_score() == score
 
     for diagram, score in score_positions:
-        b = boards.Referee_board(9)
+        b = boards.Board(9)
         play_diagram(b, diagram)
         assert b.area_score() == score
 

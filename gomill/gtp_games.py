@@ -91,7 +91,7 @@ class Game(object):
         self.move_limit = move_limit
         self.moves = []
         self.result = None
-        self.board = boards.Referee_board(board_size)
+        self.board = boards.Board(board_size)
         self.internal_scorer = False
         self.player_scorers = []
         self.engine_names = {'b' : "unknown", 'w' : "unknown"}
