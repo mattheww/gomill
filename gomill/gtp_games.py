@@ -3,7 +3,7 @@
 from gomill_common import *
 from gomill import gtp_controller
 from gomill import boards
-from gomill import sgf
+from gomill import sgf_writer
 from gomill.gtp_controller import (
     GtpProtocolError, GtpTransportError, GtpEngineError)
 
@@ -441,7 +441,7 @@ class Game(object):
         Returns an Sgf_game object.
 
         """
-        sgf_game = sgf.Sgf_game(self.board_size)
+        sgf_game = sgf_writer.Sgf_game(self.board_size)
         sgf_game.set('komi', self.komi)
         sgf_game.set('application', "gokit:?")
         sgf_game.add_date()
