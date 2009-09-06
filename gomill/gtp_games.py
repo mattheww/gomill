@@ -97,7 +97,7 @@ class Game(object):
         self.engine_names = {'b' : "unknown", 'w' : "unknown"}
         self.engine_descriptions = {'b' : "unknown", 'w' : "unknown"}
         self.engine_resource_usage = {'b' : None, 'w' : None}
-        self.gtp_translations = {}
+        self.gtp_translations = {'b' : {}, 'w' : {}}
 
     def use_internal_scorer(self, b=True):
         """Set the scoring method to internal.
