@@ -357,9 +357,28 @@ class Game(object):
         else:
             self.hit_move_limit = True
         self.calculate_result()
+        self.calculate_cpu_times()
+
+    def fake_run(self, winner):
+        """Set state variables as if the game had been run (for testing).
+
+        You don't need to use start_players to call this.
+
+        winner -- 'b' or 'w'
+
+        """
+        self.winner = winner
+        self.seen_resignation = False
+        self.seen_claim = False
+        self.forfeited = False
+        self.hit_move_limit = False
+        self.margin = 2
+        self.forfeit_reason = None
+        self.calculate_result()
+        self.result.cpu_times = {'b' : None, 'w' : None}
 
     def calculate_result(self):
-        """Set game.result."""
+        """Set self.result."""
         result = Game_result()
         result.player_b = self.players['b']
         result.player_w = self.players['w']
@@ -388,10 +407,14 @@ class Game(object):
             # Players returned something like 'B+?'
             result.sgf_result = "%s+F" % self.winner.upper()
             result.detail = "unknown margin/reason"
+        self.result = result
+
+    def calculate_cpu_times(self):
+        """Set CPU times in self.result."""
         # The ugliness with cpu_time '?' is to avoid using the cpu time reported
         # by channel close() for engines which claim to support gomill-cpu_time
         # but give an error.
-        result.cpu_times = {}
+        self.result.cpu_times = {}
         for colour in ('b', 'w'):
             if self.known_command(colour, 'gomill-cpu_time'):
                 try:
@@ -401,8 +424,7 @@ class Game(object):
                     cpu_time = "?"
             else:
                 cpu_time = None
-            result.cpu_times[self.players[colour]] = cpu_time
-        self.result = result
+            self.result.cpu_times[self.players[colour]] = cpu_time
 
     def close_players(self):
         """Close both channels (if they're open).
