@@ -1,44 +1,115 @@
 from gomill import cem
+#from gomill import job_manager
+from gomill import referee
+from gomill import gtp_games
+from gomill.gtp_controller import (
+    GtpProtocolError, GtpTransportError, GtpEngineError)
 
-BATCH_SIZE = 100
+# FIXME
+import random
 
-class Sample(object):
-    def __init__(self, parameters):
-        self.parameters = parameters
+BATCH_SIZE = 10
 
-    def __str__(self):
-        s = " ".join("%5.2f" % f for f in self.parameters)
-        return "<sample %s>" % s
 
-def get_sample_fitness(sample):
-    # FIXME
-    a, b = sample.parameters
-    a_fitness = 20 - abs(a - 7.0)
-    b_fitness = 20 - abs(b - 6.0)
-    return a_fitness + 3 * b_fitness
+gnugo_fmt = "gnugo --mode=gtp --chinese-rules --capture-all-dead "
+gnugo_l0 = referee.Player_config(gnugo_fmt + "--level=0")
 
-def get_fitness(parameter_vectors):
-    """FIXME
+kiai_fmt = "~/kiai/kiai13 -m kiai.mcts_player "
+def kiai_player(opts):
+    return referee.Player_config(kiai_fmt + opts)
 
-    parameter_vectors -- list of optimiser parameter vectors
+def get_player(parameters):
+    """
 
-    Returns a corresponding list of fitness values (floats)
+    parameters -- engine parameter vector
 
-    Only the rank of the fitness values matters.
+    Returns a Player_config
 
     """
-    return [get_sample_fitness(Sample(parameters))
-            for parameters in parameter_vectors]
+    return kiai_player("--ppm=20")
+
+
+class Tuner(object):
+    """Run games in conjunction with an optimiser.
+
+    Tuner objects are suitable for use as a job source for the job manager.
+
+    """
+    # FIXME: Doc the state variables associated with run_round.
+
+    def __init__(self):
+        self.worker_count = None
+        self.opponent = gnugo_l0
+        self.opponent_code = 'gnugo-l0'
+        self.board_size = 13
+        self.komi = 7.5
+        self.move_limit = 400
+
+    def translate_parameters(self, parameter_vectors):
+        """Translate optimiser parameter vectors to engine ones."""
+        return parameter_vectors[:]
+
+    def players_for_round(self):
+        # Might as well rotate quickly through players, as that's what we'll
+        # want if we ever have early-out.
+        for round_number in xrange(BATCH_SIZE):
+            for candidate_number, player in enumerate(self.players):
+                yield candidate_number, player
+
+    def play_game(self, player):
+        """
+
+        Returns true if the candidate won
+
+        """
+        players = {'b' : 'CANDIDATE', 'w' : self.opponent_code}
+        commands = {'b' : player.cmd_args, 'w' : self.opponent.cmd_args}
+        game = gtp_games.Game(players, commands,
+                              self.board_size, self.komi, self.move_limit)
+        game.use_internal_scorer()
+        try:
+            #game.start_players()
+            #game.run()
+            game.fake_run(random.choice(["b", "w"]))
+        except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
+            raise StandardError("aborting game due to error:\n%s\n" % e)
+        #try:
+        #    game.close_players()
+        #except StandardError, e:
+        #    raise StandardError(
+        #        "error shutting down players:\n%s\n" % e)
+        return (game.result.winning_player == 'CANDIDATE')
+
+    def run_round(self, parameter_vectors):
+        self.game_number = 0
+        self.players = []
+        for i, optimiser_parameters in enumerate(parameter_vectors):
+            engine_parameters = self.translate_parameters(optimiser_parameters)
+            player = get_player(engine_parameters)
+            player.candidate_number = i
+            self.players.append(player)
+        wins = [0] * len(parameter_vectors)
+        for candidate_number, player in self.players_for_round():
+            if self.play_game(player):
+                wins[candidate_number] += 1
+        return wins
+
 
 def get_initial_distribution():
     # FIXME
-    result = cem.Distribution([(10.0, 2.0), (3.0, 1.0)])
-    return result
+    return cem.Distribution([(10.0, 4.0), (3.0, 4.0), (3.0, 3.0)])
 
 def test():
-    optimiser = cem.Cem_optimiser(fitness_fn=get_fitness)
+    tuner = Tuner()
+    optimiser = cem.Cem_optimiser(fitness_fn=tuner.run_round,
+                                  samples_per_generation=100,
+                                  elite_proportion=0.1,
+                                  step_size=0.8)
     optimiser.set_distribution(get_initial_distribution())
-    print optimiser.run(number_of_generations=20)
+    print optimiser.run(number_of_generations=100)
+    print optimiser._converged_after
+    print (optimiser._converged_after * optimiser.samples_per_generation *
+           BATCH_SIZE)
 
 if __name__ == "__main__":
     test()
