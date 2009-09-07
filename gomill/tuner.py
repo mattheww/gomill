@@ -106,10 +106,12 @@ def test():
                                   elite_proportion=0.1,
                                   step_size=0.8)
     optimiser.set_distribution(get_initial_distribution())
-    print optimiser.run(number_of_generations=100)
-    print optimiser._converged_after
-    print (optimiser._converged_after * optimiser.samples_per_generation *
+    converged_after = optimiser.run(
+        number_of_generations=100, convergence_threshold=0.02)
+    print converged_after
+    print (converged_after * optimiser.samples_per_generation *
            BATCH_SIZE)
+    print optimiser.distribution
 
 if __name__ == "__main__":
     test()

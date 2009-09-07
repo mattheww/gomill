@@ -1,6 +1,6 @@
 """Cross-entropy parameter tuning."""
 
-from random import gauss
+from random import gauss as random_gauss
 from math import sqrt
 
 def square(f):
@@ -26,7 +26,7 @@ class Distribution(object):
         Returns a list of pairs of floats
 
         """
-        return [gauss(mean, stddev)
+        return [random_gauss(mean, stddev)
                 for (mean, stddev) in self.gaussian_params]
 
     def __str__(self):
@@ -41,7 +41,8 @@ class Cem_optimiser(object):
     Usage:
        optimiser = Cem_optimiser(fitness_fn [, ...])
        optimiser.set_distribution(...)
-       parameters = optimiser.run(...)
+       optimiser.run(...)
+       retrieve optimiser.parameters
 
     Instantiate with a fitness function: FIXME.
 
@@ -110,13 +111,23 @@ class Cem_optimiser(object):
         elite_parameters = self.find_elite_parameters()
         self.update_distribution(elite_parameters)
 
-    def run(self, number_of_generations):
-        """Run the optimiser for a specified number of generations.
+    def run(self, number_of_generations, convergence_threshold=None):
+        """Run the optimiser for many generations.
 
-        Returns the final probability distribution.
+        number_of_generations -- (maximum) number of generations to run
+        convergence_threshold -- float
+
+        If convergence threshold is passed, this terminates if all variances are
+        less than the threshold.
+
+        Returns the number of generations actually run.
 
         """
         for i in xrange(number_of_generations):
-            #print self.distribution
+            print self.distribution
             self.run_one_generation()
-        return self.distribution
+            if (convergence_threshold and
+                max(t[1] for t in self.distribution.parameters) <
+                convergence_threshold):
+                break
+        return i + 1
