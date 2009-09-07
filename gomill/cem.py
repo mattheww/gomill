@@ -30,10 +30,12 @@ class Distribution(object):
                 for (mean, stddev) in self.gaussian_params]
 
     def __str__(self):
-        s = " ".join("%5.2f +- %4.2f" % (mean, stddev)
+        s = " ".join("%5.2f~%4.2f" % (mean, stddev)
                      for (mean, stddev) in self.parameters)
         return "<distribution %s>" % s
 
+def format_parameters(parameters):
+    return " ".join("%5.2f" % v for v in parameters)
 
 class Cem_optimiser(object):
     """Optimiser using the cross-entropy method.
@@ -64,6 +66,9 @@ class Cem_optimiser(object):
         self.distribution = None
         self.dimension = None
 
+    def log(self, s):
+        print s
+
     def set_distribution(self, distribution):
         """Set the current probability distribution."""
         self.distribution = distribution
@@ -81,10 +86,16 @@ class Cem_optimiser(object):
         fitness_list = self.fitness_fn(sample_parameters)
         sorter = [(fitness, index)
                   for (index, fitness) in enumerate(fitness_list)]
-        sorter.sort()
+        sorter.sort(reverse=True)
         elite_count = int(self.elite_proportion * self.samples_per_generation)
+
+        for i, (fitness, index) in enumerate(sorter):
+            self.log("%s%7.2f %s" %
+                     ("*" if i < elite_count else " ", fitness,
+                      format_parameters(sample_parameters[index])))
+
         return [sample_parameters[index]
-                for (fitness, index) in sorter[-elite_count:]]
+                for (fitness, index) in sorter[:elite_count]]
 
     def update_distribution(self, elites):
         """Update the current distribution based on the given elitss.
@@ -124,10 +135,13 @@ class Cem_optimiser(object):
 
         """
         for i in xrange(number_of_generations):
-            print self.distribution
+            self.log("generation %d" % i)
+            self.log("initial distribution: %s" % self.distribution)
             self.run_one_generation()
             if (convergence_threshold and
                 max(t[1] for t in self.distribution.parameters) <
                 convergence_threshold):
+                self.log("converged")
                 break
+        self.log("final distribution: %s" % self.distribution)
         return i + 1
