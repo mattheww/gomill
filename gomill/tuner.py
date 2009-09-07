@@ -99,12 +99,16 @@ def get_initial_distribution():
     # FIXME
     return cem.Distribution([(10.0, 4.0), (3.0, 4.0), (3.0, 3.0)])
 
+def log(s):
+    print s
+
 def test():
     tuner = Tuner()
     optimiser = cem.Cem_optimiser(fitness_fn=tuner.run_round,
                                   samples_per_generation=100,
                                   elite_proportion=0.1,
                                   step_size=0.8)
+    optimiser.set_brief_logger(log)
     optimiser.set_distribution(get_initial_distribution())
     converged_after = optimiser.run(
         number_of_generations=100, convergence_threshold=0.02)

@@ -65,9 +65,23 @@ class Cem_optimiser(object):
         self.step_size = step_size
         self.distribution = None
         self.dimension = None
+        self.verbose_logger = None
+        self.brief_logger = None
 
-    def log(self, s):
-        print s
+    def log_verbose(self, s):
+        if self.verbose_logger:
+            self.verbose_logger(s)
+
+    def set_verbose_logger(self, logger):
+        self.verbose_logger = logger
+
+    def log_brief(self, s):
+        self.log_verbose(s)
+        if self.brief_logger:
+            self.brief_logger(s)
+
+    def set_brief_logger(self, logger):
+        self.brief_logger = logger
 
     def set_distribution(self, distribution):
         """Set the current probability distribution."""
@@ -89,10 +103,11 @@ class Cem_optimiser(object):
         sorter.sort(reverse=True)
         elite_count = int(self.elite_proportion * self.samples_per_generation)
 
-        for i, (fitness, index) in enumerate(sorter):
-            self.log("%s%7.2f %s" %
-                     ("*" if i < elite_count else " ", fitness,
-                      format_parameters(sample_parameters[index])))
+        if self.verbose_logger:
+            for i, (fitness, index) in enumerate(sorter):
+                self.log_verbose("%s%7.2f %s" %
+                                 ("*" if i < elite_count else " ", fitness,
+                                  format_parameters(sample_parameters[index])))
 
         return [sample_parameters[index]
                 for (fitness, index) in sorter[:elite_count]]
@@ -135,13 +150,13 @@ class Cem_optimiser(object):
 
         """
         for i in xrange(number_of_generations):
-            self.log("generation %d" % i)
-            self.log("initial distribution: %s" % self.distribution)
+            self.log_verbose("generation %d" % i)
+            self.log_brief("distribution: %s" % self.distribution)
             self.run_one_generation()
             if (convergence_threshold and
                 max(t[1] for t in self.distribution.parameters) <
                 convergence_threshold):
-                self.log("converged")
+                self.log_brief("converged")
                 break
-        self.log("final distribution: %s" % self.distribution)
+        self.log_brief("final distribution: %s" % self.distribution)
         return i + 1
