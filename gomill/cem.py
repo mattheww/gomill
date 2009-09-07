@@ -29,10 +29,12 @@ class Distribution(object):
         return [random_gauss(mean, stddev)
                 for (mean, stddev) in self.gaussian_params]
 
+    def format(self):
+        return " ".join("%5.2f~%4.2f" % (mean, stddev)
+                        for (mean, stddev) in self.parameters)
+
     def __str__(self):
-        s = " ".join("%5.2f~%4.2f" % (mean, stddev)
-                     for (mean, stddev) in self.parameters)
-        return "<distribution %s>" % s
+        return "<distribution %s>" % self.format()
 
 def format_parameters(parameters):
     return " ".join("%5.2f" % v for v in parameters)
@@ -151,12 +153,12 @@ class Cem_optimiser(object):
         """
         for i in xrange(number_of_generations):
             self.log_verbose("generation %d" % i)
-            self.log_brief("distribution: %s" % self.distribution)
+            self.log_brief("distribution: %s" % self.distribution.format())
             self.run_one_generation()
             if (convergence_threshold and
                 max(t[1] for t in self.distribution.parameters) <
                 convergence_threshold):
                 self.log_brief("converged")
                 break
-        self.log_brief("final distribution: %s" % self.distribution)
+        self.log_brief("final distribution: %s" % self.distribution.format())
         return i + 1
