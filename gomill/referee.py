@@ -435,7 +435,7 @@ class Tournament(object):
         commands = {'b' : self.players[player_b].cmd_args,
                     'w' : self.players[player_w].cmd_args}
         gtp_translations = {'b' : self.players[player_b].gtp_translations,
-                         'w' : self.players[player_w].gtp_translations}
+                            'w' : self.players[player_w].gtp_translations}
         players = {'b' : player_b, 'w' : player_w}
         start_msg = "starting game %d: %s (b) vs %s (w)" % (
             game_number, player_b, player_w)
