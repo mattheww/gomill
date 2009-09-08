@@ -1,5 +1,5 @@
 from gomill import cem
-#from gomill import job_manager
+from gomill import job_manager
 from gomill import referee
 from gomill import gtp_games
 from gomill.gtp_controller import (
@@ -28,6 +28,24 @@ def get_player(parameters):
     """
     return kiai_player("--ppm=20")
 
+class Fake_play_game_job(referee.Play_game_job):
+    def run(self):
+        game = gtp_games.Game(self.players, self.commands,
+                              self.board_size, self.komi, self.move_limit)
+        if self.use_internal_scorer:
+            game.use_internal_scorer()
+        elif self.preferred_scorers:
+            game.use_players_to_score(self.preferred_scorers)
+        game.set_gtp_translations(self.gtp_translations)
+        game.fake_run(random.choice(["b", "w"]))
+        if self.record_sgf:
+            self.record_game(game)
+        response = referee.Play_game_response()
+        response.game_number = self.game_number
+        response.game_result = game.result
+        response.engine_names = game.engine_names
+        response.engine_descriptions = game.engine_descriptions
+        return response
 
 class Tuner(object):
     """Run games in conjunction with an optimiser.
@@ -49,50 +67,79 @@ class Tuner(object):
         """Translate optimiser parameter vectors to engine ones."""
         return parameter_vectors[:]
 
-    def players_for_round(self):
+    def player_sequence(self):
         # Might as well rotate quickly through players, as that's what we'll
         # want if we ever have early-out.
         for round_number in xrange(BATCH_SIZE):
             for candidate_number, player in enumerate(self.players):
                 yield candidate_number, player
 
-    def play_game(self, player):
-        """
+    @staticmethod
+    def FIXMEextract_candidate_number(player_code):
+        return int(player_code[9:])
 
-        Returns true if the candidate won
+    @staticmethod
+    def FIXMEmake_candidate_code(candidate_number):
+        return "CANDIDATE%d" % candidate_number
 
-        """
-        players = {'b' : 'CANDIDATE', 'w' : self.opponent_code}
-        commands = {'b' : player.cmd_args, 'w' : self.opponent.cmd_args}
-        game = gtp_games.Game(players, commands,
-                              self.board_size, self.komi, self.move_limit)
-        game.use_internal_scorer()
+    @staticmethod
+    def FIXMEis_candidate(player_code):
+        return player_code.startswith("CANDIDATE")
+
+    def get_job(self):
         try:
-            #game.start_players()
-            #game.run()
-            game.fake_run(random.choice(["b", "w"]))
-        except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
-            raise StandardError("aborting game due to error:\n%s\n" % e)
-        #try:
-        #    game.close_players()
-        #except StandardError, e:
-        #    raise StandardError(
-        #        "error shutting down players:\n%s\n" % e)
-        return (game.result.winning_player == 'CANDIDATE')
+            candidate_number, player = self.player_source.next()
+        except StopIteration:
+            return job_manager.NoJobAvailable
+
+        candidate_player_code = self.FIXMEmake_candidate_code(candidate_number)
+        job = Fake_play_game_job()
+        job.game_number = self.game_number
+        job.players = {'b' : candidate_player_code, 'w' : self.opponent_code}
+        job.commands = {'b' : player.cmd_args, 'w' : self.opponent.cmd_args}
+        job.gtp_translations = {'b' : {}, 'w' : {}}
+        job.board_size = 13
+        job.komi = 7.5
+        job.move_limit = 400
+        job.use_internal_scorer = True
+        job.preferred_scorers = {}
+        job.tournament_code = "tuner"
+        job.record_sgf = False
+        job.sgf_dir_pathname = None
+        job.run_fake_game = True
+        self.game_number += 1
+        return job
+
+    def process_response(self, response):
+        game_result = response.game_result
+        if self.FIXMEis_candidate(game_result.winning_player):
+            candidate_number = self.FIXMEextract_candidate_number(
+                game_result.winning_player)
+            self.wins[candidate_number] += 1
+
+    def process_error_response(self, job, message):
+        raise StandardError("error from worker for game %d\n%s" %
+                            (job.game_number, message))
 
     def run_round(self, parameter_vectors):
         self.game_number = 0
         self.players = []
-        for i, optimiser_parameters in enumerate(parameter_vectors):
+        for optimiser_parameters in parameter_vectors:
             engine_parameters = self.translate_parameters(optimiser_parameters)
             player = get_player(engine_parameters)
-            player.candidate_number = i
             self.players.append(player)
-        wins = [0] * len(parameter_vectors)
-        for candidate_number, player in self.players_for_round():
-            if self.play_game(player):
-                wins[candidate_number] += 1
-        return wins
+        self.wins = [0] * len(parameter_vectors)
+        self.player_source = self.player_sequence()
+
+        try:
+            allow_mp = (self.worker_count is not None)
+            job_manager.run_jobs(
+                job_source=self,
+                allow_mp=allow_mp, max_workers=self.worker_count)
+        except KeyboardInterrupt:
+            self.log("interrupted")
+            raise
+        return self.wins
 
 
 def get_initial_distribution():
