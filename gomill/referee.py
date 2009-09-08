@@ -37,10 +37,10 @@ class Play_game_response(object):
     This is the data that is passed back from worker processes.
 
     Public attributes:
-      game_number
-      game_result
-      engine_names
-      engine_descriptions
+      game_number           -- int
+      game_result           -- Game_result
+      engine_names          -- map colour -> string
+      engine_descriptions   -- map colour -> string
 
     """
 
