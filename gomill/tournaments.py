@@ -14,7 +14,7 @@ class Tournament(Competition):
         self.next_game_number = 0
 
     def initialise_from_control_file(self, config):
-        # FIXME: Some of this will move down to Competition.
+        # FIXME: Some of this will move up to Competition.
 
         # Ought to validate.
         self.description = config['description']
@@ -79,14 +79,6 @@ class Tournament(Competition):
 
     def _games_played(self):
         return len(self.results)
-
-    def brief_progress_message(self):
-        """Return a one-line description of competition progress."""
-        if self.number_of_games is None:
-            return "%d games played" % self._games_played()
-        else:
-            return "%d/%d games played" % (
-                self._games_played(), self.number_of_games)
 
     def get_game(self):
         """Return the details of the next game to play.
@@ -158,6 +150,12 @@ class Tournament(Competition):
         from write_static_description().
 
         """
+        if self.number_of_games is None:
+            print >>out, "%d games played" % self._games_played()
+        else:
+            print >>out, "%d/%d games played" % (
+                self._games_played(), self.number_of_games)
+        print >>out
         # matchups without regard to colour choice
         pairings = sorted(set(tuple(sorted(t)) for t in self.matchups))
         for player_x, player_y in pairings:

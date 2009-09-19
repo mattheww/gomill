@@ -73,7 +73,7 @@ class Ringmaster(object):
 
     """
     def __init__(self, tourn_pathname):
-        self.chatty = True # not currently configurable
+        self.chatty = True
         self.worker_count = None
         self.max_games_this_run = None
         self.games_in_progress = 0
@@ -113,6 +113,9 @@ class Ringmaster(object):
             self.logfile = open(self.log_pathname, "a")
         except EnvironmentError, e:
             raise RingmasterError("failed to open log file:\n%s" % e)
+
+    def set_quiet_mode(self, b=True):
+        self.chatty = not(b)
 
     def set_parallel_worker_count(self, n):
         self.worker_count = n
@@ -213,7 +216,6 @@ class Ringmaster(object):
             job.game_id, job.players['b'], job.players['w'])
         self.log(start_msg)
         if self.chatty:
-            print self.competition.brief_progress_message()
             print start_msg
             print "%d games in progress" % self.games_in_progress
             if self.max_games_this_run is not None:
@@ -261,17 +263,12 @@ def do_run(tourn_pathname, worker_count=None, quiet=False,
            max_games=None):
     ringmaster = Ringmaster(tourn_pathname)
     if quiet:
-        ringmaster.chatty = False
+        ringmaster.set_quiet_mode()
     if ringmaster.status_file_exists():
-        print "status file exists; continuing"
         ringmaster.load_status()
 
     # FIXME: Delegate to ringmaster and thence to competition
-    #if ringmaster.number_of_games is None:
-    #    print "no limit on number of games"
-    #    if not ringmaster.chatty:
-    #        print "%d games played so far" % ringmaster.games_played()
-    #else:
+    #if ringmaster.number_of_games is not None:
     #    games_remaining = ringmaster.number_of_games - ringmaster.games_played()
     #    if games_remaining <= 0:
     #        print "competition already complete"
@@ -280,7 +277,6 @@ def do_run(tourn_pathname, worker_count=None, quiet=False,
     #            games_remaining, ringmaster.number_of_games)
 
     if worker_count is not None:
-        print "using %d workers" % worker_count
         ringmaster.set_parallel_worker_count(worker_count)
     ringmaster.run(max_games)
     ringmaster.report()
@@ -317,7 +313,7 @@ def main():
     parser.add_option("--parallel", "-j", type="int",
                       help="number of worker processes")
     parser.add_option("--quiet", "-q", action="store_true",
-                      help="print less information while running")
+                      help="silent except for warnings and errors")
     (options, args) = parser.parse_args()
     if len(args) == 0:
         parser.error("no control file specified")
