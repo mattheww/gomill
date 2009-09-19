@@ -11,6 +11,7 @@ from optparse import OptionParser
 import simplejson as json
 
 from gomill import compact_tracebacks
+from gomill import game_jobs
 from gomill import gtp_games
 from gomill import job_manager
 from gomill.competitions import NoGameAvailable
@@ -46,15 +47,33 @@ def read_tourn_file(pathname):
     return result
 
 
+# To be work here, a class must be a simple holder for its attributes, all its
+# attributes must be json-serialisable, and __init__ must accept no parameters.
+
+json_encodable_classes = {
+    gtp_games.Game_result : 'R',
+    game_jobs.Game_job    : 'J',
+    }
+
+json_decodable_classes = {
+    'R' : gtp_games.Game_result,
+    'J' : game_jobs.Game_job,
+    }
+
 def ringmaster_json_encode_default(obj):
-    if isinstance(obj, gtp_games.Game_result):
-        return obj.__dict__
-    raise TypeError(repr(obj) + " is not JSON serializable")
+    cls = json_encodable_classes.get(obj.__class__)
+    if cls is None:
+        raise TypeError(repr(obj) + " is not JSON-serialisable")
+    result = obj.__dict__
+    result['_cls'] = cls
+    return result
 
 def ringmaster_json_decode_object_hook(dct):
-    if 'winning_colour' not in dct:
+    try:
+        cls = json_decodable_classes[dct.pop('_cls')]
+    except KeyError:
         return dct
-    result = gtp_games.Game_result()
+    result = cls()
     for key, value in dct.iteritems():
         setattr(result, key, value)
     return result
