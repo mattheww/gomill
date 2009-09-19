@@ -175,7 +175,7 @@ class Tournament(Competition):
         out -- writeable file-like object
 
         This reports on the game results, and shouldn't duplicate information
-        from write_static_description().
+        from write_static_description() or write_status_summary().
 
         """
         def p(s):
