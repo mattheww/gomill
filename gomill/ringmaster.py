@@ -49,6 +49,7 @@ def read_tourn_file(pathname):
 
 # To be work here, a class must be a simple holder for its attributes, all its
 # attributes must be json-serialisable, and __init__ must accept no parameters.
+# Also, the class shouldn't have any attributes that don't need serialising.
 
 json_encodable_classes = {
     gtp_games.Game_result : 'R',
@@ -95,10 +96,12 @@ class Ringmaster(object):
         self.chatty = True
         self.worker_count = None
         self.max_games_this_run = None
-        self.games_in_progress = 0
         self.stopping = False
         self.stopping_reason = None
         self.total_errors = 0
+        # These are both maps job_id -> Game_job
+        self.games_in_progress = {}
+        self.games_to_replay = {}
 
         stem = tourn_pathname.rpartition(".tourn")[0]
         self.competition_code = os.path.basename(stem)
@@ -156,6 +159,8 @@ class Ringmaster(object):
         competition_status = self.competition.get_status()
         status = {
             'total_errors' : self.total_errors,
+            'in_progress'  : self.games_in_progress,
+            'to_replay'    : self.games_to_replay,
             'comp'         : competition_status,
             }
         f = open(self.status_pathname + ".new", "w")
@@ -168,6 +173,9 @@ class Ringmaster(object):
         status = json.load(f, object_hook=ringmaster_json_decode_object_hook)
         f.close()
         self.total_errors = status['total_errors']
+        self.games_in_progress = {}
+        self.games_to_replay = status['to_replay']
+        self.games_to_replay.update(status['in_progress'])
         competition_status = status['comp']
         self.competition.set_status(competition_status)
 
@@ -192,7 +200,7 @@ class Ringmaster(object):
         def describe_stopping():
             if self.chatty:
                 print "waiting for workers to finish: %s" % self.stopping_reason
-                print "%d games in progress" % self.games_in_progress
+                print "%d games in progress" % len(self.games_in_progress)
 
         if self.chatty and self.total_errors > 0:
             print "!! %d errors occurred; see log file." % self.total_errors
@@ -230,29 +238,32 @@ class Ringmaster(object):
                 return job_manager.NoJobAvailable
             self.max_games_this_run -= 1
 
-        job = self.competition.get_game()
-        if job is NoGameAvailable:
-            return job_manager.NoJobAvailable
-        if self.record_games:
-            job.sgf_pathname = os.path.join(
-                self.sgf_dir_pathname, "%s.sgf" % job.game_id)
-        self.games_in_progress += 1
+        if self.games_to_replay:
+            _, job = self.games_to_replay.popitem()
+        else:
+            job = self.competition.get_game()
+            if job is NoGameAvailable:
+                return job_manager.NoJobAvailable
+            if self.record_games:
+                job.sgf_pathname = os.path.join(
+                    self.sgf_dir_pathname, "%s.sgf" % job.game_id)
+        self.games_in_progress[job.game_id] = job
         start_msg = "starting game %s: %s (b) vs %s (w)" % (
             job.game_id, job.players['b'], job.players['w'])
         self.log(start_msg)
         if self.chatty:
             print start_msg
-            print "%d games in progress" % self.games_in_progress
+            print "%d games in progress" % len(self.games_in_progress)
             if self.max_games_this_run is not None:
                 print ("will start at most %d more games in this run" %
                        self.max_games_this_run)
         return job
 
     def process_response(self, response):
-        self.games_in_progress -= 1
         #self.recent_errors = 0
         self.log("response from game %s" % response.game_id)
         self.competition.process_game_result(response)
+        del self.games_in_progress[response.game_id]
         self.write_status()
         if self.chatty:
             clear_screen()
@@ -261,11 +272,11 @@ class Ringmaster(object):
                 response.game_id, response.game_result.describe())
 
     def process_error_response(self, job, message):
-        self.games_in_progress -= 1
         self.total_errors += 1
         #self.recent_errors += 1
         self.warn("error from worker for game %s\n%s" %
                   (job.game_id, message))
+        del self.games_in_progress[response.game_id]
         self.stopping = True
         self.stopping_reason = "seen errors, giving up on competition"
 
