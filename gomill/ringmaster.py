@@ -163,6 +163,8 @@ class Ringmaster(object):
 
     def get_job(self):
         if self.chatty:
+            if self.total_errors > 0:
+                print "!! %d errors occurred; see log file." % self.total_errors
             if self.stopping:
                 print "waiting for workers to finish: %s" % self.stopping_reason
         if self.stopping:
