@@ -26,7 +26,6 @@ class Tournament(Competition):
         self.komi = config['komi']
         self.move_limit = config['move_limit']
         self.number_of_games = config.get('number_of_games')
-        self.record_games = config['record_games']
         self.use_internal_scorer = False
         self.preferred_scorers = None
         if 'scorer' in config:
@@ -85,7 +84,7 @@ class Tournament(Competition):
 
         Returns a game_jobs.Game_job, or NoGameAvailable
 
-        (Doesn't set sgf_dir_pathname: the ringmaster does that).
+        (Doesn't set sgf_pathname: the ringmaster does that).
 
         """
         game_number = self.next_game_number
@@ -110,7 +109,6 @@ class Tournament(Competition):
         job.move_limit = self.move_limit
         job.use_internal_scorer = self.use_internal_scorer
         job.preferred_scorers = self.preferred_scorers
-        job.record_sgf = self.record_games
         job.sgf_event = self.competition_code
         return job
 

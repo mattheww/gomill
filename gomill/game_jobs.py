@@ -1,7 +1,6 @@
 """Connection between GTP games and the job manager."""
 
 import datetime
-import os
 
 from gomill import gtp_games
 from gomill import job_manager
@@ -11,29 +10,41 @@ from gomill.gtp_controller import (
 class Game_job(object):
     """A game to be played in a worker process.
 
-    FIXME: Let some have useful defaults, and doc
+    A Game_job is designed to be used a job object for the job manager. When the
+    job is run, it plays a GTP game as described by its attributes, and
+    optionally writes an SGF file.
 
-    attributes:
-      game_id             -- short string (identifier-like)
+    required attributes:
+      game_id             -- short string
       players             -- map colour -> player code
       commands            -- map colour -> string (used to launch the program)
-      gtp_translations    -- map colour ->
-                                 (map command string -> command string)
       board_size          -- int
       komi                -- float
       move_limit          -- int
+
+    optional attributes:
+      sgf_pathname        -- pathname to use for the SGF file, or None
+      sgf_event           -- string to show as SGF EVent
       use_internal_scorer -- bool
       preferred_scorers   -- set or list of player codes, or None
-      record_sgf          -- bool
-      sgf_dir_pathname    -- directory to write SGF files to
-      sgf_event           -- string to show as SGF EVent
+      gtp_translations    -- map colour ->
+                                 (map command string -> command string)
 
-    This is suitable for use as a job object for the job manager.
+    The game_id will be returned in the job result, so you can tell which game
+    you're getting the result for. It also appears in a comment in the SGF file.
+
+    Leave sgf_pathname None if you don't want to write an SGF file.
+
+    See gtp_games for an explanation of the 'scorer' attributes and
+    gtp_translations.
 
     """
     def __init__(self):
-        # Set defaults here
-        pass
+        self.sgf_pathname = None
+        self.sgf_event = None
+        self.use_internal_scorer = True
+        self.preferred_scorers = None
+        self.gtp_translations = None
 
     # The code here has to be happy to run in a separate process.
 
@@ -44,7 +55,8 @@ class Game_job(object):
             game.use_internal_scorer()
         elif self.preferred_scorers:
             game.use_players_to_score(self.preferred_scorers)
-        game.set_gtp_translations(self.gtp_translations)
+        if self.gtp_translations is not None:
+            game.set_gtp_translations(self.gtp_translations)
         try:
             game.start_players()
             game.request_engine_descriptions()
@@ -56,7 +68,7 @@ class Game_job(object):
         except StandardError, e:
             raise job_manager.JobFailed(
                 "error shutting down players:\n%s\n" % e)
-        if self.record_sgf:
+        if self.sgf_pathname is not None:
             self.record_game(game)
         response = Game_job_result()
         response.game_id = self.game_id
@@ -71,9 +83,12 @@ class Game_job(object):
 
         sgf_game = game.make_sgf()
         sgf_game.set('application', "gomill:?")
-        sgf_game.set('event', self.sgf_event)
-        notes = [
-            "Event %s" % self.sgf_event,
+        if self.sgf_event is not None:
+            sgf_game.set('event', self.sgf_event)
+            notes = ["Event %s" % self.sgf_event]
+        else:
+            notes = []
+        notes += [
             "Game id %s" % self.game_id,
             "Date %s" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
             "Black %s %s" % (b_player, game.engine_descriptions[b_player]),
@@ -85,10 +100,7 @@ class Game_job(object):
             if cpu_time is not None and cpu_time != "?":
                 notes.append("%s cpu time: %ss" % (player, "%.2f" % cpu_time))
         sgf_game.set('root-comment', "\n".join(notes))
-        if not os.path.exists(self.sgf_dir_pathname):
-            os.mkdir(self.sgf_dir_pathname)
-        filename = "%s.sgf" % self.game_id
-        f = open(os.path.join(self.sgf_dir_pathname, filename), "w")
+        f = open(self.sgf_pathname, "w")
         f.write(sgf_game.as_string())
         f.close()
 

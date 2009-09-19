@@ -96,6 +96,7 @@ class Ringmaster(object):
         except:
             raise RingmasterError("error in control file:\n%s" %
                                   compact_tracebacks.format_error_and_line())
+        self.initialise_from_control_file(config)
 
         # Will need a registry, and look up by config file.
         from gomill import tournaments
@@ -113,6 +114,9 @@ class Ringmaster(object):
             self.logfile = open(self.log_pathname, "a")
         except EnvironmentError, e:
             raise RingmasterError("failed to open log file:\n%s" % e)
+
+    def initialise_from_control_file(self, config):
+        self.record_games = config['record_games']
 
     def set_quiet_mode(self, b=True):
         self.chatty = not(b)
@@ -210,7 +214,9 @@ class Ringmaster(object):
         job = self.competition.get_game()
         if job is NoGameAvailable:
             return job_manager.NoJobAvailable
-        job.sgf_dir_pathname = self.sgf_dir_pathname
+        if self.record_games:
+            job.sgf_pathname = os.path.join(
+                self.sgf_dir_pathname, "%s.sgf" % job.game_id)
         self.games_in_progress += 1
         start_msg = "starting game %s: %s (b) vs %s (w)" % (
             job.game_id, job.players['b'], job.players['w'])
@@ -246,6 +252,12 @@ class Ringmaster(object):
 
     def run(self, max_games=None):
         self.max_games_this_run = max_games
+        if self.record_games:
+            try:
+                if not os.path.exists(self.sgf_dir_pathname):
+                    os.mkdir(self.sgf_dir_pathname)
+            except EnvironmentError:
+                raise RingmasterError("failed to create SGF directory:\n%s" % e)
         if self.chatty:
             clear_screen()
             self.competition.write_status_summary(sys.stdout)
