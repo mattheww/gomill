@@ -161,23 +161,24 @@ class Ringmaster(object):
         self.competition.write_static_description(sys.stdout)
         self.competition.write_status_summary(sys.stdout)
 
-    def describe_stopping(self):
-        if self.chatty:
-            print "waiting for workers to finish: %s" % self.stopping_reason
-            print "%d games in progress" % self.games_in_progress
-
     def get_job(self):
+
+        def describe_stopping():
+            if self.chatty:
+                print "waiting for workers to finish: %s" % self.stopping_reason
+                print "%d games in progress" % self.games_in_progress
+
         if self.chatty and self.total_errors > 0:
             print "!! %d errors occurred; see log file." % self.total_errors
         if self.stopping:
-            self.describe_stopping()
+            describe_stopping()
             return job_manager.NoJobAvailable
         # Reinstate this at some point?
         #if self.recent_errors > 1:
         #    self.stopping = True
         #    self.stopping_reason = "too many errors"
         #    self.warn("too many errors, giving up tournament")
-        #    self.describe_stopping()
+        #    describe_stopping()
         #    return job_manager.NoJobAvailable()
         try:
             if os.path.exists(self.command_pathname):
@@ -191,7 +192,7 @@ class Ringmaster(object):
                         os.remove(self.command_pathname)
                     except EnvironmentError, e:
                         self.warn("error removing .cmd file:\n%s" % e)
-                    self.describe_stopping()
+                    describe_stopping()
                     return job_manager.NoJobAvailable
         except EnvironmentError, e:
             self.warn("error reading .cmd file:\n%s" % e)
@@ -199,7 +200,7 @@ class Ringmaster(object):
             if self.max_games_this_run == 0:
                 self.stopping = True
                 self.stopping_reason = "max-games reached for this run"
-                self.describe_stopping()
+                describe_stopping()
                 return job_manager.NoJobAvailable
             self.max_games_this_run -= 1
 
@@ -225,13 +226,12 @@ class Ringmaster(object):
         #self.recent_errors = 0
         self.log("response from game %s" % response.game_id)
         self.competition.process_game_result(response)
+        self.write_status()
         if self.chatty:
             clear_screen()
+            self.competition.write_status_summary(sys.stdout)
             print "game %s completed: %s" % (
                 response.game_id, response.game_result.describe())
-            print
-            self.competition.write_status_summary(sys.stdout)
-        self.write_status()
 
     def process_error_response(self, job, message):
         self.games_in_progress -= 1
@@ -244,6 +244,9 @@ class Ringmaster(object):
 
     def run(self, max_games=None):
         self.max_games_this_run = max_games
+        if self.chatty:
+            clear_screen()
+            self.competition.write_status_summary(sys.stdout)
         try:
             allow_mp = (self.worker_count is not None)
             job_manager.run_jobs(
