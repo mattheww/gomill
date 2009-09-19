@@ -8,7 +8,10 @@ import shlex
 import sys
 from optparse import OptionParser
 
+import simplejson as json
+
 from gomill import compact_tracebacks
+from gomill import gtp_games
 from gomill import job_manager
 from gomill.competitions import NoGameAvailable
 from gomill.gtp_controller import (
@@ -40,6 +43,20 @@ def read_tourn_file(pathname):
     f = open(pathname)
     exec f in result
     f.close()
+    return result
+
+
+def ringmaster_json_encode_default(obj):
+    if isinstance(obj, gtp_games.Game_result):
+        return obj.__dict__
+    raise TypeError(repr(obj) + " is not JSON serializable")
+
+def ringmaster_json_decode_object_hook(dct):
+    if 'winning_colour' not in dct:
+        return dct
+    result = gtp_games.Game_result()
+    for key, value in dct.iteritems():
+        setattr(result, key, value)
     return result
 
 
@@ -110,15 +127,19 @@ class Ringmaster(object):
         self.logfile.flush()
 
     def write_status(self):
+        competition_status = self.competition.get_status()
+        status = competition_status
         f = open(self.status_pathname + ".new", "w")
-        self.competition.write_status(f)
+        json.dump(status, f, default=ringmaster_json_encode_default)
         f.close()
         os.rename(self.status_pathname + ".new", self.status_pathname)
 
     def load_status(self):
         f = open(self.status_pathname)
-        self.competition.load_status(f)
+        status = json.load(f, object_hook=ringmaster_json_decode_object_hook)
         f.close()
+        competition_status = status
+        self.competition.set_status(competition_status)
 
     def status_file_exists(self):
         return os.path.exists(self.status_pathname)

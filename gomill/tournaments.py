@@ -1,24 +1,8 @@
 """Competitions made up of repeated matchups between specified players."""
 
-import simplejson as json
-
-from gomill import gtp_games
 from gomill import game_jobs
 from gomill.competitions import Competition, NoGameAvailable
 
-
-def json_decode_game_result(dct):
-    if 'winning_colour' not in dct:
-        return dct
-    result = gtp_games.Game_result()
-    for key, value in dct.iteritems():
-        setattr(result, key, value)
-    return result
-
-def json_encode_game_result(obj):
-    if isinstance(obj, gtp_games.Game_result):
-        return obj.__dict__
-    raise TypeError(repr(obj) + " is not JSON serializable")
 
 class Tournament(Competition):
     """A Competition made up of repeated matchups between specified players."""
@@ -68,20 +52,27 @@ class Tournament(Competition):
             if p1 not in self.players or p2 not in self.players:
                 raise ValueError
 
-    def write_status(self, dst):
-        status = {
+    def get_status(self):
+        """Return full state of the competition, so it can be resumed later.
+
+        The returned result must be serialisable using json. In addition, it cal
+        include Game_result objects.
+
+        """
+        return {
             'results' : self.results,
-            'total_errors' : self.total_errors,
             'next_game_number' : self.next_game_number,
             'engine_names' : self.engine_names,
             'engine_descriptions' : self.engine_descriptions,
             }
-        json.dump(status, dst, default=json_encode_game_result)
 
-    def load_status(self, src):
-        status = json.load(src, object_hook=json_decode_game_result)
+    def set_status(self, status):
+        """Reset competition state to previously a reported value.
+
+        'status' will be a value previously reported by get_status().
+
+        """
         self.results = status['results']
-        self.total_errors = status['total_errors']
         self.next_game_number = status['next_game_number']
         self.engine_names = status['engine_names']
         self.engine_descriptions = status['engine_descriptions']
