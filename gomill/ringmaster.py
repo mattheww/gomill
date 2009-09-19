@@ -286,6 +286,10 @@ class Ringmaster(object):
         self.stopping_reason = "seen errors, giving up on competition"
 
     def run(self, max_games=None):
+        def now():
+            return datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+
+        self.log("run started at %s with max_games %s" % (now(), max_games))
         self.max_games_this_run = max_games
         if self.record_games:
             try:
@@ -302,8 +306,9 @@ class Ringmaster(object):
                 job_source=self,
                 allow_mp=allow_mp, max_workers=self.worker_count)
         except KeyboardInterrupt:
-            self.log("interrupted")
+            self.log("run interrupted run %s" % now())
             raise
+        self.log("run finished at %s" % now())
 
 
 def do_run(tourn_pathname, worker_count=None, quiet=False,
