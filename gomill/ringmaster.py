@@ -313,16 +313,6 @@ def do_run(tourn_pathname, worker_count=None, quiet=False,
         ringmaster.set_quiet_mode()
     if ringmaster.status_file_exists():
         ringmaster.load_status()
-
-    # FIXME: Delegate to ringmaster and thence to competition
-    #if ringmaster.number_of_games is not None:
-    #    games_remaining = ringmaster.number_of_games - ringmaster.games_played()
-    #    if games_remaining <= 0:
-    #        print "competition already complete"
-    #    if not ringmaster.chatty:
-    #        print "%d/%d games to play" % (
-    #            games_remaining, ringmaster.number_of_games)
-
     if worker_count is not None:
         ringmaster.set_parallel_worker_count(worker_count)
     ringmaster.run(max_games)
