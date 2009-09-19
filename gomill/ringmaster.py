@@ -128,7 +128,10 @@ class Ringmaster(object):
 
     def write_status(self):
         competition_status = self.competition.get_status()
-        status = competition_status
+        status = {
+            'total_errors' : self.total_errors,
+            'comp'         : competition_status,
+            }
         f = open(self.status_pathname + ".new", "w")
         json.dump(status, f, default=ringmaster_json_encode_default)
         f.close()
@@ -138,7 +141,8 @@ class Ringmaster(object):
         f = open(self.status_pathname)
         status = json.load(f, object_hook=ringmaster_json_decode_object_hook)
         f.close()
-        competition_status = status
+        self.total_errors = status['total_errors']
+        competition_status = status['comp']
         self.competition.set_status(competition_status)
 
     def status_file_exists(self):
