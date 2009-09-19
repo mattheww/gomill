@@ -272,11 +272,16 @@ class Ringmaster(object):
                 response.game_id, response.game_result.describe())
 
     def process_error_response(self, job, message):
+        # Current behaviour is to gracefully stop the competition, and place all
+        # games with errors in games_to_replay so they'll be tried again when
+        # the tournament is restarted.
         self.total_errors += 1
         #self.recent_errors += 1
         self.warn("error from worker for game %s\n%s" %
                   (job.game_id, message))
-        del self.games_in_progress[response.game_id]
+        self.games_to_replay[job.game_id] = \
+            self.games_in_progress.pop(job.game_id)
+        self.write_status()
         self.stopping = True
         self.stopping_reason = "seen errors, giving up on competition"
 
