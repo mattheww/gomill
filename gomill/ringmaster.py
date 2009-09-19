@@ -161,20 +161,24 @@ class Ringmaster(object):
         self.competition.write_static_description(sys.stdout)
         self.competition.write_status_summary(sys.stdout)
 
-    def get_job(self):
+    def describe_stopping(self):
         if self.chatty:
-            if self.total_errors > 0:
-                print "!! %d errors occurred; see log file." % self.total_errors
-            if self.stopping:
-                print "waiting for workers to finish: %s" % self.stopping_reason
+            print "waiting for workers to finish: %s" % self.stopping_reason
+            print "%d games in progress" % self.games_in_progress
+
+    def get_job(self):
+        if self.chatty and self.total_errors > 0:
+            print "!! %d errors occurred; see log file." % self.total_errors
         if self.stopping:
+            self.describe_stopping()
             return job_manager.NoJobAvailable
         # Reinstate this at some point?
         #if self.recent_errors > 1:
         #    self.stopping = True
         #    self.stopping_reason = "too many errors"
         #    self.warn("too many errors, giving up tournament")
-        #    return job_manager.NoJobAvailable
+        #    self.describe_stopping()
+        #    return job_manager.NoJobAvailable()
         try:
             if os.path.exists(self.command_pathname):
                 command = open(self.command_pathname).read()
@@ -187,32 +191,39 @@ class Ringmaster(object):
                         os.remove(self.command_pathname)
                     except EnvironmentError, e:
                         self.warn("error removing .cmd file:\n%s" % e)
+                    self.describe_stopping()
                     return job_manager.NoJobAvailable
         except EnvironmentError, e:
             self.warn("error reading .cmd file:\n%s" % e)
         if self.max_games_this_run is not None:
             if self.max_games_this_run == 0:
-                self.warn("max-games reached for this run")
                 self.stopping = True
                 self.stopping_reason = "max-games reached for this run"
+                self.describe_stopping()
                 return job_manager.NoJobAvailable
             self.max_games_this_run -= 1
 
-        result = self.competition.get_game()
-        if result is NoGameAvailable:
+        job = self.competition.get_game()
+        if job is NoGameAvailable:
             return job_manager.NoJobAvailable
-        result.sgf_dir_pathname = self.sgf_dir_pathname
+        job.sgf_dir_pathname = self.sgf_dir_pathname
         self.games_in_progress += 1
+        start_msg = "starting game %s: %s (b) vs %s (w)" % (
+            job.game_id, job.players['b'], job.players['w'])
+        self.log(start_msg)
         if self.chatty:
+            print self.competition.brief_progress_message()
+            print start_msg
             print "%d games in progress" % self.games_in_progress
             if self.max_games_this_run is not None:
                 print ("will start at most %d more games in this run" %
                        self.max_games_this_run)
-        return result
+        return job
 
     def process_response(self, response):
         self.games_in_progress -= 1
         #self.recent_errors = 0
+        self.log("response from game %s" % response.game_id)
         self.competition.process_game_result(response)
         if self.chatty:
             clear_screen()

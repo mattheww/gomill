@@ -77,13 +77,23 @@ class Tournament(Competition):
         self.engine_names = status['engine_names']
         self.engine_descriptions = status['engine_descriptions']
 
-    def games_played(self):
+    def _games_played(self):
         return len(self.results)
+
+    def brief_progress_message(self):
+        """Return a one-line description of competition progress."""
+        if self.number_of_games is None:
+            return "%d games played" % self._games_played()
+        else:
+            return "%d/%d games played" % (
+                self._games_played(), self.number_of_games)
 
     def get_game(self):
         """Return the details of the next game to play.
 
         Returns a game_jobs.Game_job, or NoGameAvailable
+
+        (Doesn't set sgf_dir_pathname: the ringmaster does that).
 
         """
         game_number = self.next_game_number
@@ -97,19 +107,6 @@ class Tournament(Competition):
         gtp_translations = {'b' : self.players[player_b].gtp_translations,
                             'w' : self.players[player_w].gtp_translations}
         players = {'b' : player_b, 'w' : player_w}
-
-        # FIXME: Need to arrange for the ringmaster to do this bit
-        # (could return start_msg...)
-        start_msg = "starting game %d: %s (b) vs %s (w)" % (
-            game_number, player_b, player_w)
-        if True: # if self.chatty:
-            if self.number_of_games is None:
-                print "%d games played" % self.games_played()
-            else:
-                print "%d/%d games played" % (
-                    self.games_played(), self.number_of_games)
-            print start_msg
-        self.log(start_msg)
 
         job = game_jobs.Game_job()
         job.game_id = str(game_number)
@@ -131,9 +128,6 @@ class Tournament(Competition):
         response -- game_jobs.Game_job_result
 
         """
-        # FIXME: should be in ringmaster? see start logging
-        # Need to log error responses too
-        self.log("response from game %s" % response.game_id)
         self.engine_names.update(response.engine_names)
         self.engine_descriptions.update(response.engine_names)
         self.results.append(response.game_result)
