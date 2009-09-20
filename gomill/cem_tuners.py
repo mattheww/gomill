@@ -1,12 +1,78 @@
 """Competitions for parameter tuning using the cross-entropy method."""
 
-from gomill import cem
+from random import gauss as random_gauss
+from math import sqrt
+
 from gomill import game_jobs
 from gomill.competitions import Competition, NoGameAvailable, Player_config
 
 BATCH_SIZE = 3
 SAMPLES_PER_GENERATION = 5
 NUMBER_OF_GENERATIONS = 3
+ELITE_PROPORTION = 0.1
+STEP_SIZE = 0.8
+
+
+def square(f):
+    return f * f
+
+class Distribution(object):
+    """A multi-dimensional Gaussian probability distribution.
+
+    Instantiate with a list of pairs of floats (mean, variance)
+
+    Public attributes:
+      parameters -- the list used to instantiate the distribution
+
+    """
+    def __init__(self, parameters):
+        self.dimension = len(parameters)
+        self.parameters = parameters
+        self.gaussian_params = [(mean, sqrt(variance))
+                                for (mean, variance) in parameters]
+
+    def get_sample(self):
+        """Return a random sample from the distribution.
+
+        Returns a list of floats
+
+        """
+        return [random_gauss(mean, stddev)
+                for (mean, stddev) in self.gaussian_params]
+
+    def format(self):
+        return " ".join("%5.2f~%4.2f" % (mean, stddev)
+                        for (mean, stddev) in self.parameters)
+
+    def __str__(self):
+        return "<distribution %s>" % self.format()
+
+def format_parameters(parameters):
+    return " ".join("%5.2f" % v for v in parameters)
+
+def update_distribution(distribution, elites):
+    """Update a distribution based on the given elitss.
+
+    distribution -- Distribution
+    elites       -- list of optimiser parameter vectors
+
+    Returns a new distribution
+
+    """
+    n = len(elites)
+    new_distribution_parameters = []
+    for i in range(distribution.dimension):
+        v = [e[i] for e in elites]
+        elite_mean = sum(v) / n
+        elite_var = sum(map(square, v)) / n - square(elite_mean)
+        old_mean, old_var = distribution.parameters[i]
+        new_mean = (elite_mean * STEP_SIZE +
+                    old_mean * (1.0 - STEP_SIZE))
+        new_var = (elite_var * STEP_SIZE +
+                   old_var * (1.0 - STEP_SIZE))
+        new_distribution_parameters.append((new_mean, new_var))
+    return Distribution(new_distribution_parameters)
+
 
 
 # FIXME
@@ -19,7 +85,7 @@ old_kiai_gtp_translations = {
 def get_initial_distribution():
     # FIXME
     # The dimensions are resign_at and log_10 (playouts_per_move)
-    return cem.Distribution([(0.5, 1.0), (2.0, 2.0)])
+    return Distribution([(0.5, 1.0), (2.0, 2.0)])
 
 
 class Cem_tuner(Competition):
@@ -84,7 +150,9 @@ class Cem_tuner(Competition):
         FIXME
 
     def reset_for_new_generation(self):
-        self.sample_parameters = self.optimiser.get_sample_parameters()
+        get_sample = self.distribution.get_sample
+        self.sample_parameters = [get_sample()
+                                  for _ in xrange(SAMPLES_PER_GENERATION)]
         assert len(self.sample_parameters) == SAMPLES_PER_GENERATION
         # List of pairs (player code, cmd_args),
         # to be indexed by candidate number
@@ -105,20 +173,26 @@ class Cem_tuner(Competition):
         self.results_seen_count = 0
 
     def finish_generation(self):
-        elite_samples = self.optimiser.find_elite_samples(
-            self.sample_parameters, self.wins)
-        self.optimiser.update_distribution(elite_samples)
+        sorter = [(wins, index)
+                  for (index, wins) in enumerate(self.wins)]
+        sorter.sort(reverse=True)
+        elite_count = max(1,
+            int(ELITE_PROPORTION * SAMPLES_PER_GENERATION + 0.5))
+
+        for i, (wins, index) in enumerate(sorter):
+            self.log("%s%d %s" %
+                     ("*" if i < elite_count else " ", wins,
+                      format_parameters(self.sample_parameters[index])))
+
+        elite_samples = [self.sample_parameters[index]
+                         for (wins, index) in sorter[:elite_count]]
+        self.distribution = update_distribution(
+            self.distribution, elite_samples)
 
     def set_clean_status(self):
         self.finished = False
-        self.optimiser = cem.Cem_optimiser(
-            fitness_fn="FIXME",
-            samples_per_generation=SAMPLES_PER_GENERATION,
-            elite_proportion=0.1,
-            step_size=0.8)
-        self.optimiser.set_verbose_logger(self.log) # FIXME
-        self.optimiser.set_distribution(get_initial_distribution())
         self.generation = 0
+        self.distribution = get_initial_distribution()
         self.reset_for_new_generation()
 
     def get_game(self):
@@ -189,7 +263,7 @@ class Cem_tuner(Competition):
                 self.generation, self.round, self.next_candidate)
         print >>out
         print >>out, self.wins
-        print >>out, self.optimiser.distribution
+        print >>out, self.distribution
 
     def write_results_report(self, out):
         pass
