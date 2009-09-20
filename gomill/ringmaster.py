@@ -99,9 +99,11 @@ class Ringmaster(object):
         self.stopping = False
         self.stopping_reason = None
         self.total_errors = 0
-        # These are both maps job_id -> Game_job
+        # These are both maps game_id -> Game_job
         self.games_in_progress = {}
         self.games_to_replay = {}
+        # Map game_id -> int
+        self.game_error_counts = {}
 
         stem = tourn_pathname.rpartition(".tourn")[0]
         self.competition_code = os.path.basename(stem)
@@ -279,11 +281,21 @@ class Ringmaster(object):
         #self.recent_errors += 1
         self.warn("error from worker for game %s\n%s" %
                   (job.game_id, message))
-        self.games_to_replay[job.game_id] = \
-            self.games_in_progress.pop(job.game_id)
+        previous_error_count = self.game_error_counts.get(job.game_id, 0)
+        stop_competition, retry_game = \
+            self.competition.process_game_error(job, previous_error_count)
+        if retry_game:
+            self.games_to_replay[job.game_id] = \
+                self.games_in_progress.pop(job.game_id)
+            self.game_error_counts[job.game_id] = previous_error_count + 1
+        else:
+            del self.games_in_progress.pop[job.game_id]
+            if previous_error_count != 0:
+                del self.game_error_counts[job.game_id]
         self.write_status()
-        self.stopping = True
-        self.stopping_reason = "seen errors, giving up on competition"
+        if stop_competition:
+            self.stopping = True
+            self.stopping_reason = "seen errors, giving up on competition"
 
     def run(self, max_games=None):
         def now():

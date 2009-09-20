@@ -122,6 +122,29 @@ class Tournament(Competition):
         self.engine_descriptions.update(response.engine_names)
         self.results.append(response.game_result)
 
+    def process_game_error(self, job, previous_error_count):
+        """Process a report that a job failed.
+
+        job                  -- game_jobs.Game_job
+        previous_error_count -- int >= 0
+
+        Returns a pair (stop_competition, retry_game)
+
+        The job is one previously returned by get_game(). previous_error_count
+        is the number of times that this particular job has failed before.
+
+        Failed jobs are ones in which there was an error more serious than one
+        which just causes an engine to forfeit the game. For example, the job
+        will fail if one of the engines fails to respond to GTP commands at all,
+        or (in particular) if it exits as soon as it's invoked because it
+        doesn't like its command-line options.
+
+        """
+        if previous_error_count > 0:
+            return (True, True)
+        else:
+            return (False, True)
+
     def write_static_description(self, out):
         """Write a description of the competition.
 
