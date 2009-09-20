@@ -334,7 +334,7 @@ class Ringmaster(object):
                 job_source=self,
                 allow_mp=allow_mp, max_workers=self.worker_count)
         except KeyboardInterrupt:
-            self.log("run interrupted run %s" % now())
+            self.log("run interrupted at %s" % now())
             raise
         self.log("run finished at %s" % now())
         self.close_files()
@@ -354,8 +354,7 @@ class Ringmaster(object):
         if os.path.exists(self.sgf_dir_pathname):
             shutil.rmtree(self.sgf_dir_pathname)
 
-def do_run(tourn_pathname, worker_count=None, quiet=False,
-           max_games=None):
+def do_run(tourn_pathname, worker_count=None, quiet=False, max_games=None):
     ringmaster = Ringmaster(tourn_pathname)
     if quiet:
         ringmaster.set_quiet_mode()
