@@ -107,8 +107,6 @@ class Cem_tuner(Competition):
         # FIXME: Later sort out rotating through; for now just use last matchup
         # but have candidate always take black
         self.opponent = other
-        # FIXME: Ringmaster should call this
-        self.set_clean_status()
 
     def translate_parameters(self, optimiser_params):
         """Translate an optimiser parameter vector to an engine one."""
@@ -159,12 +157,6 @@ class Cem_tuner(Competition):
     @staticmethod
     def is_candidate_code(player_code):
         return '#' in player_code
-
-    def get_status(self):
-        return {}
-
-    def set_status(self, status):
-        FIXME
 
     def reset_for_new_generation(self):
         get_sample = self.distribution.get_sample
@@ -223,6 +215,12 @@ class Cem_tuner(Competition):
                          for (wins, index) in sorter[:elite_count]]
         self.distribution = update_distribution(
             self.distribution, elite_samples)
+
+    def get_status(self):
+        return {}
+
+    def set_status(self, status):
+        FIXME
 
     def set_clean_status(self):
         self.finished = False

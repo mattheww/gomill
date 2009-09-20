@@ -95,10 +95,6 @@ class Ringmaster(object):
         self.max_games_this_run = None
         self.stopping = False
         self.stopping_reason = None
-        self.total_errors = 0
-        # These are both maps game_id -> Game_job
-        self.games_in_progress = {}
-        self.games_to_replay = {}
         # Map game_id -> int
         self.game_error_counts = {}
 
@@ -206,6 +202,13 @@ class Ringmaster(object):
         self.games_to_replay.update(status['in_progress'])
         competition_status = status['comp']
         self.competition.set_status(competition_status)
+
+    def set_clean_status(self):
+        self.total_errors = 0
+        # These are both maps game_id -> Game_job
+        self.games_in_progress = {}
+        self.games_to_replay = {}
+        self.competition.set_clean_status()
 
     def status_file_exists(self):
         return os.path.exists(self.status_pathname)
@@ -360,6 +363,8 @@ def do_run(tourn_pathname, worker_count=None, quiet=False, max_games=None):
         ringmaster.set_quiet_mode()
     if ringmaster.status_file_exists():
         ringmaster.load_status()
+    else:
+        ringmaster.set_clean_status()
     if worker_count is not None:
         ringmaster.set_parallel_worker_count(worker_count)
     ringmaster.run(max_games)

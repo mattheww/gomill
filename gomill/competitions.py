@@ -97,6 +97,14 @@ class Competition(object):
         """
         raise NotImplementedError
 
+    def set_clean_status(self):
+        """Reset competition state to its initial value.
+
+        This is called before logging is set up, so it mustn't log anything.
+
+        """
+        raise NotImplementedError
+
     def get_game(self):
         """Return the details of the next game to play.
 
