@@ -137,7 +137,8 @@ class Cem_optimiser(object):
         sorter = [(fitness, index)
                   for (index, fitness) in enumerate(fitness_list)]
         sorter.sort(reverse=True)
-        elite_count = int(self.elite_proportion * self.samples_per_generation)
+        elite_count = max(1,
+            int(self.elite_proportion * self.samples_per_generation + 0.5))
 
         # FIXME: Caller can do this bit?
         if self.verbose_logger:
@@ -146,8 +147,7 @@ class Cem_optimiser(object):
                                  ("*" if i < elite_count else " ", fitness,
                                   format_parameters(sample_parameters[index])))
 
-        return [sample_parameters[index]
-                for (fitness, index) in sorter[:elite_count]]
+        return [samples[index] for (fitness, index) in sorter[:elite_count]]
 
     # ]]
 

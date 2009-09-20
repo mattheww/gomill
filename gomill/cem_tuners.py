@@ -6,6 +6,7 @@ from gomill.competitions import Competition, NoGameAvailable, Player_config
 
 BATCH_SIZE = 3
 SAMPLES_PER_GENERATION = 5
+NUMBER_OF_GENERATIONS = 3
 
 def get_initial_distribution():
     # FIXME
@@ -68,13 +69,14 @@ class Cem_tuner(Competition):
         FIXME
 
     def reset_for_new_generation(self):
-        sample_parameters = self.optimiser.get_sample_parameters()
-        assert len(sample_parameters) == SAMPLES_PER_GENERATION
+        self.sample_parameters = self.optimiser.get_sample_parameters()
+        assert len(self.sample_parameters) == SAMPLES_PER_GENERATION
         # List of pairs (player code, cmd_args),
         # to be indexed by candidate number
         self.candidates = []
         self.candidate_numbers_by_code = {}
-        for candidate_number, optimiser_params in enumerate(sample_parameters):
+        for candidate_number, optimiser_params in \
+                enumerate(self.sample_parameters):
             candidate_code = self.make_candidate_code(
                 self.generation, candidate_number)
             cmd_args = self.make_candidate_command(
@@ -84,8 +86,16 @@ class Cem_tuner(Competition):
         self.round = 0
         self.next_candidate = 0
         self.wins = [0] * SAMPLES_PER_GENERATION
+        self.results_required_count = BATCH_SIZE * SAMPLES_PER_GENERATION
+        self.results_seen_count = 0
+
+    def finish_generation(self):
+        elite_samples = self.optimiser.find_elite_samples(
+            self.sample_parameters, self.wins)
+        self.optimiser.update_distribution(elite_samples)
 
     def set_clean_status(self):
+        self.finished = False
         self.optimiser = cem.Cem_optimiser(
             fitness_fn="FIXME",
             samples_per_generation=SAMPLES_PER_GENERATION,
@@ -97,6 +107,9 @@ class Cem_tuner(Competition):
         self.reset_for_new_generation()
 
     def get_game(self):
+        if self.finished:
+            return NoGameAvailable
+
         if self.round == BATCH_SIZE:
             # Send no more games until the new generation
             return NoGameAvailable
@@ -104,7 +117,6 @@ class Cem_tuner(Competition):
         player_code, candidate_cmd_args = self.candidates[self.next_candidate]
         game_id = "%sr%d" % (player_code, self.round)
 
-        # FIXME: Can use a generator for this bit?
         self.next_candidate += 1
         if self.next_candidate == SAMPLES_PER_GENERATION:
             self.next_candidate = 0
@@ -135,6 +147,14 @@ class Cem_tuner(Competition):
         if self.is_candidate_code(winner):
             candidate_number = self.candidate_numbers_by_code[winner]
             self.wins[candidate_number] += 1
+        self.results_seen_count += 1
+        if self.results_seen_count == self.results_required_count:
+            self.finish_generation()
+            self.generation += 1
+            if self.generation == NUMBER_OF_GENERATIONS:
+                self.finished = True
+            else:
+                self.reset_for_new_generation()
 
     def write_static_description(self, out):
         def p(s):
@@ -154,6 +174,7 @@ class Cem_tuner(Competition):
                 self.generation, self.round, self.next_candidate)
         print >>out
         print >>out, self.wins
+        print >>out, self.optimiser.distribution
 
     def write_results_report(self, out):
         pass
