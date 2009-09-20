@@ -47,9 +47,6 @@ class Distribution(object):
     def __str__(self):
         return "<distribution %s>" % self.format()
 
-def format_parameters(parameters):
-    return " ".join("%5.2f" % v for v in parameters)
-
 def update_distribution(distribution, elites):
     """Update a distribution based on the given elitss.
 
@@ -122,6 +119,26 @@ class Cem_tuner(Competition):
         playouts_per_move = max(10, min(3000, playouts_per_move))
         return [resign_at, playouts_per_move]
 
+    def format_parameters(self, optimiser_params):
+        """Pretty-print an optimiser parameter vector.
+
+        Returns a string.
+
+        """
+        resign_at, opt_playouts_per_move = optimiser_params
+        clipped_resign_at = max(0.0, min(1.0, resign_at))
+        if resign_at == clipped_resign_at:
+            resign_at_s = "%.2f       " % resign_at
+        else:
+            resign_at_s = "%.2f(% .2f)" % (clipped_resign_at, resign_at)
+        ppm = int(10**opt_playouts_per_move)
+        clipped_ppm = max(10, min(3000, ppm))
+        if ppm == clipped_ppm:
+            ppm_s = "%4s       " % ppm
+        else:
+            ppm_s = "%4s(%5s)" % (clipped_ppm, ppm)
+        return "%s %s" % (resign_at_s, ppm_s)
+
     def make_candidate_command(self, parameters):
         """Return the command for use for a candidate with the given parameters.
 
@@ -172,18 +189,33 @@ class Cem_tuner(Competition):
         self.results_required_count = BATCH_SIZE * SAMPLES_PER_GENERATION
         self.results_seen_count = 0
 
+    def format_generation_results(self, ordered_samples, elite_count):
+        """Pretty-print the results of a single generation.
+
+        ordered_samples -- list of pairs (wins, candidate number)
+        elite_count     -- number of samples to mark as elite
+
+        Returns a list of strings
+
+        """
+        result = []
+        for i, (wins, candidate_number) in enumerate(ordered_samples):
+            opt_parameters = self.sample_parameters[candidate_number]
+            result.append(
+                "%s%s %s %3d" %
+                (self.make_candidate_code(self.generation, candidate_number),
+                 "*" if i < elite_count else " ",
+                 self.format_parameters(opt_parameters),
+                 wins))
+        return "\n".join(result)
+
     def finish_generation(self):
-        sorter = [(wins, index)
-                  for (index, wins) in enumerate(self.wins)]
+        sorter = [(wins, candidate_number)
+                  for (candidate_number, wins) in enumerate(self.wins)]
         sorter.sort(reverse=True)
         elite_count = max(1,
             int(ELITE_PROPORTION * SAMPLES_PER_GENERATION + 0.5))
-
-        for i, (wins, index) in enumerate(sorter):
-            self.log("%s%d %s" %
-                     ("*" if i < elite_count else " ", wins,
-                      format_parameters(self.sample_parameters[index])))
-
+        self.log(self.format_generation_results(sorter, elite_count))
         elite_samples = [self.sample_parameters[index]
                          for (wins, index) in sorter[:elite_count]]
         self.distribution = update_distribution(
