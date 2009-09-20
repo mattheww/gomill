@@ -215,7 +215,10 @@ class Cem_tuner(Competition):
         sorter.sort(reverse=True)
         elite_count = max(1,
             int(ELITE_PROPORTION * SAMPLES_PER_GENERATION + 0.5))
+        self.log_history("Generation %s" % self.generation)
+        self.log_history("Distribution %s" % self.distribution)
         self.log_history(self.format_generation_results(sorter, elite_count))
+        self.log_history("")
         elite_samples = [self.sample_parameters[index]
                          for (wins, index) in sorter[:elite_count]]
         self.distribution = update_distribution(
