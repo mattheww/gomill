@@ -2,12 +2,29 @@
 
 """
 
+import os
+import shlex
 import sys
 
 def log_to_stdout(s):
     print s
 
 NoGameAvailable = object()
+
+class Player_config(object):
+    """Player description for use in tournament files."""
+    def __init__(self, command_string, gtp_translations=None):
+        # Ought to validate
+        self.cmd_args = shlex.split(command_string)
+        self.cmd_args[0] = os.path.expanduser(self.cmd_args[0])
+        if gtp_translations is None:
+            self.gtp_translations = {}
+        else:
+            self.gtp_translations = gtp_translations
+
+control_file_globals = {
+    'Player' : Player_config,
+    }
 
 class Competition(object):
     """A resumable processing job based on playing many GTP games.

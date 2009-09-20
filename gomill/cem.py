@@ -23,7 +23,7 @@ class Distribution(object):
     def get_sample(self):
         """Return a random sample from the distribution.
 
-        Returns a list of pairs of floats
+        Returns a list of floats
 
         """
         return [random_gauss(mean, stddev)
@@ -90,6 +90,7 @@ class Cem_optimiser(object):
         self.distribution = distribution
         self.dimension = len(distribution.parameters)
 
+    # FIXME: inverting [[
     def find_elite_parameters(self):
         """Take samples and evaluate them, returning the elite ones.
 
@@ -113,6 +114,42 @@ class Cem_optimiser(object):
 
         return [sample_parameters[index]
                 for (fitness, index) in sorter[:elite_count]]
+
+    def get_sample_parameters(self):
+        """FIXME
+
+        Returns a list of optimiser parameter vectors
+
+        """
+        get_sample = self.distribution.get_sample
+        return [get_sample() for _ in xrange(self.samples_per_generation)]
+
+    def find_elite_samples(self, samples, fitness_list):
+        """FIXME
+
+        samples      -- list of optimiser parameter vectors.
+        fitness_list -- list of corresponding fitness values
+
+        Returns a list of optimiser parameter vectors (the elite ones selected
+        from 'samples').
+
+        """
+        sorter = [(fitness, index)
+                  for (index, fitness) in enumerate(fitness_list)]
+        sorter.sort(reverse=True)
+        elite_count = int(self.elite_proportion * self.samples_per_generation)
+
+        # FIXME: Caller can do this bit?
+        if self.verbose_logger:
+            for i, (fitness, index) in enumerate(sorter):
+                self.log_verbose("%s%7.2f %s" %
+                                 ("*" if i < elite_count else " ", fitness,
+                                  format_parameters(sample_parameters[index])))
+
+        return [sample_parameters[index]
+                for (fitness, index) in sorter[:elite_count]]
+
+    # ]]
 
     def update_distribution(self, elites):
         """Update the current distribution based on the given elitss.

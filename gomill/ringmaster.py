@@ -4,7 +4,6 @@ from __future__ import division
 
 import datetime
 import os
-import shlex
 import shutil
 import sys
 from optparse import OptionParser
@@ -15,24 +14,9 @@ from gomill import compact_tracebacks
 from gomill import game_jobs
 from gomill import gtp_games
 from gomill import job_manager
-from gomill.competitions import NoGameAvailable
+from gomill.competitions import NoGameAvailable, control_file_globals
 from gomill.gtp_controller import (
     GtpProtocolError, GtpTransportError, GtpEngineError)
-
-class Player_config(object):
-    """Player description for use in tournament files."""
-    def __init__(self, command_string, gtp_translations=None):
-        # Ought to validate
-        self.cmd_args = shlex.split(command_string)
-        self.cmd_args[0] = os.path.expanduser(self.cmd_args[0])
-        if gtp_translations is None:
-            self.gtp_translations = {}
-        else:
-            self.gtp_translations = gtp_translations
-
-tournament_globals = {
-    'Player' : Player_config,
-    }
 
 def read_tourn_file(pathname):
     """Read the specified file as a .tourn file.
@@ -41,11 +25,23 @@ def read_tourn_file(pathname):
     namespace as a dict.
 
     """
-    result = tournament_globals.copy()
+    result = control_file_globals.copy()
     f = open(pathname)
     exec f in result
     f.close()
     return result
+
+def get_competition_class(competition_type):
+    if competition_type is None:
+        competition_type = "tournament"
+    if competition_type == "tournament":
+        from gomill import tournaments
+        return tournaments.Tournament
+    elif competition_type == "cem_tuner":
+        from gomill import cem_tuners
+        return cem_tuners.Cem_tuner
+    else:
+        raise ValueError
 
 
 # To be work here, a class must be a simple holder for its attributes, all its
@@ -123,9 +119,9 @@ class Ringmaster(object):
                                   compact_tracebacks.format_error_and_line())
         self.initialise_from_control_file(config)
 
-        # Will need a registry, and look up by config file.
-        from gomill import tournaments
-        self.competition = tournaments.Tournament(self.competition_code)
+        competition_class = get_competition_class(
+            config.get("competition_type"))
+        self.competition = competition_class(self.competition_code)
         self.competition.set_logger(self.log)
         self.competition.initialise_from_control_file(config)
 
