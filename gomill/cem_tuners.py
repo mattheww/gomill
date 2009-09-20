@@ -267,6 +267,7 @@ class Cem_tuner(Competition):
         return job
 
     def process_game_result(self, response):
+        assert not self.finished
         winner = response.game_result.winning_player
         # Counting no-result as loss for the candidate
         if self.is_candidate_code(winner):
@@ -274,6 +275,7 @@ class Cem_tuner(Competition):
             self.wins[candidate_number] += 1
         self.results_seen_count += 1
         if self.results_seen_count == self.results_required_count:
+            assert self.round == BATCH_SIZE
             self.finish_generation()
             self.generation += 1
             if self.generation == NUMBER_OF_GENERATIONS:
