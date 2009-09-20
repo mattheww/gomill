@@ -236,6 +236,9 @@ class Cem_tuner(Competition):
             # Send no more games until the new generation
             return NoGameAvailable
 
+        if self.round == 0 and self.next_candidate == 0:
+            self.log("\nstarting generation %d" % self.generation)
+
         player_code, candidate_cmd_args = self.candidates[self.next_candidate]
         game_id = "%sr%d" % (player_code, self.round)
 
