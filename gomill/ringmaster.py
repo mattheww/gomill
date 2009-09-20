@@ -107,6 +107,7 @@ class Ringmaster(object):
         self.log_pathname = stem + ".log"
         self.status_pathname = stem + ".status"
         self.command_pathname = stem + ".cmd"
+        self.history_pathname = stem + ".hist"
         self.report_pathname = stem + ".report"
         self.sgf_dir_pathname = stem + ".games"
 
@@ -123,8 +124,10 @@ class Ringmaster(object):
             config.get("competition_type"))
         self.competition = competition_class(self.competition_code)
         self.competition.set_logger(self.log)
+        self.competition.set_history_logger(self.log_history)
         self.competition.initialise_from_control_file(config)
 
+    def open_files(self):
         try:
             if os.path.exists(self.command_pathname):
                 os.remove(self.command_pathname)
@@ -135,6 +138,28 @@ class Ringmaster(object):
             self.logfile = open(self.log_pathname, "a")
         except EnvironmentError, e:
             raise RingmasterError("failed to open log file:\n%s" % e)
+
+        try:
+            self.historyfile = open(self.history_pathname, "a")
+        except EnvironmentError, e:
+            raise RingmasterError("failed to open history file:\n%s" % e)
+
+        if self.record_games:
+            try:
+                if not os.path.exists(self.sgf_dir_pathname):
+                    os.mkdir(self.sgf_dir_pathname)
+            except EnvironmentError:
+                raise RingmasterError("failed to create SGF directory:\n%s" % e)
+
+    def close_files(self):
+        try:
+            self.logfile.close()
+        except EnvironmentError, e:
+            raise RingmasterError("error closing log file:\n%s" % e)
+        try:
+            self.historyfile.close()
+        except EnvironmentError, e:
+            raise RingmasterError("error closing history file:\n%s" % e)
 
     def initialise_from_control_file(self, config):
         self.record_games = config['record_games']
@@ -147,6 +172,10 @@ class Ringmaster(object):
 
     def log(self, s):
         print >>self.logfile, s
+        self.logfile.flush()
+
+    def log_history(self, s):
+        print >>self.historyfile, s
         self.logfile.flush()
 
     def warn(self, s):
@@ -295,14 +324,9 @@ class Ringmaster(object):
         def now():
             return datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
+        self.open_files()
         self.log("run started at %s with max_games %s" % (now(), max_games))
         self.max_games_this_run = max_games
-        if self.record_games:
-            try:
-                if not os.path.exists(self.sgf_dir_pathname):
-                    os.mkdir(self.sgf_dir_pathname)
-            except EnvironmentError:
-                raise RingmasterError("failed to create SGF directory:\n%s" % e)
         self.update_display()
         try:
             allow_mp = (self.worker_count is not None)
@@ -313,12 +337,14 @@ class Ringmaster(object):
             self.log("run interrupted run %s" % now())
             raise
         self.log("run finished at %s" % now())
+        self.close_files()
 
     def delete_state_and_output(self):
         for pathname in [
             self.log_pathname,
             self.status_pathname,
             self.command_pathname,
+            self.history_pathname,
             self.report_pathname]:
             if os.path.exists(pathname):
                 try:

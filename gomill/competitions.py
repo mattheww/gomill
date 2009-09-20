@@ -9,6 +9,9 @@ import sys
 def log_to_stdout(s):
     print s
 
+def log_discard(s):
+    pass
+
 NoGameAvailable = object()
 
 class Player_config(object):
@@ -35,12 +38,19 @@ class Competition(object):
     def __init__(self, competition_code):
         self.competition_code = competition_code
         self.logger = log_to_stdout
+        self.history_logger = log_discard
 
     def set_logger(self, logger):
         self.logger = logger
 
     def log(self, s):
         self.logger(s)
+
+    def set_history_logger(self, logger):
+        self.history_logger = logger
+
+    def log_history(self, s):
+        self.history_logger(s)
 
     def initialise_from_control_file(self, config):
         """Initialise competition data from the control file.
@@ -81,6 +91,8 @@ class Competition(object):
         """Reset competition state to previously a reported value.
 
         'status' will be a value previously reported by get_status().
+
+        This is called for the 'show' command, so it mustn't log anything.
 
         """
         raise NotImplementedError
