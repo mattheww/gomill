@@ -204,18 +204,9 @@ class Ringmaster(object):
                 print "waiting for workers to finish: %s" % self.stopping_reason
                 print "%d games in progress" % len(self.games_in_progress)
 
-        if self.chatty and self.total_errors > 0:
-            print "!! %d errors occurred; see log file." % self.total_errors
         if self.stopping:
             describe_stopping()
             return job_manager.NoJobAvailable
-        # Reinstate this at some point?
-        #if self.recent_errors > 1:
-        #    self.stopping = True
-        #    self.stopping_reason = "too many errors"
-        #    self.warn("too many errors, giving up tournament")
-        #    describe_stopping()
-        #    return job_manager.NoJobAvailable()
         try:
             if os.path.exists(self.command_pathname):
                 command = open(self.command_pathname).read()
@@ -261,26 +252,28 @@ class Ringmaster(object):
                        self.max_games_this_run)
         return job
 
+    def update_display(self):
+        if self.chatty:
+            clear_screen()
+            if self.total_errors > 0:
+                print "!! %d errors occurred; see log file." % self.total_errors
+            self.competition.write_status_summary(sys.stdout)
+
     def process_response(self, response):
-        #self.recent_errors = 0
         self.log("response from game %s" % response.game_id)
         self.competition.process_game_result(response)
         del self.games_in_progress[response.game_id]
         self.write_status()
+        self.update_display()
         if self.chatty:
-            clear_screen()
-            self.competition.write_status_summary(sys.stdout)
             print "game %s completed: %s" % (
                 response.game_id, response.game_result.describe())
 
     def process_error_response(self, job, message):
-        # Current behaviour is to gracefully stop the competition, and place all
-        # games with errors in games_to_replay so they'll be tried again when
-        # the tournament is restarted.
+        warning_message = "error from worker for game %s\n%s" % (
+            job.game_id, message)
+        self.warn(warning_message)
         self.total_errors += 1
-        #self.recent_errors += 1
-        self.warn("error from worker for game %s\n%s" %
-                  (job.game_id, message))
         previous_error_count = self.game_error_counts.get(job.game_id, 0)
         stop_competition, retry_game = \
             self.competition.process_game_error(job, previous_error_count)
@@ -292,10 +285,14 @@ class Ringmaster(object):
             del self.games_in_progress.pop[job.game_id]
             if previous_error_count != 0:
                 del self.game_error_counts[job.game_id]
-        self.write_status()
         if stop_competition:
             self.stopping = True
             self.stopping_reason = "seen errors, giving up on competition"
+        self.write_status()
+        self.update_display()
+        if self.chatty:
+            # we need to reprint this because the screen was cleared
+            print warning_message
 
     def run(self, max_games=None):
         def now():
@@ -309,9 +306,7 @@ class Ringmaster(object):
                     os.mkdir(self.sgf_dir_pathname)
             except EnvironmentError:
                 raise RingmasterError("failed to create SGF directory:\n%s" % e)
-        if self.chatty:
-            clear_screen()
-            self.competition.write_status_summary(sys.stdout)
+        self.update_display()
         try:
             allow_mp = (self.worker_count is not None)
             job_manager.run_jobs(
