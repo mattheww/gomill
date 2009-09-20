@@ -357,8 +357,7 @@ class Ringmaster(object):
         if os.path.exists(self.sgf_dir_pathname):
             shutil.rmtree(self.sgf_dir_pathname)
 
-def do_run(tourn_pathname, worker_count=None, quiet=False, max_games=None):
-    ringmaster = Ringmaster(tourn_pathname)
+def do_run(ringmaster, worker_count=None, quiet=False, max_games=None):
     if quiet:
         ringmaster.set_quiet_mode()
     if ringmaster.status_file_exists():
@@ -370,22 +369,19 @@ def do_run(tourn_pathname, worker_count=None, quiet=False, max_games=None):
     ringmaster.run(max_games)
     ringmaster.report()
 
-def do_show(tourn_pathname):
-    ringmaster = Ringmaster(tourn_pathname)
+def do_show(ringmaster):
     if not ringmaster.status_file_exists():
         raise RingmasterError("no status file")
     ringmaster.load_status()
     ringmaster.print_status_report()
 
-def do_report(tourn_pathname):
-    ringmaster = Ringmaster(tourn_pathname)
+def do_report(ringmaster):
     if not ringmaster.status_file_exists():
         raise RingmasterError("no status file")
     ringmaster.load_status()
     ringmaster.report()
 
-def do_stop(tourn_pathname):
-    ringmaster = Ringmaster(tourn_pathname)
+def do_stop(ringmaster):
     try:
         f = open(ringmaster.command_pathname, "w")
         f.write("stop")
@@ -393,8 +389,7 @@ def do_stop(tourn_pathname):
     except EnvironmentError, e:
         raise RingmasterError("error writing command file:\n%s" % e)
 
-def do_reset(tourn_pathname):
-    ringmaster = Ringmaster(tourn_pathname)
+def do_reset(ringmaster):
     ringmaster.delete_state_and_output()
 
 def main():
@@ -423,18 +418,19 @@ def main():
         parser.error("not a .tourn file")
     try:
         if not os.path.exists(tourn_pathname):
-            raise RingmasterError("control file not found")
+            raise RingmasterError("control file %s not found" % tourn_pathname)
+        ringmaster = Ringmaster(tourn_pathname)
         if command == "run":
-            do_run(tourn_pathname,
+            do_run(ringmaster,
                    options.parallel, options.quiet, options.max_games)
         elif command == "show":
-            do_show(tourn_pathname)
+            do_show(ringmaster)
         elif command == "stop":
-            do_stop(tourn_pathname)
+            do_stop(ringmaster)
         elif command == "report":
-            do_report(tourn_pathname)
+            do_report(ringmaster)
         elif command == "reset":
-            do_reset(tourn_pathname)
+            do_reset(ringmaster)
         else:
             raise AssertionError
     except RingmasterError, e:
