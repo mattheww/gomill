@@ -5,6 +5,7 @@ from __future__ import division
 import datetime
 import os
 import shlex
+import shutil
 import sys
 from optparse import OptionParser
 
@@ -317,6 +318,19 @@ class Ringmaster(object):
             raise
         self.log("run finished at %s" % now())
 
+    def delete_state_and_output(self):
+        for pathname in [
+            self.log_pathname,
+            self.status_pathname,
+            self.command_pathname,
+            self.report_pathname]:
+            if os.path.exists(pathname):
+                try:
+                    os.remove(pathname)
+                except EnvironmentError, e:
+                    print >>sys.stderr, e
+        if os.path.exists(self.sgf_dir_pathname):
+            shutil.rmtree(self.sgf_dir_pathname)
 
 def do_run(tourn_pathname, worker_count=None, quiet=False,
            max_games=None):
@@ -353,9 +367,13 @@ def do_stop(tourn_pathname):
     except EnvironmentError, e:
         raise RingmasterError("error writing command file:\n%s" % e)
 
+def do_reset(tourn_pathname):
+    ringmaster = Ringmaster(tourn_pathname)
+    ringmaster.delete_state_and_output()
+
 def main():
     usage = ("%prog [options] <control file> [command]\n\n"
-             "commands: run (default), stop, show, report")
+             "commands: run (default), stop, show, report, reset")
     parser = OptionParser(usage=usage)
     parser.add_option("--max-games", "-g", type="int",
                       help="maximum number of games to play in this run")
@@ -372,7 +390,7 @@ def main():
         command = "run"
     else:
         command = args[1]
-        if command not in ("run", "stop", "show", "report"):
+        if command not in ("run", "stop", "show", "report", "reset"):
             parser.error("no such command: %s" % command)
     tourn_pathname = args[0]
     if not tourn_pathname.endswith(".tourn"):
@@ -389,6 +407,8 @@ def main():
             do_stop(tourn_pathname)
         elif command == "report":
             do_report(tourn_pathname)
+        elif command == "reset":
+            do_reset(tourn_pathname)
         else:
             raise AssertionError
     except RingmasterError, e:
