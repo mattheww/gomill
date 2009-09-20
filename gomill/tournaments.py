@@ -14,27 +14,9 @@ class Tournament(Competition):
         self.next_game_number = 0
 
     def initialise_from_control_file(self, config):
-        # FIXME: Some of this will move up to Competition.
-
+        Competition.initialise_from_control_file(self, config)
         # Ought to validate.
-        self.description = config['description']
-        self.players = config.get('players', {})
-        for player, s in config.get('player_commands', {}).items():
-            self.players[player] = Player_config(s)
-
-        self.board_size = config['board_size']
-        self.komi = config['komi']
-        self.move_limit = config['move_limit']
         self.number_of_games = config.get('number_of_games')
-        self.use_internal_scorer = False
-        self.preferred_scorers = None
-        if 'scorer' in config:
-            if config['scorer'] == "internal":
-                self.use_internal_scorer = True
-            elif config['scorer'] == "players":
-                self.preferred_scorers = config.get('preferred_scorers')
-            else:
-                raise ValueError
 
         uses_legacy_matchups = ('player_x' in config or
                                 'player_y' in config or
@@ -52,12 +34,6 @@ class Tournament(Competition):
                 raise ValueError
 
     def get_status(self):
-        """Return full state of the competition, so it can be resumed later.
-
-        The returned result must be serialisable using json. In addition, it can
-        include Game_result objects.
-
-        """
         return {
             'results' : self.results,
             'next_game_number' : self.next_game_number,
@@ -66,11 +42,6 @@ class Tournament(Competition):
             }
 
     def set_status(self, status):
-        """Reset competition state to previously a reported value.
-
-        'status' will be a value previously reported by get_status().
-
-        """
         self.results = status['results']
         self.next_game_number = status['next_game_number']
         self.engine_names = status['engine_names']
@@ -80,13 +51,6 @@ class Tournament(Competition):
         return len(self.results)
 
     def get_game(self):
-        """Return the details of the next game to play.
-
-        Returns a game_jobs.Game_job, or NoGameAvailable
-
-        (Doesn't set sgf_pathname: the ringmaster does that).
-
-        """
         game_number = self.next_game_number
         if (self.number_of_games is not None and
             game_number >= self.number_of_games):
@@ -113,46 +77,11 @@ class Tournament(Competition):
         return job
 
     def process_game_result(self, response):
-        """Process the results from a completed game.
-
-        response -- game_jobs.Game_job_result
-
-        """
         self.engine_names.update(response.engine_names)
         self.engine_descriptions.update(response.engine_names)
         self.results.append(response.game_result)
 
-    def process_game_error(self, job, previous_error_count):
-        """Process a report that a job failed.
-
-        job                  -- game_jobs.Game_job
-        previous_error_count -- int >= 0
-
-        Returns a pair (stop_competition, retry_game)
-
-        The job is one previously returned by get_game(). previous_error_count
-        is the number of times that this particular job has failed before.
-
-        Failed jobs are ones in which there was an error more serious than one
-        which just causes an engine to forfeit the game. For example, the job
-        will fail if one of the engines fails to respond to GTP commands at all,
-        or (in particular) if it exits as soon as it's invoked because it
-        doesn't like its command-line options.
-
-        """
-        if previous_error_count > 0:
-            return (True, True)
-        else:
-            return (False, True)
-
     def write_static_description(self, out):
-        """Write a description of the competition.
-
-        out -- writeable file-like object
-
-        This reports on 'static' data, rather than the game results.
-
-        """
         def p(s):
             print >>out, s
         p("tournament: %s" % self.competition_code)
@@ -163,14 +92,6 @@ class Tournament(Competition):
         p(self.description)
 
     def write_status_summary(self, out):
-        """Write a summary of current competition status.
-
-        out -- writeable file-like object
-
-        This reports on the game results, and shouldn't duplicate information
-        from write_static_description().
-
-        """
         if self.number_of_games is None:
             print >>out, "%d games played" % self._games_played()
         else:
@@ -183,14 +104,6 @@ class Tournament(Competition):
             self.write_pairing_report(out, player_x, player_y)
 
     def write_results_report(self, out):
-        """Write a detailed report of a completed competition.
-
-        out -- writeable file-like object
-
-        This reports on the game results, and shouldn't duplicate information
-        from write_static_description() or write_status_summary().
-
-        """
         def p(s):
             print >>out, s
         for i, result in enumerate(self.results):
