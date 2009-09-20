@@ -37,9 +37,9 @@ class Cem_tuner(Competition):
         # FIXME: Ringmaster should call this
         self.set_clean_status()
 
-    def translate_parameters(self, parameter_vectors):
-        """Translate optimiser parameter vectors to engine ones."""
-        return parameter_vectors[:]
+    def translate_parameters(self, optimiser_params):
+        """Translate an optimiser parameter vector to an engine one."""
+        return optimiser_params[:]
 
     def make_candidate_command(self, parameters):
         """Return the command for use for a candidate with the given parameters.
@@ -53,11 +53,37 @@ class Cem_tuner(Competition):
         opts = ["--ppm=100"]
         return args + opts
 
+    @staticmethod
+    def make_candidate_code(generation, candidate_number):
+        return "g%d#%d" % (generation, candidate_number)
+
+    @staticmethod
+    def is_candidate_code(player_code):
+        return '#' in player_code
+
     def get_status(self):
         return {}
 
     def set_status(self, status):
         FIXME
+
+    def reset_for_new_generation(self):
+        sample_parameters = self.optimiser.get_sample_parameters()
+        assert len(sample_parameters) == SAMPLES_PER_GENERATION
+        # List of pairs (player code, cmd_args),
+        # to be indexed by candidate number
+        self.candidates = []
+        self.candidate_numbers_by_code = {}
+        for candidate_number, optimiser_params in enumerate(sample_parameters):
+            candidate_code = self.make_candidate_code(
+                self.generation, candidate_number)
+            cmd_args = self.make_candidate_command(
+                self.translate_parameters(optimiser_params))
+            self.candidates.append((candidate_code, cmd_args))
+            self.candidate_numbers_by_code[candidate_code] = candidate_number
+        self.round = 0
+        self.next_candidate = 0
+        self.wins = [0] * SAMPLES_PER_GENERATION
 
     def set_clean_status(self):
         self.optimiser = cem.Cem_optimiser(
@@ -67,35 +93,16 @@ class Cem_tuner(Competition):
             step_size=0.8)
         self.optimiser.set_brief_logger(self.log) # FIXME
         self.optimiser.set_distribution(get_initial_distribution())
-        self.sample_parameters = self.optimiser.get_sample_parameters()
-
         self.generation = 0
-        self.round = 0
-        self.next_candidate = 0
-        self.wins = [0] * SAMPLES_PER_GENERATION
-
-    @staticmethod
-    def FIXMEextract_candidate_number(player_code):
-        _, cns = player_code.split("p")
-        return int(cns)
-
-    @staticmethod
-    def FIXMEmake_candidate_code(generation, candidate_number):
-        return "CNDg%dp%d" % (generation, candidate_number)
-
-    @staticmethod
-    def FIXMEis_candidate(player_code):
-        return player_code.startswith("CND")
+        self.reset_for_new_generation()
 
     def get_game(self):
         if self.round == BATCH_SIZE:
             # Send no more games until the new generation
             return NoGameAvailable
 
-        player_code = self.FIXMEmake_candidate_code(
-            self.generation, self.next_candidate)
+        player_code, candidate_cmd_args = self.candidates[self.next_candidate]
         game_id = "%sr%d" % (player_code, self.round)
-        optimiser_parameters = self.sample_parameters[self.next_candidate]
 
         # FIXME: Can use a generator for this bit?
         self.next_candidate += 1
@@ -103,8 +110,7 @@ class Cem_tuner(Competition):
             self.next_candidate = 0
             self.round += 1
 
-        engine_parameters = self.translate_parameters(optimiser_parameters)
-        commands = {'b' : self.make_candidate_command(engine_parameters),
+        commands = {'b' : candidate_cmd_args,
                     'w' : self.players[self.opponent].cmd_args}
         gtp_translations = {'b' : {}, # FIXME
                             'w' : self.players[self.opponent].gtp_translations}
@@ -124,13 +130,10 @@ class Cem_tuner(Competition):
         return job
 
     def process_game_result(self, response):
-        game_result = response.game_result
-        # Can/should we have a better way to tunnel this information than
-        # through the player code?
         winner = response.game_result.winning_player
         # Counting no-result as loss for the candidate
-        if self.FIXMEis_candidate(winner):
-            candidate_number = self.FIXMEextract_candidate_number(winner)
+        if self.is_candidate_code(winner):
+            candidate_number = self.candidate_numbers_by_code[winner]
             self.wins[candidate_number] += 1
 
     def write_static_description(self, out):
