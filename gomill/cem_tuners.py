@@ -8,9 +8,18 @@ BATCH_SIZE = 3
 SAMPLES_PER_GENERATION = 5
 NUMBER_OF_GENERATIONS = 3
 
+
+# FIXME
+old_kiai_gtp_translations = {
+    'gomill-describe_engine' : 'kiai-describe_engine',
+    'gomill-cpu_time' : 'kiai-cpu_time',
+    'gomill-explain_last_move' : 'kiai-explain_last_move',
+    }
+
 def get_initial_distribution():
     # FIXME
-    return cem.Distribution([(10.0, 4.0), (3.0, 4.0), (3.0, 3.0)])
+    # The dimensions are resign_at and log_10 (playouts_per_move)
+    return cem.Distribution([(0.5, 1.0), (2.0, 2.0)])
 
 
 class Cem_tuner(Competition):
@@ -40,7 +49,12 @@ class Cem_tuner(Competition):
 
     def translate_parameters(self, optimiser_params):
         """Translate an optimiser parameter vector to an engine one."""
-        return optimiser_params[:]
+        # The dimensions are resign_at and log_10 (playouts_per_move)
+        opt_resign_at, opt_playouts_per_move = optimiser_params
+        resign_at = max(0.0, min(1.0, opt_resign_at))
+        playouts_per_move = int(10**opt_playouts_per_move)
+        playouts_per_move = max(10, min(3000, playouts_per_move))
+        return [resign_at, playouts_per_move]
 
     def make_candidate_command(self, parameters):
         """Return the command for use for a candidate with the given parameters.
@@ -50,9 +64,10 @@ class Cem_tuner(Competition):
         Returns a command suitable for use with a Game_job.
 
         """
-        args = self.candidate_base.cmd_args
-        opts = ["--ppm=100"]
-        return args + opts
+        resign_at, playouts_per_move = parameters
+        opts = ["--ppm=%d" % playouts_per_move,
+                "--resign-at=%f" % resign_at]
+        return self.candidate_base.cmd_args + opts
 
     @staticmethod
     def make_candidate_code(generation, candidate_number):
@@ -101,7 +116,7 @@ class Cem_tuner(Competition):
             samples_per_generation=SAMPLES_PER_GENERATION,
             elite_proportion=0.1,
             step_size=0.8)
-        self.optimiser.set_brief_logger(self.log) # FIXME
+        self.optimiser.set_verbose_logger(self.log) # FIXME
         self.optimiser.set_distribution(get_initial_distribution())
         self.generation = 0
         self.reset_for_new_generation()
@@ -124,7 +139,7 @@ class Cem_tuner(Competition):
 
         commands = {'b' : candidate_cmd_args,
                     'w' : self.players[self.opponent].cmd_args}
-        gtp_translations = {'b' : {}, # FIXME
+        gtp_translations = {'b' : old_kiai_gtp_translations, # FIXME
                             'w' : self.players[self.opponent].gtp_translations}
         players = {'b' : player_code, 'w' : self.opponent}
 

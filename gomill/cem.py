@@ -145,7 +145,7 @@ class Cem_optimiser(object):
             for i, (fitness, index) in enumerate(sorter):
                 self.log_verbose("%s%7.2f %s" %
                                  ("*" if i < elite_count else " ", fitness,
-                                  format_parameters(sample_parameters[index])))
+                                  format_parameters(samples[index])))
 
         return [samples[index] for (fitness, index) in sorter[:elite_count]]
 
