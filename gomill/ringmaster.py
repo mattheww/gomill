@@ -174,14 +174,14 @@ class Ringmaster(object):
         print >>self.logfile, s
         self.logfile.flush()
 
-    def log_history(self, s):
-        print >>self.historyfile, s
-        self.logfile.flush()
-
     def warn(self, s):
         print >>sys.stderr, "**", s
         print >>self.logfile, s
         self.logfile.flush()
+
+    def log_history(self, s):
+        print >>self.historyfile, s
+        self.historyfile.flush()
 
     def write_status(self):
         competition_status = self.competition.get_status()
