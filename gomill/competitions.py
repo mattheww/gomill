@@ -1,6 +1,4 @@
-"""Organise multiple GTP games.
-
-"""
+"""Organise processing jobs based around playing many GTP games."""
 
 import os
 import shlex
@@ -30,9 +28,9 @@ control_file_globals = {
     }
 
 class Competition(object):
-    """A resumable processing job based on playing many GTP games.
+    """A resumable processing job based around playing many GTP games.
 
-    FIXME: This is base class for Tournament (and later tuners).
+    This is an abstract base class.
 
     """
     def __init__(self, competition_code):
