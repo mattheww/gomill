@@ -80,6 +80,10 @@ class Tournament(Competition):
         self.engine_names.update(response.engine_names)
         self.engine_descriptions.update(response.engine_names)
         self.results.append(response.game_result)
+        # This will show results in order of games finishing rather than game
+        # number, but never mind.
+        self.log_history("%4s %s" %
+                         (response.game_id, response.game_result.describe()))
 
     def write_static_description(self, out):
         def p(s):
@@ -104,10 +108,7 @@ class Tournament(Competition):
             self.write_pairing_report(out, player_x, player_y)
 
     def write_results_report(self, out):
-        def p(s):
-            print >>out, s
-        for i, result in enumerate(self.results):
-            p("%3d %s" % (i, result.describe()))
+        pass
 
     def write_pairing_report(self, out, player_x, player_y):
         def p(s):
