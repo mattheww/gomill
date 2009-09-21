@@ -57,8 +57,16 @@ def worker_run_jobs(job_queue, response_queue):
     except KeyboardInterrupt:
         sys.exit(3)
 
-class Multiprocessing_job_manager(object):
+class Job_manager(object):
+    def __init__(self):
+        self.passed_exceptions = []
+
+    def pass_exception(self, cls):
+        self.passed_exceptions.append(cls)
+
+class Multiprocessing_job_manager(Job_manager):
     def __init__(self, number_of_workers):
+        Job_manager.__init__(self)
         _initialise_multiprocessing()
         if multiprocessing is None:
             raise StandardError("multiprocessing not available")
@@ -84,7 +92,10 @@ class Multiprocessing_job_manager(object):
             if active_jobs < self.number_of_workers:
                 try:
                     job = job_source.get_job()
-                except StandardError:
+                except StandardError, e:
+                    for cls in self.passed_exceptions:
+                        if isinstance(e, cls):
+                            raise
                     raise JobSourceError(
                         "error from get_job()\n%s" %
                         compact_tracebacks.format_traceback(skip=1))
@@ -103,7 +114,10 @@ class Multiprocessing_job_manager(object):
             else:
                 try:
                     job_source.process_response(response)
-                except StandardError:
+                except StandardError, e:
+                    for cls in self.passed_exceptions:
+                        if isinstance(e, cls):
+                            raise
                     raise JobSourceError(
                         "error from process_response()\n%s" %
                         compact_tracebacks.format_traceback(skip=1))
@@ -118,7 +132,7 @@ class Multiprocessing_job_manager(object):
         self.job_queue = None
         self.response_queue = None
 
-class In_process_job_manager(object):
+class In_process_job_manager(Job_manager):
     def start_workers(self):
         pass
 
@@ -126,7 +140,10 @@ class In_process_job_manager(object):
         while True:
             try:
                 job = job_source.get_job()
-            except StandardError:
+            except StandardError, e:
+                for cls in self.passed_exceptions:
+                    if isinstance(e, cls):
+                        raise
                 raise JobSourceError(
                     "error from get_job()\n%s" %
                     compact_tracebacks.format_traceback(skip=1))
@@ -134,13 +151,16 @@ class In_process_job_manager(object):
                 break
             try:
                 response = job.run()
-            except StandardError, e:
+            except StandardError:
                 job_source.process_error_response(
                     job, compact_tracebacks.format_traceback(skip=1))
             else:
                 try:
                     job_source.process_response(response)
-                except StandardError:
+                except StandardError, e:
+                    for cls in self.passed_exceptions:
+                        if isinstance(e, cls):
+                            raise
                     raise JobSourceError(
                         "error from process_response()\n%s" %
                         compact_tracebacks.format_traceback(skip=1))
@@ -148,7 +168,8 @@ class In_process_job_manager(object):
     def finish(self):
         pass
 
-def run_jobs(job_source, max_workers=None, allow_mp=True):
+def run_jobs(job_source, max_workers=None, allow_mp=True,
+             passed_exceptions=None):
     if allow_mp:
         _initialise_multiprocessing()
         if multiprocessing is None:
@@ -159,6 +180,9 @@ def run_jobs(job_source, max_workers=None, allow_mp=True):
         job_manager = Multiprocessing_job_manager(max_workers)
     else:
         job_manager = In_process_job_manager()
+    if passed_exceptions:
+        for cls in passed_exceptions:
+            job_manager.pass_exception(cls)
     job_manager.start_workers()
     try:
         job_manager.run_jobs(job_source)
