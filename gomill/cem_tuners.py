@@ -5,8 +5,8 @@ from math import sqrt
 
 from gomill import game_jobs
 from gomill.competitions import (
-    Competition, NoGameAvailable,
-    Player_config, game_jobs_player_from_config)
+    Competition, NoGameAvailable, CompetitionError,
+    game_jobs_player_from_config)
 
 BATCH_SIZE = 3
 SAMPLES_PER_GENERATION = 5
@@ -170,7 +170,12 @@ class Cem_tuner(Competition):
                 self.generation, candidate_number)
             candidate_config = self.candidate_maker(
                 self.translate_parameters(optimiser_params))
-            candidate = game_jobs_player_from_config(candidate_config)
+            try:
+                candidate = game_jobs_player_from_config(candidate_config)
+            except ValueError, e:
+                raise CompetitionError(
+                    "error making candidate player\nparameters: %s\nerror: %s" %
+                    (self.format_parameters(optimiser_params), e))
             candidate.code = candidate_code
             self.candidates.append(candidate)
             self.candidate_numbers_by_code[candidate_code] = candidate_number

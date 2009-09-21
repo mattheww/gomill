@@ -14,7 +14,7 @@ from gomill import compact_tracebacks
 from gomill import game_jobs
 from gomill import gtp_games
 from gomill import job_manager
-from gomill.competitions import NoGameAvailable
+from gomill.competitions import NoGameAvailable, CompetitionError
 from gomill.gtp_controller import (
     GtpProtocolError, GtpTransportError, GtpEngineError)
 
@@ -219,14 +219,20 @@ class Ringmaster(object):
         self.games_to_replay = status['to_replay']
         self.games_to_replay.update(status['in_progress'])
         competition_status = status['comp']
-        self.competition.set_status(competition_status)
+        try:
+            self.competition.set_status(competition_status)
+        except CompetitionError, e:
+            raise RingmasterError(e)
 
     def set_clean_status(self):
         self.total_errors = 0
         # These are both maps game_id -> Game_job
         self.games_in_progress = {}
         self.games_to_replay = {}
-        self.competition.set_clean_status()
+        try:
+            self.competition.set_clean_status()
+        except CompetitionError, e:
+            raise RingmasterError(e)
 
     def status_file_exists(self):
         return os.path.exists(self.status_pathname)
@@ -358,6 +364,8 @@ class Ringmaster(object):
         except KeyboardInterrupt:
             self.log("run interrupted at %s" % now())
             raise
+        except CompetitionError, e:
+            raise RingmasterError(e)
         self.log("run finished at %s" % now())
         self.close_files()
 

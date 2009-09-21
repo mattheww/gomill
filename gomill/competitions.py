@@ -15,6 +15,14 @@ def log_discard(s):
 
 NoGameAvailable = object()
 
+class CompetitionError(StandardError):
+    """Error from competition code.
+
+    Might be a bug in tuner code, or an error in a user-provided function.
+
+    The ringmaster should display the error and terminate immediately.
+
+    """
 
 def game_jobs_player_from_config(player_config):
     """Make a game_jobs.Player from a Player_config.
