@@ -40,6 +40,14 @@ class Distribution(object):
         return [random_gauss(mean, stddev)
                 for (mean, stddev) in self.gaussian_params]
 
+    def get_means(self):
+        """Return just the mean from each dimension.
+
+        Returns a list of floats.
+
+        """
+        return [mean for (mean, stddev) in self.parameters]
+
     def format(self):
         return " ".join("%5.2f~%4.2f" % (mean, stddev)
                         for (mean, stddev) in self.parameters)
@@ -137,6 +145,15 @@ class Cem_tuner(Competition):
             ppm_s = "%4s(%5s)" % (clipped_ppm, ppm)
         return "%s %s" % (resign_at_s, ppm_s)
 
+    def format_distribution(self, distribution):
+        """Pretty-print a distribution.
+
+        Returns a string.
+
+        """
+        return "%s\n%s" % (self.format_parameters(distribution.get_means()),
+                           distribution.format())
+
     def make_candidate_command(self, parameters):
         """Return the command for use for a candidate with the given parameters.
 
@@ -208,7 +225,8 @@ class Cem_tuner(Competition):
         elite_count = max(1,
             int(ELITE_PROPORTION * SAMPLES_PER_GENERATION + 0.5))
         self.log_history("Generation %s" % self.generation)
-        self.log_history("Distribution %s" % self.distribution)
+        self.log_history("Distribution\n%s" %
+                         self.format_distribution(self.distribution))
         self.log_history(self.format_generation_results(sorter, elite_count))
         self.log_history("")
         elite_samples = [self.sample_parameters[index]
@@ -300,8 +318,13 @@ class Cem_tuner(Competition):
             print >>out, "generation %d: next candidate round %d #%d" % (
                 self.generation, self.round, self.next_candidate)
         print >>out
-        print >>out, self.wins
-        print >>out, self.distribution
+        print >>out, "wins from current samples:\n%s" % self.wins
+        print >>out
+        if self.generation == NUMBER_OF_GENERATIONS:
+            print >>out, "final distribution:"
+        else:
+            print >>out, "distribution for generation %d:" % self.generation
+        print >>out, self.format_distribution(self.distribution)
 
     def write_results_report(self, out):
         pass
