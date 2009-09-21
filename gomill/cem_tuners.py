@@ -169,9 +169,9 @@ class Cem_tuner(Competition):
                 enumerate(self.sample_parameters):
             candidate_code = self.make_candidate_code(
                 self.generation, candidate_number)
+            engine_parameters = self.translate_parameters(optimiser_params)
             try:
-                candidate_config = self.candidate_maker(
-                    self.translate_parameters(optimiser_params))
+                candidate_config = self.candidate_maker(engine_parameters)
             except StandardError:
                 raise CompetitionError(
                     "error from user-defined candidate function\n%s" %
