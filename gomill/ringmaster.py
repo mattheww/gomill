@@ -295,6 +295,7 @@ class Ringmaster(object):
         self.write_status()
         self.update_display()
         if self.chatty:
+            print
             print "game %s completed: %s" % (
                 response.game_id, response.game_result.describe())
 
