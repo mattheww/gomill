@@ -7,6 +7,22 @@ from gomill import job_manager
 from gomill.gtp_controller import (
     GtpProtocolError, GtpTransportError, GtpEngineError)
 
+class Player(object):
+    """Player description for Game_jobs.
+
+    required attributes:
+      code     -- short string
+      cmd_args -- list of strings, as for subprocess.Popen
+
+    optional attributes:
+      gtp_translations -- map command string -> command string
+
+    See gtp_games for an explanation of gtp_translations.
+
+    """
+    def __init__(self):
+        self.gtp_translations = {}
+
 class Game_job(object):
     """A game to be played in a worker process.
 
@@ -16,8 +32,8 @@ class Game_job(object):
 
     required attributes:
       game_id             -- short string
-      players             -- map colour -> player code
-      commands            -- map colour -> string (used to launch the program)
+      player_b            -- Player
+      player_w            -- Player
       board_size          -- int
       komi                -- float
       move_limit          -- int
@@ -27,8 +43,6 @@ class Game_job(object):
       sgf_event           -- string to show as SGF EVent
       use_internal_scorer -- bool
       preferred_scorers   -- set or list of player codes, or None
-      gtp_translations    -- map colour ->
-                                 (map command string -> command string)
 
     The game_id will be returned in the job result, so you can tell which game
     you're getting the result for. It also appears in a comment in the SGF file.
@@ -44,19 +58,20 @@ class Game_job(object):
         self.sgf_event = None
         self.use_internal_scorer = True
         self.preferred_scorers = None
-        self.gtp_translations = None
 
     # The code here has to be happy to run in a separate process.
 
     def run(self):
-        game = gtp_games.Game(self.players, self.commands,
-                              self.board_size, self.komi, self.move_limit)
+        game = gtp_games.Game(
+            {'b' : self.player_b.code, 'w' : self.player_w.code},
+            {'b' : self.player_b.cmd_args, 'w' : self.player_w.cmd_args},
+            self.board_size, self.komi, self.move_limit)
         if self.use_internal_scorer:
             game.use_internal_scorer()
         elif self.preferred_scorers:
             game.use_players_to_score(self.preferred_scorers)
-        if self.gtp_translations is not None:
-            game.set_gtp_translations(self.gtp_translations)
+        game.set_gtp_translations({'b' : self.player_b.gtp_translations,
+                                   'w' : self.player_w.gtp_translations})
         try:
             game.start_players()
             game.request_engine_descriptions()

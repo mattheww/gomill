@@ -244,17 +244,19 @@ class Cem_tuner(Competition):
             self.next_candidate = 0
             self.round += 1
 
-        commands = {'b' : candidate.cmd_args,
-                    'w' : self.players[self.opponent].cmd_args}
-        gtp_translations = {'b' : candidate.gtp_translations,
-                            'w' : self.players[self.opponent].gtp_translations}
-        players = {'b' : player_code, 'w' : self.opponent}
+        player_b = game_jobs.Player()
+        player_b.code = player_code
+        player_b.cmd_args = candidate.cmd_args
+        player_b.gtp_translations = candidate.gtp_translations
+        player_w = game_jobs.Player()
+        player_w.code = self.opponent
+        player_w.cmd_args = self.players[self.opponent].cmd_args
+        player_w.gtp_translations = self.players[self.opponent].gtp_translations
 
         job = game_jobs.Game_job()
         job.game_id = game_id
-        job.players = players
-        job.commands = commands
-        job.gtp_translations = gtp_translations
+        job.player_b = player_b
+        job.player_w = player_w
         job.board_size = self.board_size
         job.komi = self.komi
         job.move_limit = self.move_limit

@@ -56,18 +56,24 @@ class Tournament(Competition):
             game_number >= self.number_of_games):
             return NoGameAvailable
         self.next_game_number += 1
-        player_b, player_w = self.matchups[game_number % len(self.matchups)]
-        commands = {'b' : self.players[player_b].cmd_args,
-                    'w' : self.players[player_w].cmd_args}
-        gtp_translations = {'b' : self.players[player_b].gtp_translations,
-                            'w' : self.players[player_w].gtp_translations}
-        players = {'b' : player_b, 'w' : player_w}
+
+        # FIXME: ugly
+        matchup = self.matchups[game_number % len(self.matchups)]
+        pb = self.players[matchup[0]]
+        pw = self.players[matchup[1]]
+        player_b = game_jobs.Player()
+        player_b.code = matchup[0]
+        player_b.cmd_args = pb.cmd_args
+        player_b.gtp_translations = pb.gtp_translations
+        player_w = game_jobs.Player()
+        player_w.code = matchup[1]
+        player_w.cmd_args = pw.cmd_args
+        player_w.gtp_translations = pw.gtp_translations
 
         job = game_jobs.Game_job()
         job.game_id = str(game_number)
-        job.players = players
-        job.commands = commands
-        job.gtp_translations = gtp_translations
+        job.player_b = player_b
+        job.player_w = player_w
         job.board_size = self.board_size
         job.komi = self.komi
         job.move_limit = self.move_limit

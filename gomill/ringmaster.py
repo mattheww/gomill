@@ -50,11 +50,13 @@ def get_competition_class(competition_type):
 
 json_encodable_classes = {
     gtp_games.Game_result : 'R',
+    game_jobs.Player      : 'P',
     game_jobs.Game_job    : 'J',
     }
 
 json_decodable_classes = {
     'R' : gtp_games.Game_result,
+    'P' : game_jobs.Player,
     'J' : game_jobs.Game_job,
     }
 
@@ -271,7 +273,7 @@ class Ringmaster(object):
                     self.sgf_dir_pathname, "%s.sgf" % job.game_id)
         self.games_in_progress[job.game_id] = job
         start_msg = "starting game %s: %s (b) vs %s (w)" % (
-            job.game_id, job.players['b'], job.players['w'])
+            job.game_id, job.player_b.code, job.player_w.code)
         self.log(start_msg)
         if self.chatty:
             print start_msg
