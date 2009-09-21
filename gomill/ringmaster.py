@@ -116,14 +116,20 @@ class Ringmaster(object):
         except:
             raise RingmasterError("error in control file:\n%s" %
                                   compact_tracebacks.format_error_and_line())
-        self.initialise_from_control_file(config)
+        try:
+            self.initialise_from_control_file(config)
+        except ValueError, e:
+            raise RingmasterError("error in control file:\n%s" % e)
 
         competition_class = get_competition_class(
             config.get("competition_type"))
         self.competition = competition_class(self.competition_code)
         self.competition.set_logger(self.log)
         self.competition.set_history_logger(self.log_history)
-        self.competition.initialise_from_control_file(config)
+        try:
+            self.competition.initialise_from_control_file(config)
+        except ValueError, e:
+            raise RingmasterError("error in control file:\n%s" % e)
 
     def open_files(self):
         try:

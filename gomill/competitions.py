@@ -17,19 +17,45 @@ NoGameAvailable = object()
 
 class Player_config(object):
     """Player description for use in tournament files."""
-    def __init__(self, command_string, gtp_translations=None):
-        # Ought to validate
-        self.cmd_args = shlex.split(command_string)
-        self.cmd_args[0] = os.path.expanduser(self.cmd_args[0])
-        if gtp_translations is None:
-            self.gtp_translations = {}
-        else:
-            self.gtp_translations = gtp_translations
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
 
     def get_game_jobs_player(self):
+        """FIXME
+
+        Raises ValueError if there is an error in the configuration.
+
+        Returns a game_jobs.Player
+
+        """
         player = game_jobs.Player()
-        player.cmd_args = self.cmd_args
-        player.gtp_translations = self.gtp_translations
+        for key in self.kwargs:
+            if key not in ('command_string', 'gtp_translations'):
+                raise ValueError("unknown argument '%s'" % key)
+        try:
+            if len(self.args) > 1:
+                raise ValueError("too many arguments")
+            if len(self.args) == 1:
+                if 'command_string' in self.kwargs:
+                    raise ValueError(
+                        "command_string specified both implicitly "
+                        "and explicitly")
+                command_string = self.args[0]
+            else:
+                command_string = self.kwargs['command_string']
+
+            try:
+                player.cmd_args = shlex.split(command_string)
+                player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
+            except ValueError, e:
+                raise ValueError("%s in command_string" % e)
+
+            # FIXME: Ought to validate properly
+            player.gtp_translations = self.kwargs.get('gtp_translations', {})
+
+        except KeyError, e:
+            raise ValueError("%s not specified" % e)
         return player
 
 control_file_globals = {
@@ -67,11 +93,14 @@ class Competition(object):
         (When resuming from saved state, this is called before set_state()).
 
         """
-        # Ought to validate.
+        # Ought to validate properly
         self.description = config['description']
         self.players = {}
         for player_code, player_config in config['players'].items():
-            player = player_config.get_game_jobs_player()
+            try:
+                player = player_config.get_game_jobs_player()
+            except ValueError, e:
+                raise ValueError("player %s: %s" % (player_code, e))
             player.code = player_code
             self.players[player_code] = player
         self.board_size = config['board_size']
