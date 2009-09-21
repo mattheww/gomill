@@ -15,52 +15,44 @@ def log_discard(s):
 
 NoGameAvailable = object()
 
-class Player_config(object):
-    """Player description for use in tournament files."""
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
 
-    def get_game_jobs_player(self):
-        """FIXME
+def game_jobs_player_from_config(player_config):
+    """Make a game_jobs.Player from a Player_config.
 
-        Raises ValueError if there is an error in the configuration.
+    Raises ValueError if there is an error in the configuration.
 
-        Returns a game_jobs.Player
+    Returns a game_jobs.Player with all required attributes set except 'code'.
 
-        """
-        player = game_jobs.Player()
-        for key in self.kwargs:
-            if key not in ('command_string', 'gtp_translations'):
-                raise ValueError("unknown argument '%s'" % key)
+    """
+    args = player_config.args
+    kwargs = player_config.kwargs
+    player = game_jobs.Player()
+    for key in kwargs:
+        if key not in ('command_string', 'gtp_translations'):
+            raise ValueError("unknown argument '%s'" % key)
+    try:
+        if len(args) > 1:
+            raise ValueError("too many arguments")
+        if len(args) == 1:
+            if 'command_string' in kwargs:
+                raise ValueError(
+                    "command_string specified both implicitly and explicitly")
+            command_string = args[0]
+        else:
+            command_string = kwargs['command_string']
+
         try:
-            if len(self.args) > 1:
-                raise ValueError("too many arguments")
-            if len(self.args) == 1:
-                if 'command_string' in self.kwargs:
-                    raise ValueError(
-                        "command_string specified both implicitly "
-                        "and explicitly")
-                command_string = self.args[0]
-            else:
-                command_string = self.kwargs['command_string']
+            player.cmd_args = shlex.split(command_string)
+            player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
+        except ValueError, e:
+            raise ValueError("%s in command_string" % e)
 
-            try:
-                player.cmd_args = shlex.split(command_string)
-                player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
-            except ValueError, e:
-                raise ValueError("%s in command_string" % e)
+        # FIXME: Ought to validate properly
+        player.gtp_translations = kwargs.get('gtp_translations', {})
 
-            # FIXME: Ought to validate properly
-            player.gtp_translations = self.kwargs.get('gtp_translations', {})
-
-        except KeyError, e:
-            raise ValueError("%s not specified" % e)
-        return player
-
-control_file_globals = {
-    'Player' : Player_config,
-    }
+    except KeyError, e:
+        raise ValueError("%s not specified" % e)
+    return player
 
 class Competition(object):
     """A resumable processing job based around playing many GTP games.
@@ -98,7 +90,7 @@ class Competition(object):
         self.players = {}
         for player_code, player_config in config['players'].items():
             try:
-                player = player_config.get_game_jobs_player()
+                player = game_jobs_player_from_config(player_config)
             except ValueError, e:
                 raise ValueError("player %s: %s" % (player_code, e))
             player.code = player_code

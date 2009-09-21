@@ -4,7 +4,9 @@ from random import gauss as random_gauss
 from math import sqrt
 
 from gomill import game_jobs
-from gomill.competitions import Competition, NoGameAvailable, Player_config
+from gomill.competitions import (
+    Competition, NoGameAvailable,
+    Player_config, game_jobs_player_from_config)
 
 BATCH_SIZE = 3
 SAMPLES_PER_GENERATION = 5
@@ -168,7 +170,7 @@ class Cem_tuner(Competition):
                 self.generation, candidate_number)
             candidate_config = self.candidate_maker(
                 self.translate_parameters(optimiser_params))
-            candidate = candidate_config.get_game_jobs_player()
+            candidate = game_jobs_player_from_config(candidate_config)
             candidate.code = candidate_code
             self.candidates.append(candidate)
             self.candidate_numbers_by_code[candidate_code] = candidate_number
