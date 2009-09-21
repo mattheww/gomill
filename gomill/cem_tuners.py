@@ -7,7 +7,7 @@ from gomill import compact_tracebacks
 from gomill import game_jobs
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError,
-    game_jobs_player_from_config)
+    Player_config, game_jobs_player_from_config)
 
 BATCH_SIZE = 3
 SAMPLES_PER_GENERATION = 5
@@ -176,6 +176,10 @@ class Cem_tuner(Competition):
                 raise CompetitionError(
                     "error from user-defined candidate function\n%s" %
                     compact_tracebacks.format_traceback(skip=1))
+            if not isinstance(candidate_config, Player_config):
+                raise CompetitionError(
+                    "user-defined candidate function returned %r, not Player" %
+                    candidate_config)
             try:
                 candidate = game_jobs_player_from_config(candidate_config)
             except ValueError, e:

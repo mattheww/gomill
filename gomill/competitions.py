@@ -24,6 +24,16 @@ class CompetitionError(StandardError):
 
     """
 
+class Player_config(object):
+    """Player description for use in tournament files."""
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+control_file_globals = {
+    'Player' : Player_config,
+    }
+
 def game_jobs_player_from_config(player_config):
     """Make a game_jobs.Player from a Player_config.
 

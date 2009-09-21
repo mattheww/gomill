@@ -14,19 +14,10 @@ from gomill import compact_tracebacks
 from gomill import game_jobs
 from gomill import gtp_games
 from gomill import job_manager
-from gomill.competitions import NoGameAvailable, CompetitionError
+from gomill.competitions import (
+    NoGameAvailable, CompetitionError, control_file_globals)
 from gomill.gtp_controller import (
     GtpProtocolError, GtpTransportError, GtpEngineError)
-
-class Player_config(object):
-    """Player description for use in tournament files."""
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-
-control_file_globals = {
-    'Player' : Player_config,
-    }
 
 def read_tourn_file(pathname):
     """Read the specified file as a .tourn file.
