@@ -4,6 +4,9 @@ import os
 import shlex
 import sys
 
+from gomill import game_jobs
+
+
 def log_to_stdout(s):
     print s
 
@@ -22,6 +25,12 @@ class Player_config(object):
             self.gtp_translations = {}
         else:
             self.gtp_translations = gtp_translations
+
+    def get_game_jobs_player(self):
+        player = game_jobs.Player()
+        player.cmd_args = self.cmd_args
+        player.gtp_translations = self.gtp_translations
+        return player
 
 control_file_globals = {
     'Player' : Player_config,

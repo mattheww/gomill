@@ -57,18 +57,11 @@ class Tournament(Competition):
             return NoGameAvailable
         self.next_game_number += 1
 
-        # FIXME: ugly
         matchup = self.matchups[game_number % len(self.matchups)]
-        pb = self.players[matchup[0]]
-        pw = self.players[matchup[1]]
-        player_b = game_jobs.Player()
+        player_b = self.players[matchup[0]].get_game_jobs_player()
         player_b.code = matchup[0]
-        player_b.cmd_args = pb.cmd_args
-        player_b.gtp_translations = pb.gtp_translations
-        player_w = game_jobs.Player()
+        player_w = self.players[matchup[1]].get_game_jobs_player()
         player_w.code = matchup[1]
-        player_w.cmd_args = pw.cmd_args
-        player_w.gtp_translations = pw.gtp_translations
 
         job = game_jobs.Game_job()
         job.game_id = str(game_number)
