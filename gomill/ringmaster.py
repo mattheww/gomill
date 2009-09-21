@@ -351,11 +351,13 @@ class Ringmaster(object):
             allow_mp = (self.worker_count is not None)
             job_manager.run_jobs(
                 job_source=self,
-                allow_mp=allow_mp, max_workers=self.worker_count)
+                allow_mp=allow_mp, max_workers=self.worker_count,
+                passed_exceptions=[CompetitionError])
         except KeyboardInterrupt:
             self.log("run interrupted at %s" % now())
             raise
         except CompetitionError, e:
+            self.log(str(e))
             raise RingmasterError(e)
         self.log("run finished at %s" % now())
         self.close_files()
