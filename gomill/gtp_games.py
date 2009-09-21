@@ -206,6 +206,17 @@ class Game(object):
             self.send_command(colour, "komi", str(self.komi))
 
     def request_engine_descriptions(self):
+        """Obtain the engines' name, version, and description by GTP.
+
+        After you have called this, you can retrieve the results from the
+        engine_names and engine_descriptions attributes.
+
+        If this has been called, other methods will use the engine name and/or
+        description when appropriate (ie, call this if you want proper engine
+        names to appear in the SGF file).
+
+        """
+
         def shorten_version(name, version):
             """Clean up redundant version strings."""
             if version.lower().startswith(name.lower()):
