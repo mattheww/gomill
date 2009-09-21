@@ -79,14 +79,6 @@ def update_distribution(distribution, elites):
     return Distribution(new_distribution_parameters)
 
 
-
-# FIXME
-old_kiai_gtp_translations = {
-    'gomill-describe_engine' : 'kiai-describe_engine',
-    'gomill-cpu_time' : 'kiai-cpu_time',
-    'gomill-explain_last_move' : 'kiai-explain_last_move',
-    }
-
 def get_initial_distribution():
     # FIXME
     # The dimensions are resign_at and log_10 (playouts_per_move)
@@ -100,7 +92,7 @@ class Cem_tuner(Competition):
 
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
-        self.candidate_base = config['candidate_base']
+        self.candidate_maker = config['make_candidate']
         # FIXME: Proper CANDIDATE object or something.
         self.matchups = config['matchups']
         for p1, p2 in self.matchups:
@@ -154,19 +146,6 @@ class Cem_tuner(Competition):
         return "%s\n%s" % (self.format_parameters(distribution.get_means()),
                            distribution.format())
 
-    def make_candidate_command(self, parameters):
-        """Return the command for use for a candidate with the given parameters.
-
-        parameters -- engine parameter vector
-
-        Returns a command suitable for use with a Game_job.
-
-        """
-        resign_at, playouts_per_move = parameters
-        opts = ["--ppm=%d" % playouts_per_move,
-                "--resign-at=%f" % resign_at]
-        return self.candidate_base.cmd_args + opts
-
     @staticmethod
     def make_candidate_code(generation, candidate_number):
         return "g%d#%d" % (generation, candidate_number)
@@ -180,7 +159,7 @@ class Cem_tuner(Competition):
         self.sample_parameters = [get_sample()
                                   for _ in xrange(SAMPLES_PER_GENERATION)]
         assert len(self.sample_parameters) == SAMPLES_PER_GENERATION
-        # List of pairs (player code, cmd_args),
+        # List of pairs (player code, Player),
         # to be indexed by candidate number
         self.candidates = []
         self.candidate_numbers_by_code = {}
@@ -188,9 +167,9 @@ class Cem_tuner(Competition):
                 enumerate(self.sample_parameters):
             candidate_code = self.make_candidate_code(
                 self.generation, candidate_number)
-            cmd_args = self.make_candidate_command(
+            player = self.candidate_maker(
                 self.translate_parameters(optimiser_params))
-            self.candidates.append((candidate_code, cmd_args))
+            self.candidates.append((candidate_code, player))
             self.candidate_numbers_by_code[candidate_code] = candidate_number
         self.round = 0
         self.next_candidate = 0
@@ -257,7 +236,7 @@ class Cem_tuner(Competition):
         if self.round == 0 and self.next_candidate == 0:
             self.log("\nstarting generation %d" % self.generation)
 
-        player_code, candidate_cmd_args = self.candidates[self.next_candidate]
+        player_code, candidate = self.candidates[self.next_candidate]
         game_id = "%sr%d" % (player_code, self.round)
 
         self.next_candidate += 1
@@ -265,9 +244,9 @@ class Cem_tuner(Competition):
             self.next_candidate = 0
             self.round += 1
 
-        commands = {'b' : candidate_cmd_args,
+        commands = {'b' : candidate.cmd_args,
                     'w' : self.players[self.opponent].cmd_args}
-        gtp_translations = {'b' : old_kiai_gtp_translations, # FIXME
+        gtp_translations = {'b' : candidate.gtp_translations,
                             'w' : self.players[self.opponent].gtp_translations}
         players = {'b' : player_code, 'w' : self.opponent}
 
