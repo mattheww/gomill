@@ -58,15 +58,10 @@ class Tournament(Competition):
         self.next_game_number += 1
 
         matchup = self.matchups[game_number % len(self.matchups)]
-        player_b = self.players[matchup[0]].get_game_jobs_player()
-        player_b.code = matchup[0]
-        player_w = self.players[matchup[1]].get_game_jobs_player()
-        player_w.code = matchup[1]
-
         job = game_jobs.Game_job()
         job.game_id = str(game_number)
-        job.player_b = player_b
-        job.player_w = player_w
+        job.player_b = self.players[matchup[0]]
+        job.player_w = self.players[matchup[1]]
         job.board_size = self.board_size
         job.komi = self.komi
         job.move_limit = self.move_limit

@@ -69,9 +69,11 @@ class Competition(object):
         """
         # Ought to validate.
         self.description = config['description']
-        self.players = config.get('players', {})
-        for player, s in config.get('player_commands', {}).items():
-            self.players[player] = Player_config(s)
+        self.players = {}
+        for player_code, player_config in config['players'].items():
+            player = player_config.get_game_jobs_player()
+            player.code = player_code
+            self.players[player_code] = player
         self.board_size = config['board_size']
         self.komi = config['komi']
         self.move_limit = config['move_limit']

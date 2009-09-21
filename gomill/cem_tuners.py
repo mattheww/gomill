@@ -159,17 +159,18 @@ class Cem_tuner(Competition):
         self.sample_parameters = [get_sample()
                                   for _ in xrange(SAMPLES_PER_GENERATION)]
         assert len(self.sample_parameters) == SAMPLES_PER_GENERATION
-        # List of pairs (player code, Player),
-        # to be indexed by candidate number
+        # List of Players to be indexed by candidate number
         self.candidates = []
         self.candidate_numbers_by_code = {}
         for candidate_number, optimiser_params in \
                 enumerate(self.sample_parameters):
             candidate_code = self.make_candidate_code(
                 self.generation, candidate_number)
-            player = self.candidate_maker(
+            candidate_config = self.candidate_maker(
                 self.translate_parameters(optimiser_params))
-            self.candidates.append((candidate_code, player))
+            candidate = candidate_config.get_game_jobs_player()
+            candidate.code = candidate_code
+            self.candidates.append(candidate)
             self.candidate_numbers_by_code[candidate_code] = candidate_number
         self.round = 0
         self.next_candidate = 0
@@ -236,23 +237,18 @@ class Cem_tuner(Competition):
         if self.round == 0 and self.next_candidate == 0:
             self.log("\nstarting generation %d" % self.generation)
 
-        player_code, candidate = self.candidates[self.next_candidate]
-        game_id = "%sr%d" % (player_code, self.round)
+        candidate = self.candidates[self.next_candidate]
+        game_id = "%sr%d" % (candidate.code, self.round)
 
         self.next_candidate += 1
         if self.next_candidate == SAMPLES_PER_GENERATION:
             self.next_candidate = 0
             self.round += 1
 
-        player_b = candidate.get_game_jobs_player()
-        player_b.code = player_code
-        player_w = self.players[self.opponent].get_game_jobs_player()
-        player_w.code = self.opponent
-
         job = game_jobs.Game_job()
         job.game_id = game_id
-        job.player_b = player_b
-        job.player_w = player_w
+        job.player_b = candidate
+        job.player_w = self.players[self.opponent]
         job.board_size = self.board_size
         job.komi = self.komi
         job.move_limit = self.move_limit
