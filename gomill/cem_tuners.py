@@ -3,6 +3,7 @@
 from random import gauss as random_gauss
 from math import sqrt
 
+from gomill import compact_tracebacks
 from gomill import game_jobs
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError,
@@ -168,8 +169,13 @@ class Cem_tuner(Competition):
                 enumerate(self.sample_parameters):
             candidate_code = self.make_candidate_code(
                 self.generation, candidate_number)
-            candidate_config = self.candidate_maker(
-                self.translate_parameters(optimiser_params))
+            try:
+                candidate_config = self.candidate_maker(
+                    self.translate_parameters(optimiser_params))
+            except StandardError:
+                raise CompetitionError(
+                    "error from user-defined candidate function\n%s" %
+                    compact_tracebacks.format_traceback(skip=1))
             try:
                 candidate = game_jobs_player_from_config(candidate_config)
             except ValueError, e:
