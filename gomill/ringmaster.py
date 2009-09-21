@@ -357,8 +357,15 @@ class Ringmaster(object):
             self.log("run interrupted at %s" % now())
             raise
         except CompetitionError, e:
-            self.log(str(e))
+            self.log("run finished with error at %s\n" % (now(), e))
             raise RingmasterError(e)
+        except job_manager.JobSourceError, e:
+            self.log("run finished with internal error at %s\n%s" % (now(), e))
+            raise
+        except:
+            self.log("run finished with internal error at %s" % now())
+            self.log(compact_tracebacks.format_traceback())
+            raise
         self.log("run finished at %s" % now())
         self.close_files()
 
@@ -458,6 +465,14 @@ def main():
         sys.exit(1)
     except KeyboardInterrupt:
         sys.exit(3)
+    except job_manager.JobSourceError, e:
+        print >>sys.stderr, "ringmaster: internal error"
+        print >>sys.stderr, e
+        sys.exit(4)
+    except:
+        print >>sys.stderr, "ringmaster: internal error"
+        compact_tracebacks.log_traceback()
+        sys.exit(4)
 
 if __name__ == "__main__":
     main()
