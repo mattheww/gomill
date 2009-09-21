@@ -6,12 +6,6 @@ from gomill.competitions import Competition, NoGameAvailable
 
 class Tournament(Competition):
     """A Competition made up of repeated matchups between specified players."""
-    def __init__(self, competition_code):
-        Competition.__init__(self, competition_code)
-        self.engine_names = {}
-        self.engine_descriptions = {}
-        self.results = []
-        self.next_game_number = 0
 
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
@@ -46,6 +40,12 @@ class Tournament(Competition):
         self.next_game_number = status['next_game_number']
         self.engine_names = status['engine_names']
         self.engine_descriptions = status['engine_descriptions']
+
+    def set_clean_status(self):
+        self.results = []
+        self.next_game_number = 0
+        self.engine_names = {}
+        self.engine_descriptions = {}
 
     def _games_played(self):
         return len(self.results)
