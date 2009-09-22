@@ -160,11 +160,14 @@ class Cem_tuner(Competition):
     def is_candidate_code(player_code):
         return '#' in player_code
 
-    def reset_for_new_generation(self):
-        get_sample = self.distribution.get_sample
-        self.sample_parameters = [get_sample()
-                                  for _ in xrange(self.samples_per_generation)]
-        assert len(self.sample_parameters) == self.samples_per_generation
+    def prepare_candidates(self):
+        """Set up the candidates array.
+
+        This is run for each new generation, and when reloading state.
+
+        Requires generation and sample_parameters to be already set.
+
+        """
         # List of Players to be indexed by candidate number
         self.candidates = []
         self.candidate_numbers_by_code = {}
@@ -192,12 +195,20 @@ class Cem_tuner(Competition):
             candidate.code = candidate_code
             self.candidates.append(candidate)
             self.candidate_numbers_by_code[candidate_code] = candidate_number
+
+    def reset_for_new_generation(self):
+        get_sample = self.distribution.get_sample
+        self.sample_parameters = [get_sample()
+                                  for _ in xrange(self.samples_per_generation)]
+        assert len(self.sample_parameters) == self.samples_per_generation
         self.round = 0
         self.next_candidate = 0
         self.wins = [0] * self.samples_per_generation
-        self.results_required_count = (self.batch_size *
-                                       self.samples_per_generation)
         self.results_seen_count = 0
+        self.prepare_candidates()
+
+    def get_results_required_count(self):
+        return self.batch_size * self.samples_per_generation
 
     def format_generation_results(self, ordered_samples, elite_count):
         """Pretty-print the results of a single generation.
@@ -236,10 +247,27 @@ class Cem_tuner(Competition):
             self.distribution, elite_samples, self.step_size)
 
     def get_status(self):
-        return {}
+        return {
+            'finished'           : self.finished,
+            'distribution'       : self.distribution.parameters,
+            'sample_parameters'  : self.sample_parameters,
+            'generation'         : self.generation,
+            'round'              : self.round,
+            'next_candidate'     : self.next_candidate,
+            'wins'               : self.wins,
+            'results_seen_count' : self.results_seen_count,
+            }
 
     def set_status(self, status):
-        FIXME
+        self.finished = status['finished']
+        self.distribution = Distribution(status['distribution'])
+        self.sample_parameters = status['sample_parameters']
+        self.generation = status['generation']
+        self.round = status['round']
+        self.next_candidate = status['next_candidate']
+        self.wins = status['wins']
+        self.results_seen_count = status['results_seen_count']
+        self.prepare_candidates()
 
     def set_clean_status(self):
         self.finished = False
@@ -286,7 +314,7 @@ class Cem_tuner(Competition):
             candidate_number = self.candidate_numbers_by_code[winner]
             self.wins[candidate_number] += 1
         self.results_seen_count += 1
-        if self.results_seen_count == self.results_required_count:
+        if self.results_seen_count == self.get_results_required_count():
             assert self.round == self.batch_size
             self.finish_generation()
             self.generation += 1
