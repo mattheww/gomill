@@ -9,12 +9,6 @@ from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError,
     Player_config, game_jobs_player_from_config)
 
-BATCH_SIZE = 3
-SAMPLES_PER_GENERATION = 5
-NUMBER_OF_GENERATIONS = 3
-ELITE_PROPORTION = 0.1
-STEP_SIZE = 0.8
-
 
 def square(f):
     return f * f
@@ -58,11 +52,12 @@ class Distribution(object):
     def __str__(self):
         return "<distribution %s>" % self.format()
 
-def update_distribution(distribution, elites):
-    """Update a distribution based on the given elitss.
+def update_distribution(distribution, elites, step_size):
+    """Update a distribution based on the given elites.
 
     distribution -- Distribution
     elites       -- list of optimiser parameter vectors
+    step_size    -- float between 0.0 and 1.0 ('alpha')
 
     Returns a new distribution
 
@@ -74,10 +69,10 @@ def update_distribution(distribution, elites):
         elite_mean = sum(v) / n
         elite_var = sum(map(square, v)) / n - square(elite_mean)
         old_mean, old_var = distribution.parameters[i]
-        new_mean = (elite_mean * STEP_SIZE +
-                    old_mean * (1.0 - STEP_SIZE))
-        new_var = (elite_var * STEP_SIZE +
-                   old_var * (1.0 - STEP_SIZE))
+        new_mean = (elite_mean * step_size +
+                    old_mean * (1.0 - step_size))
+        new_var = (elite_var * step_size +
+                   old_var * (1.0 - step_size))
         new_distribution_parameters.append((new_mean, new_var))
     return Distribution(new_distribution_parameters)
 
@@ -95,6 +90,11 @@ class Cem_tuner(Competition):
 
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
+        self.batch_size = 3
+        self.samples_per_generation = 5
+        self.number_of_generations = 3
+        self.elite_proportion = 0.1
+        self.step_size = 0.8
         self.candidate_maker = config['make_candidate']
         # FIXME: Proper CANDIDATE object or something.
         self.matchups = config['matchups']
@@ -160,8 +160,8 @@ class Cem_tuner(Competition):
     def reset_for_new_generation(self):
         get_sample = self.distribution.get_sample
         self.sample_parameters = [get_sample()
-                                  for _ in xrange(SAMPLES_PER_GENERATION)]
-        assert len(self.sample_parameters) == SAMPLES_PER_GENERATION
+                                  for _ in xrange(self.samples_per_generation)]
+        assert len(self.sample_parameters) == self.samples_per_generation
         # List of Players to be indexed by candidate number
         self.candidates = []
         self.candidate_numbers_by_code = {}
@@ -191,8 +191,9 @@ class Cem_tuner(Competition):
             self.candidate_numbers_by_code[candidate_code] = candidate_number
         self.round = 0
         self.next_candidate = 0
-        self.wins = [0] * SAMPLES_PER_GENERATION
-        self.results_required_count = BATCH_SIZE * SAMPLES_PER_GENERATION
+        self.wins = [0] * self.samples_per_generation
+        self.results_required_count = (self.batch_size *
+                                       self.samples_per_generation)
         self.results_seen_count = 0
 
     def format_generation_results(self, ordered_samples, elite_count):
@@ -220,7 +221,7 @@ class Cem_tuner(Competition):
                   for (candidate_number, wins) in enumerate(self.wins)]
         sorter.sort(reverse=True)
         elite_count = max(1,
-            int(ELITE_PROPORTION * SAMPLES_PER_GENERATION + 0.5))
+            int(self.elite_proportion * self.samples_per_generation + 0.5))
         self.log_history("Generation %s" % self.generation)
         self.log_history("Distribution\n%s" %
                          self.format_distribution(self.distribution))
@@ -229,7 +230,7 @@ class Cem_tuner(Competition):
         elite_samples = [self.sample_parameters[index]
                          for (wins, index) in sorter[:elite_count]]
         self.distribution = update_distribution(
-            self.distribution, elite_samples)
+            self.distribution, elite_samples, self.step_size)
 
     def get_status(self):
         return {}
@@ -247,7 +248,7 @@ class Cem_tuner(Competition):
         if self.finished:
             return NoGameAvailable
 
-        if self.round == BATCH_SIZE:
+        if self.round == self.batch_size:
             # Send no more games until the new generation
             return NoGameAvailable
 
@@ -258,7 +259,7 @@ class Cem_tuner(Competition):
         game_id = "%sr%d" % (candidate.code, self.round)
 
         self.next_candidate += 1
-        if self.next_candidate == SAMPLES_PER_GENERATION:
+        if self.next_candidate == self.samples_per_generation:
             self.next_candidate = 0
             self.round += 1
 
@@ -283,10 +284,10 @@ class Cem_tuner(Competition):
             self.wins[candidate_number] += 1
         self.results_seen_count += 1
         if self.results_seen_count == self.results_required_count:
-            assert self.round == BATCH_SIZE
+            assert self.round == self.batch_size
             self.finish_generation()
             self.generation += 1
-            if self.generation == NUMBER_OF_GENERATIONS:
+            if self.generation == self.number_of_generations:
                 self.finished = True
             else:
                 self.reset_for_new_generation()
@@ -301,7 +302,7 @@ class Cem_tuner(Competition):
         # FIXME: Should describe the matchups?
 
     def write_status_summary(self, out):
-        if self.round == BATCH_SIZE:
+        if self.round == self.batch_size:
             print >>out, "generation %d: waiting for completion" % (
                 self.generation)
         else:
@@ -310,7 +311,7 @@ class Cem_tuner(Competition):
         print >>out
         print >>out, "wins from current samples:\n%s" % self.wins
         print >>out
-        if self.generation == NUMBER_OF_GENERATIONS:
+        if self.generation == self.number_of_generations:
             print >>out, "final distribution:"
         else:
             print >>out, "distribution for generation %d:" % self.generation
