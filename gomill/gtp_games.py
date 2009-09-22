@@ -128,7 +128,7 @@ class Game(object):
     def set_gtp_translations(self, translations):
         """Set GTP command translations.
 
-        translations -- map colour -> (map command string -> command string)
+        translations -- map colour -> (map command name -> command name)
 
         """
         self.gtp_translations = translations
@@ -157,7 +157,7 @@ class Game(object):
         """Send the specified GTP command to one of the players.
 
         colour    -- player to talk to ('b' or 'w')
-        command   -- gtp command (list of strings)
+        command   -- gtp command name (string)
         arguments -- gtp arguments (strings)
 
         Returns the response as a string.
