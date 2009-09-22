@@ -107,6 +107,9 @@ class Competition(object):
         self.description = config['description']
         self.players = {}
         for player_code, player_config in config['players'].items():
+            if not isinstance(player_config, Player_config):
+                raise ValueError("player %s is %r, not a Player" %
+                                 (player_code, player_config))
             try:
                 player = game_jobs_player_from_config(player_config)
             except ValueError, e:
