@@ -77,12 +77,6 @@ def update_distribution(distribution, elites, step_size):
     return Distribution(new_distribution_parameters)
 
 
-def get_initial_distribution():
-    # FIXME
-    # The dimensions are resign_at and log_10 (playouts_per_move)
-    return Distribution([(0.5, 1.0), (2.0, 2.0)])
-
-
 class Cem_tuner(Competition):
     """A Competition for parameter tuning using the cross-entropy method."""
     def __init__(self, competition_code):
@@ -96,7 +90,12 @@ class Cem_tuner(Competition):
             self.number_of_generations = config['number_of_generations']
             self.elite_proportion = config['elite_proportion']
             self.step_size = config['step_size']
-            self.candidate_maker = config['make_candidate']
+            self.initial_distribution = Distribution(
+                config['initial_distribution'])
+            self.translate_parameters_fn = \
+                config['convert_optimiser_parameters_to_engine_parameters']
+            self.format_parameters_fn = config['format_parameters']
+            self.candidate_maker_fn = config['make_candidate']
             # FIXME: Proper CANDIDATE object or something.
             self.matchups = config['matchups']
             for p1, p2 in self.matchups:
@@ -114,34 +113,12 @@ class Cem_tuner(Competition):
         except KeyError, e:
             raise ValueError("%s not specified" % e)
 
-    def translate_parameters(self, optimiser_params):
-        """Translate an optimiser parameter vector to an engine one."""
-        # The dimensions are resign_at and log_10 (playouts_per_move)
-        opt_resign_at, opt_playouts_per_move = optimiser_params
-        resign_at = max(0.0, min(1.0, opt_resign_at))
-        playouts_per_move = int(10**opt_playouts_per_move)
-        playouts_per_move = max(10, min(3000, playouts_per_move))
-        return [resign_at, playouts_per_move]
-
-    def format_parameters(self, optimiser_params):
-        """Pretty-print an optimiser parameter vector.
-
-        Returns a string.
-
-        """
-        resign_at, opt_playouts_per_move = optimiser_params
-        clipped_resign_at = max(0.0, min(1.0, resign_at))
-        if resign_at == clipped_resign_at:
-            resign_at_s = "%.2f       " % resign_at
-        else:
-            resign_at_s = "%.2f(% .2f)" % (clipped_resign_at, resign_at)
-        ppm = int(10**opt_playouts_per_move)
-        clipped_ppm = max(10, min(3000, ppm))
-        if ppm == clipped_ppm:
-            ppm_s = "%4s       " % ppm
-        else:
-            ppm_s = "%4s(%5s)" % (clipped_ppm, ppm)
-        return "%s %s" % (resign_at_s, ppm_s)
+    def format_parameters(self, engine_params):
+        try:
+            return self.format_parameters_fn(engine_params)
+        except StandardError:
+            return ("[error from user-defined parameter formatter]\n"
+                    "[engine parameters %s]" % engine_params)
 
     def format_distribution(self, distribution):
         """Pretty-print a distribution.
@@ -175,9 +152,15 @@ class Cem_tuner(Competition):
                 enumerate(self.sample_parameters):
             candidate_code = self.make_candidate_code(
                 self.generation, candidate_number)
-            engine_parameters = self.translate_parameters(optimiser_params)
             try:
-                candidate_config = self.candidate_maker(engine_parameters)
+                engine_parameters = \
+                    self.translate_parameters_fn(optimiser_params)
+            except StandardError:
+                raise CompetitionError(
+                    "error from user-defined parameter converter\n%s" %
+                    compact_tracebacks.format_traceback(skip=1))
+            try:
+                candidate_config = self.candidate_maker_fn(engine_parameters)
             except StandardError:
                 raise CompetitionError(
                     "error from user-defined candidate function\n%s" %
@@ -272,7 +255,7 @@ class Cem_tuner(Competition):
     def set_clean_status(self):
         self.finished = False
         self.generation = 0
-        self.distribution = get_initial_distribution()
+        self.distribution = self.initial_distribution
         self.reset_for_new_generation()
 
     def get_game(self):
