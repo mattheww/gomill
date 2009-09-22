@@ -90,26 +90,29 @@ class Cem_tuner(Competition):
 
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
-        self.batch_size = 3
-        self.samples_per_generation = 5
-        self.number_of_generations = 3
-        self.elite_proportion = 0.1
-        self.step_size = 0.8
-        self.candidate_maker = config['make_candidate']
-        # FIXME: Proper CANDIDATE object or something.
-        self.matchups = config['matchups']
-        for p1, p2 in self.matchups:
-            if p1 == "CANDIDATE":
-                other = p2
-            elif p2 == "CANDIDATE":
-                other = p1
-            else:
-                raise ValueError
-            if other not in self.players:
-                raise ValueError
-        # FIXME: Later sort out rotating through; for now just use last matchup
-        # but have candidate always take black
-        self.opponent = other
+        try:
+            self.batch_size = config['batch_size']
+            self.samples_per_generation = config['samples_per_generation']
+            self.number_of_generations = config['number_of_generations']
+            self.elite_proportion = config['elite_proportion']
+            self.step_size = config['step_size']
+            self.candidate_maker = config['make_candidate']
+            # FIXME: Proper CANDIDATE object or something.
+            self.matchups = config['matchups']
+            for p1, p2 in self.matchups:
+                if p1 == "CANDIDATE":
+                    other = p2
+                elif p2 == "CANDIDATE":
+                    other = p1
+                else:
+                    raise ValueError
+                if other not in self.players:
+                    raise ValueError
+            # FIXME: Later sort out rotating through; for now just use last
+            # matchup but have candidate always take black
+            self.opponent = other
+        except KeyError, e:
+            raise ValueError("%s not specified" % e)
 
     def translate_parameters(self, optimiser_params):
         """Translate an optimiser parameter vector to an engine one."""
