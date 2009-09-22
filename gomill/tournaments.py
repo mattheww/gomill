@@ -17,15 +17,17 @@ class Tournament(Competition):
                                 'alternating' in config)
         if uses_legacy_matchups:
             if 'matchups' in config:
-                raise ValueError
+                raise ValueError("both legacy and explicit matchups specified")
             self.matchups = [(config['player_x'], config['player_y'])]
             if config['alternating']:
                 self.matchups.append((config['player_y'], config['player_x']))
         else:
             self.matchups = config['matchups']
         for p1, p2 in self.matchups:
-            if p1 not in self.players or p2 not in self.players:
-                raise ValueError
+            if p1 not in self.players:
+                raise ValueError("unknown player %s" % p1)
+            if p2 not in self.players:
+                raise ValueError("unknown player %s" % p2)
 
     def get_status(self):
         return {

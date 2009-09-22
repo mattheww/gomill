@@ -110,30 +110,33 @@ class Competition(object):
 
         """
         # Ought to validate properly
-        self.description = config['description']
-        self.players = {}
-        for player_code, player_config in config['players'].items():
-            if not isinstance(player_config, Player_config):
-                raise ValueError("player %s is %r, not a Player" %
-                                 (player_code, player_config))
-            try:
-                player = game_jobs_player_from_config(player_config)
-            except ValueError, e:
-                raise ValueError("player %s: %s" % (player_code, e))
-            player.code = player_code
-            self.players[player_code] = player
-        self.board_size = config['board_size']
-        self.komi = config['komi']
-        self.move_limit = config['move_limit']
-        self.use_internal_scorer = False
-        self.preferred_scorers = None
-        if 'scorer' in config:
-            if config['scorer'] == "internal":
-                self.use_internal_scorer = True
-            elif config['scorer'] == "players":
-                self.preferred_scorers = config.get('preferred_scorers')
-            else:
-                raise ValueError
+        try:
+            self.description = config['description']
+            self.players = {}
+            for player_code, player_config in config['players'].items():
+                if not isinstance(player_config, Player_config):
+                    raise ValueError("player %s is %r, not a Player" %
+                                     (player_code, player_config))
+                try:
+                    player = game_jobs_player_from_config(player_config)
+                except ValueError, e:
+                    raise ValueError("player %s: %s" % (player_code, e))
+                player.code = player_code
+                self.players[player_code] = player
+            self.board_size = config['board_size']
+            self.komi = config['komi']
+            self.move_limit = config['move_limit']
+            self.use_internal_scorer = False
+            self.preferred_scorers = None
+            if 'scorer' in config:
+                if config['scorer'] == "internal":
+                    self.use_internal_scorer = True
+                elif config['scorer'] == "players":
+                    self.preferred_scorers = config.get('preferred_scorers')
+                else:
+                    raise ValueError
+        except KeyError, e:
+            raise ValueError("%s not specified" % e)
 
     def get_status(self):
         """Return full state of the competition, so it can be resumed later.

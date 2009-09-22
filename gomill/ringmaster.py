@@ -167,7 +167,10 @@ class Ringmaster(object):
             raise RingmasterError("error closing history file:\n%s" % e)
 
     def initialise_from_control_file(self, config):
-        self.record_games = config['record_games']
+        try:
+            self.record_games = config['record_games']
+        except KeyError, e:
+            raise ValueError("%s not specified" % e)
 
     def set_quiet_mode(self, b=True):
         self.chatty = not(b)
