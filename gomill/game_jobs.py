@@ -15,9 +15,14 @@ class Player(object):
       cmd_args -- list of strings, as for subprocess.Popen
 
     optional attributes:
-      gtp_translations -- map command string -> command string
+      gtp_translations     -- map command string -> command string
+      startup_gtp_commands -- list of pairs (command_name, arguments)
 
     See gtp_games for an explanation of gtp_translations.
+
+    The startup commands will be executed before starting the game. Their
+    responses will be ignored, but the game will be aborted if any startup
+    command returns an error.
 
     """
     def __init__(self):
@@ -75,6 +80,10 @@ class Game_job(object):
         try:
             game.start_players()
             game.request_engine_descriptions()
+            for command, arguments in self.player_b.startup_gtp_commands:
+                game.send_command('b', command, *arguments)
+            for command, arguments in self.player_w.startup_gtp_commands:
+                game.send_command('w', command, *arguments)
             game.run()
         except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
             raise job_manager.JobFailed("aborting game due to error:\n%s\n" % e)

@@ -46,7 +46,8 @@ def game_jobs_player_from_config(player_config):
     kwargs = player_config.kwargs
     player = game_jobs.Player()
     for key in kwargs:
-        if key not in ('command_string', 'gtp_translations'):
+        if key not in ('command_string', 'gtp_translations',
+                       'startup_gtp_commands'):
             raise ValueError("unknown argument '%s'" % key)
     try:
         if len(args) > 1:
@@ -64,6 +65,11 @@ def game_jobs_player_from_config(player_config):
             player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
         except ValueError, e:
             raise ValueError("%s in command_string" % e)
+
+        player.startup_gtp_commands = []
+        for s in kwargs.get('startup_gtp_commands', []):
+            words = s.split()
+            player.startup_gtp_commands.append((words[0], words[1:]))
 
         # FIXME: Ought to validate properly
         player.gtp_translations = kwargs.get('gtp_translations', {})
