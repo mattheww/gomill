@@ -104,9 +104,9 @@ class Cem_tuner(Competition):
                 elif p2 == "CANDIDATE":
                     other = p1
                 else:
-                    raise ValueError
+                    raise ValueError("matchup without CANDIDATE")
                 if other not in self.players:
-                    raise ValueError
+                    raise ValueError("unknown player %s" % other)
             # FIXME: Later sort out rotating through; for now just use last
             # matchup but have candidate always take black
             self.opponent = other

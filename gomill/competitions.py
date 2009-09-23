@@ -134,7 +134,7 @@ class Competition(object):
                 elif config['scorer'] == "players":
                     self.preferred_scorers = config.get('preferred_scorers')
                 else:
-                    raise ValueError
+                    raise ValueError("invalid 'scorer' value")
         except KeyError, e:
             raise ValueError("%s not specified" % e)
 
