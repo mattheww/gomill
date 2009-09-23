@@ -77,8 +77,8 @@ class Game(object):
       players               -- map colour -> player code (as passed in)
       result                -- Game_result
       moves                 -- list of tuples (colour, move, comment)
-      engine_names          -- map colour -> string
-      engine_descriptions   -- map colour -> string
+      engine_names          -- map player code -> string
+      engine_descriptions   -- map player code -> string
 
    Methods which communicate with engines may raise GtpTransportError or
    GtpProtocolError (eg if the engine has gone away.)
@@ -96,9 +96,8 @@ class Game(object):
         self.board = boards.Board(board_size)
         self.internal_scorer = False
         self.player_scorers = []
-        self.engine_names = {'b' : "unknown", 'w' : "unknown"}
-        self.engine_descriptions = {'b' : "unknown", 'w' : "unknown"}
-        self.engine_resource_usage = {'b' : None, 'w' : None}
+        self.engine_names = {}
+        self.engine_descriptions = {}
         self.gtp_translations = {'b' : {}, 'w' : {}}
 
     def use_internal_scorer(self, b=True):
