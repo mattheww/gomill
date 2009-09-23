@@ -74,7 +74,7 @@ class Tournament(Competition):
 
     def process_game_result(self, response):
         self.engine_names.update(response.engine_names)
-        self.engine_descriptions.update(response.engine_names)
+        self.engine_descriptions.update(response.engine_descriptions)
         self.results.append(response.game_result)
         # This will show results in order of games finishing rather than game
         # number, but never mind.
