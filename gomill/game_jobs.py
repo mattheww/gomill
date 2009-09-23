@@ -79,11 +79,11 @@ class Game_job(object):
                                    'w' : self.player_w.gtp_translations})
         try:
             game.start_players()
-            game.request_engine_descriptions()
             for command, arguments in self.player_b.startup_gtp_commands:
                 game.send_command('b', command, *arguments)
             for command, arguments in self.player_w.startup_gtp_commands:
                 game.send_command('w', command, *arguments)
+            game.request_engine_descriptions()
             game.run()
         except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
             raise job_manager.JobFailed("aborting game due to error:\n%s\n" % e)
