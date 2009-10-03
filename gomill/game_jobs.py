@@ -28,12 +28,23 @@ class Player(object):
     def __init__(self):
         self.gtp_translations = {}
 
+class Game_job_result(object):
+    """Information returned after a worker process plays a game.
+
+    Public attributes:
+      game_id               -- int
+      game_result           -- gtp_games.Game_result
+      engine_names          -- map colour -> string
+      engine_descriptions   -- map colour -> string
+
+    """
+
 class Game_job(object):
     """A game to be played in a worker process.
 
     A Game_job is designed to be used a job object for the job manager. When the
     job is run, it plays a GTP game as described by its attributes, and
-    optionally writes an SGF file.
+    optionally writes an SGF file. The job result is a Game_job_result object.
 
     required attributes:
       game_id             -- short string
@@ -54,8 +65,7 @@ class Game_job(object):
 
     Leave sgf_pathname None if you don't want to write an SGF file.
 
-    See gtp_games for an explanation of the 'scorer' attributes and
-    gtp_translations.
+    See gtp_games for an explanation of the 'scorer' attributes.
 
     """
     def __init__(self):
@@ -128,13 +138,3 @@ class Game_job(object):
         f.write(sgf_game.as_string())
         f.close()
 
-class Game_job_result(object):
-    """Information returned after a worker process plays a game.
-
-    Public attributes:
-      game_id               -- int
-      game_result           -- gtp_games.Game_result
-      engine_names          -- map colour -> string
-      engine_descriptions   -- map colour -> string
-
-    """
