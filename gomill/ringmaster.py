@@ -360,7 +360,7 @@ class Ringmaster(object):
             self.log("run interrupted at %s" % now())
             raise
         except CompetitionError, e:
-            self.log("run finished with error at %s\n" % (now(), e))
+            self.log("run finished with error at %s\n%s" % (now(), e))
             raise RingmasterError(e)
         except job_manager.JobSourceError, e:
             self.log("run finished with internal error at %s\n%s" % (now(), e))
