@@ -20,6 +20,7 @@ INITIAL_VALUE           =     0.5
 EXPLORATION_COEFFICIENT =     0.5
 _INITIAL_RSQRT_VISITS   =     1.0 / sqrt(INITIAL_VISITS)
 BRANCHING_FACTOR        =     3
+MAX_DEPTH               =     5
 
 class Node(object):
     """A MCTS node.
@@ -57,7 +58,6 @@ class Tree(object):
 
     def expand(self, node):
         assert node.children is None
-        # FIXME: Refuse to expand if too fine.
         node.children = [Node() for _ in xrange(BRANCHING_FACTOR)]
         self.node_count += BRANCHING_FACTOR
 
@@ -138,8 +138,7 @@ class Walker(object):
         while node.children is not None:
             choice, node = self.tree.choose_action(node)
             self.step(choice, node)
-        if node.visits != INITIAL_VISITS:
-            # FIXME: Cope with terminal node
+        if node.visits != INITIAL_VISITS and len(self.node_path) < MAX_DEPTH:
             self.tree.expand(node)
             choice, child = self.tree.choose_action(node)
             self.step(choice, child)
