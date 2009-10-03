@@ -18,7 +18,7 @@ INITIAL_VISITS          =     10
 INITIAL_WINS            =     5
 INITIAL_VALUE           =     0.5
 EXPLORATION_COEFFICIENT =     0.5
-_INITIAL_RSQRT_VISITS   =     0.70710678118654746
+_INITIAL_RSQRT_VISITS   =     1.0 / sqrt(INITIAL_VISITS)
 BRANCHING_FACTOR        =     3
 
 class Node(object):
