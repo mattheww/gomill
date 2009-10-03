@@ -49,7 +49,7 @@ def make_candidate(parameters):
     # commands.
     resign_at, playouts_per_move = parameters
     opts = ["--ppm=%d" % playouts_per_move]
-    commands = ["kiai-settings resign-at %f" % resign_at]
+    commands = ["kiai-settings resign_at %f" % resign_at]
     return Player(kiai + " ".join(opts), startup_gtp_commands=commands)
 
 matchups = [
