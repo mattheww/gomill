@@ -3,7 +3,7 @@
 from __future__ import division
 
 import random
-from math import sqrt
+from math import log, sqrt
 
 from gomill import compact_tracebacks
 from gomill import game_jobs
@@ -64,13 +64,15 @@ class Tree(object):
     def choose_action(self, node):
         assert node.children is not None
         child_count = len(node.children)
+        uct_numerator = EXPLORATION_COEFFICIENT * sqrt(log(node.visits))
         start = random.randrange(child_count)
         best_urgency = -1.0
         best_choice = None
         best_child = None
         for i in range(start, child_count) + range(start):
             child = node.children[i]
-            urgency = child.value # FIXME: Add UCT term
+            uct_term = uct_numerator * child.rsqrt_visits
+            urgency = child.value + uct_term
             if urgency > best_urgency:
                 best_urgency = urgency
                 best_choice = i
