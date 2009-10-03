@@ -151,6 +151,8 @@ class In_process_job_manager(Job_manager):
                 break
             try:
                 response = job.run()
+            except JobFailed, e:
+                job_source.process_error_response(job, str(e))
             except StandardError:
                 job_source.process_error_response(
                     job, compact_tracebacks.format_traceback(skip=1))
