@@ -80,7 +80,22 @@ class Tree(object):
         return best_choice, best_child
 
     def retrieve_best_parameters(self):
-        return "FIXME"
+        lo = 0.0
+        breadth = 1.0
+        node = self.root
+        while node.children is not None:
+            best = None
+            best_choice = None
+            best_value = -1
+            for i, child in enumerate(node.children):
+                if child.value > best_value:
+                    best_value = child.value
+                    best = child
+                    best_choice = i
+            breadth /= BRANCHING_FACTOR
+            lo += breadth * best_choice
+            node = best
+        return [lo + 0.5*breadth]
 
     def describe(self):
         root = self.root
@@ -300,6 +315,8 @@ class Mcts_tuner(Competition):
             print >>out, "Last simulation: %s %s" % (params_s, won_s)
             print >>out, self.last_simulation.debug
         print >>out, self.tree.describe()
+        print >>out, "Best parameter vector: %s" % (
+            self.format_parameters(self.tree.retrieve_best_parameters()))
         #waitforkey = raw_input()
 
     def write_results_report(self, out):
