@@ -12,8 +12,6 @@ from gomill.competitions import (
     Player_config, game_jobs_player_from_config)
 
 
-# Implementing three-branching tree.
-
 INITIAL_VISITS          =     10
 INITIAL_WINS            =     5
 INITIAL_VALUE           =     0.5
@@ -52,7 +50,7 @@ class Tree(object):
 
     """
     def __init__(self):
-        self.node_count = 1 # FIXME: For description
+        self.node_count = 1 # For description only
         self.root = Node()
         self.expand(self.root)
 
@@ -98,6 +96,10 @@ class Tree(object):
         return [lo + 0.5*breadth]
 
     def describe(self):
+        def describe_node(choice, node):
+            return "%d %.2f %3d" % (
+                choice, node.value, node.visits - INITIAL_VISITS)
+
         root = self.root
         wins = root.wins - INITIAL_WINS
         visits = root.visits - INITIAL_VISITS
@@ -105,15 +107,17 @@ class Tree(object):
             win_rate = "%.2f" % (wins/visits)
         except ZeroDivisionError:
             win_rate = "--"
-        node_stats = []
-        for choice, node in enumerate(self.root.children):
-            node_stats.append(
-                "  %d %.2f %3d" %
-                (choice, node.value, node.visits - INITIAL_VISITS))
-        return "\n".join([
+        result = [
             "%d nodes" % self.node_count,
             "Win rate %d/%d = %s" % (wins, visits, win_rate)
-            ] + node_stats)
+            ]
+        for choice, node in enumerate(self.root.children):
+            result.append("  " + describe_node(choice, node))
+            if node.children is None:
+                continue
+            for choice2, node2 in enumerate(node.children):
+                result.append("    " + describe_node(choice2, node2))
+        return "\n".join(result)
 
 class Walker(object):
     """FIXME"""
@@ -131,7 +135,7 @@ class Walker(object):
         self.parameter_breadth /= BRANCHING_FACTOR
         self.parameter_min += self.parameter_breadth * choice
         self.node_path.append(node)
-        self.debug.append("%s %s" % (choice, self.get_parameter()))
+        self.debug.append("%s %.2f" % (choice, self.get_parameter()))
 
     def walk(self):
         node = self.tree.root
@@ -152,7 +156,7 @@ class Walker(object):
             node.value = node.wins / node.visits
         self.tree.root.visits += 1
         if candidate_won:
-            self.tree.root.wins += 1 # For description
+            self.tree.root.wins += 1 # For description only
         self.tree.root.rsqrt_visits = sqrt(1/self.tree.root.visits)
 
 
@@ -243,7 +247,6 @@ class Mcts_tuner(Competition):
         self.games_played = 0
         self.outstanding_simulations = {}
         self.tree = Tree()
-        # FIXME
         self.last_simulation = None
         self.won_last_game = False
 
@@ -283,7 +286,7 @@ class Mcts_tuner(Competition):
         simulation = self.outstanding_simulations.pop(response.game_id)
         simulation.update_stats(candidate_won)
         self.games_played += 1
-        # FIXME: This will do for now for status
+        # FIXME: Want to describe this stuff; for now, let status summary do it
         self.last_simulation = simulation
         self.won_last_game = candidate_won
 
@@ -303,8 +306,6 @@ class Mcts_tuner(Competition):
             print >>out, "%d/%d games played" % (
                 self.games_played, self.number_of_games)
         print >>out
-        # FIXME: Describe current tree state and winner, I suppose.
-        # FIXME: Count nodes in tree.
         if self.last_simulation is not None:
             optimiser_parameters = [self.last_simulation.get_parameter()]
             engine_parameters = \
