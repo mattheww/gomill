@@ -13,10 +13,6 @@ from gomill.competitions import (
     Player_config, game_jobs_player_from_config)
 
 
-INITIAL_VISITS          =     10
-INITIAL_WINS            =     5
-INITIAL_VALUE           =     0.5
-_INITIAL_RSQRT_VISITS   =     1.0 / sqrt(INITIAL_VISITS)
 BRANCHING_FACTOR        =     3
 MAX_DEPTH               =     5
 
@@ -32,12 +28,7 @@ class Node(object):
       value        -- wins / visits
 
     """
-    def __init__(self):
-        self.children = None
-        self.wins = INITIAL_WINS
-        self.visits = INITIAL_VISITS
-        self.value = INITIAL_VALUE
-        self.rsqrt_visits = _INITIAL_RSQRT_VISITS
+    pass
 
     #__slots__ = (
     #    'children',
@@ -51,15 +42,31 @@ class Tree(object):
     """Run monte-carlo tree search over parameter space.
 
     """
-    def __init__(self, exploration_coefficient):
+    def __init__(self, exploration_coefficient, initial_visits):
         self.exploration_coefficient = exploration_coefficient
+        self.initial_visits = initial_visits
+        self.initial_wins = initial_visits / 2
+        self.initial_rsqrt_visits = 1 / initial_visits
         self.node_count = 1 # For description only
         self.root = Node()
+        self.root.children = None
+        self.root.wins = self.initial_wins
+        self.root.visits = self.initial_visits
+        self.root.value = 0.5
+        self.root.rsqrt_visits = self.initial_rsqrt_visits
         self.expand(self.root)
 
     def expand(self, node):
         assert node.children is None
-        node.children = [Node() for _ in xrange(BRANCHING_FACTOR)]
+        node.children = []
+        for _ in xrange(BRANCHING_FACTOR):
+            child = Node()
+            child.children = None
+            child.wins = self.initial_wins
+            child.visits = self.initial_visits
+            child.value = 0.5
+            child.rsqrt_visits = self.initial_rsqrt_visits
+            node.children.append(child)
         self.node_count += BRANCHING_FACTOR
 
     def choose_action(self, node):
@@ -125,7 +132,8 @@ class Walker(object):
         while node.children is not None:
             choice, node = self.tree.choose_action(node)
             self.step(choice, node)
-        if node.visits != INITIAL_VISITS and len(self.node_path) < MAX_DEPTH:
+        if (node.visits != self.tree.initial_visits and
+            len(self.node_path) < MAX_DEPTH):
             self.tree.expand(node)
             choice, child = self.tree.choose_action(node)
             self.step(choice, child)
@@ -154,9 +162,12 @@ class Mcts_tuner(Competition):
 
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
-        # Ought to validate.
+        # Ought to validate properly
         self.number_of_games = config.get('number_of_games')
         self.exploration_coefficient = config['exploration_coefficient']
+        self.initial_visits = config['initial_visits']
+        if (self.initial_visits % 2) != 0:
+            raise ValueError("initial_visits must be even")
 
         try:
             self.translate_parameters_fn = \
@@ -242,7 +253,7 @@ class Mcts_tuner(Competition):
     def set_clean_status(self):
         self.next_game_number = 0
         self.games_played = 0
-        self.tree = Tree(self.exploration_coefficient)
+        self.tree = Tree(self.exploration_coefficient, self.initial_visits)
         self.outstanding_simulations = {}
 
     def get_game(self):
@@ -298,11 +309,12 @@ class Mcts_tuner(Competition):
         def describe_node(choice, lo_param, node):
             parameters = self.format_parameters([lo_param]) + "+"
             return "%d %s %.2f %3d" % (
-                choice, parameters, node.value, node.visits - INITIAL_VISITS)
+                choice, parameters, node.value,
+                node.visits - self.tree.initial_visits)
 
         root = self.tree.root
-        wins = root.wins - INITIAL_WINS
-        visits = root.visits - INITIAL_VISITS
+        wins = root.wins - self.tree.initial_wins
+        visits = root.visits - self.tree.initial_visits
         try:
             win_rate = "%.2f" % (wins/visits)
         except ZeroDivisionError:
