@@ -20,6 +20,8 @@ _INITIAL_RSQRT_VISITS   =     1.0 / sqrt(INITIAL_VISITS)
 BRANCHING_FACTOR        =     3
 MAX_DEPTH               =     5
 
+LOG_AFTER_GAMES         =     8
+
 class Node(object):
     """A MCTS node.
 
@@ -294,6 +296,8 @@ class Mcts_tuner(Competition):
         # FIXME: Want to describe this stuff; for now, let status summary do it
         self.last_simulation = simulation
         self.won_last_game = candidate_won
+        if self.games_played % LOG_AFTER_GAMES == 0:
+            self.log_history(self.tree.describe())
 
     def describe_simulation(self, simulation, candidate_won):
         optimiser_parameters = [simulation.get_parameter()]
