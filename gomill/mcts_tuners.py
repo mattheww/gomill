@@ -84,10 +84,10 @@ class Tree(object):
         while node.children is not None:
             best = None
             best_choice = None
-            best_value = -1
+            best_wins = -1
             for i, child in enumerate(node.children):
-                if child.value > best_value:
-                    best_value = child.value
+                if child.wins > best_wins:
+                    best_wins = child.wins
                     best = child
                     best_choice = i
             breadth /= BRANCHING_FACTOR
