@@ -16,7 +16,6 @@ from gomill.competitions import (
 INITIAL_VISITS          =     10
 INITIAL_WINS            =     5
 INITIAL_VALUE           =     0.5
-EXPLORATION_COEFFICIENT =     0.5
 _INITIAL_RSQRT_VISITS   =     1.0 / sqrt(INITIAL_VISITS)
 BRANCHING_FACTOR        =     3
 MAX_DEPTH               =     5
@@ -52,7 +51,8 @@ class Tree(object):
     """Run monte-carlo tree search over parameter space.
 
     """
-    def __init__(self):
+    def __init__(self, exploration_coefficient):
+        self.exploration_coefficient = exploration_coefficient
         self.node_count = 1 # For description only
         self.root = Node()
         self.expand(self.root)
@@ -65,7 +65,7 @@ class Tree(object):
     def choose_action(self, node):
         assert node.children is not None
         child_count = len(node.children)
-        uct_numerator = EXPLORATION_COEFFICIENT * sqrt(log(node.visits))
+        uct_numerator = self.exploration_coefficient * sqrt(log(node.visits))
         start = random.randrange(child_count)
         best_urgency = -1.0
         best_choice = None
@@ -156,6 +156,7 @@ class Mcts_tuner(Competition):
         Competition.initialise_from_control_file(self, config)
         # Ought to validate.
         self.number_of_games = config.get('number_of_games')
+        self.exploration_coefficient = config['exploration_coefficient']
 
         try:
             self.translate_parameters_fn = \
@@ -241,7 +242,7 @@ class Mcts_tuner(Competition):
     def set_clean_status(self):
         self.next_game_number = 0
         self.games_played = 0
-        self.tree = Tree()
+        self.tree = Tree(self.exploration_coefficient)
         self.outstanding_simulations = {}
 
     def get_game(self):
