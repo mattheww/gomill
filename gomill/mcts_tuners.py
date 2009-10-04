@@ -13,8 +13,6 @@ from gomill.competitions import (
     Player_config, game_jobs_player_from_config)
 
 
-LOG_AFTER_GAMES         =     8
-
 class Node(object):
     """A MCTS node.
 
@@ -170,6 +168,10 @@ class Mcts_tuner(Competition):
         if (self.initial_visits % 2) != 0:
             raise ValueError("initial_visits must be even")
         self.number_of_games = config.get('number_of_games')
+        try:
+            self.log_after_games = config['log_after_games']
+        except KeyError:
+            self.log_after_games = 8
 
         try:
             self.translate_parameters_fn = \
@@ -299,7 +301,7 @@ class Mcts_tuner(Competition):
         # FIXME: Want to describe this stuff; for now, let status summary do it
         self.last_simulation = simulation
         self.won_last_game = candidate_won
-        if self.games_played % LOG_AFTER_GAMES == 0:
+        if self.games_played % self.log_after_games == 0:
             self.log_history(self.describe_tree())
 
     def describe_simulation(self, simulation, candidate_won):
