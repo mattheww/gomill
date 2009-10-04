@@ -13,9 +13,6 @@ from gomill.competitions import (
     Player_config, game_jobs_player_from_config)
 
 
-BRANCHING_FACTOR        =     3
-MAX_DEPTH               =     5
-
 LOG_AFTER_GAMES         =     8
 
 class Node(object):
@@ -42,7 +39,10 @@ class Tree(object):
     """Run monte-carlo tree search over parameter space.
 
     """
-    def __init__(self, exploration_coefficient, initial_visits):
+    def __init__(self, branching_factor, max_depth,
+                 exploration_coefficient, initial_visits):
+        self.branching_factor = branching_factor
+        self.max_depth = max_depth
         self.exploration_coefficient = exploration_coefficient
         self.initial_visits = initial_visits
         self.initial_wins = initial_visits / 2
@@ -59,7 +59,7 @@ class Tree(object):
     def expand(self, node):
         assert node.children is None
         node.children = []
-        for _ in xrange(BRANCHING_FACTOR):
+        for _ in xrange(self.branching_factor):
             child = Node()
             child.children = None
             child.wins = self.initial_wins
@@ -67,7 +67,7 @@ class Tree(object):
             child.value = 0.5
             child.rsqrt_visits = self.initial_rsqrt_visits
             node.children.append(child)
-        self.node_count += BRANCHING_FACTOR
+        self.node_count += self.branching_factor
 
     def choose_action(self, node):
         assert node.children is not None
@@ -100,7 +100,7 @@ class Tree(object):
                     best_wins = child.wins
                     best = child
                     best_choice = i
-            breadth /= BRANCHING_FACTOR
+            breadth /= self.branching_factor
             lo += breadth * best_choice
             node = best
         return [lo + 0.5*breadth]
@@ -122,7 +122,7 @@ class Walker(object):
         return " ".join(map(str, self.choice_path))
 
     def step(self, choice, node):
-        self.parameter_breadth /= BRANCHING_FACTOR
+        self.parameter_breadth /= self.tree.branching_factor
         self.parameter_min += self.parameter_breadth * choice
         self.node_path.append(node)
         self.choice_path.append(choice)
@@ -133,7 +133,7 @@ class Walker(object):
             choice, node = self.tree.choose_action(node)
             self.step(choice, node)
         if (node.visits != self.tree.initial_visits and
-            len(self.node_path) < MAX_DEPTH):
+            len(self.node_path) < self.tree.max_depth):
             self.tree.expand(node)
             choice, child = self.tree.choose_action(node)
             self.step(choice, child)
@@ -163,11 +163,13 @@ class Mcts_tuner(Competition):
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
         # Ought to validate properly
-        self.number_of_games = config.get('number_of_games')
+        self.branching_factor = config['branching_factor']
+        self.max_depth = config['max_depth']
         self.exploration_coefficient = config['exploration_coefficient']
         self.initial_visits = config['initial_visits']
         if (self.initial_visits % 2) != 0:
             raise ValueError("initial_visits must be even")
+        self.number_of_games = config.get('number_of_games')
 
         try:
             self.translate_parameters_fn = \
@@ -253,7 +255,8 @@ class Mcts_tuner(Competition):
     def set_clean_status(self):
         self.next_game_number = 0
         self.games_played = 0
-        self.tree = Tree(self.exploration_coefficient, self.initial_visits)
+        self.tree = Tree(self.branching_factor, self.max_depth,
+                         self.exploration_coefficient, self.initial_visits)
         self.outstanding_simulations = {}
 
     def get_game(self):
@@ -326,13 +329,13 @@ class Mcts_tuner(Competition):
         lo = 0.0
         breadth = 1.0
         for choice, node in enumerate(self.tree.root.children):
-            breadth2 = breadth / BRANCHING_FACTOR
+            breadth2 = breadth / self.tree.branching_factor
             lo2 = lo + breadth2 * choice
             result.append("  " + describe_node(choice, lo2, node))
             if node.children is None:
                 continue
             for choice2, node2 in enumerate(node.children):
-                breadth3 = breadth2 / BRANCHING_FACTOR
+                breadth3 = breadth2 / self.tree.branching_factor
                 lo3 = lo2 + breadth3 * choice2
                 result.append("    " + describe_node(choice2, lo3, node2))
         return "\n".join(result)
