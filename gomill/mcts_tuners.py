@@ -255,17 +255,18 @@ class Mcts_tuner(Competition):
         return {
             'next_game_number' : self.next_game_number,
             'games_played'     : self.games_played,
-            'root'             : pickle.dumps(self.tree.root),
-            'outstanding_sims' : pickle.dumps(self.outstanding_simulations),
+            # Pickling these together so that they share the Node objects
+            'tree_data'        : pickle.dumps((self.tree.root,
+                                               self.outstanding_simulations))
             }
 
     def set_status(self, status):
         self.next_game_number = status['next_game_number']
         self.games_played = status['games_played']
-        self.tree.set_root(pickle.loads(
-            status['root'].encode('iso-8859-1')))
-        self.outstanding_simulations = pickle.loads(
-            status['outstanding_sims'].encode('iso-8859-1'))
+        root, outstanding_simulations = pickle.loads(
+            status['tree_data'].encode('iso-8859-1'))
+        self.tree.set_root(root)
+        self.outstanding_simulations = outstanding_simulations
 
     def set_clean_status(self):
         self.next_game_number = 0
