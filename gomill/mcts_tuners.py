@@ -103,7 +103,7 @@ class Tree(object):
             node = best
         return [lo + 0.5*breadth]
 
-class Walker(object):
+class Simulation(object):
     """FIXME"""
     def __init__(self, tree):
         self.tree = tree
@@ -231,12 +231,12 @@ class Mcts_tuner(Competition):
     def prepare_simulation(self):
         """FIXME
 
-        Returns a pair (walker, optimiser parameter vector)
+        Returns a pair (simulation, optimiser parameter vector)
 
         """
-        walker = Walker(self.tree)
-        walker.walk()
-        return walker, [walker.get_parameter()]
+        simulation = Simulation(self.tree)
+        simulation.walk()
+        return simulation, [simulation.get_parameter()]
 
     def get_status(self):
         return {
