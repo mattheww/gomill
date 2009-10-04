@@ -28,6 +28,14 @@ class Node(object):
             return 1
         return sum(child.count_tree_size() for child in self.children) + 1
 
+    def __getstate__(self):
+        return (self.children, self.wins, self.visits)
+
+    def __setstate__(self, state):
+        self.children, self.wins, self.visits = state
+        self.value = self.wins / self.visits
+        self.rsqrt_visits = sqrt(1/self.visits)
+
     #__slots__ = (
     #    'children',
     #    'wins',
