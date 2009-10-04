@@ -41,13 +41,15 @@ class Tree(object):
 
     """
     def __init__(self, branching_factor, max_depth,
-                 exploration_coefficient, initial_visits):
+                 exploration_coefficient, initial_visits,
+                 parameter_formatter):
         self.branching_factor = branching_factor
         self.max_depth = max_depth
         self.exploration_coefficient = exploration_coefficient
         self.initial_visits = initial_visits
         self.initial_wins = initial_visits / 2
         self.initial_rsqrt_visits = 1 / initial_visits
+        self.format_parameters = parameter_formatter
 
     def new_root(self):
         self.node_count = 1 # For description only
@@ -112,6 +114,39 @@ class Tree(object):
             node = best
         return [lo + 0.5*breadth]
 
+    def describe(self):
+        def describe_node(choice, lo_param, node):
+            parameters = self.format_parameters([lo_param]) + "+"
+            return "%d %s %.2f %3d" % (
+                choice, parameters, node.value,
+                node.visits - self.initial_visits)
+
+        root = self.root
+        wins = root.wins - self.initial_wins
+        visits = root.visits - self.initial_visits
+        try:
+            win_rate = "%.2f" % (wins/visits)
+        except ZeroDivisionError:
+            win_rate = "--"
+        result = [
+            "%d nodes" % self.node_count,
+            "Win rate %d/%d = %s" % (wins, visits, win_rate)
+            ]
+        lo = 0.0
+        breadth = 1.0
+        for choice, node in enumerate(self.root.children):
+            breadth2 = breadth / self.branching_factor
+            lo2 = lo + breadth2 * choice
+            result.append("  " + describe_node(choice, lo2, node))
+            if node.children is None:
+                continue
+            for choice2, node2 in enumerate(node.children):
+                breadth3 = breadth2 / self.branching_factor
+                lo3 = lo2 + breadth3 * choice2
+                result.append("    " + describe_node(choice2, lo3, node2))
+        return "\n".join(result)
+
+
 class Simulation(object):
     """FIXME"""
     def __init__(self, tree):
@@ -157,6 +192,21 @@ class Simulation(object):
             self.tree.root.wins += 1 # For description only
         self.tree.root.rsqrt_visits = sqrt(1/self.tree.root.visits)
 
+    def describe(self, candidate_won):
+        optimiser_parameters = [self.get_parameter()]
+        params_s = self.tree.format_parameters(optimiser_parameters)
+        won_s = ("lost", "won")[candidate_won]
+        return "%s [%s] %s" % (params_s, self.describe_steps(), won_s)
+
+    def __getstate__(self):
+        # We don't want to pickle the tree object (and it's unpicklable, anyway)
+        result = self.__dict__.copy()
+        del result['tree']
+        return result
+
+    def __setstate__(self, state):
+        # Leaves tree unset; unpickler has to restore it
+        self.__dict__ = state
 
 
 class Mcts_tuner(Competition):
@@ -198,9 +248,9 @@ class Mcts_tuner(Competition):
             raise ValueError("invalid candidate_colour: %r" %
                              self.candidate_colour)
 
-        # FIXME: Can be cleaner
         self.tree = Tree(branching_factor, max_depth,
-                         exploration_coefficient, initial_visits)
+                         exploration_coefficient, initial_visits,
+                         self.format_parameters)
 
     def format_parameters(self, optimiser_parameters):
         try:
@@ -266,6 +316,8 @@ class Mcts_tuner(Competition):
         root, outstanding_simulations = pickle.loads(
             status['tree_data'].encode('iso-8859-1'))
         self.tree.set_root(root)
+        for simulation in outstanding_simulations.values():
+            simulation.tree = self.tree
         self.outstanding_simulations = outstanding_simulations
 
     def set_clean_status(self):
@@ -310,50 +362,12 @@ class Mcts_tuner(Competition):
         simulation = self.outstanding_simulations.pop(response.game_id)
         simulation.update_stats(candidate_won)
         self.games_played += 1
-        self.log_history(self.describe_simulation(simulation, candidate_won))
+        self.log_history(simulation.describe(candidate_won))
         # FIXME: Want to describe this stuff; for now, let status summary do it
         self.last_simulation = simulation
         self.won_last_game = candidate_won
         if self.games_played % self.log_after_games == 0:
-            self.log_history(self.describe_tree())
-
-    def describe_simulation(self, simulation, candidate_won):
-        optimiser_parameters = [simulation.get_parameter()]
-        params_s = self.format_parameters(optimiser_parameters)
-        won_s = ("lost", "won")[candidate_won]
-        return "%s [%s] %s" % (params_s, simulation.describe_steps(), won_s)
-
-    def describe_tree(self):
-        def describe_node(choice, lo_param, node):
-            parameters = self.format_parameters([lo_param]) + "+"
-            return "%d %s %.2f %3d" % (
-                choice, parameters, node.value,
-                node.visits - self.tree.initial_visits)
-
-        root = self.tree.root
-        wins = root.wins - self.tree.initial_wins
-        visits = root.visits - self.tree.initial_visits
-        try:
-            win_rate = "%.2f" % (wins/visits)
-        except ZeroDivisionError:
-            win_rate = "--"
-        result = [
-            "%d nodes" % self.tree.node_count,
-            "Win rate %d/%d = %s" % (wins, visits, win_rate)
-            ]
-        lo = 0.0
-        breadth = 1.0
-        for choice, node in enumerate(self.tree.root.children):
-            breadth2 = breadth / self.tree.branching_factor
-            lo2 = lo + breadth2 * choice
-            result.append("  " + describe_node(choice, lo2, node))
-            if node.children is None:
-                continue
-            for choice2, node2 in enumerate(node.children):
-                breadth3 = breadth2 / self.tree.branching_factor
-                lo3 = lo2 + breadth3 * choice2
-                result.append("    " + describe_node(choice2, lo3, node2))
-        return "\n".join(result)
+            self.log_history(self.tree.describe())
 
     def write_static_description(self, out):
         def p(s):
@@ -373,9 +387,8 @@ class Mcts_tuner(Competition):
         print >>out
         if self.last_simulation is not None:
             print >>out, "Last simulation: %s" % (
-                self.describe_simulation(
-                self.last_simulation, self.won_last_game))
-        print >>out, self.describe_tree()
+                self.last_simulation.describe(self.won_last_game))
+        print >>out, self.tree.describe()
         print >>out, "Best parameter vector: %s" % (
             self.format_parameters(self.tree.retrieve_best_parameters()))
         #waitforkey = raw_input()
