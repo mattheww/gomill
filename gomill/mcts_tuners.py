@@ -56,7 +56,7 @@ class Tree(object):
         self.exploration_coefficient = exploration_coefficient
         self.initial_visits = initial_visits
         self.initial_wins = initial_visits / 2
-        self.initial_rsqrt_visits = 1 / initial_visits
+        self.initial_rsqrt_visits = 1/sqrt(initial_visits)
         self.format_parameters = parameter_formatter
 
     def new_root(self):
