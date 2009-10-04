@@ -36,13 +36,13 @@ class Node(object):
         self.value = self.wins / self.visits
         self.rsqrt_visits = sqrt(1/self.visits)
 
-    #__slots__ = (
-    #    'children',
-    #    'wins',
-    #    'visits',
-    #    'value',
-    #    'rsqrt_visits',
-    #    )
+    __slots__ = (
+        'children',
+        'wins',
+        'visits',
+        'value',
+        'rsqrt_visits',
+        )
 
 class Tree(object):
     """Run monte-carlo tree search over parameter space.
