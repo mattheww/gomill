@@ -97,30 +97,6 @@ class Tree(object):
             node = best
         return [lo + 0.5*breadth]
 
-    def describe(self):
-        def describe_node(choice, node):
-            return "%d %.2f %3d" % (
-                choice, node.value, node.visits - INITIAL_VISITS)
-
-        root = self.root
-        wins = root.wins - INITIAL_WINS
-        visits = root.visits - INITIAL_VISITS
-        try:
-            win_rate = "%.2f" % (wins/visits)
-        except ZeroDivisionError:
-            win_rate = "--"
-        result = [
-            "%d nodes" % self.node_count,
-            "Win rate %d/%d = %s" % (wins, visits, win_rate)
-            ]
-        for choice, node in enumerate(self.root.children):
-            result.append("  " + describe_node(choice, node))
-            if node.children is None:
-                continue
-            for choice2, node2 in enumerate(node.children):
-                result.append("    " + describe_node(choice2, node2))
-        return "\n".join(result)
-
 class Walker(object):
     """FIXME"""
     def __init__(self, tree):
@@ -297,13 +273,44 @@ class Mcts_tuner(Competition):
         self.last_simulation = simulation
         self.won_last_game = candidate_won
         if self.games_played % LOG_AFTER_GAMES == 0:
-            self.log_history(self.tree.describe())
+            self.log_history(self.describe_tree())
 
     def describe_simulation(self, simulation, candidate_won):
         optimiser_parameters = [simulation.get_parameter()]
         params_s = self.format_parameters(optimiser_parameters)
         won_s = ("lost", "won")[candidate_won]
         return "%s [%s] %s" % (params_s, simulation.describe_steps(), won_s)
+
+    def describe_tree(self):
+        def describe_node(choice, lo_param, node):
+            parameters = self.format_parameters([lo_param]) + "+"
+            return "%d %s %.2f %3d" % (
+                choice, parameters, node.value, node.visits - INITIAL_VISITS)
+
+        root = self.tree.root
+        wins = root.wins - INITIAL_WINS
+        visits = root.visits - INITIAL_VISITS
+        try:
+            win_rate = "%.2f" % (wins/visits)
+        except ZeroDivisionError:
+            win_rate = "--"
+        result = [
+            "%d nodes" % self.tree.node_count,
+            "Win rate %d/%d = %s" % (wins, visits, win_rate)
+            ]
+        lo = 0.0
+        breadth = 1.0
+        for choice, node in enumerate(self.tree.root.children):
+            breadth2 = breadth / BRANCHING_FACTOR
+            lo2 = lo + breadth2 * choice
+            result.append("  " + describe_node(choice, lo2, node))
+            if node.children is None:
+                continue
+            for choice2, node2 in enumerate(node.children):
+                breadth3 = breadth2 / BRANCHING_FACTOR
+                lo3 = lo2 + breadth3 * choice2
+                result.append("    " + describe_node(choice2, lo3, node2))
+        return "\n".join(result)
 
     def write_static_description(self, out):
         def p(s):
@@ -325,7 +332,7 @@ class Mcts_tuner(Competition):
             print >>out, "Last simulation: %s" % (
                 self.describe_simulation(
                 self.last_simulation, self.won_last_game))
-        print >>out, self.tree.describe()
+        print >>out, self.describe_tree()
         print >>out, "Best parameter vector: %s" % (
             self.format_parameters(self.tree.retrieve_best_parameters()))
         #waitforkey = raw_input()
