@@ -203,7 +203,8 @@ class Ringmaster(object):
             'comp'         : competition_status,
             }
         f = open(self.status_pathname + ".new", "w")
-        json.dump(status, f, default=ringmaster_json_encode_default)
+        json.dump(status, f, default=ringmaster_json_encode_default,
+                  encoding='iso-8859-1')
         f.close()
         os.rename(self.status_pathname + ".new", self.status_pathname)
 

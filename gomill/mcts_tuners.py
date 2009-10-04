@@ -2,6 +2,7 @@
 
 from __future__ import division
 
+import cPickle as pickle
 import random
 from math import log, sqrt
 
@@ -39,13 +40,13 @@ class Node(object):
         self.value = INITIAL_VALUE
         self.rsqrt_visits = _INITIAL_RSQRT_VISITS
 
-    __slots__ = (
-        'children',
-        'wins',
-        'visits',
-        'value',
-        'rsqrt_visits',
-        )
+    #__slots__ = (
+    #    'children',
+    #    'wins',
+    #    'visits',
+    #    'value',
+    #    'rsqrt_visits',
+    #    )
 
 class Tree(object):
     """Run monte-carlo tree search over parameter space.
@@ -147,6 +148,9 @@ class Mcts_tuner(Competition):
     """A Competition for parameter tuning using the Monte-carlo tree search."""
     def __init__(self, competition_code):
         Competition.__init__(self, competition_code)
+        # These are only for the sake of display
+        self.last_simulation = None
+        self.won_last_game = False
 
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
@@ -219,18 +223,26 @@ class Mcts_tuner(Competition):
         return walker, [walker.get_parameter()]
 
     def get_status(self):
-        return {}
+        return {
+            'next_game_number' : self.next_game_number,
+            'games_played'     : self.games_played,
+            'tree'             : pickle.dumps(self.tree),
+            'outstanding_sims' : pickle.dumps(self.outstanding_simulations),
+            }
 
     def set_status(self, status):
-        FIXME
+        self.next_game_number = status['next_game_number']
+        self.games_played = status['games_played']
+        self.tree = pickle.loads(
+            status['tree'].encode('iso-8859-1'))
+        self.outstanding_simulations = pickle.loads(
+            status['outstanding_sims'].encode('iso-8859-1'))
 
     def set_clean_status(self):
         self.next_game_number = 0
         self.games_played = 0
-        self.outstanding_simulations = {}
         self.tree = Tree()
-        self.last_simulation = None
-        self.won_last_game = False
+        self.outstanding_simulations = {}
 
     def get_game(self):
         game_number = self.next_game_number
