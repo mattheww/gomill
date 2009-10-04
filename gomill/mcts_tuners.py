@@ -23,7 +23,10 @@ class Node(object):
       value        -- wins / visits
 
     """
-    pass
+    def count_tree_size(self):
+        if self.children is None:
+            return 1
+        return sum(child.count_tree_size() for child in self.children) + 1
 
     #__slots__ = (
     #    'children',
@@ -45,6 +48,8 @@ class Tree(object):
         self.initial_visits = initial_visits
         self.initial_wins = initial_visits / 2
         self.initial_rsqrt_visits = 1 / initial_visits
+
+    def new_root(self):
         self.node_count = 1 # For description only
         self.root = Node()
         self.root.children = None
@@ -53,6 +58,10 @@ class Tree(object):
         self.root.value = 0.5
         self.root.rsqrt_visits = self.initial_rsqrt_visits
         self.expand(self.root)
+
+    def set_root(self, node):
+        self.root = node
+        self.node_count = node.count_tree_size()
 
     def expand(self, node):
         assert node.children is None
@@ -161,11 +170,11 @@ class Mcts_tuner(Competition):
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
         # Ought to validate properly
-        self.branching_factor = config['branching_factor']
-        self.max_depth = config['max_depth']
-        self.exploration_coefficient = config['exploration_coefficient']
-        self.initial_visits = config['initial_visits']
-        if (self.initial_visits % 2) != 0:
+        branching_factor = config['branching_factor']
+        max_depth = config['max_depth']
+        exploration_coefficient = config['exploration_coefficient']
+        initial_visits = config['initial_visits']
+        if (initial_visits % 2) != 0:
             raise ValueError("initial_visits must be even")
         self.number_of_games = config.get('number_of_games')
         try:
@@ -188,6 +197,10 @@ class Mcts_tuner(Competition):
         if self.candidate_colour not in ('b', 'w'):
             raise ValueError("invalid candidate_colour: %r" %
                              self.candidate_colour)
+
+        # FIXME: Can be cleaner
+        self.tree = Tree(branching_factor, max_depth,
+                         exploration_coefficient, initial_visits)
 
     def format_parameters(self, optimiser_parameters):
         try:
@@ -242,23 +255,22 @@ class Mcts_tuner(Competition):
         return {
             'next_game_number' : self.next_game_number,
             'games_played'     : self.games_played,
-            'tree'             : pickle.dumps(self.tree),
+            'root'             : pickle.dumps(self.tree.root),
             'outstanding_sims' : pickle.dumps(self.outstanding_simulations),
             }
 
     def set_status(self, status):
         self.next_game_number = status['next_game_number']
         self.games_played = status['games_played']
-        self.tree = pickle.loads(
-            status['tree'].encode('iso-8859-1'))
+        self.tree.set_root(pickle.loads(
+            status['root'].encode('iso-8859-1')))
         self.outstanding_simulations = pickle.loads(
             status['outstanding_sims'].encode('iso-8859-1'))
 
     def set_clean_status(self):
         self.next_game_number = 0
         self.games_played = 0
-        self.tree = Tree(self.branching_factor, self.max_depth,
-                         self.exploration_coefficient, self.initial_visits)
+        self.tree.new_root()
         self.outstanding_simulations = {}
 
     def get_game(self):
