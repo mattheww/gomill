@@ -187,12 +187,12 @@ class Mcts_tuner(Competition):
             raise ValueError("invalid candidate_colour: %r" %
                              self.candidate_colour)
 
-    def format_parameters(self, engine_params):
+    def format_parameters(self, optimiser_parameters):
         try:
-            return self.format_parameters_fn(engine_params)
+            return self.format_parameters_fn(optimiser_parameters)
         except StandardError:
             return ("[error from user-defined parameter formatter]\n"
-                    "[engine parameters %s]" % engine_params)
+                    "[optimiser parameters %s]" % optimiser_parameters)
 
     def make_candidate(self, optimiser_parameters):
         """FIXME
@@ -308,9 +308,7 @@ class Mcts_tuner(Competition):
         print >>out
         if self.last_simulation is not None:
             optimiser_parameters = [self.last_simulation.get_parameter()]
-            engine_parameters = \
-                self.translate_parameters_fn(optimiser_parameters)
-            params_s = self.format_parameters(engine_parameters)
+            params_s = self.format_parameters(optimiser_parameters)
             won_s = ("lost", "won")[self.won_last_game]
             print >>out, "Last simulation: %s %s" % (params_s, won_s)
             print >>out, self.last_simulation.debug

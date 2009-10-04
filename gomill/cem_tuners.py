@@ -113,12 +113,12 @@ class Cem_tuner(Competition):
         except KeyError, e:
             raise ValueError("%s not specified" % e)
 
-    def format_parameters(self, engine_params):
+    def format_parameters(self, optimiser_parameters):
         try:
-            return self.format_parameters_fn(engine_params)
+            return self.format_parameters_fn(optimiser_parameters)
         except StandardError:
             return ("[error from user-defined parameter formatter]\n"
-                    "[engine parameters %s]" % engine_params)
+                    "[optimiser parameters %s]" % optimiser_parameters)
 
     def format_distribution(self, distribution):
         """Pretty-print a distribution.
