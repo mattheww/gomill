@@ -124,6 +124,7 @@ class Walker(object):
     def __init__(self, tree):
         self.tree = tree
         self.node_path = []
+        self.choice_path = [] # For description only
         self.parameter_min = 0.0
         self.parameter_breadth = 1.0
         self.debug = []
@@ -131,11 +132,14 @@ class Walker(object):
     def get_parameter(self):
         return self.parameter_min + .5*self.parameter_breadth
 
+    def describe_steps(self):
+        return " ".join(map(str, self.choice_path))
+
     def step(self, choice, node):
         self.parameter_breadth /= BRANCHING_FACTOR
         self.parameter_min += self.parameter_breadth * choice
         self.node_path.append(node)
-        self.debug.append("%s %.2f" % (choice, self.get_parameter()))
+        self.choice_path.append(choice)
 
     def walk(self):
         node = self.tree.root
@@ -286,9 +290,16 @@ class Mcts_tuner(Competition):
         simulation = self.outstanding_simulations.pop(response.game_id)
         simulation.update_stats(candidate_won)
         self.games_played += 1
+        self.log_history(self.describe_simulation(simulation, candidate_won))
         # FIXME: Want to describe this stuff; for now, let status summary do it
         self.last_simulation = simulation
         self.won_last_game = candidate_won
+
+    def describe_simulation(self, simulation, candidate_won):
+        optimiser_parameters = [simulation.get_parameter()]
+        params_s = self.format_parameters(optimiser_parameters)
+        won_s = ("lost", "won")[candidate_won]
+        return "%s [%s] %s" % (params_s, simulation.describe_steps(), won_s)
 
     def write_static_description(self, out):
         def p(s):
@@ -307,11 +318,9 @@ class Mcts_tuner(Competition):
                 self.games_played, self.number_of_games)
         print >>out
         if self.last_simulation is not None:
-            optimiser_parameters = [self.last_simulation.get_parameter()]
-            params_s = self.format_parameters(optimiser_parameters)
-            won_s = ("lost", "won")[self.won_last_game]
-            print >>out, "Last simulation: %s %s" % (params_s, won_s)
-            print >>out, self.last_simulation.debug
+            print >>out, "Last simulation: %s" % (
+                self.describe_simulation(
+                self.last_simulation, self.won_last_game))
         print >>out, self.tree.describe()
         print >>out, "Best parameter vector: %s" % (
             self.format_parameters(self.tree.retrieve_best_parameters()))
