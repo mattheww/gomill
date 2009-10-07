@@ -1,5 +1,7 @@
 """Competitions made up of repeated matchups between specified players."""
 
+from __future__ import division
+
 from gomill import game_jobs
 from gomill.competitions import Competition, NoGameAvailable
 
