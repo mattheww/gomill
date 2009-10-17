@@ -49,13 +49,14 @@ class Tree(object):
 
     """
     def __init__(self, branching_factor, max_depth,
-                 exploration_coefficient, initial_visits,
+                 exploration_coefficient,
+                 initial_visits, initial_wins,
                  parameter_formatter):
         self.branching_factor = branching_factor
         self.max_depth = max_depth
         self.exploration_coefficient = exploration_coefficient
         self.initial_visits = initial_visits
-        self.initial_wins = initial_visits / 2
+        self.initial_wins = initial_wins
         self.initial_rsqrt_visits = 1/sqrt(initial_visits)
         self.format_parameters = parameter_formatter
 
@@ -65,7 +66,7 @@ class Tree(object):
         self.root.children = None
         self.root.wins = self.initial_wins
         self.root.visits = self.initial_visits
-        self.root.value = 0.5
+        self.root.value = self.initial_wins / self.initial_visits
         self.root.rsqrt_visits = self.initial_rsqrt_visits
         self.expand(self.root)
 
@@ -81,7 +82,7 @@ class Tree(object):
             child.children = None
             child.wins = self.initial_wins
             child.visits = self.initial_visits
-            child.value = 0.5
+            child.value = self.initial_wins / self.initial_visits
             child.rsqrt_visits = self.initial_rsqrt_visits
             node.children.append(child)
         self.node_count += self.branching_factor
@@ -232,8 +233,7 @@ class Mcts_tuner(Competition):
         max_depth = config['max_depth']
         exploration_coefficient = config['exploration_coefficient']
         initial_visits = config['initial_visits']
-        if (initial_visits % 2) != 0:
-            raise ValueError("initial_visits must be even")
+        initial_wins = config['initial_wins']
         self.number_of_games = config.get('number_of_games')
         try:
             self.log_after_games = config['log_after_games']
@@ -257,7 +257,8 @@ class Mcts_tuner(Competition):
                              self.candidate_colour)
 
         self.tree = Tree(branching_factor, max_depth,
-                         exploration_coefficient, initial_visits,
+                         exploration_coefficient,
+                         initial_visits, initial_wins,
                          self.format_parameters)
 
     def format_parameters(self, optimiser_parameters):
