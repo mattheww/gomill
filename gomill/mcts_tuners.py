@@ -144,7 +144,7 @@ class Tree(object):
     def describe(self):
         def describe_node(cube_pos, lo_param, node):
             parameters = self.format_parameters(lo_param) + "+"
-            return "%s %s %.2f %3d" % (
+            return "%s %s %.3f %3d" % (
                 cube_pos, parameters, node.value,
                 node.visits - self.initial_visits)
 
@@ -152,7 +152,7 @@ class Tree(object):
         wins = root.wins - self.initial_wins
         visits = root.visits - self.initial_visits
         try:
-            win_rate = "%.2f" % (wins/visits)
+            win_rate = "%.3f" % (wins/visits)
         except ZeroDivisionError:
             win_rate = "--"
         result = [
