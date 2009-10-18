@@ -44,14 +44,16 @@ class Node(object):
         'rsqrt_visits',
         )
 
+
 class Tree(object):
     """Run monte-carlo tree search over parameter space.
 
     """
-    def __init__(self, branching_factor, max_depth,
+    def __init__(self, dimensions, branching_factor, max_depth,
                  exploration_coefficient,
                  initial_visits, initial_wins,
                  parameter_formatter):
+        self.dimensions = dimensions
         self.branching_factor = branching_factor
         self.max_depth = max_depth
         self.exploration_coefficient = exploration_coefficient
@@ -74,10 +76,24 @@ class Tree(object):
         self.root = node
         self.node_count = node.count_tree_size()
 
+    def cube_pos_from_child_number(self, child_number):
+        """Work out the position of a given child in a child cube.
+
+        Returns a list of length 'dimensions' with values in
+        range('branching_factor').
+
+        """
+        result = []
+        i = child_number
+        for d in range(self.dimensions):
+            i, r = divmod(i, self.branching_factor)
+            result.append(r)
+        return result
+
     def expand(self, node):
         assert node.children is None
         node.children = []
-        for _ in xrange(self.branching_factor):
+        for _ in xrange(self.branching_factor ** self.dimensions):
             child = Node()
             child.children = None
             child.wins = self.initial_wins
@@ -106,7 +122,7 @@ class Tree(object):
         return best_choice, best_child
 
     def retrieve_best_parameters(self):
-        lo = 0.0
+        lo = [0.0] * self.dimensions
         breadth = 1.0
         node = self.root
         while node.children is not None:
@@ -119,15 +135,17 @@ class Tree(object):
                     best = child
                     best_choice = i
             breadth /= self.branching_factor
-            lo += breadth * best_choice
+            cube_pos = self.cube_pos_from_child_number(best_choice)
+            for d in range(self.dimensions):
+                lo[d] += breadth * cube_pos[d]
             node = best
-        return [lo + 0.5*breadth]
+        return [lo[d] + 0.5*breadth for d in range(self.dimensions)]
 
     def describe(self):
-        def describe_node(choice, lo_param, node):
-            parameters = self.format_parameters([lo_param]) + "+"
-            return "%d %s %.2f %3d" % (
-                choice, parameters, node.value,
+        def describe_node(cube_pos, lo_param, node):
+            parameters = self.format_parameters(lo_param) + "+"
+            return "%s %s %.2f %3d" % (
+                cube_pos, parameters, node.value,
                 node.visits - self.initial_visits)
 
         root = self.root
@@ -141,18 +159,22 @@ class Tree(object):
             "%d nodes" % self.node_count,
             "Win rate %d/%d = %s" % (wins, visits, win_rate)
             ]
-        lo = 0.0
+        lo = [0.0] * self.dimensions
         breadth = 1.0
         for choice, node in enumerate(self.root.children):
             breadth2 = breadth / self.branching_factor
-            lo2 = lo + breadth2 * choice
-            result.append("  " + describe_node(choice, lo2, node))
+            cube_pos = self.cube_pos_from_child_number(choice)
+            lo2 = [lo[d] + breadth2 * cube_pos[d]
+                   for d in range(self.dimensions)]
+            result.append("  " + describe_node(cube_pos, lo2, node))
             if node.children is None:
                 continue
             for choice2, node2 in enumerate(node.children):
                 breadth3 = breadth2 / self.branching_factor
-                lo3 = lo2 + breadth3 * choice2
-                result.append("    " + describe_node(choice2, lo3, node2))
+                cube_pos2 = self.cube_pos_from_child_number(choice2)
+                lo3 = [lo2[d] + breadth3 * cube_pos2[d]
+                       for d in range(self.dimensions)]
+                result.append("    " + describe_node(cube_pos2, lo3, node2))
         return "\n".join(result)
 
 
@@ -162,19 +184,22 @@ class Simulation(object):
         self.tree = tree
         self.node_path = []
         self.choice_path = [] # For description only
-        self.parameter_min = 0.0
+        self.parameter_min = [0.0] * tree.dimensions
         self.parameter_breadth = 1.0
         self.debug = []
 
-    def get_parameter(self):
-        return self.parameter_min + .5*self.parameter_breadth
+    def get_parameters(self):
+        return [self.parameter_min[d] + .5*self.parameter_breadth
+                for d in range(self.tree.dimensions)]
 
     def describe_steps(self):
         return " ".join(map(str, self.choice_path))
 
     def step(self, choice, node):
+        cube_pos = self.tree.cube_pos_from_child_number(choice)
         self.parameter_breadth /= self.tree.branching_factor
-        self.parameter_min += self.parameter_breadth * choice
+        for d in range(self.tree.dimensions):
+            self.parameter_min[d] += self.parameter_breadth * cube_pos[d]
         self.node_path.append(node)
         self.choice_path.append(choice)
 
@@ -202,7 +227,7 @@ class Simulation(object):
         self.tree.root.rsqrt_visits = sqrt(1/self.tree.root.visits)
 
     def describe(self, candidate_won):
-        optimiser_parameters = [self.get_parameter()]
+        optimiser_parameters = self.get_parameters()
         params_s = self.tree.format_parameters(optimiser_parameters)
         won_s = ("lost", "won")[candidate_won]
         return "%s [%s] %s" % (params_s, self.describe_steps(), won_s)
@@ -229,6 +254,7 @@ class Mcts_tuner(Competition):
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
         # Ought to validate properly
+        dimensions = config['dimensions']
         branching_factor = config['branching_factor']
         max_depth = config['max_depth']
         exploration_coefficient = config['exploration_coefficient']
@@ -256,7 +282,7 @@ class Mcts_tuner(Competition):
             raise ValueError("invalid candidate_colour: %r" %
                              self.candidate_colour)
 
-        self.tree = Tree(branching_factor, max_depth,
+        self.tree = Tree(dimensions, branching_factor, max_depth,
                          exploration_coefficient,
                          initial_visits, initial_wins,
                          self.format_parameters)
@@ -308,7 +334,7 @@ class Mcts_tuner(Competition):
         """
         simulation = Simulation(self.tree)
         simulation.walk()
-        return simulation, [simulation.get_parameter()]
+        return simulation, simulation.get_parameters()
 
     def get_status(self):
         return {
