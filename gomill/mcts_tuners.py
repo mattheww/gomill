@@ -93,7 +93,8 @@ class Tree(object):
     def expand(self, node):
         assert node.children is None
         node.children = []
-        for _ in xrange(self.branching_factor ** self.dimensions):
+        child_count = self.branching_factor ** self.dimensions
+        for _ in xrange(child_count):
             child = Node()
             child.children = None
             child.wins = self.initial_wins
@@ -101,7 +102,7 @@ class Tree(object):
             child.value = self.initial_wins / self.initial_visits
             child.rsqrt_visits = self.initial_rsqrt_visits
             node.children.append(child)
-        self.node_count += self.branching_factor
+        self.node_count += child_count
 
     def choose_action(self, node):
         assert node.children is not None
