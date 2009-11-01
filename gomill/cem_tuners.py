@@ -1,5 +1,7 @@
 """Competitions for parameter tuning using the cross-entropy method."""
 
+from __future__ import division
+
 from random import gauss as random_gauss
 from math import sqrt
 
