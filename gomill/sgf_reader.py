@@ -171,7 +171,10 @@ class Sgf_game_tree(object):
 
     def get_size(self):
         """Return the board size as an integer."""
-        return int(self.get_root_prop("SZ"))
+        try:
+            return int(self.get_root_prop("SZ"))
+        except KeyError:
+            return 19
 
     def get_komi(self):
         """Return the komi as a float.
