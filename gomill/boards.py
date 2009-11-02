@@ -163,6 +163,39 @@ class Board(object):
         self._is_empty = False
         return simple_ko_point
 
+    def apply_setup(self, black_points, white_points, empty_points):
+        """Add setup stones or removals to the position.
+
+        This is intended to support SGF AB/AW/AE commands.
+
+        Each parameter is an iterable of coordinate pairs (row, col).
+
+        Applies all the setup specifications, then removes any groups with no
+        liberties (so the resulting position is always legal).
+
+        If the same point is specified in more than one list, the order in which
+        they're applied is undefined.
+
+        Returns a boolean saying whether the position was legal as specified.
+
+        """
+        for (row, col) in black_points:
+            self.board[row][col] = 'b'
+        for (row, col) in white_points:
+            self.board[row][col] = 'w'
+        for (row, col) in empty_points:
+            self.board[row][col] = None
+        captured = self._find_captured_groups()
+        for group in captured:
+            for row, col in group.points:
+                self.board[row][col] = None
+        self._is_empty = True
+        for (row, col) in self.board_coords:
+            if self.board[row][col] is not None:
+                self._is_empty = False
+                break
+        return not(captured)
+
     def area_score(self):
         """Calculate the area score of a position.
 
