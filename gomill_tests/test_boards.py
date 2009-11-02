@@ -1,5 +1,8 @@
 from gomill import boards
-from gomill.boards import BLACK, WHITE, EMPTY
+
+BLACK = 'b'
+WHITE = 'w'
+EMPTY = None
 
 play_tests = [
 
@@ -79,8 +82,10 @@ def play_diagram(board, diagram):
 
 def main():
     b = boards.Board(9)
+    assert b.is_empty()
     assert b.area_score() == 0
     b.play(2, 3, 'b')
+    assert not b.is_empty()
     assert b.area_score() == 81
     b.play(3, 4, 'w')
     assert b.area_score() == 0
