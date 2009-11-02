@@ -42,6 +42,7 @@ class Board(object):
         self.board = []
         for row in range(side):
             self.board.append([None] * side)
+        self._is_empty = True
 
     def _make_group(self, row, col, colour):
         points = set()
@@ -113,6 +114,10 @@ class Board(object):
             handled.update(group.points)
         return captured
 
+    def is_empty(self):
+        """Say whether the board is empty."""
+        return self._is_empty
+
     def get(self, row, col):
         """Return the state of the specified point.
 
@@ -152,6 +157,7 @@ class Board(object):
             for group in to_capture:
                 for r, c in group.points:
                     self.board[r][c] = None
+        self._is_empty = False
         return simple_ko_point
 
     def area_score(self):
