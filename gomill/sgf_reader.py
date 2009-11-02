@@ -4,14 +4,64 @@ def escape(s):
     return s.replace("\\", "\\\\").replace("]", "\\]")
 
 def interpret_point(s, size):
+    """Interpret an SGF Point or Move value.
+
+    s -- string
+
+    Returns a pair (row, col), or None for a pass.
+
+    Raises ValueError if the string is malformed or the coordinates are out of
+    range.
+
+    """
     s = s.lower()
     if s == "" or (s == "tt" and size <= 19):
         return None
-    col_s, row_s = s
+    try:
+        col_s, row_s = s
+    except TypeError:
+        raise ValueError
     col = ord(col_s) - ord("a")
+    if not 0 <= col < size:
+        raise ValueError
     row = ord(row_s) - ord("a")
     row = size - row - 1
+    if not 0 <= row < size:
+        raise ValueError
     return row, col
+
+def interpret_compressed_point_list(values, size):
+    """Interpret an SGF list or elist of Points.
+
+    values -- list of strings
+
+    Returns a set of pairs (row, col).
+
+    Raises ValueError if the data is malformed.
+
+    Doesn't complain if there is overlap.
+
+    """
+    result = set()
+    for s in values:
+        p1, is_rectangle, p2 = s.partition(":")
+        if is_rectangle:
+            try:
+                top, left = interpret_point(p1, size)
+                bottom, right = interpret_point(p2, size)
+            except TypeError:
+                raise ValueError
+            if not (bottom <= top and left <= right):
+                raise ValueError
+            for row in xrange(bottom, top+1):
+                for col in xrange(left, right+1):
+                    result.add((row, col))
+        else:
+            pt = interpret_point(p1, size)
+            if pt is None:
+                raise ValueError
+            result.add(pt)
+    return result
 
 class Sgf_scanner(object):
     def __init__(self, s):
