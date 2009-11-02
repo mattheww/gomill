@@ -341,14 +341,9 @@ class Gtp_board(object):
             raise GtpError("unacceptable size")
         self.board_size = new_size
         try:
-            komi_s = sgf.nodes[0].get("KM")
-        except KeyError:
-            komi = 0.0
-        else:
-            try:
-                komi = float(komi_s)
-            except ValueError:
-                raise GtpError("bad komi")
+            komi = sgf.get_komi()
+        except ValueError:
+            raise GtpError("bad komi")
         seen_moves = 0
         new_move_history = []
         for node in sgf.nodes:

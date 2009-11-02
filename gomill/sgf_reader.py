@@ -146,7 +146,12 @@ class Node(object):
 
 
 class Sgf_game_tree(object):
-    """An SGF game tree."""
+    """An SGF game tree.
+
+    Public attributes:
+      nodes -- list of Node objects
+
+    """
 
     def __init__(self):
         self.nodes = []
@@ -157,10 +162,30 @@ class Sgf_game_tree(object):
         return node
 
     def get_root_prop(self, prop):
+        """Return a root-node property as a string.
+
+        Raises KeyError if the property isn't present.
+
+        """
         return self.nodes[0].get(prop)
 
     def get_size(self):
+        """Return the board size as an integer."""
         return int(self.get_root_prop("SZ"))
+
+    def get_komi(self):
+        """Return the komi as a float.
+
+        Returns 0.0 if the KM property isn't present.
+
+        Raises ValueError if the KM property is malformed.
+
+        """
+        try:
+            komi_s = self.get_root_prop("KM")
+        except KeyError:
+            return 0.0
+        return float(komi_s)
 
     def get_player(self, colour):
         return self.get_root_prop({'b' : 'PB', 'w' : 'PW'}[colour])
