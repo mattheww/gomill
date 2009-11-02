@@ -1,9 +1,5 @@
 """Read sgf files."""
 
-list_valued_properties = set([
-    'AB', 'AW', 'AE', 'TB', 'TW', 'AR', 'CR', 'DD', 'LB', 'LN', 'MA',
-    ])
-
 def escape(s):
     return s.replace("\\", "\\\\").replace("]", "\\]")
 
@@ -87,24 +83,19 @@ class Sgf_scanner(object):
 class Prop(object):
     """An SGF property.
 
-    Property values are either 8-bit strings in the source encoding, or lists of
-    them.
+    'values' is a nonempty list of property values. (An elist specified as [] is
+    represented as a single empty string.)
+
+    Property values are 8-bit strings in the source encoding.
 
     """
 
-    def __init__(self, identifier, value):
+    def __init__(self, identifier, values):
         self.identifier = identifier.upper()
-        self.value = value
+        self.values = values
 
     def __str__(self):
-        if isinstance(self.value, list):
-            if not self.value:
-                val = "[]"
-            else:
-                val = "".join("[%s]" % escape(s) for s in self.value)
-        else:
-            val = "[%s]" % escape(self.value)
-        return self.identifier + val
+        return self.identifier + "".join("[%s]" % escape(s)for s in self.values)
 
 class Node(object):
     """An SGF node."""
@@ -120,7 +111,32 @@ class Node(object):
         self.props_by_id[prop.identifier] = prop
 
     def get(self, identifier):
-        return self.props_by_id[identifier].value
+        """Return the scalar value of the specified property.
+
+        Raises KeyError if there was no property with the given identifier.
+
+        If the property had multiple values, this returns the first. If the
+        property was an empty elist, this returns an empty string.
+
+        """
+        return self.props_by_id[identifier].values[0]
+
+    def get_list(self, identifier):
+        """Return the list value of the specified property.
+
+        Raises KeyError if there was no property with the given identifier.
+
+        If the property had a single value, this returns a single-element list.
+
+        If the property had value [], returns an empty list (as appropriate for
+        an elist).
+
+        """
+        l = self.props_by_id[identifier].values
+        if l == [""]:
+            return []
+        else:
+            return l
 
     def has_prop(self, identifier):
         return identifier in self.props_by_id
@@ -151,7 +167,7 @@ class Node(object):
                 colour = "w"
             else:
                 return None, None
-        return colour, interpret_point(prop.value, size)
+        return colour, interpret_point(prop.values[0], size)
 
     def __str__(self):
         return "\n".join(str(p) for p in self.prop_list)
@@ -235,17 +251,8 @@ def read_sgf(s):
 
     The string should use LF to represent a line break.
 
-    This doesn't know the types of different properties; the text-escaping rules
-    are applied to all values.
-
-    If a property appears with an empty value (ie, []), it's stored as an empty
-    string.
-
-    If a property appears with multiple values, the values are stored as a list.
-
-    If the property identifier is one of those in list_valued_properties above
-    (eg, AB), the value is stored as a list even if there is only one value (and
-    if it has an empty value, it's stored as an empty list).
+    This doesn't know the types of different properties; the escaping rules for
+    Text are applied to all values.
 
     """
     scanner = Sgf_scanner(s)
@@ -266,28 +273,18 @@ def read_sgf(s):
                 scanner.skip()
                 node = result.new_node()
             prop_ident = scanner.scan_prop_ident()
-            prop_value_list = []
+            prop_values = []
             while True:
                 scanner.skip_space()
                 c = scanner.peek()
                 if c != "[":
                     break
                 scanner.skip()
-                prop_value_list.append(scanner.scan_prop_value())
+                prop_values.append(scanner.scan_prop_value())
                 scanner.expect("]")
-            if not prop_value_list:
+            if not prop_values:
                 raise ValueError
-            if prop_ident in list_valued_properties:
-                if prop_value_list == [""]:
-                    prop_value = []
-                else:
-                    prop_value = prop_value_list
-            elif len(prop_value_list) > 1:
-                prop_value = prop_value_list
-            else:
-                prop_value = prop_value_list[0]
-
-            node.add(Prop(prop_ident, prop_value))
+            node.add(Prop(prop_ident, prop_values))
     except IndexError:
         raise ValueError
     return result
