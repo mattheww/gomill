@@ -5,7 +5,7 @@ def escape(s):
 
 def interpret_point(s, size):
     s = s.lower()
-    if s == "tt":
+    if s == "" or (s == "tt" and size <= 19):
         return None
     col_s, row_s = s
     col = ord(col_s) - ord("a")
