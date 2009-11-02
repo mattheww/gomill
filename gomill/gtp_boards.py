@@ -257,16 +257,7 @@ class Gtp_board(object):
         self.move_history.append((colour, coords))
 
     def handle_showboard(self, args):
-        point_strings = {
-            None  : " .",
-            'b'   : " #",
-            'w'   : " o",
-            }
-        def format_pt(row, col):
-            return point_strings.get(self.board.get(row, col), " ?")
-        result = ascii_boards.render_board(format_pt, self.board_size)
-        result.append("")
-        return "\n" + "\n".join(result)
+        return "\n%s\n" % ascii_boards.render_board(self.board)
 
     def _handle_genmove(self, args, for_regression=False, allow_claim=False):
         """Common implementation for genmove commands."""

@@ -2,8 +2,8 @@
 
 from gomill_common import *
 
-def render_board(point_formatter, size):
-    """Render a board-shaped grid in ascii.
+def render_grid(point_formatter, size):
+    """Render a board-shaped grid as a list of strings.
 
     point_formatter -- function (row, col) -> string of length 2.
 
@@ -24,4 +24,20 @@ def render_board(point_formatter, size):
                       for col in range(size)))
     result.append(padding + "   " + column_header_string)
     return result
+
+_point_strings = {
+    None  : " .",
+    'b'   : " #",
+    'w'   : " o",
+    }
+
+def render_board(board):
+    """Render a gomill Board in ascii.
+
+    Returns a string without final newline.
+
+    """
+    def format_pt(row, col):
+        return _point_strings.get(board.get(row, col), " ?")
+    return "\n".join(render_grid(format_pt, board.side))
 

@@ -34,6 +34,9 @@ class Board(object):
 
     Supports playing stones with captures, and area scoring.
 
+    Public attributes:
+      side -- board size (eg 9)
+
     """
     def __init__(self, side):
         self.side = side
