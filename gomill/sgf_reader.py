@@ -201,8 +201,7 @@ class Node(object):
 
         colour is 'b' or 'w'.
 
-        coords are (row, col), using GTP standard coordinates, or None for a
-        pass.
+        coords are (row, col), or None for a pass.
 
         Returns None, None if the node contains no B or W property.
 
@@ -218,6 +217,29 @@ class Node(object):
             else:
                 return None, None
         return colour, interpret_point(prop.values[0], size)
+
+    def get_setup_commands(self):
+        """Retrieve Add Black / Add White / Add Empty properties from a node.
+
+        Returns a tuple (black_points, white_points, empty_points)
+
+        Each value is a set of pairs (row, col).
+
+        """
+        size = self.owner.get_size()
+        try:
+            bp = interpret_compressed_point_list(self.get_list("AB"), size)
+        except KeyError:
+            bp = set()
+        try:
+            wp = interpret_compressed_point_list(self.get_list("AW"), size)
+        except KeyError:
+            wp = set()
+        try:
+            ep = interpret_compressed_point_list(self.get_list("AE"), size)
+        except KeyError:
+            ep = set()
+        return bp, wp, ep
 
     def __str__(self):
         return "\n".join(str(p) for p in self.prop_list)
