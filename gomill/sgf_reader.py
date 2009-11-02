@@ -1,5 +1,8 @@
 """Read sgf files."""
 
+from gomill import boards
+
+
 def escape(s):
     return s.replace("\\", "\\\\").replace("]", "\\]")
 
@@ -241,6 +244,10 @@ class Node(object):
             ep = set()
         return bp, wp, ep
 
+    def has_setup_commands(self):
+        """Check whether the node has any AB/AW/AE properties."""
+        return self.has_prop("AB") or self.has_prop("AW") or self.has_prop("AE")
+
     def __str__(self):
         return "\n".join(str(p) for p in self.prop_list)
 
@@ -307,6 +314,39 @@ class Sgf_game_tree(object):
         if colour not in ("b", "w"):
             return None
         return colour
+
+    def get_setup_and_moves(self):
+        """Return the initial setup and the following moves.
+
+        Returns a pair (board, moves)
+
+          board -- boards.Board
+          moves -- list of pairs (colour, coords)
+                   coords are (row, col), or None for a pass.
+
+        The board represents the position described by AB and/or AW properties
+        in the root node.
+
+        Raises ValueError if this position isn't legal.
+
+        Raises ValueError if there are any AB/AW/AE properties after the root
+        node.
+
+        """
+        board = boards.Board(self.get_size())
+        ab, aw, ae = self.nodes[0].get_setup_commands()
+        if ab or aw:
+            is_legal = board.apply_setup(ab, aw, ae)
+            if not is_legal:
+                raise ValueError("setup position not legal")
+        moves = []
+        for node in self.nodes[1:]:
+            if node.has_setup_commands():
+                raise ValueError("setup commands after the root node")
+            colour, coords = node.get_move()
+            if colour is not None:
+                moves.append((colour, coords))
+        return board, moves
 
 
 def read_sgf(s):
