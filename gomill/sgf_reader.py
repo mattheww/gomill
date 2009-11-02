@@ -188,9 +188,15 @@ class Sgf_game_tree(object):
         return float(komi_s)
 
     def get_player(self, colour):
+        """Return the name of the specified player."""
         return self.get_root_prop({'b' : 'PB', 'w' : 'PW'}[colour])
 
     def get_winner(self):
+        """Return the colour of the winning player.
+
+        Returns None if there is no RE property, or if neither player won.
+
+        """
         try:
             colour = self.get_root_prop("RE")[0].lower()
         except LookupError:
