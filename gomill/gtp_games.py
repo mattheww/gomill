@@ -477,7 +477,7 @@ class Game(object):
         """
         sgf_game = sgf_writer.Sgf_game(self.board_size)
         sgf_game.set('komi', self.komi)
-        sgf_game.set('application', "gokit:?")
+        sgf_game.set('application', "gomill:?")
         sgf_game.add_date()
         if self.engine_names:
             sgf_game.set('black-player', self.engine_names[self.players['b']])
