@@ -1,5 +1,9 @@
 """Read sgf files."""
 
+list_valued_properties = set([
+    'AB', 'AW', 'AE', 'TB', 'TW', 'AR', 'CR', 'DD', 'LB', 'LN', 'MA',
+    ])
+
 def escape(s):
     return s.replace("\\", "\\\\").replace("]", "\\]")
 
@@ -83,7 +87,8 @@ class Sgf_scanner(object):
 class Prop(object):
     """An SGF property.
 
-    Property values are 8-bit strings in the source encoding.
+    Property values are either 8-bit strings in the source encoding, or lists of
+    them.
 
     """
 
@@ -92,7 +97,14 @@ class Prop(object):
         self.value = value
 
     def __str__(self):
-        return "%s[%s]" % (self.identifier, escape(self.value))
+        if isinstance(self.value, list):
+            if not self.value:
+                val = "[]"
+            else:
+                val = "".join("[%s]" % escape(s) for s in self.value)
+        else:
+            val = "[%s]" % escape(self.value)
+        return self.identifier + val
 
 class Node(object):
     """An SGF node."""
@@ -223,10 +235,17 @@ def read_sgf(s):
 
     The string should use LF to represent a line break.
 
-    This doesn't know the types of different properties; all values are
-    interpreted as if they were Text.
+    This doesn't know the types of different properties; the text-escaping rules
+    are applied to all values.
 
-    FIXME: Doesn't handle lists of points (eg, AB or TB).
+    If a property appears with an empty value (ie, []), it's stored as an empty
+    string.
+
+    If a property appears with multiple values, the values are stored as a list.
+
+    If the property identifier is one of those in list_valued_properties above
+    (eg, AB), the value is stored as a list even if there is only one value (and
+    if it has an empty value, it's stored as an empty list).
 
     """
     scanner = Sgf_scanner(s)
@@ -247,11 +266,27 @@ def read_sgf(s):
                 scanner.skip()
                 node = result.new_node()
             prop_ident = scanner.scan_prop_ident()
-            #print "pi:", repr(prop_ident)
-            scanner.expect("[")
-            prop_value = scanner.scan_prop_value()
-            #print "pv:", repr(prop_value)
-            scanner.expect("]")
+            prop_value_list = []
+            while True:
+                scanner.skip_space()
+                c = scanner.peek()
+                if c != "[":
+                    break
+                scanner.skip()
+                prop_value_list.append(scanner.scan_prop_value())
+                scanner.expect("]")
+            if not prop_value_list:
+                raise ValueError
+            if prop_ident in list_valued_properties:
+                if prop_value_list == [""]:
+                    prop_value = []
+                else:
+                    prop_value = prop_value_list
+            elif len(prop_value_list) > 1:
+                prop_value = prop_value_list
+            else:
+                prop_value = prop_value_list[0]
+
             node.add(Prop(prop_ident, prop_value))
     except IndexError:
         raise ValueError
