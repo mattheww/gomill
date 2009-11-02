@@ -31,6 +31,8 @@ def block_format(l, width=79):
 
 class Sgf_game(object):
     def __init__(self, size):
+        if not 1 <= size <= 25:
+            raise ValueError("Sgf_game: size must be in 1..25")
         self.size = size
         self.moves = []
         self.root_properties = {
@@ -55,13 +57,18 @@ class Sgf_game(object):
         if colour not in ('B', 'W'):
             raise ValueError
         if move is None:
-            col_s = row_s = "t"
+            # Prefer 'tt' (FF[3] and older); '' is FF[4]
+            if self.size <= 19:
+                move_s = "tt"
+            else:
+                move_s = ""
         else:
             row, col = move
             row = self.size - row - 1
-            col_s = "abcdefghijklmnopqrs"[col]
-            row_s = "abcdefghijklmnopqrs"[row]
-        self.moves.append(("%s[%s%s]" % (colour, col_s, row_s), comment))
+            col_s = "abcdefghijklmnopqrstuvwxy"[col]
+            row_s = "abcdefghijklmnopqrstuvwxy"[row]
+            move_s = col_s + row_s
+        self.moves.append(("%s[%s]" % (colour, move_s), comment))
 
     def add_final_comment(self, s):
         if self.moves:
