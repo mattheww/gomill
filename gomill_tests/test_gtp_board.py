@@ -35,7 +35,7 @@ def dummy_move_generator(game_state, colour):
     board = game_state.board
     empties = []
     for row, col in board.board_coords:
-        if board.get(row, col) == '':
+        if board.get(row, col) is None:
             empties.append((row, col))
     result = gtp_boards.Move_generator_result()
     result.move = random.choice(empties)
