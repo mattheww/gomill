@@ -253,12 +253,7 @@ class Node(object):
 
 
 class Sgf_game_tree(object):
-    """An SGF game tree.
-
-    Public attributes:
-      nodes -- list of Node objects
-
-    """
+    """An SGF game tree."""
 
     def __init__(self):
         self.nodes = []
