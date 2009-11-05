@@ -47,6 +47,13 @@ class Board(object):
             self.board.append([None] * side)
         self._is_empty = True
 
+    def copy(self):
+        """Return an independent copy of this Board."""
+        b = Board(self.side)
+        b.board = [self.board[i][:] for i in xrange(self.side)]
+        b._is_empty = self._is_empty
+        return b
+
     def _make_group(self, row, col, colour):
         points = set()
         is_captured = True

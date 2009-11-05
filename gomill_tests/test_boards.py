@@ -1,3 +1,4 @@
+from gomill import ascii_boards
 from gomill import boards
 
 BLACK = 'b'
@@ -89,6 +90,9 @@ def main():
     assert b.area_score() == 81
     b.play(3, 4, 'w')
     assert b.area_score() == 0
+
+    b2 = b.copy()
+    assert ascii_boards.render_board(b) == ascii_boards.render_board(b2)
 
     for code, moves, diagram, score in play_tests:
         b = boards.Board(9)
