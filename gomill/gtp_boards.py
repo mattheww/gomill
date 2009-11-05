@@ -18,6 +18,7 @@ class Game_state(object):
       size                      -- int
       board                     -- boards.Board
       komi                      -- float
+      history_base              -- boards.Board
       move_history              -- list of tuples (colour, point)
       ko_point                  -- point forbidden by the simple ko rule
       for_regression            -- bool
@@ -25,7 +26,16 @@ class Game_state(object):
       canadian_stones_remaining -- int or None
     where point is (row, col) or None
 
-    move_history includes handicap moves and passes.
+    'board' represents the current board position.
+
+    history_base represents a (possibly) earlier board position; move_history
+    lists the moves leading to 'board' from that position. This is provided so
+    that engines can check for superko violations. A pass is represented in
+    move_history by point None.
+
+    Normally, history_base will be an empty board, or else be the position after
+    the placement of handicap stones; but if the loadsgf command has been used
+    it may be the position given by setup stones in the SGF file.
 
     ko_point is provided for engines which don't want to deduce it from the move
     history.
@@ -82,7 +92,7 @@ class Gtp_board(object):
 
     The move generator function is called to handle genmove. It is passed
     arguments (game_state, colour to play). It should return a
-    Move_generator_result.
+    Move_generator_result. It must not modify data passed in the game_state.
 
     If the move generator returns an occupied point, Gtp_board will report a GTP
     error. Gtp_board does not enforce any ko rule. It permits self-captures.
@@ -109,18 +119,32 @@ class Gtp_board(object):
         self.simple_ko_point = None
         # Player that any simple_ko_point is banned for
         self.simple_ko_player = None
+        self.history_base = boards.Board(self.board_size)
         # list of (colour, point-or-None)
         self.move_history = []
 
+    def set_history_base(self, board):
+        """Change the history base to a new position.
+
+        Takes ownership of 'board'.
+
+        Clears the move history.
+
+        """
+        self.history_base = board
+        self.move_history = []
+
     def reset_to_moves(self, moves):
-        """Reset the board and play the specified moves.
+        """Reset to history base and play the specified moves.
 
         moves -- list of pairs (colour, coords) (same as move history)
+
+        'moves' becomes the new move history. Takes ownership of 'moves'.
 
         Raises ValueError if there is an invalid move in the list.
 
         """
-        self.board = boards.Board(self.board_size)
+        self.board = self.history_base.copy()
         simple_ko_point = None
         colour = 'b'
         for colour, coords in moves:
@@ -133,6 +157,7 @@ class Gtp_board(object):
             simple_ko_point = self.board.play(row, col, colour)
         self.simple_ko_point = simple_ko_point
         self.simple_ko_player = opponent_of(colour)
+        self.move_history = moves
 
     def set_komi(self, f):
         max_komi = 625
@@ -184,8 +209,8 @@ class Gtp_board(object):
             raise GtpError("invalid number of stones")
         for row, col in points:
             self.board.play(row, col, 'b')
-            self.move_history.append(('b', (row, col)))
         self.simple_ko_point = None
+        self.set_history_base(self.board.copy())
 
     def handle_set_free_handicap(self, args):
         if len(args) < 2:
@@ -196,7 +221,7 @@ class Gtp_board(object):
                 self.board.play(row, col, 'b')
             except ValueError:
                 raise GtpError("engine error: %s is occupied" % vertex)
-            self.move_history.append(('b', (row, col)))
+        self.set_history_base(self.board.copy())
         self.simple_ko_point = None
 
     def handle_place_free_handicap(self, args):
@@ -216,7 +241,8 @@ class Gtp_board(object):
             game_state = Game_state()
             game_state.size = self.board_size
             game_state.board = self.board
-            game_state.move_history = self.move_history
+            game_state.history_base = self.board
+            game_state.move_history = []
             game_state.komi = self.board_size * number_of_stones // 2
             game_state.ko_point = None
             game_state.time_remaining = None
@@ -231,9 +257,9 @@ class Gtp_board(object):
                 self.board.play(row, col, 'b')
             except ValueError:
                 raise GtpError("engine error: tried to play %s" % vertex)
-            self.move_history.append(('b', generated.move))
             moves.append(generated.move)
         self.simple_ko_point = None
+        self.set_history_base(self.board.copy())
         return " ".join(gtp_engine.format_vertex_from_coords(row, col)
                         for (row, col) in moves)
 
@@ -268,6 +294,7 @@ class Gtp_board(object):
         game_state = Game_state()
         game_state.size = self.board_size
         game_state.board = self.board
+        game_state.history_base = self.history_base
         game_state.move_history = self.move_history
         game_state.komi = self.komi
         game_state.for_regression = for_regression
@@ -307,13 +334,10 @@ class Gtp_board(object):
         return self._handle_genmove(args, for_regression=True)
 
     def handle_undo(self, args):
-        # GTP spec says we shouldn't undo handicap moves, but it isn't worth the
-        # effort to treat them specially.
         if not self.move_history:
             raise GtpError("cannot undo")
-        self.move_history.pop(-1)
         try:
-            self.reset_to_moves(self.move_history)
+            self.reset_to_moves(self.move_history[:-1])
         except ValueError:
             raise GtpError("corrupt history")
 
@@ -325,7 +349,7 @@ class Gtp_board(object):
         if len(args) > 1:
             move_number = gtp_engine.interpret_int(args[1])
         else:
-            move_number = 10000
+            move_number = None
         try:
             f = open(pathname)
             s = f.read()
@@ -344,29 +368,26 @@ class Gtp_board(object):
             komi = sgf.get_komi()
         except ValueError:
             raise GtpError("bad komi")
-        seen_moves = 0
-        new_move_history = []
-        for node in sgf.nodes:
-            if seen_moves >= move_number:
-                break
-            if node.has_prop("AB") or node.has_prop("AW"):
-                raise GtpError(
-                    "setup stones (including handicap) not supported")
-            colour, move = node.get_move()
-            if colour is None:
-                continue
-            seen_moves += 1
-            new_move_history.append((colour, move))
+        sgf_board, sgf_moves = sgf.get_setup_and_moves()
+        if move_number is None:
+            new_move_history = sgf_moves
+        else:
+            # gtp spec says we want the "position before move_number"
+            move_number = max(0, move_number-1)
+            new_move_history = sgf_moves[:move_number]
+        old_history_base = self.history_base
+        old_move_history = self.move_history
         try:
+            self.set_history_base(sgf_board)
             self.reset_to_moves(new_move_history)
         except ValueError:
             try:
-                self.reset_to_moves(self.move_history)
+                self.set_history_base(old_history_base)
+                self.reset_to_moves(old_move_history)
             except ValueError:
                 raise GtpError("bad move in file and corrupt history")
             raise GtpError("bad move in file")
         self.set_komi(komi)
-        self.move_history = new_move_history
 
     def handle_time_left(self, args):
         # colour time stones
