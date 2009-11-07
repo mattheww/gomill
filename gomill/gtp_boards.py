@@ -237,21 +237,27 @@ class Gtp_board(object):
         if number_of_stones == max_points:
             number_of_stones = max_points - 1
         moves = []
+        fake_komi = 0
+        max_fake_komi = self.board_size * self.board_size - 2
         for i in xrange(number_of_stones):
             game_state = Game_state()
             game_state.size = self.board_size
             game_state.board = self.board
             game_state.history_base = self.board
             game_state.move_history = []
-            game_state.komi = self.board_size * number_of_stones // 2
+            game_state.komi = fake_komi
             game_state.ko_point = None
             game_state.time_remaining = None
             game_state.canadian_stones_remaining = None
             game_state.for_regression = False
 
             generated = self.move_generator(game_state, 'b')
-            if generated.resign or generated.pass_move:
+            if generated.pass_move:
                 continue
+            if generated.resign:
+                fake_komi = 0
+                continue
+            fake_komi = min(fake_komi + 5, max_fake_komi)
             row, col = generated.move
             try:
                 self.board.play(row, col, 'b')
