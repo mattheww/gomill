@@ -7,7 +7,8 @@ from gomill import sgf_writer
 from gomill.gtp_controller import (
     GtpProtocolError, GtpTransportError, GtpEngineError)
 
-def format_gtp_float(f):
+def format_float(f):
+    """Format a Python float in a friendly way."""
     if f == int(f):
         return str(int(f))
     else:
@@ -411,7 +412,7 @@ class Game(object):
             result.sgf_result = "0"
         elif self.margin is not None:
             result.sgf_result = "%s+%s" % (self.winner.upper(),
-                                           format_gtp_float(self.margin))
+                                           format_float(self.margin))
         elif self.winner is None:
             result.sgf_result = "?"
             result.detail = "no score reported"
