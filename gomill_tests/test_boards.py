@@ -65,8 +65,8 @@ def debug_show_board(board):
 def play_diagram(board, diagram):
     """Set up the position from a diagram.
 
-    board   -- Board_base implementing play()
-    diagram -- board representation as from Board_base.format()
+    board   -- Board
+    diagram -- board representation as from ascii_boards.render_board()
 
     """
     lines = diagram.split("\n")

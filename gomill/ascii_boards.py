@@ -1,6 +1,7 @@
 """ASCII board representation."""
 
 from gomill_common import *
+from gomill_common import column_letters
 
 def render_grid(point_formatter, size):
     """Render a board-shaped grid as a list of strings.

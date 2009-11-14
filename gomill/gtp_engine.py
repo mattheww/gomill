@@ -10,6 +10,7 @@ import sys
 import os
 
 from gomill_common import *
+from gomill_common import column_letters
 from gomill import compact_tracebacks
 
 

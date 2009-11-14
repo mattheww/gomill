@@ -4,7 +4,7 @@ This module is designed to be used with 'from gomill_common import *'.
 
 """
 
-__all__ = ["opponent_of", "column_letters", "coords_from_vertex", "gtp_boolean"]
+__all__ = ["opponent_of", "coords_from_vertex", "gtp_boolean"]
 
 _opponents = {"b":"w", "w":"b"}
 def opponent_of(colour):
