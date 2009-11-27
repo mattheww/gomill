@@ -324,7 +324,7 @@ class Mcts_tuner(Competition):
         except ValueError, e:
             raise CompetitionError(
                 "error making candidate player\nparameters: %s\nerror: %s" %
-                (self.format_parameters(optimiser_params), e))
+                (self.format_parameters(optimiser_parameters), e))
         return candidate
 
     def prepare_simulation(self):
