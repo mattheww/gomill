@@ -220,7 +220,7 @@ class Gtp_board(object):
             try:
                 self.board.play(row, col, 'b')
             except ValueError:
-                raise GtpError("engine error: %s is occupied" % vertex)
+                raise GtpError("engine error: %s is occupied" % vertex_s)
         self.set_history_base(self.board.copy())
         self.simple_ko_point = None
 
@@ -262,6 +262,7 @@ class Gtp_board(object):
             try:
                 self.board.play(row, col, 'b')
             except ValueError:
+                vertex = gtp_engine.format_vertex_from_coords(row, col)
                 raise GtpError("engine error: tried to play %s" % vertex)
             moves.append(generated.move)
         self.simple_ko_point = None
