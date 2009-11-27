@@ -107,7 +107,7 @@ class Game(object):
         The internal scorer uses area score, assuming all stones alive.
 
         """
-        self.internal_scorer = True
+        self.internal_scorer = b
 
     def use_players_to_score(self, preferred_scorers=None):
         """Specify which players' scores to trust.
