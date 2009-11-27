@@ -1,6 +1,6 @@
 """Go board representation."""
 
-from gomill_common import *
+from gomill.gomill_common import *
 
 
 class Group(object):

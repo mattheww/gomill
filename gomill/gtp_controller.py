@@ -9,7 +9,7 @@ import re
 import signal
 import subprocess
 
-from gomill_common import *
+from gomill.gomill_common import *
 
 
 class GtpProtocolError(StandardError):
