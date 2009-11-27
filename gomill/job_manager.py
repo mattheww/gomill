@@ -188,7 +188,7 @@ def run_jobs(job_source, max_workers=None, allow_mp=True,
     job_manager.start_workers()
     try:
         job_manager.run_jobs(job_source)
-    except StandardError, e:
+    except StandardError:
         try:
             job_manager.finish()
         except StandardError, e2:
