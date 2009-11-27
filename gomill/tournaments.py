@@ -148,13 +148,13 @@ class Tournament(Competition):
         if x_known_times:
             x_avg_time_s = "%7.2f" % (sum(x_known_times) / len(x_known_times))
         else:
-            x_avg_time = "----"
+            x_avg_time_s = "----"
         y_times = [r.cpu_times[player_y] for r in results]
         y_known_times = [t for t in y_times if t is not None and t != '?']
         if y_known_times:
             y_avg_time_s = "%7.2f" % (sum(y_known_times) / len(y_known_times))
         else:
-            y_avg_time = "----"
+            y_avg_time_s = "----"
 
         p("%s vs %s (%d games)" % (player_x, player_y, total))
         def pct(n, baseline):
