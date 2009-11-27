@@ -110,7 +110,6 @@ class Sgf_scanner(object):
         return self.chars[start:i]
 
     def scan_prop_value(self):
-        start = self.index
         is_escaped = False
         result = []
         while True:
