@@ -215,7 +215,6 @@ class Board(object):
 
         """
         scores = {'b' : 0, 'w' : 0}
-        captured = []
         handled = set()
         for (row, col) in self.board_coords:
             colour = self.board[row][col]
