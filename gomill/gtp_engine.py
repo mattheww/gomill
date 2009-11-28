@@ -10,7 +10,6 @@ import sys
 import os
 
 from gomill.gomill_common import *
-from gomill.gomill_common import column_letters
 from gomill import compact_tracebacks
 
 
@@ -124,10 +123,6 @@ def format_gtp_boolean(b):
         return "true"
     else:
         return "false"
-
-def format_vertex_from_coords(row, col):
-    """Format coordinates as a GTP vertex string."""
-    return column_letters[col] + str(row+1)
 
 def report_bad_arguments():
     """Raise GtpError with a suitable message for invalid arguments.

@@ -262,12 +262,12 @@ class Gtp_board(object):
             try:
                 self.board.play(row, col, 'b')
             except ValueError:
-                vertex = gtp_engine.format_vertex_from_coords(row, col)
+                vertex = format_vertex((row, col))
                 raise GtpError("engine error: tried to play %s" % vertex)
             moves.append(generated.move)
         self.simple_ko_point = None
         self.set_history_base(self.board.copy())
-        return " ".join(gtp_engine.format_vertex_from_coords(row, col)
+        return " ".join(format_vertex((row, col))
                         for (row, col) in moves)
 
     def handle_play(self, args):
@@ -321,7 +321,7 @@ class Gtp_board(object):
                 self.move_history.append((colour, None))
             return 'pass'
         row, col = generated.move
-        vertex = gtp_engine.format_vertex_from_coords(row, col)
+        vertex = format_vertex((row, col))
         if not for_regression:
             try:
                 self.simple_ko_point = self.board.play(row, col, colour)
