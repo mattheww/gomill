@@ -4,7 +4,7 @@ This module is designed to be used with 'from gomill_common import *'.
 
 """
 
-__all__ = ["opponent_of", "coords_from_vertex", "gtp_boolean"]
+__all__ = ["opponent_of", "format_vertex", "coords_from_vertex", "gtp_boolean"]
 
 _opponents = {"b":"w", "w":"b"}
 def opponent_of(colour):
@@ -21,6 +21,19 @@ def opponent_of(colour):
         return ValueError
 
 column_letters = "ABCDEFGHJKLMNOPQRSTUVWXZ"
+
+def format_vertex(coords):
+    """Return coordinates as a string like 'A1', or 'pass'.
+
+    coords -- pair (row, col), or None for a pass
+
+    The result suitable for use directly in GTP responses.
+
+    """
+    if coords is None:
+        return "pass"
+    row, col = coords
+    return column_letters[col] + str(row+1)
 
 def coords_from_vertex(vertex, board_size):
     """Interpret a string representing a vertex, as specified by GTP.
