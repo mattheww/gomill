@@ -32,7 +32,7 @@ PW[White engine]RE[W+R]SZ[9];B[cg];W[df]C[cmt];B[tt]C[Final comment])
 """
 
 def main():
-    sgf = make_sgf(25, test_moves)
+    sgf = make_sgf(9, test_moves)
     print sgf.as_string()
     assert sgf.as_string() == expected_sgf
 
