@@ -8,7 +8,10 @@ import shutil
 import sys
 from optparse import OptionParser
 
-import simplejson as json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 from gomill import compact_tracebacks
 from gomill import game_jobs
