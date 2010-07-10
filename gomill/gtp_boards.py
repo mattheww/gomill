@@ -22,6 +22,7 @@ class Game_state(object):
       move_history              -- list of tuples (colour, point)
       ko_point                  -- point forbidden by the simple ko rule
       for_regression            -- bool
+      time_settings             -- tuple (m, b, s), or None
       time_remaining            -- int (seconds), or None
       canadian_stones_remaining -- int or None
     where point is (row, col) or None
@@ -43,8 +44,22 @@ class Game_state(object):
     for_regression is true if the command was 'reg_genmove'; engines which care
     should use a fixed seed in this case.
 
-    time_remaining None means time information isn't available.
-    canadian_stones_remaining None means we're in main time.
+
+    time_settings describes the time limits for the game; time_remaining
+    describes the current situation.
+
+    time_settings values m, b, s are main time (in seconds), 'Canadian byo-yomi'
+    time (in seconds), and 'Canadian byo-yomi' stones; see GTP spec 4.2 (which
+    desribes what 0 values mean). time_settings None means the information isn't
+    available.
+
+    time_remaining None means the game isn't timed. canadian_stones_remaining
+    None means we're in main time.
+
+    The most important information for the move generator is in time_remaining;
+    time_settings lets it know whether it's going to get overtime as well. It's
+    possible for time_remaining to be available but not time_settings (if the
+    controller doesn't send time_settings).
 
     """
 
@@ -101,6 +116,7 @@ class Gtp_board(object):
 
     def __init__(self, move_generator, acceptable_sizes=None):
         self.komi = 0
+        self.time_settings = None
         self.time_status = {
             'b' : (None, None),
             'w' : (None, None),
@@ -247,6 +263,7 @@ class Gtp_board(object):
             game_state.move_history = []
             game_state.komi = fake_komi
             game_state.ko_point = None
+            game_state.time_settings = self.time_settings
             game_state.time_remaining = None
             game_state.canadian_stones_remaining = None
             game_state.for_regression = False
@@ -309,6 +326,7 @@ class Gtp_board(object):
             game_state.ko_point = self.simple_ko_point
         else:
             game_state.ko_point = None
+        game_state.time_settings = self.time_settings
         game_state.time_remaining, game_state.canadian_stones_remaining = \
             self.time_status[colour]
         generated = self.move_generator(game_state, colour)
@@ -409,8 +427,13 @@ class Gtp_board(object):
         self.time_status[colour] = (time_remaining, stones_remaining)
 
     def handle_time_settings(self, args):
-        # Accept the command, but ignore what it sends for now.
-        pass
+        try:
+            main_time = gtp_engine.interpret_int(args[0])
+            canadian_time = gtp_engine.interpret_int(args[1])
+            canadian_stones = gtp_engine.interpret_int(args[2])
+        except IndexError:
+            gtp_engine.report_bad_arguments()
+        self.time_settings = (main_time, canadian_time, canadian_stones)
 
     def get_handlers(self):
         return {'boardsize'            : self.handle_boardsize,
