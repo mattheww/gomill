@@ -11,6 +11,22 @@ from gomill import sgf_reader
 from gomill.gtp_engine import GtpError
 
 
+class History_move(object):
+    """Information about a move (for move_history).
+
+    Public attributes:
+      colour
+      coords  -- (row, col), or None for a pass
+
+    """
+    def __init__(self, colour, coords):
+        self.colour = colour
+        self.coords = coords
+
+    def is_pass(self):
+        return (self.coords is None)
+
+
 class Game_state(object):
     """Data passed to a move generator.
 
@@ -19,27 +35,25 @@ class Game_state(object):
       board                     -- boards.Board
       komi                      -- float
       history_base              -- boards.Board
-      move_history              -- list of tuples (colour, point)
-      ko_point                  -- point forbidden by the simple ko rule
+      move_history              -- list of History_move objects
+      ko_point                  -- (row, col) or None
       for_regression            -- bool
       time_settings             -- tuple (m, b, s), or None
       time_remaining            -- int (seconds), or None
       canadian_stones_remaining -- int or None
-    where point is (row, col) or None
 
     'board' represents the current board position.
 
     history_base represents a (possibly) earlier board position; move_history
-    lists the moves leading to 'board' from that position. This is provided so
-    that engines can check for superko violations. A pass is represented in
-    move_history by point None.
+    lists the moves leading to 'board' from that position.
 
     Normally, history_base will be an empty board, or else be the position after
     the placement of handicap stones; but if the loadsgf command has been used
     it may be the position given by setup stones in the SGF file.
 
-    ko_point is provided for engines which don't want to deduce it from the move
-    history.
+    ko_point is the point forbidden by the simple ko rule. This is provided for
+    convenience for engines which don't want to deduce it from the move history.
+    To handle superko properly, engines will have to use the move history.
 
     for_regression is true if the command was 'reg_genmove'; engines which care
     should use a fixed seed in this case.
@@ -153,7 +167,7 @@ class Gtp_board(object):
     def reset_to_moves(self, moves):
         """Reset to history base and play the specified moves.
 
-        moves -- list of pairs (colour, coords) (same as move history)
+        moves -- list of History_move objects.
 
         'moves' becomes the new move history. Takes ownership of 'moves'.
 
@@ -162,17 +176,17 @@ class Gtp_board(object):
         """
         self.board = self.history_base.copy()
         simple_ko_point = None
-        colour = 'b'
-        for colour, coords in moves:
-            if coords is None:
-                # pass
+        simple_ko_player = None
+        for move in moves:
+            if move.is_pass():
                 self.simple_ko_point = None
                 continue
-            row, col = coords
+            row, col = move.coords
             # Propagates ValueError if the move is bad
-            simple_ko_point = self.board.play(row, col, colour)
+            simple_ko_point = self.board.play(row, col, move.colour)
+            simple_ko_player = opponent_of(move.colour)
         self.simple_ko_point = simple_ko_point
-        self.simple_ko_player = opponent_of(colour)
+        self.simple_ko_player = simple_ko_player
         self.move_history = moves
 
     def set_komi(self, f):
@@ -296,7 +310,7 @@ class Gtp_board(object):
         coords = gtp_engine.interpret_vertex(vertex_s, self.board_size)
         if coords is None:
             self.simple_ko_point = None
-            self.move_history.append((colour, None))
+            self.move_history.append(History_move(colour, None))
             return
         row, col = coords
         try:
@@ -304,7 +318,7 @@ class Gtp_board(object):
             self.simple_ko_player = opponent_of(colour)
         except ValueError:
             raise GtpError("illegal move")
-        self.move_history.append((colour, coords))
+        self.move_history.append(History_move(colour, coords))
 
     def handle_showboard(self, args):
         return "\n%s\n" % ascii_boards.render_board(self.board)
@@ -336,7 +350,7 @@ class Gtp_board(object):
             return 'resign'
         if generated.pass_move:
             if not for_regression:
-                self.move_history.append((colour, None))
+                self.move_history.append(History_move(colour, None))
             return 'pass'
         row, col = generated.move
         vertex = format_vertex((row, col))
@@ -346,7 +360,7 @@ class Gtp_board(object):
                 self.simple_ko_player = opponent_of(colour)
             except ValueError:
                 raise GtpError("engine error: tried to play %s" % vertex)
-            self.move_history.append((colour, generated.move))
+            self.move_history.append(History_move(colour, generated.move))
         return vertex
 
     def handle_genmove(self, args):
@@ -393,7 +407,9 @@ class Gtp_board(object):
             komi = sgf.get_komi()
         except ValueError:
             raise GtpError("bad komi")
-        sgf_board, sgf_moves = sgf.get_setup_and_moves()
+        sgf_board, raw_sgf_moves = sgf.get_setup_and_moves()
+        sgf_moves = [History_move(colour, coords)
+                     for (colour, coords) in raw_sgf_moves]
         if move_number is None:
             new_move_history = sgf_moves
         else:
