@@ -429,7 +429,10 @@ class Gtp_board(object):
             komi = sgf.get_komi()
         except ValueError:
             raise GtpError("bad komi")
-        sgf_board, raw_sgf_moves = sgf.get_setup_and_moves()
+        try:
+            sgf_board, raw_sgf_moves = sgf.get_setup_and_moves()
+        except ValueError, e:
+            raise GtpError(str(e))
         sgf_moves = [History_move(colour, coords)
                      for (colour, coords) in raw_sgf_moves]
         if move_number is None:
