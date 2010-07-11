@@ -487,3 +487,50 @@ class Gtp_board(object):
         return {'time_left'           : self.handle_time_left,
                 'time_settings'       : self.handle_time_settings,
                 }
+
+
+def get_last_move(moves, player):
+    """Get the last move from the move history, checking it's by the opponent.
+
+    This is a convenience function for use by move generators.
+
+    moves  -- list of History_move objects
+    player -- player to play current move (kiai_colour)
+
+    Returns a pair (move_is_available, coords)
+    where coords is (row, col), or None for a pass.
+
+    If the last move is unknown, or it wasn't by the opponent, move_is_available
+    is False and coords is None.
+
+    """
+    if not moves:
+        return False, None
+    if moves[-1].colour != opponent_of(player):
+        return False, None
+    return True, moves[-1].coords
+
+def get_last_move_and_cookie(moves, player):
+    """Interpret recent move history.
+
+    This is a convenience function for use by move generators.
+
+    This is a variant of get_last_move, which also returns the last-but-one
+    move's cookie if available.
+
+    Returns a tuple (move_is_available, opponent's move, cookie)
+
+    move_is_available has the same meaning as for get_last_move().
+
+    If move_is_available is false, or if the next-to-last move is unavailable or
+    wasn't by the current player, cookie is None.
+
+    """
+    move_is_available, opponents_move = get_last_move(moves, player)
+    if move_is_available and len(moves) > 1 and moves[-2].colour == player:
+        cookie = moves[-2].cookie
+    else:
+        cookie = None
+    return move_is_available, opponents_move, cookie
+
+
