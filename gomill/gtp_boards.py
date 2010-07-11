@@ -19,7 +19,13 @@ class History_move(object):
       coords  -- (row, col), or None for a pass
       cookie
 
-    See FIXME for information about the cookie attribute.
+    The cookie attribute stores an arbitrary value which was provided by the
+    move generator when the move was played. The cookie attribute of a move
+    which did not come from the move generator is None.
+
+    This is a way for a move generator to maintain state across moves, without
+    becoming confused by 'undo' &c. It's not intended for storing large amounts
+    of data.
 
     """
     def __init__(self, colour, coords, cookie=None):
@@ -55,9 +61,14 @@ class Game_state(object):
     the placement of handicap stones; but if the loadsgf command has been used
     it may be the position given by setup stones in the SGF file.
 
+    The get_last_move() and get_last_move_and_cookie() functions below are
+    provided to help interpret move history.
+
+
     ko_point is the point forbidden by the simple ko rule. This is provided for
     convenience for engines which don't want to deduce it from the move history.
     To handle superko properly, engines will have to use the move history.
+
 
     for_regression is true if the command was 'reg_genmove'; engines which care
     should use a fixed seed in this case.
@@ -96,7 +107,8 @@ class Move_generator_result(object):
 
     If claim is true, either 'move' or 'pass_move' must still be set.
 
-    See FIXME for information about the cookie attribute.
+    See History_move for an explanation of the cookie attribute. It has the
+    value None if not explicitly set.
 
     """
     def __init__(self):
