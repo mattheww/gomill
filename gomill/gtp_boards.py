@@ -17,11 +17,15 @@ class History_move(object):
     Public attributes:
       colour
       coords  -- (row, col), or None for a pass
+      cookie
+
+    See FIXME for information about the cookie attribute.
 
     """
-    def __init__(self, colour, coords):
+    def __init__(self, colour, coords, cookie=None):
         self.colour = colour
         self.coords = coords
+        self.cookie = cookie
 
     def is_pass(self):
         return (self.coords is None)
@@ -85,11 +89,14 @@ class Move_generator_result(object):
       pass_move -- bool
       move      -- (row, col), or None
       claim     -- bool (for gomill-genmove_claim)
+      cookie    -- arbitrary value
 
     Exactly one of the first three attributes should be set to a nondefault
     value.
 
     If claim is true, either 'move' or 'pass_move' must still be set.
+
+    See FIXME for information about the cookie attribute.
 
     """
     def __init__(self):
@@ -97,6 +104,7 @@ class Move_generator_result(object):
         self.pass_move = False
         self.move = None
         self.claim = False
+        self.cookie = None
 
 
 class Gtp_board(object):
@@ -350,7 +358,8 @@ class Gtp_board(object):
             return 'resign'
         if generated.pass_move:
             if not for_regression:
-                self.move_history.append(History_move(colour, None))
+                self.move_history.append(History_move(
+                    colour, None, generated.cookie))
             return 'pass'
         row, col = generated.move
         vertex = format_vertex((row, col))
@@ -360,7 +369,8 @@ class Gtp_board(object):
                 self.simple_ko_player = opponent_of(colour)
             except ValueError:
                 raise GtpError("engine error: tried to play %s" % vertex)
-            self.move_history.append(History_move(colour, generated.move))
+            self.move_history.append(
+                History_move(colour, generated.move, generated.cookie))
         return vertex
 
     def handle_genmove(self, args):
