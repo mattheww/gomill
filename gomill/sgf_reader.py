@@ -326,6 +326,8 @@ class Sgf_game_tree(object):
         Raises ValueError if there are any AB/AW/AE properties after the root
         node.
 
+        Doesn't check whether the moves are legal.
+
         """
         board = boards.Board(self.get_size())
         ab, aw, ae = self.nodes[0].get_setup_commands()
