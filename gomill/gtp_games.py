@@ -34,6 +34,7 @@ class Game_result(object):
 
     """
     def describe(self):
+        """Return a short human-readable description of the result."""
         if self.winning_player is not None:
             if self.player_b == self.winning_player:
                 losing_player = self.player_w
@@ -70,7 +71,7 @@ class Game(object):
       game.request_engine_descriptions() [optional]
       game.run()
       game.close_players()
-      game.make_sgf()
+      game.make_sgf() or game.write_sgf() [optional]
 
     then retrieve the Game_result and moves.
 
@@ -163,6 +164,9 @@ class Game(object):
         Returns the response as a string.
 
         Raises GtpEngineError if the engine returns an error response.
+
+        You can use this at any time between start_players() and
+        close_players().
 
         """
         command = self._translate_gtp_command(colour, command)
@@ -345,7 +349,7 @@ class Game(object):
     def run(self):
         """Run a complete game between the two players.
 
-        Sets game.moves.
+        Sets self.moves and self.result.
 
         """
         self.pass_count = 0
@@ -391,7 +395,11 @@ class Game(object):
         self.result.cpu_times = {'b' : None, 'w' : None}
 
     def calculate_result(self):
-        """Set self.result."""
+        """Set self.result.
+
+        You shouldn't normally call this directly.
+
+        """
         result = Game_result()
         result.player_b = self.players['b']
         result.player_w = self.players['w']
@@ -423,7 +431,11 @@ class Game(object):
         self.result = result
 
     def calculate_cpu_times(self):
-        """Set CPU times in self.result."""
+        """Set CPU times in self.result.
+
+        You shouldn't normally call this directly.
+
+        """
         # The ugliness with cpu_time '?' is to avoid using the cpu time reported
         # by channel close() for engines which claim to support gomill-cpu_time
         # but give an error.
