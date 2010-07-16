@@ -339,10 +339,7 @@ class Gtp_controller_protocol(object):
         except GtpEngineError:
             known = False
         else:
-            try:
-                known = gtp_boolean(response)
-            except ValueError:
-                known = False
+            known = (response == 'true')
         self.known_commands[channel_id, command] = known
         return known
 

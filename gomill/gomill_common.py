@@ -5,7 +5,7 @@ This module is designed to be used with 'from gomill_common import *'.
 """
 
 __all__ = ["opponent_of", "format_vertex", "format_vertex_list",
-           "coords_from_vertex", "gtp_boolean"]
+           "coords_from_vertex"]
 
 _opponents = {"b":"w", "w":"b"}
 def opponent_of(colour):
@@ -69,18 +69,4 @@ def coords_from_vertex(vertex, board_size):
     if not (col < board_size and row < board_size):
         raise ValueError("vertex is off board: '%s'" % s)
     return row, col
-
-def gtp_boolean(s):
-    """Interpret a string representing a boolean, as specified by GTP.
-
-    Returns a Python bool.
-
-    Raises ValueError with an appropriate message if 's' isn't a valid GTP
-    boolean specification.
-
-    """
-    try:
-        return {'true': True, 'false': False}[s]
-    except KeyError:
-        raise ValueError
 
