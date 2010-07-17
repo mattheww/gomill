@@ -185,7 +185,7 @@ class Linebased_gtp_channel(Gtp_channel):
             raise GtpProtocolError(
                 "no success/failure indication from engine: "
                 "first line is `%s`" % first_line)
-        lines[0] = first_line[1:].lstrip()
+        lines[0] = first_line[1:].lstrip(" \t")
         response = "".join(lines).rstrip()
         response = _remove_response_controls_re.sub("", response)
         response = response.replace("\t", " ")
