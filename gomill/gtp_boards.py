@@ -170,7 +170,7 @@ class Gtp_board(object):
         # Player that any simple_ko_point is banned for
         self.simple_ko_player = None
         self.history_base = boards.Board(self.board_size)
-        # list of (colour, point-or-None)
+        # list of History_move objects
         self.move_history = []
 
     def set_history_base(self, board):
