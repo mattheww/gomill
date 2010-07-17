@@ -113,7 +113,27 @@ class Sgf_game(object):
             else:
                 self.set_root_property('C', s)
 
+    def _finalise(self):
+        # Add next-player when known and appropriate
+        if self.moves and ('PL' not in self.root_properties):
+            move, comment = self.moves[0]
+            first_player = move[0]
+            has_handicap = ('HA' in self.root_properties)
+            if self.setup_stones['w']:
+                specify_pl = True
+            elif self.setup_stones['b'] and not has_handicap:
+                specify_pl = True
+            elif not has_handicap and first_player == 'W':
+                specify_pl = True
+            elif has_handicap and first_player == 'B':
+                specify_pl = True
+            else:
+                specify_pl = False
+            if specify_pl:
+                self.set_root_property('PL', first_player)
+
     def as_string(self):
+        self._finalise()
         l = []
         l.append("(;")
         for identifier, value in sorted(self.root_properties.items()):
