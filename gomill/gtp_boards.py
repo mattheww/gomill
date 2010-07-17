@@ -486,6 +486,12 @@ class Gtp_board(object):
             gtp_engine.report_bad_arguments()
         self.time_settings = (main_time, canadian_time, canadian_stones)
 
+    def handle_explain_last_move(self, args):
+        try:
+            return self.move_history[-1].comments
+        except IndexError:
+            return None
+
     def handle_savesgf(self, args):
         try:
             pathname = args[0]
@@ -517,20 +523,21 @@ class Gtp_board(object):
 
 
     def get_handlers(self):
-        return {'boardsize'            : self.handle_boardsize,
-                'clear_board'          : self.handle_clear_board,
-                'komi'                 : self.handle_komi,
-                'fixed_handicap'       : self.handle_fixed_handicap,
-                'set_free_handicap'    : self.handle_set_free_handicap,
-                'place_free_handicap'  : self.handle_place_free_handicap,
-                'play'                 : self.handle_play,
-                'genmove'              : self.handle_genmove,
-                'gomill-genmove_claim' : self.handle_genmove_claim,
-                'reg_genmove'          : self.handle_reg_genmove,
-                'undo'                 : self.handle_undo,
-                'showboard'            : self.handle_showboard,
-                'loadsgf'              : self.handle_loadsgf,
-                'gomill-savesgf'       : self.handle_savesgf,
+        return {'boardsize'                : self.handle_boardsize,
+                'clear_board'              : self.handle_clear_board,
+                'komi'                     : self.handle_komi,
+                'fixed_handicap'           : self.handle_fixed_handicap,
+                'set_free_handicap'        : self.handle_set_free_handicap,
+                'place_free_handicap'      : self.handle_place_free_handicap,
+                'play'                     : self.handle_play,
+                'genmove'                  : self.handle_genmove,
+                'gomill-genmove_claim'     : self.handle_genmove_claim,
+                'reg_genmove'              : self.handle_reg_genmove,
+                'undo'                     : self.handle_undo,
+                'showboard'                : self.handle_showboard,
+                'loadsgf'                  : self.handle_loadsgf,
+                'gomill-explain_last_move' : self.handle_explain_last_move,
+                'gomill-savesgf'           : self.handle_savesgf,
                 }
 
     def get_time_handlers(self):
