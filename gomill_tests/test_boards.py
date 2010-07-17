@@ -91,6 +91,8 @@ def main():
     b.play(3, 4, 'w')
     assert b.area_score() == 0
 
+    assert set(b.list_occupied_points()) == set([('b', (2, 3)), ('w', (3, 4))])
+
     b2 = b.copy()
     assert ascii_boards.render_board(b) == ascii_boards.render_board(b2)
 

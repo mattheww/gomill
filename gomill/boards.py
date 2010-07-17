@@ -204,6 +204,19 @@ class Board(object):
                 break
         return not(captured)
 
+    def list_occupied_points(self):
+        """List all nonempty points.
+
+        Returns a list of pairs (colour, (row, col))
+
+        """
+        result = []
+        for (row, col) in self.board_coords:
+            colour = self.board[row][col]
+            if colour is not None:
+                result.append((colour, (row, col)))
+        return result
+
     def area_score(self):
         """Calculate the area score of a position.
 
