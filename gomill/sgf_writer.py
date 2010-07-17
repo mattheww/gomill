@@ -1,4 +1,8 @@
-"""Write SGF files."""
+"""Write SGF files.
+
+Makes no attempt to compress point lists.
+
+"""
 
 import datetime
 
@@ -34,12 +38,21 @@ class Sgf_game(object):
         if not 1 <= size <= 25:
             raise ValueError("Sgf_game: size must be in 1..25")
         self.size = size
+        self.setup_stones = {'b' : set(), 'w' : set()}
         self.moves = []
         self.root_properties = {
             'GM' : '1',
             'FF' : '4',
             'SZ' : str(size),
             }
+
+    def sgf_point(self, move):
+        """Convert (row, col) to sgf letter-pair."""
+        row, col = move
+        row = self.size - row - 1
+        col_s = "abcdefghijklmnopqrstuvwxy"[col]
+        row_s = "abcdefghijklmnopqrstuvwxy"[row]
+        return col_s + row_s
 
     def set_root_property(self, identifier, value):
         self.root_properties[identifier] = str(value)
@@ -63,12 +76,26 @@ class Sgf_game(object):
             else:
                 move_s = ""
         else:
-            row, col = move
-            row = self.size - row - 1
-            col_s = "abcdefghijklmnopqrstuvwxy"[col]
-            row_s = "abcdefghijklmnopqrstuvwxy"[row]
-            move_s = col_s + row_s
+            move_s = self.sgf_point(move)
         self.moves.append(("%s[%s]" % (colour, move_s), comment))
+
+    def add_setup_stones(self, stones):
+        """Specify setup stones for the root node.
+
+        stones -- list of pairs (colour, (row, col))
+
+        You can call this more than once.
+
+        Doesn't check for illegal placements (ie, specifying a point as being
+        both black and white).
+
+        """
+        for colour, move in stones:
+            try:
+                st = self.setup_stones[colour]
+            except KeyError:
+                raise ValueError
+            st.add(self.sgf_point(move))
 
     def add_final_comment(self, s):
         if self.moves:
@@ -90,6 +117,11 @@ class Sgf_game(object):
         l.append("(;")
         for identifier, value in sorted(self.root_properties.items()):
             l.append("%s[%s]" % (identifier, escape(value)))
+        for colour in ('b', 'w'):
+            if self.setup_stones[colour]:
+                l.append("A%s" % colour.upper())
+                for move in sorted(self.setup_stones[colour]):
+                    l.append("[%s]" % move)
         for move, comment in self.moves:
             l.append(";" + move)
             if comment:
