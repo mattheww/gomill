@@ -52,6 +52,7 @@ class Game_state(object):
       history_base              -- boards.Board
       move_history              -- list of History_move objects
       ko_point                  -- (row, col) or None
+      handicap                  -- int >= 2 or None
       for_regression            -- bool
       time_settings             -- tuple (m, b, s), or None
       time_remaining            -- int (seconds), or None
@@ -73,6 +74,11 @@ class Game_state(object):
     ko_point is the point forbidden by the simple ko rule. This is provided for
     convenience for engines which don't want to deduce it from the move history.
     To handle superko properly, engines will have to use the move history.
+
+
+    'handicap' is provided in case the engine wants to modify its behaviour in
+    handicap games; it can safely be ignored. Any handicap stones will be
+    present in history_base.
 
 
     for_regression is true if the command was 'reg_genmove'; engines which care
@@ -310,6 +316,7 @@ class Gtp_board(object):
             game_state.move_history = []
             game_state.komi = fake_komi
             game_state.ko_point = None
+            game_state.handicap = None
             game_state.time_settings = self.time_settings
             game_state.time_remaining = None
             game_state.canadian_stones_remaining = None
@@ -374,6 +381,7 @@ class Gtp_board(object):
             game_state.ko_point = self.simple_ko_point
         else:
             game_state.ko_point = None
+        game_state.handicap = self.handicap
         game_state.time_settings = self.time_settings
         game_state.time_remaining, game_state.canadian_stones_remaining = \
             self.time_status[colour]
