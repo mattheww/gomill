@@ -8,6 +8,7 @@ from gomill import boards
 from gomill import gtp_engine
 from gomill import handicap_layout
 from gomill import sgf_reader
+from gomill import sgf_writer
 from gomill.gtp_engine import GtpError
 
 
@@ -16,8 +17,11 @@ class History_move(object):
 
     Public attributes:
       colour
-      coords  -- (row, col), or None for a pass
+      coords   -- (row, col), or None for a pass
+      comments -- multiline string, or None
       cookie
+
+    comments are used by gomill-savesgf.
 
     The cookie attribute stores an arbitrary value which was provided by the
     move generator when the move was played. The cookie attribute of a move
@@ -28,9 +32,10 @@ class History_move(object):
     of data.
 
     """
-    def __init__(self, colour, coords, cookie=None):
+    def __init__(self, colour, coords, comments=None, cookie=None):
         self.colour = colour
         self.coords = coords
+        self.comments = comments
         self.cookie = cookie
 
     def is_pass(self):
@@ -100,12 +105,15 @@ class Move_generator_result(object):
       pass_move -- bool
       move      -- (row, col), or None
       claim     -- bool (for gomill-genmove_claim)
+      comments  -- multiline string, or None
       cookie    -- arbitrary value
 
     Exactly one of the first three attributes should be set to a nondefault
     value.
 
     If claim is true, either 'move' or 'pass_move' must still be set.
+
+    comments are used by gomill-savesgf.
 
     See History_move for an explanation of the cookie attribute. It has the
     value None if not explicitly set.
@@ -116,6 +124,7 @@ class Move_generator_result(object):
         self.pass_move = False
         self.move = None
         self.claim = False
+        self.comments = None
         self.cookie = None
 
 
@@ -371,7 +380,7 @@ class Gtp_board(object):
         if generated.pass_move:
             if not for_regression:
                 self.move_history.append(History_move(
-                    colour, None, generated.cookie))
+                    colour, None, generated.comments, generated.cookie))
             return 'pass'
         row, col = generated.move
         vertex = format_vertex((row, col))
@@ -382,7 +391,8 @@ class Gtp_board(object):
             except ValueError:
                 raise GtpError("engine error: tried to play %s" % vertex)
             self.move_history.append(
-                History_move(colour, generated.move, generated.cookie))
+                History_move(colour, generated.move,
+                             generated.comments, generated.cookie))
         return vertex
 
     def handle_genmove(self, args):
@@ -476,6 +486,36 @@ class Gtp_board(object):
             gtp_engine.report_bad_arguments()
         self.time_settings = (main_time, canadian_time, canadian_stones)
 
+    def handle_savesgf(self, args):
+        try:
+            pathname = args[0]
+        except IndexError:
+            gtp_engine.report_bad_arguments()
+
+        sgf_game = sgf_writer.Sgf_game(self.board_size)
+        sgf_game.set('komi', self.komi)
+        sgf_game.set('application', "gomill:?")
+        sgf_game.add_date()
+        for arg in args[1:]:
+            try:
+                identifier, value = arg.split("=", 1)
+                if not identifier.isalpha():
+                    raise ValueError
+                identifier = identifier.upper()
+                value = value.replace("\\_", " ").replace("\\\\", "\\")
+            except StandardError:
+                gtp_engine.report_bad_arguments()
+            sgf_game.set_root_property(identifier, value)
+        if not self.history_base.is_empty():
+            raise GtpError(
+                "savesgf not supported for games with handicap or setup stones")
+        for move in self.move_history:
+            sgf_game.add_move(move.colour, move.coords, move.comments)
+        f = open(pathname, "w")
+        f.write(sgf_game.as_string())
+        f.close()
+
+
     def get_handlers(self):
         return {'boardsize'            : self.handle_boardsize,
                 'clear_board'          : self.handle_clear_board,
@@ -490,6 +530,7 @@ class Gtp_board(object):
                 'undo'                 : self.handle_undo,
                 'showboard'            : self.handle_showboard,
                 'loadsgf'              : self.handle_loadsgf,
+                'gomill-savesgf'       : self.handle_savesgf,
                 }
 
     def get_time_handlers(self):
