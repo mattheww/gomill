@@ -522,7 +522,7 @@ class Gtp_board(object):
         sgf_game.set('application', "gomill:?")
         sgf_game.add_date()
         if self.handicap is not None:
-            sgf_game.set('handicap', str(self.handicap))
+            sgf_game.set('handicap', self.handicap)
         for arg in args[1:]:
             try:
                 identifier, value = arg.split("=", 1)
