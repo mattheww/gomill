@@ -7,7 +7,7 @@ from gomill import gtp_boards
 def test():
     controller = gtp_controller.Gtp_controller_protocol()
     c1 = gtp_controller.Subprocess_gtp_channel(
-        "./kiai9 kiai/simple_montecarlo_player.py".split())
+        "./player -m kiai.simple_montecarlo_player".split())
     controller.add_channel("first", c1)
 
     gtp_board = gtp_boards.Gtp_board(test_gtp_board.dummy_move_generator, [9])
