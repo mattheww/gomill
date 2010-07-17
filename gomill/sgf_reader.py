@@ -291,6 +291,26 @@ class Sgf_game_tree(object):
             return 0.0
         return float(komi_s)
 
+    def get_handicap(self):
+        """Return the number of handicap stones as a small integer.
+
+        Returns None if the HA property isn't present, or has (illegal) value
+        zero.
+
+        Raises ValueError if the HA property is otherwise malformed.
+
+        """
+        try:
+            handicap_s = self.get_root_prop("HA")
+        except KeyError:
+            return None
+        handicap = int(handicap_s)
+        if handicap == 0:
+            handicap = None
+        elif handicap == 1:
+            raise ValueError
+        return handicap
+
     def get_player(self, colour):
         """Return the name of the specified player."""
         return self.get_root_prop({'b' : 'PB', 'w' : 'PW'}[colour])

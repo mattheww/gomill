@@ -16,6 +16,7 @@ friendly_idents = {
     'round'        : 'RO',
     'game-comment' : 'GC',
     'root-comment' : 'C',
+    'handicap'     : 'HA',
     }
 
 def escape(s):

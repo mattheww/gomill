@@ -175,6 +175,8 @@ class Gtp_board(object):
 
     def reset(self):
         self.board = boards.Board(self.board_size)
+        # None, or a small integer
+        self.handicap = None
         self.simple_ko_point = None
         # Player that any simple_ko_point is banned for
         self.simple_ko_player = None
@@ -269,6 +271,7 @@ class Gtp_board(object):
         for row, col in points:
             self.board.play(row, col, 'b')
         self.simple_ko_point = None
+        self.handicap = number_of_stones
         self.set_history_base(self.board.copy())
 
     def handle_set_free_handicap(self, args):
@@ -281,6 +284,7 @@ class Gtp_board(object):
             except ValueError:
                 raise GtpError("engine error: %s is occupied" % vertex_s)
         self.set_history_base(self.board.copy())
+        self.handicap = len(args)
         self.simple_ko_point = None
 
     def handle_place_free_handicap(self, args):
@@ -326,6 +330,7 @@ class Gtp_board(object):
                 raise GtpError("engine error: tried to play %s" % vertex)
             moves.append(generated.move)
         self.simple_ko_point = None
+        self.handicap = number_of_stones
         self.set_history_base(self.board.copy())
         return " ".join(format_vertex((row, col))
                         for (row, col) in moves)
@@ -440,6 +445,11 @@ class Gtp_board(object):
         except ValueError:
             raise GtpError("bad komi")
         try:
+            handicap = sgf.get_handicap()
+        except ValueError:
+            # Handicap isn't important, so soldier on
+            handicap = None
+        try:
             sgf_board, raw_sgf_moves = sgf.get_setup_and_moves()
         except ValueError, e:
             raise GtpError(str(e))
@@ -464,6 +474,7 @@ class Gtp_board(object):
                 raise GtpError("bad move in file and corrupt history")
             raise GtpError("bad move in file")
         self.set_komi(komi)
+        self.handicap = handicap
 
     def handle_time_left(self, args):
         # colour time stones
@@ -502,6 +513,8 @@ class Gtp_board(object):
         sgf_game.set('komi', self.komi)
         sgf_game.set('application', "gomill:?")
         sgf_game.add_date()
+        if self.handicap is not None:
+            sgf_game.set('handicap', str(self.handicap))
         for arg in args[1:]:
             try:
                 identifier, value = arg.split("=", 1)
