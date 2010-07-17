@@ -513,8 +513,7 @@ class Gtp_board(object):
                 gtp_engine.report_bad_arguments()
             sgf_game.set_root_property(identifier, value)
         if not self.history_base.is_empty():
-            raise GtpError(
-                "savesgf not supported for games with handicap or setup stones")
+            sgf_game.add_setup_stones(self.history_base.list_occupied_points())
         for move in self.move_history:
             sgf_game.add_move(move.colour, move.coords, move.comments)
         f = open(pathname, "w")
