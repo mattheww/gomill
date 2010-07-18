@@ -59,8 +59,6 @@ class Gtp_proxy(object):
     def _make_engine(self):
         self.engine = gtp_engine.Gtp_engine_protocol()
         self.engine.add_commands(self._make_back_end_handlers())
-        # FIXME: This overrides proxying for the protocol commands, but better
-        # not to make proxy handlers in the first place.
         self.engine.add_protocol_commands()
         self.engine.add_commands({
             'quit'               : self.handle_quit,
