@@ -172,7 +172,7 @@ class Gtp_proxy(object):
             raise BackEndError("error communicating with back end:\n%s" % e)
 
     def handle_quit(self, args):
-        result = self.pass_command("quit", [])
+        result = self.handle_command("quit", [])
         raise GtpQuit(result)
 
     def handle_passthrough(self, args):
@@ -180,4 +180,4 @@ class Gtp_proxy(object):
             command = args[0]
         except IndexError:
             gtp_engine.report_bad_arguments()
-        return self.pass_command(command, args[1:])
+        return self.handle_command(command, args[1:])
