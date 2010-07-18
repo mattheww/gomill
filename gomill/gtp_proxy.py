@@ -1,7 +1,7 @@
 """Support for implementing proxy GTP engines.
 
 That is, engines which implement some or all of their commands by sending them
-on to another engine.
+on to another engine (the _back end_).
 
 """
 
@@ -17,7 +17,7 @@ class Gtp_proxy(object):
     Instantiate with
       channel_id -- string
       controller -- Gtp_controller_protocol
-    These define the underlying engine.
+    These define the back end.
 
     Public attributes:
       channel_id -- string
@@ -25,9 +25,9 @@ class Gtp_proxy(object):
       engine     -- Gtp_engine_protocol
 
     The 'engine' attribute is the proxy engine. Initially it supports all the
-    commands reported by 'list_commands' on the underlying engine. You can add
-    commands to it in the usual way; new commands will override any commands
-    with the same names in the underlying engine.
+    commands reported by the back end's 'list_commands'. You can add commands to
+    it in the usual way; new commands will override any commands with the same
+    names in the back end.
 
     FIXME: Explain proxy.add_command.
 
@@ -58,9 +58,9 @@ class Gtp_proxy(object):
         self.channel_id = channel_id
         self.controller = controller
         # FIXME: Be more lenient in what we accept? Ignore blank lines?
-        client_commands = controller.do_command(channel_id, 'list_commands')\
-                          .split("\n")
-        self.client_commands = client_commands
+        back_end_commands = controller.do_command(channel_id, 'list_commands')\
+                            .split("\n")
+        self.back_end_commands = back_end_commands
 
     def _make_engine(self):
         """FIXME
@@ -68,15 +68,39 @@ class Gtp_proxy(object):
         returns a Gtp_engine_protocol
 
         """
-        assert self.client_commands is not None
+        assert self.back_end_commands is not None
         self.engine = gtp_engine.Gtp_engine_protocol()
-        self.engine.add_commands(self.get_handlers())
+        self.engine.add_commands(self._make_back_end_handlers())
         # FIXME: This overrides proxying for the protocol commands, but better
         # not to make proxy handlers in the first place.
         self.engine.add_protocol_commands()
 
-    def pass_command(self, command, args):
+    def _make_back_end_handlers(self):
         """FIXME"""
+        result = {}
+        for command in self.back_end_commands:
+            def handler(args, _command=command):
+                return self.pass_command(_command, args)
+            result[command] = handler
+        return result
+
+    def pass_command(self, command, args):
+        """Pass a command to the back end, and return its response.
+
+        This method is intended to be used directly in a command handler. In
+        particular, error responses from the back end are reported by raising
+        GtpError.
+
+        The response (or error response) is unchanged, except for whitespace
+        normalisation.
+
+        This passes the command to the back end even if it isn't included in the
+        back end's list_commands output; the back end will presumably return an
+        'unknown command' error.
+
+        FIXME: Doc protocol error and transport error?
+
+        """
         try:
             return self.controller.do_command(self.channel_id, command, *args)
         except GtpEngineError, e:
@@ -86,14 +110,14 @@ class Gtp_proxy(object):
         except GtpTransportError, e:
             raise GtpFatalError("transport error, exiting:\n%s" % e)
 
-    def get_handlers(self):
-        """FIXME"""
-        result = {}
-        for command in self.client_commands:
-            def handler(args, _command=command):
-                return self.pass_command(_command, args)
-            result[command] = handler
-        return result
+    def back_end_has_command(self, command):
+        """Say whether the back end supports the specified command.
+
+        This uses known_command, not list_commands.
+
+        """
+        # FIXME: What exceptions can this raise?
+        return self.controller.known_command(self.channel_id, command)
 
     def add_command(self, command, handler):
         """Register a proxying handler function for a command.
