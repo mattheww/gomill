@@ -10,6 +10,7 @@ from optparse import OptionParser
 
 from gomill import gtp_engine
 from gomill import gtp_proxy
+from gomill.gtp_engine import GtpError
 from gomill.gtp_controller import GtpEngineError
 
 class Kgs_proxy(object):
@@ -130,7 +131,11 @@ class Kgs_proxy(object):
             if self.my_colour is not None and self.my_name is not None:
                 args.append("P%s=%s" % (self.my_colour.upper(),
                                         escape_for_savesgf(self.my_name)))
-            self.proxy.handle_command("gomill-savesgf", args)
+            try:
+                self.proxy.handle_command("gomill-savesgf", args)
+            except GtpError, e:
+                # Hide error from kgsGtp, though I don't suppose it would care
+                self.log("error: %s" % e)
 
 
 def main():
