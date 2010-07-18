@@ -52,6 +52,9 @@ class Gtp_proxy(object):
     If you add handlers which are expected to cause the back end to exit
     (eg, by sending it 'quit'), you should have them raise GtpQuit.
 
+    If you want to hide one of the underlying commands, or don't want one of the
+    additional commands, just use engine.remove_command().
+
     """
     def __init__(self):
         self.controller = None

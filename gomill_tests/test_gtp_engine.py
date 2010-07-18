@@ -39,6 +39,8 @@ def test():
     engine.add_command('internal_error', handle_internal_error)
     engine.add_command('play', handle_play)
     engine.add_command('komi', handle_komi)
+    engine.add_command('komi2', handle_komi)
+    engine.remove_command('komi2')
     gtp_engine.run_interactive_gtp_session(engine)
     #gtp_engine.run_gtp_session(engine, sys.stdin, sys.stdout)
 

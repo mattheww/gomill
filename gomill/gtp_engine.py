@@ -247,6 +247,17 @@ class Gtp_engine_protocol(object):
         """
         self.handlers.update(handlers)
 
+    def remove_command(self, command):
+        """Remove a registered handler function.
+
+        Silently does nothing if no handler was registered for the command.
+
+        """
+        try:
+            del self.handlers[command]
+        except KeyError:
+            pass
+
     def list_commands(self):
         """Return a list of known commands."""
         return sorted(self.handlers)
