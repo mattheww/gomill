@@ -451,6 +451,9 @@ def run_interactive_gtp_session(engine):
 
     If stdin isn't a terminal, this is equivalent to run_gtp_session.
 
+    Note that this will propagate KeyboardInterrupt if the user presses ^C;
+    normally you'll want to handle this to avoid an ugly traceback.
+
     """
     # readline doesn't do anything if stdin isn't a tty, but it's simplest to
     # just not import it in that case.
