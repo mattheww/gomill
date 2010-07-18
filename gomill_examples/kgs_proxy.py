@@ -68,7 +68,10 @@ class Kgs_proxy(object):
             self.initialise_name()
         except gtp_proxy.BackEndError, e:
             sys.exit("kgs_proxy: %s" % e)
-        self.proxy.run()
+        try:
+            self.proxy.run()
+        except KeyboardInterrupt:
+            sys.exit(1)
 
     def initialise_name(self):
         def shorten_version(name, version):

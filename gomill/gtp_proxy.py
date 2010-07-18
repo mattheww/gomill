@@ -41,7 +41,10 @@ class Gtp_proxy(object):
       proxy = gtp_proxy.Gtp_proxy()
       proxy.set_back_end_subprocess([<command>, <arg>, ...])
       proxy.engine.add_command(...)
-      proxy.run()
+      try:
+          proxy.run()
+      except KeyboardInterrupt:
+          sys.exit(1)
 
     The default 'quit' handler passes 'quit' on the back end and raises
     GtpQuit.
