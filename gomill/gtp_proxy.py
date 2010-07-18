@@ -63,6 +63,7 @@ class Gtp_proxy(object):
         # not to make proxy handlers in the first place.
         self.engine.add_protocol_commands()
         self.engine.add_commands({
+            'quit'               : self.handle_quit,
             'gomill-passthrough' : self.handle_passthrough,
             })
 
@@ -161,6 +162,10 @@ class Gtp_proxy(object):
                 "protocol error communicating with back end:\n%s" % e)
         except GtpTransportError, e:
             raise BackEndError("error communicating with back end:\n%s" % e)
+
+    def handle_quit(self, args):
+        self.pass_command("quit", [])
+        raise GtpQuit
 
     def handle_passthrough(self, args):
         try:
