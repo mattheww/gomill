@@ -30,8 +30,8 @@ def test_communication_failure():
 
 def test_general():
     def handle_mygenmove(args):
-        return (proxy.pass_command('genmove', args) + "\n" +
-                proxy.pass_command('gomill-explain_last_move', []))
+        return (proxy.handle_command('genmove', args) + "\n" +
+                proxy.handle_command('gomill-explain_last_move', []))
 
     proxy = gtp_proxy.Gtp_proxy()
     # May raise BackEndError
@@ -61,8 +61,8 @@ def test_general():
 
 def test_interatctive():
     def handle_mygenmove(args):
-        return (proxy.pass_command('genmove', args) + "\n" +
-                proxy.pass_command('gomill-explain_last_move', []))
+        return (proxy.handle_command('genmove', args) + "\n" +
+                proxy.handle_command('gomill-explain_last_move', []))
 
     proxy = gtp_proxy.Gtp_proxy()
     # May raise BackEndError

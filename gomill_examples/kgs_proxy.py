@@ -14,7 +14,14 @@ from gomill import gtp_proxy
 from gomill.gtp_controller import GtpEngineError
 
 class Kgs_proxy(object):
-    """GTP proxy for use with kgsGtp."""
+    """GTP proxy for use with kgsGtp.
+
+    Instantiate with command line arguments.
+
+    Calls sys.exit on fatal errors.
+
+    """
+
     def __init__(self, command_line_args):
         parser = OptionParser(usage="%prog [options] <back end command> [args]")
         parser.disable_interspersed_args()
@@ -37,23 +44,26 @@ class Kgs_proxy(object):
         self.sgf_dir = opts.sgf_dir
         if self.sgf_dir:
             self.check_sgf_dir()
+            self.do_savesgf = True
+        else:
+            self.do_savesgf = False
 
         self.proxy = gtp_proxy.Gtp_proxy()
         try:
             self.proxy.set_back_end_subprocess(args)
+            self.proxy.engine.add_commands(
+                {'genmove' :       self.handle_genmove,
+                 'kgs-game_over' : self.handle_game_over,
+                 })
+            if (self.do_savesgf and
+                not self.proxy.back_end_has_command("gomill-savesgf")):
+                sys.exit("kgs_proxy: back end doesn't support gomill-savesgf")
+
+            # Colour that we appear to be playing
+            self.my_colour = None
+            self.initialise_name()
         except gtp_proxy.BackEndError, e:
             sys.exit("kgs_proxy: %s" % e)
-        self.proxy.engine.add_command('kgs-game_over', self.handle_game_over)
-        self.proxy.engine.add_command('genmove', self.handle_genmove)
-
-        self.do_savesgf = (self.sgf_dir is not None)
-        if (self.do_savesgf and
-            not self.proxy.back_end_has_command("gomill-savesgf")):
-            sys.exit("kgs_proxy: back end doesn't support gomill-savesgf")
-
-        # Colour that we appear to be playing
-        self.my_colour = None
-        self.initialise_name()
 
     def log(self, s):
         print >>sys.stderr, s
@@ -78,8 +88,7 @@ class Kgs_proxy(object):
             version = self.proxy.pass_command("version", [])
             version = shorten_version(self.my_name, version)
             self.my_name += ":" + version
-        # FIXME: What about BackEndError?
-        except GtpError:
+        except GtpEngineError:
             pass
 
     def handle_genmove(self, args):
@@ -116,7 +125,7 @@ class Kgs_proxy(object):
             if self.my_colour is not None and self.my_name is not None:
                 args.append("P%s=%s" % (self.my_colour.upper(),
                                         escape_for_savesgf(self.my_name)))
-            self.proxy.pass_command("gomill-savesgf", args)
+            self.proxy.handle_command("gomill-savesgf", args)
 
 
 def main():

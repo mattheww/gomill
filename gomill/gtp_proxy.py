@@ -52,7 +52,7 @@ class Gtp_proxy(object):
         result = {}
         for command in self.back_end_commands:
             def handler(args, _command=command):
-                return self.pass_command(_command, args)
+                return self.handle_command(_command, args)
             result[command] = handler
         return result
 
@@ -114,10 +114,6 @@ class Gtp_proxy(object):
     def pass_command(self, command, args):
         """Pass a command to the back end, and return its response.
 
-        This method is intended to be used directly in a command handler. In
-        particular, error responses from the back end are reported by raising
-        GtpError.
-
         The response (or error response) is unchanged, except for whitespace
         normalisation.
 
@@ -125,32 +121,46 @@ class Gtp_proxy(object):
         back end's list_commands output; the back end will presumably return an
         'unknown command' error.
 
-        Raises BackEndError if there is a protocol or transport error
-        communicating with the back end.
+        Error responses from the back end are reported by raising
+        GtpEngineError.
 
-        FIXME: But if you do that in a handler, it'll just get converted to
-        GtpError anyway. Is that what we want?
+        Transport or protocol errors are reported by raising BackEndError.
 
         """
         if not self._back_end_is_set():
             raise StandardError("back end isn't set")
         try:
             return self.controller.do_command(self.channel_id, command, *args)
-        except GtpEngineError, e:
-            raise GtpError(str(e))
         except GtpProtocolError, e:
             raise BackEndError(
                 "protocol error communicating with back end:\n%s" % e)
         except GtpTransportError, e:
             raise BackEndError("error communicating with back end:\n%s" % e)
 
+    def handle_command(self, command, args):
+        """Run a command on the back end, from inside a GTP handler.
+
+        This is a variant of pass_command, intended to be used directly in a
+        command handler.
+
+        Error responses from the back end are reported by raising GtpError.
+
+        Transport or protocol errors are reported by raising GtpFatalError.
+
+        """
+        try:
+            return self.pass_command(command, args)
+        except GtpEngineError, e:
+            raise GtpError(str(e))
+        except BackEndError, e:
+            raise GtpFatalError(str(e))
+
     def back_end_has_command(self, command):
         """Say whether the back end supports the specified command.
 
         This uses known_command, not list_commands. It caches the results.
 
-        Raises BackEndError if there is a protocol or transport error
-        communicating with the back end.
+        Transport or protocol errors are reported by raising BackEndError.
 
         """
         if not self._back_end_is_set():
