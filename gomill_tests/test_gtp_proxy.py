@@ -1,21 +1,42 @@
 from gomill import gtp_engine
 from gomill import gtp_controller
 from gomill import gtp_proxy
+from gomill.gtp_proxy import BackEndError
 
 def handle_mytest(args):
     return "mytest: %s" % ",".join(args)
 
-def main():
+def test_communication_failure():
+    proxy = gtp_proxy.Gtp_proxy()
+    proxy.set_back_end_subprocess(
+        "./player -m kiai.simple_montecarlo_player".split())
+
+    assert proxy.pass_command("quit", []) == ""
+
+    print "==="
+    try:
+        print proxy.pass_command("showboard", [])
+    except BackEndError, e:
+        print e
+    else:
+        raise AssertionError("no error talking to closed subprocess")
+
+    is_error, response, end_session = proxy.engine.run_command("showboard", [])
+    assert is_error
+    print "==="
+    print response
+    print "==="
+
+
+def test_general():
     def handle_mygenmove(args):
         return (proxy.pass_command('genmove', args) + "\n" +
                 proxy.pass_command('gomill-explain_last_move', []))
 
-    channel = gtp_controller.Subprocess_gtp_channel(
+    proxy = gtp_proxy.Gtp_proxy()
+    # May raise BackEndError
+    proxy.set_back_end_subprocess(
         "./player -m kiai.simple_montecarlo_player".split())
-    controller = gtp_controller.Gtp_controller_protocol()
-    controller.add_channel("sub", channel)
-
-    proxy = gtp_proxy.Gtp_proxy('sub', controller)
     proxy.engine.add_command('mygenmove', handle_mygenmove)
     proxy.engine.add_command("mytest", handle_mytest)
 
@@ -34,9 +55,25 @@ def main():
     assert not end_session
     print response
 
+def test_interatctive():
+    def handle_mygenmove(args):
+        return (proxy.pass_command('genmove', args) + "\n" +
+                proxy.pass_command('gomill-explain_last_move', []))
+
+    proxy = gtp_proxy.Gtp_proxy()
+    # May raise BackEndError
+    proxy.set_back_end_subprocess(
+        "./player -m kiai.simple_montecarlo_player".split())
+    proxy.engine.add_command('mygenmove', handle_mygenmove)
+    proxy.engine.add_command("mytest", handle_mytest)
     gtp_engine.run_interactive_gtp_session(proxy.engine)
 
 
+def test():
+    test_communication_failure()
+    test_general()
+    #test_interactive()
+
 if __name__ == "__main__":
-    main()
+    test()
 

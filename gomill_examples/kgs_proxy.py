@@ -11,8 +11,7 @@ from optparse import OptionParser
 from gomill import gtp_engine
 from gomill import gtp_controller
 from gomill import gtp_proxy
-from gomill.gtp_controller import (
-    GtpProtocolError, GtpTransportError, GtpEngineError)
+from gomill.gtp_controller import GtpEngineError
 
 class Kgs_proxy(object):
     """GTP proxy for use with kgsGtp."""
@@ -38,14 +37,12 @@ class Kgs_proxy(object):
         self.sgf_dir = opts.sgf_dir
         if self.sgf_dir:
             self.check_sgf_dir()
+
+        self.proxy = gtp_proxy.Gtp_proxy()
         try:
-            channel = gtp_controller.Subprocess_gtp_channel(args)
-        except GtpTransportError, e:
-            # Probably means exec failure
-            sys.exit("kgs_proxy: can't launch back end command\n%s" % e)
-        controller = gtp_controller.Gtp_controller_protocol()
-        controller.add_channel("sub", channel)
-        self.proxy = gtp_proxy.Gtp_proxy('sub', controller)
+            self.proxy.set_back_end_subprocess(args)
+        except gtp_proxy.BackEndError, e:
+            sys.exit("kgs_proxy: %s" % e)
         self.proxy.engine.add_command('kgs-game_over', self.handle_game_over)
         self.proxy.engine.add_command('genmove', self.handle_genmove)
         self.do_savesgf = (self.sgf_dir is not None and
@@ -77,7 +74,8 @@ class Kgs_proxy(object):
             version = self.proxy.pass_command("version", [])
             version = shorten_version(self.my_name, version)
             self.my_name += ":" + version
-        except GtpEngineError:
+        # FIXME: What about BackEndError?
+        except GtpError:
             pass
 
     def handle_genmove(self, args):

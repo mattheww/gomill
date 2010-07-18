@@ -11,18 +11,17 @@ from gomill.gtp_controller import (
     GtpProtocolError, GtpTransportError, GtpEngineError)
 from gomill.gtp_engine import GtpError, GtpQuit, GtpFatalError
 
+
+class BackEndError(StandardError):
+    """Difficulty communicating with the back end."""
+
 class Gtp_proxy(object):
     """FIXME
 
-    Instantiate with
-      channel_id -- string
-      controller -- Gtp_controller_protocol
-    These define the back end.
-
     Public attributes:
-      channel_id -- string
-      controller -- Gtp_controller_protocol
       engine     -- Gtp_engine_protocol
+      controller -- Gtp_controller_protocol
+      channel_id -- string
 
     The 'engine' attribute is the proxy engine. Initially it supports all the
     commands reported by the back end's 'list_commands'. You can add commands to
@@ -30,39 +29,62 @@ class Gtp_proxy(object):
     names in the back end.
 
     Sample use:
-      channel = gtp_controller.Subprocess_gtp_channel([<command>])
-      controller = gtp_controller.Gtp_controller_protocol()
-      controller.add_channel('sub', channel)
-      proxy = gtp_proxy.Gtp_proxy('sub', controller)
+      proxy = gtp_proxy.Gtp_proxy()
+      proxy.set_back_end_subprocss([<command>])
       proxy.engine.add_command(...)
       gtp_engine.run_interactive_gtp_session(proxy.engine)
 
     """
-    def __init__(self, channel_id, controller):
-        self._set_controller(channel_id, controller)
-        self._make_engine()
+    def __init__(self):
+        self.controller = None
+        self.channel_id = None
+        self.engine = None
 
-    def _set_controller(self, channel_id, controller):
-        """FIXME
+    def _back_end_is_set(self):
+        return self.controller is not None
+
+    def set_back_end_controller(self, channel_id, controller):
+        """Specify the back end using a Gtp_controller_protocol.
 
         channel_id -- string
         controller -- Gtp_controller_protocol
 
-        This creates the engine, and sets the controller, channel_id, and engine
-        attributes.
+        Raises BackEndError if it can't communicate with the back end.
 
         """
-        self.channel_id = channel_id
-        self.controller = controller
+        if self._back_end_is_set():
+            raise StandardError("back end already set")
         try:
             response = controller.do_command(channel_id, 'list_commands')
         except GtpProtocolError, e:
-            # FIXME: Have a GtpProxyError.
-            raise StandardError("back end command isn't speaking GTP\n%s" % e)
+            raise BackEndError("back end command isn't speaking GTP\n%s" % e)
+        except GtpTransportError, e:
+            raise BackEndError(
+                "can't communicate with back end command:\n%s" % e)
+        # FIXME: What if list_commands isn't supported?
+        self.channel_id = channel_id
+        self.controller = controller
         # FIXME: Be more lenient in what we accept? Ignore blank lines?
-        back_end_commands = response.split("\n")
+        self.back_end_commands = response.split("\n")
+        self._make_engine()
 
-        self.back_end_commands = back_end_commands
+    def set_back_end_subprocess(self, command):
+        """Specify the back end as a subprocess.
+
+        command -- list of strings (as for subprocess.Popen)
+
+        Raises BackEndError if it can't communicate with the back end.
+
+        """
+        try:
+            channel = gtp_controller.Subprocess_gtp_channel(command)
+        except GtpTransportError, e:
+            # Probably means exec failure
+            raise BackEndError("can't launch back end command\n%s" % e)
+        controller = gtp_controller.Gtp_controller_protocol()
+        controller.add_channel("back-end", channel)
+        self.set_back_end_controller('back-end', controller)
+
 
     def _make_engine(self):
         """FIXME
@@ -70,7 +92,6 @@ class Gtp_proxy(object):
         returns a Gtp_engine_protocol
 
         """
-        assert self.back_end_commands is not None
         self.engine = gtp_engine.Gtp_engine_protocol()
         self.engine.add_commands(self._make_back_end_handlers())
         # FIXME: This overrides proxying for the protocol commands, but better
@@ -100,17 +121,24 @@ class Gtp_proxy(object):
         back end's list_commands output; the back end will presumably return an
         'unknown command' error.
 
-        FIXME: Doc protocol error and transport error?
+        Raises BackEndError if there is a protocol or transport error
+        communicating with the back end.
+
+        FIXME: But if you do that in a handler, it'll just get converted to
+        GtpError anyway. Is that what we want?
 
         """
+        if not self._back_end_is_set():
+            raise StandardError("back end isn't set")
         try:
             return self.controller.do_command(self.channel_id, command, *args)
         except GtpEngineError, e:
             raise GtpError(str(e))
         except GtpProtocolError, e:
-            raise GtpError("protocol error:\n%s" % e)
+            raise BackEndError(
+                "protocol error communicating with back end:\n%s" % e)
         except GtpTransportError, e:
-            raise GtpFatalError("transport error, exiting:\n%s" % e)
+            raise BackEndError("error communicating with back end:\n%s" % e)
 
     def back_end_has_command(self, command):
         """Say whether the back end supports the specified command.
@@ -118,6 +146,8 @@ class Gtp_proxy(object):
         This uses known_command, not list_commands.
 
         """
+        if not self._back_end_is_set():
+            raise StandardError("back end isn't set")
         # FIXME: What exceptions can this raise?
         return self.controller.known_command(self.channel_id, command)
 
