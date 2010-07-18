@@ -94,7 +94,10 @@ class Kgs_proxy(object):
             pass
 
     def handle_genmove(self, args):
-        self.my_colour = gtp_engine.interpret_colour(args[0])
+        try:
+            self.my_colour = gtp_engine.interpret_colour(args[0])
+        except IndexError:
+            gtp_engine.report_bad_arguments()
         return self.proxy.pass_command("genmove", args)
 
     def check_sgf_dir(self):
