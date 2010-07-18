@@ -29,14 +29,11 @@ class Gtp_proxy(object):
     it in the usual way; new commands will override any commands with the same
     names in the back end.
 
-    FIXME: Explain proxy.add_command.
-
     Sample use:
       channel = gtp_controller.Subprocess_gtp_channel([<command>])
       controller = gtp_controller.Gtp_controller_protocol()
       controller.add_channel('sub', channel)
       proxy = gtp_proxy.Gtp_proxy('sub', controller)
-      proxy.add_command(...)
       proxy.engine.add_command(...)
       gtp_engine.run_interactive_gtp_session(proxy.engine)
 
@@ -118,23 +115,4 @@ class Gtp_proxy(object):
         """
         # FIXME: What exceptions can this raise?
         return self.controller.known_command(self.channel_id, command)
-
-    def add_command(self, command, handler):
-        """Register a proxying handler function for a command.
-
-        FIXME: Describe handler requirements: extra argument
-
-        """
-        def _handler(args):
-            return handler(self, args)
-        self.engine.add_command(command, _handler)
-
-    def add_commands(self, handlers):
-        """Register multiple proxying handler functions.
-
-        handlers -- dict command name -> handler
-
-        """
-        for command, handler in handlers.iteritems():
-            self.add_command(command, handler)
 
