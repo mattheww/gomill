@@ -28,16 +28,20 @@ class Gtp_proxy(object):
     it in the usual way; new commands will override any commands with the same
     names in the back end.
 
+    The proxy engine also supports the following commands:
+      gomill-passthrough <command> [args] ...
+        Run a command on the back end (use this to get at overridden commands,
+        or commands which don't appear in list_commands)
+
+    If the proxy subprocess exits, this will be reported (as a transport error)
+    when the next command is sent. If you're using handle_command, it will
+    apropriately turn this into a fatal error.
+
     Sample use:
       proxy = gtp_proxy.Gtp_proxy()
       proxy.set_back_end_subprocss([<command>])
       proxy.engine.add_command(...)
       gtp_engine.run_interactive_gtp_session(proxy.engine)
-
-    The following commands are added:
-      gomill-passthrough <command> [args] ...
-        Run a command on the back end (use this to get at overridden commands,
-        or commands which don't appear in list_commands)
 
     """
     def __init__(self):
