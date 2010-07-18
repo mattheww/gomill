@@ -16,7 +16,7 @@ class BackEndError(StandardError):
     """Difficulty communicating with the back end."""
 
 class Gtp_proxy(object):
-    """FIXME
+    """Manager for a GTP proxy engine.
 
     Public attributes:
       engine     -- Gtp_engine_protocol
@@ -138,11 +138,19 @@ class Gtp_proxy(object):
     def back_end_has_command(self, command):
         """Say whether the back end supports the specified command.
 
-        This uses known_command, not list_commands.
+        This uses known_command, not list_commands. It caches the results.
+
+        Raises BackEndError if there is a protocol or transport error
+        communicating with the back end.
 
         """
         if not self._back_end_is_set():
             raise StandardError("back end isn't set")
-        # FIXME: What exceptions can this raise?
-        return self.controller.known_command(self.channel_id, command)
+        try:
+            return self.controller.known_command(self.channel_id, command)
+        except GtpProtocolError, e:
+            raise BackEndError(
+                "protocol error communicating with back end:\n%s" % e)
+        except GtpTransportError, e:
+            raise BackEndError("error communicating with back end:\n%s" % e)
 
