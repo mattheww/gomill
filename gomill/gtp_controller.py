@@ -330,6 +330,8 @@ class Gtp_controller_protocol(object):
 
         If known_command fails, returns False.
 
+        May propagate GtpProtocolError or GtpTransportError (see do_command).
+
         """
         result = self.known_commands.get((channel_id, command))
         if result is not None:
