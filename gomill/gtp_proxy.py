@@ -43,6 +43,21 @@ class Gtp_proxy(object):
     def _back_end_is_set(self):
         return self.controller is not None
 
+    def _make_engine(self):
+        self.engine = gtp_engine.Gtp_engine_protocol()
+        self.engine.add_commands(self._make_back_end_handlers())
+        # FIXME: This overrides proxying for the protocol commands, but better
+        # not to make proxy handlers in the first place.
+        self.engine.add_protocol_commands()
+
+    def _make_back_end_handlers(self):
+        result = {}
+        for command in self.back_end_commands:
+            def handler(args, _command=command):
+                return self.pass_command(_command, args)
+            result[command] = handler
+        return result
+
     def set_back_end_controller(self, channel_id, controller):
         """Specify the back end using a Gtp_controller_protocol.
 
@@ -56,16 +71,18 @@ class Gtp_proxy(object):
             raise StandardError("back end already set")
         try:
             response = controller.do_command(channel_id, 'list_commands')
+        except GtpEngineError, e:
+            raise BackEndError("list_commands failed on back end\n%s" % e)
         except GtpProtocolError, e:
             raise BackEndError("back end command isn't speaking GTP\n%s" % e)
         except GtpTransportError, e:
             raise BackEndError(
                 "can't communicate with back end command:\n%s" % e)
-        # FIXME: What if list_commands isn't supported?
         self.channel_id = channel_id
         self.controller = controller
-        # FIXME: Be more lenient in what we accept? Ignore blank lines?
-        self.back_end_commands = response.split("\n")
+        self.back_end_commands = [s for s in
+                                  (t.strip() for t in response.split("\n"))
+                                  if s]
         self._make_engine()
 
     def set_back_end_subprocess(self, command):
@@ -84,28 +101,6 @@ class Gtp_proxy(object):
         controller = gtp_controller.Gtp_controller_protocol()
         controller.add_channel("back-end", channel)
         self.set_back_end_controller('back-end', controller)
-
-
-    def _make_engine(self):
-        """FIXME
-
-        returns a Gtp_engine_protocol
-
-        """
-        self.engine = gtp_engine.Gtp_engine_protocol()
-        self.engine.add_commands(self._make_back_end_handlers())
-        # FIXME: This overrides proxying for the protocol commands, but better
-        # not to make proxy handlers in the first place.
-        self.engine.add_protocol_commands()
-
-    def _make_back_end_handlers(self):
-        """FIXME"""
-        result = {}
-        for command in self.back_end_commands:
-            def handler(args, _command=command):
-                return self.pass_command(_command, args)
-            result[command] = handler
-        return result
 
     def pass_command(self, command, args):
         """Pass a command to the back end, and return its response.
