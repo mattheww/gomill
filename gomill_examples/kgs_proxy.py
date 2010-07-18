@@ -6,28 +6,50 @@ supports gomill-savesgf.
 """
 import os
 import sys
+from optparse import OptionParser
 
 from gomill import gtp_engine
 from gomill import gtp_controller
 from gomill import gtp_proxy
-from gomill.gtp_controller import GtpEngineError
-
-# FIXME: Get from command line
-SGF_DIR = "/home/mjw/gotourn/kgs/games"
-FILENAME_TEMPLATE = "%04d.sgf"
+from gomill.gtp_controller import (
+    GtpProtocolError, GtpTransportError, GtpEngineError)
 
 class Kgs_proxy(object):
     """GTP proxy for use with kgsGtp."""
-    def __init__(self, command_line):
-        self.sgf_dir = SGF_DIR
-        self.check_sgf_dir()
-        channel = gtp_controller.Subprocess_gtp_channel(command_line)
+    def __init__(self, command_line_args):
+        parser = OptionParser(usage="%prog [options] <back end command> [args]")
+        parser.disable_interspersed_args()
+        parser.add_option("--sgf-dir", metavar="PATHNAME")
+        parser.add_option("--filename-template", metavar="TEMPLATE",
+                          help="eg '%03d.sgf'")
+        opts, args = parser.parse_args(command_line_args)
+
+        if not args:
+            parser.error("must specify a command")
+
+        self.filename_template = "%04d.sgf"
+        try:
+            opts.filename_template % 3
+        except StandardError:
+            pass
+        else:
+            self.filename_template = opts.filename_template
+
+        self.sgf_dir = opts.sgf_dir
+        if self.sgf_dir:
+            self.check_sgf_dir()
+        try:
+            channel = gtp_controller.Subprocess_gtp_channel(args)
+        except GtpTransportError, e:
+            # Probably means exec failure
+            sys.exit("kgs_proxy: can't launch back end command\n%s" % e)
         controller = gtp_controller.Gtp_controller_protocol()
         controller.add_channel("sub", channel)
         self.proxy = gtp_proxy.Gtp_proxy('sub', controller)
         self.proxy.engine.add_command('kgs-game_over', self.handle_game_over)
         self.proxy.engine.add_command('genmove', self.handle_genmove)
-        self.do_savesgf = self.proxy.back_end_has_command("gomill-savesgf")
+        self.do_savesgf = (self.sgf_dir is not None and
+                           self.proxy.back_end_has_command("gomill-savesgf"))
         # Colour that we appear to be playing
         self.my_colour = None
         self.initialise_name()
@@ -70,7 +92,7 @@ class Kgs_proxy(object):
     def choose_filename(self, existing):
         existing = set(existing)
         for i in xrange(10000):
-            filename = FILENAME_TEMPLATE % i
+            filename = self.filename_template % i
             if filename not in existing:
                 return filename
         raise StandardError("too many sgf files")

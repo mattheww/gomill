@@ -54,9 +54,14 @@ class Gtp_proxy(object):
         """
         self.channel_id = channel_id
         self.controller = controller
+        try:
+            response = controller.do_command(channel_id, 'list_commands')
+        except GtpProtocolError, e:
+            # FIXME: Have a GtpProxyError.
+            raise StandardError("back end command isn't speaking GTP\n%s" % e)
         # FIXME: Be more lenient in what we accept? Ignore blank lines?
-        back_end_commands = controller.do_command(channel_id, 'list_commands')\
-                            .split("\n")
+        back_end_commands = response.split("\n")
+
         self.back_end_commands = back_end_commands
 
     def _make_engine(self):
