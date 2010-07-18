@@ -34,6 +34,11 @@ class Gtp_proxy(object):
       proxy.engine.add_command(...)
       gtp_engine.run_interactive_gtp_session(proxy.engine)
 
+    The following commands are added:
+      gomill-passthrough <command> [args] ...
+        Run a command on the back end (use this to get at overridden commands,
+        or commands which don't appear in list_commands)
+
     """
     def __init__(self):
         self.controller = None
@@ -43,13 +48,6 @@ class Gtp_proxy(object):
     def _back_end_is_set(self):
         return self.controller is not None
 
-    def _make_engine(self):
-        self.engine = gtp_engine.Gtp_engine_protocol()
-        self.engine.add_commands(self._make_back_end_handlers())
-        # FIXME: This overrides proxying for the protocol commands, but better
-        # not to make proxy handlers in the first place.
-        self.engine.add_protocol_commands()
-
     def _make_back_end_handlers(self):
         result = {}
         for command in self.back_end_commands:
@@ -57,6 +55,16 @@ class Gtp_proxy(object):
                 return self.pass_command(_command, args)
             result[command] = handler
         return result
+
+    def _make_engine(self):
+        self.engine = gtp_engine.Gtp_engine_protocol()
+        self.engine.add_commands(self._make_back_end_handlers())
+        # FIXME: This overrides proxying for the protocol commands, but better
+        # not to make proxy handlers in the first place.
+        self.engine.add_protocol_commands()
+        self.engine.add_commands({
+            'gomill-passthrough' : self.handle_passthrough,
+            })
 
     def set_back_end_controller(self, channel_id, controller):
         """Specify the back end using a Gtp_controller_protocol.
@@ -154,3 +162,9 @@ class Gtp_proxy(object):
         except GtpTransportError, e:
             raise BackEndError("error communicating with back end:\n%s" % e)
 
+    def handle_passthrough(self, args):
+        try:
+            command = args[0]
+        except IndexError:
+            gtp_engine.report_bad_arguments()
+        return self.pass_command(command, args[1:])

@@ -55,6 +55,10 @@ def test_general():
     assert not end_session
     print response
 
+    assert (proxy.engine.handle_line(
+            "gomill-passthrough known_command gomill-passthrough") ==
+            ('= false\n\n', False))
+
 def test_interatctive():
     def handle_mygenmove(args):
         return (proxy.pass_command('genmove', args) + "\n" +
