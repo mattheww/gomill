@@ -262,6 +262,7 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
         # subprocess.
         try:
             self.command_pipe.close()
+            self.response_pipe.close()
             # We don't care about the exit status, but we do want to be sure it
             # isn't still running.
             pid, exit_status, rusage = os.wait4(self.subprocess.pid, 0)
