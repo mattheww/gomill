@@ -39,9 +39,15 @@ class Gtp_proxy(object):
 
     Sample use:
       proxy = gtp_proxy.Gtp_proxy()
-      proxy.set_back_end_subprocss([<command>])
+      proxy.set_back_end_subprocess([<command>, <arg>, ...])
       proxy.engine.add_command(...)
-      gtp_engine.run_interactive_gtp_session(proxy.engine)
+      proxy.run()
+
+    The default 'quit' handler passes 'quit' on the back end and raises
+    GtpQuit.
+
+    If you add handlers which are expected to cause the back end to exit
+    (eg, by sending it 'quit'), you should have them raise GtpQuit.
 
     """
     def __init__(self):
@@ -126,6 +132,22 @@ class Gtp_proxy(object):
             self.controller.close_channel(self.channel_id)
         except GtpTransportError:
             raise BackEndError("error closing channel to back end:\n%s" % e)
+
+    def run(self):
+        """Run a GTP session on stdin and stdout, using the proxy engine.
+
+        This is provided for convenience; it's also ok to use the proxy engine
+        directly.
+
+        Returns either when EOF is seen on stdin, or when a handler (such as the
+        default 'quit' handler) raises GtpQuit. It doesn't wait for the back end
+        to exit.
+
+        Closes the channel to the back end before it returns.
+
+        """
+        gtp_engine.run_interactive_gtp_session(self.engine)
+        self.close()
 
     def pass_command(self, command, args):
         """Pass a command to the back end, and return its response.

@@ -9,7 +9,6 @@ import sys
 from optparse import OptionParser
 
 from gomill import gtp_engine
-from gomill import gtp_controller
 from gomill import gtp_proxy
 from gomill.gtp_controller import GtpEngineError
 
@@ -32,6 +31,7 @@ class Kgs_proxy(object):
 
         if not args:
             parser.error("must specify a command")
+        self.subprocess_command = args
 
         self.filename_template = "%04d.sgf"
         try:
@@ -48,9 +48,13 @@ class Kgs_proxy(object):
         else:
             self.do_savesgf = False
 
+    def log(self, s):
+        print >>sys.stderr, s
+
+    def run(self):
         self.proxy = gtp_proxy.Gtp_proxy()
         try:
-            self.proxy.set_back_end_subprocess(args)
+            self.proxy.set_back_end_subprocess(self.subprocess_command)
             self.proxy.engine.add_commands(
                 {'genmove' :       self.handle_genmove,
                  'kgs-game_over' : self.handle_game_over,
@@ -64,12 +68,7 @@ class Kgs_proxy(object):
             self.initialise_name()
         except gtp_proxy.BackEndError, e:
             sys.exit("kgs_proxy: %s" % e)
-
-    def log(self, s):
-        print >>sys.stderr, s
-
-    def run(self):
-        gtp_engine.run_interactive_gtp_session(self.proxy.engine)
+        self.proxy.run()
 
     def initialise_name(self):
         def shorten_version(name, version):
