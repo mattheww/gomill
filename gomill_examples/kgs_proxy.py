@@ -45,8 +45,12 @@ class Kgs_proxy(object):
             sys.exit("kgs_proxy: %s" % e)
         self.proxy.engine.add_command('kgs-game_over', self.handle_game_over)
         self.proxy.engine.add_command('genmove', self.handle_genmove)
-        self.do_savesgf = (self.sgf_dir is not None and
-                           self.proxy.back_end_has_command("gomill-savesgf"))
+
+        self.do_savesgf = (self.sgf_dir is not None)
+        if (self.do_savesgf and
+            not self.proxy.back_end_has_command("gomill-savesgf")):
+            sys.exit("kgs_proxy: back end doesn't support gomill-savesgf")
+
         # Colour that we appear to be playing
         self.my_colour = None
         self.initialise_name()
