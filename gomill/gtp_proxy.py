@@ -172,8 +172,8 @@ class Gtp_proxy(object):
             raise BackEndError("error communicating with back end:\n%s" % e)
 
     def handle_quit(self, args):
-        self.pass_command("quit", [])
-        raise GtpQuit
+        result = self.pass_command("quit", [])
+        raise GtpQuit(result)
 
     def handle_passthrough(self, args):
         try:
