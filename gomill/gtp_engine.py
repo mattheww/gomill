@@ -444,7 +444,7 @@ def run_interactive_gtp_session(engine):
     engine -- Gtp_engine_protocol object
 
     This enables readline tab-expansion, and command history in
-    ~/.gomill-gtp-history .
+    ~/.gomill-gtp-history (if readline is available).
 
     Returns either when EOF is seen on stdin, or when the engine signals end of
     session.
@@ -461,11 +461,16 @@ def run_interactive_gtp_session(engine):
         run_gtp_session(engine, sys.stdin, sys.stdout)
         return
 
+    try:
+        import readline
+    except StandardError:
+        run_gtp_session(engine, sys.stdin, sys.stdout)
+        return
+
     def write(s):
         sys.stdout.write(s)
         sys.stdout.flush()
 
-    import readline
     history_pathname = os.path.expanduser("~/.gomill-gtp-history")
     readline.parse_and_bind("tab: complete")
     old_completer = readline.get_completer()
