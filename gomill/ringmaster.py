@@ -19,8 +19,6 @@ from gomill import gtp_games
 from gomill import job_manager
 from gomill.competitions import (
     NoGameAvailable, CompetitionError, control_file_globals)
-from gomill.gtp_controller import (
-    GtpProtocolError, GtpTransportError, GtpEngineError)
 
 def read_tourn_file(pathname):
     """Read the specified file as a .tourn file.
