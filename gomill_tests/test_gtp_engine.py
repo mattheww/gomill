@@ -9,6 +9,7 @@ def test():
         raise GtpFatalError("fatal error")
 
     def handle_internal_error(args):
+        import os
         os.path.join("foo", None)
 
     def handle_test(args):
@@ -41,6 +42,7 @@ def test():
     engine.add_command('komi', handle_komi)
     engine.add_command('komi2', handle_komi)
     engine.remove_command('komi2')
+    #engine.set_handler_exceptions_fatal()
     gtp_engine.run_interactive_gtp_session(engine)
     #gtp_engine.run_gtp_session(engine, sys.stdin, sys.stdout)
 

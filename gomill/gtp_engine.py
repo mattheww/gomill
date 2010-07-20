@@ -228,12 +228,18 @@ class Gtp_engine_protocol(object):
 
     If they raise another exception (instance of StandardError), this will be
     reported as 'internal error', followed by the exception description and
-    traceback.
+    traceback. By default, this is not treated as a fatal error; use
+    set_handler_exceptions_fatal() to change this.
 
     """
 
     def __init__(self):
         self.handlers = {}
+        self.handler_exceptions_are_fatal = False
+
+    def set_handler_exceptions_fatal(self, b=True):
+        """Treat exceptions from handlers as fatal errors."""
+        self.handler_exceptions_are_fatal = bool(b)
 
     def add_command(self, command, handler):
         """Register the handler function for a command."""
@@ -272,8 +278,12 @@ class Gtp_engine_protocol(object):
         except GtpError:
             raise
         except StandardError:
-            raise GtpError("internal error\n%s" %
-                           compact_tracebacks.format_traceback(skip=1))
+            traceback = compact_tracebacks.format_traceback(skip=1)
+            if self.handler_exceptions_are_fatal:
+                raise GtpFatalError("internal error; exiting\n" + traceback)
+            else:
+                raise GtpError("internal error\n" + traceback)
+            raise cls()
 
     def run_command(self, command, args):
         """Run the handler for a command directly.
