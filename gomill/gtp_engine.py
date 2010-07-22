@@ -5,6 +5,7 @@ and gnugo 3.7 as 'reference implementation'.
 
 """
 
+import errno
 import re
 import sys
 import os
@@ -415,6 +416,9 @@ class Gtp_engine_protocol(object):
 
 ### Session loop
 
+class ControllerDisconnected(IOError):
+    """The GTP controller went away."""
+
 def _run_gtp_session(engine, read, write):
     while True:
         try:
@@ -423,7 +427,13 @@ def _run_gtp_session(engine, read, write):
             break
         response, end_session = engine.handle_line(line)
         if response is not None:
-            write(response)
+            try:
+                write(response)
+            except IOError, e:
+                if e.errno == errno.EPIPE:
+                    raise ControllerDisconnected(*e.args)
+                else:
+                    raise
         if end_session:
             break
 
@@ -436,6 +446,8 @@ def run_gtp_session(engine, src, dst):
 
     Returns either when EOF is seen on src, or when the engine signals end of
     session.
+
+    If a write fails with 'broken pipe', this raises ControllerDisconnected.
 
     """
     def read():
@@ -471,6 +483,8 @@ def run_interactive_gtp_session(engine):
     session.
 
     If stdin isn't a terminal, this is equivalent to run_gtp_session.
+
+    If a write fails with 'broken pipe', this raises ControllerDisconnected.
 
     Note that this will propagate KeyboardInterrupt if the user presses ^C;
     normally you'll want to handle this to avoid an ugly traceback.
