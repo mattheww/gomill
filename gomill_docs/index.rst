@@ -6,10 +6,11 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   ringmaster
    cem_tuner
 
 
-Indices and tables
+Indexes and tables
 ==================
 
 * :ref:`genindex`

@@ -1,5 +1,5 @@
-CEM tuner
-=========
+The cross-entropy method tuner
+==============================
 
 Here's a sample of the control file settings for the CEM tuner::
 

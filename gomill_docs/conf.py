@@ -18,10 +18,10 @@ modindex_common_prefix = ['gomill.']
 # unit titles (such as .. function::).
 #add_module_names = True
 
-
 html_theme = 'default'
 html_theme_options = {
     'nosidebar'     : False,
+    'rightsidebar'  : True,
     'stickysidebar' : False,
 
     'footerbgcolor'    : '#3d3011',
@@ -49,3 +49,10 @@ html_add_permalinks = False
 #html_use_index = True
 html_show_sourcelink = False
 
+
+todo_include_todos = True
+
+
+def setup(app):
+    app.add_description_unit('confval', 'confval',
+                             indextemplate='pair: %s; configuration value')
