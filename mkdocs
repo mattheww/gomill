@@ -1,0 +1,2 @@
+#!/bin/sh
+sphinx-build -c gomill_docs -b html gomill_docs gomill_docs_html
