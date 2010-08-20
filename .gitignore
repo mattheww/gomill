@@ -1,2 +1,4 @@
 gomill_docs_html
+gomill_setup/dist
+gomill_setup/MANIFEST
 *.pyc
