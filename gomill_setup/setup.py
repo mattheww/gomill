@@ -1,5 +1,15 @@
 from distutils.core import setup
 
+try:
+    from sphinx.setup_command import BuildDoc
+except ImportError:
+    BuildDoc = None
+
+if BuildDoc:
+    cmdclass = {'build_sphinx' : BuildDoc}
+else:
+    cmdclass = {}
+
 setup(name='gomill',
       version="0.5",
       description="Go programming toolkit",
@@ -7,4 +17,5 @@ setup(name='gomill',
       author_email="matthew@woodcraft.me.uk",
       packages=['gomill'],
       scripts=['scripts/ringmaster'],
+      cmdclass=cmdclass,
       )
