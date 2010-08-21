@@ -14,17 +14,7 @@ class Tournament(Competition):
         # Ought to validate.
         self.number_of_games = config.get('number_of_games')
 
-        uses_legacy_matchups = ('player_x' in config or
-                                'player_y' in config or
-                                'alternating' in config)
-        if uses_legacy_matchups:
-            if 'matchups' in config:
-                raise ValueError("both legacy and explicit matchups specified")
-            self.matchups = [(config['player_x'], config['player_y'])]
-            if config['alternating']:
-                self.matchups.append((config['player_y'], config['player_x']))
-        else:
-            self.matchups = config['matchups']
+        self.matchups = config['matchups']
         for p1, p2 in self.matchups:
             if p1 not in self.players:
                 raise ValueError("unknown player %s" % p1)
