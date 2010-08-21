@@ -176,31 +176,23 @@ class Tournament(Competition):
         assert total != 0
         player_x = matchup.p1
         player_y = matchup.p2
-        x_wins = len([1 for r in results if r.winning_player == player_x])
-        y_wins = len([1 for r in results if r.winning_player == player_y])
-        unknown = len([1 for r in results if r.winning_player is None])
-        b_wins = len([1 for r in results if r.winning_colour == 'b'])
-        w_wins = len([1 for r in results if r.winning_colour == 'w'])
-        xb_wins = len([1 for r in results if
-                       r.winning_player == player_x and
-                       r.winning_colour == 'b'])
-        xw_wins = len([1 for r in results if
-                       r.winning_player == player_x and
-                       r.winning_colour == 'w'])
-        yb_wins = len([1 for r in results if
-                       r.winning_player == player_y and
-                       r.winning_colour == 'b'])
-        yw_wins = len([1 for r in results if
-                       r.winning_player == player_y and
-                       r.winning_colour == 'w'])
-        xb_played = len([1 for r in results if
-                         r.player_b == player_x])
-        xw_played = len([1 for r in results if
-                         r.player_w == player_x])
-        yb_played = len([1 for r in results if
-                         r.player_b == player_y])
-        yw_played = len([1 for r in results if
-                         r.player_w == player_y])
+        x_wins = sum(r.winning_player == player_x for r in results)
+        y_wins = sum(r.winning_player == player_y for r in results)
+        unknown = sum(r.winning_player is None for r in results)
+        b_wins = sum(r.winning_colour == 'b' for r in results)
+        w_wins = sum(r.winning_colour == 'w' for r in results)
+        xb_wins = sum(r.winning_player == player_x and r.winning_colour == 'b'
+                      for r in results)
+        xw_wins = sum(r.winning_player == player_x and r.winning_colour == 'w'
+                      for r in results)
+        yb_wins = sum(r.winning_player == player_y and r.winning_colour == 'b'
+                      for r in results)
+        yw_wins = sum(r.winning_player == player_y and r.winning_colour == 'w'
+                      for r in results)
+        xb_played = sum(r.player_b == player_x for r in results)
+        xw_played = sum(r.player_w == player_x for r in results)
+        yb_played = sum(r.player_b == player_y for r in results)
+        yw_played = sum(r.player_w == player_y for r in results)
 
         x_times = [r.cpu_times[player_x] for r in results]
         x_known_times = [t for t in x_times if t is not None and t != '?']
