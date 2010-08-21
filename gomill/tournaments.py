@@ -10,8 +10,12 @@ class Matchup(object):
     """Internal description of a matchup from the configuration file.
 
     Public attributes:
-      p1 -- player code
-      p2 -- player code
+      p1          -- player code
+      p2          -- player code
+      alternating -- bool
+
+    If alternating is False, p1 plays black and p2 plays white; otherwise they
+    alternate.
 
     """
 
@@ -27,13 +31,14 @@ def matchup_from_config(matchup_config):
     kwargs = matchup_config.kwargs
     matchup = Matchup()
     for key in kwargs:
-        if key not in ():
+        if key not in ('alternating',):
             raise ValueError("unknown argument '%s'" % key)
     if len(args) > 2:
         raise ValueError("too many arguments")
     if len(args) < 2:
         raise ValueError("not enough arguments")
     matchup.p1, matchup.p2 = args
+    matchup.alternating = kwargs.get('alternating', True)
     return matchup
 
 
@@ -94,6 +99,22 @@ class Tournament(Competition):
     def _games_played(self):
         return len(self.results)
 
+    def find_players(self, game_number):
+        """Find the players for the next game.
+
+        Returns a pair of player codes (black, white)
+
+        """
+        quot, rem = divmod(game_number, len(self.matchups))
+        matchup = self.matchups[rem]
+        if matchup.alternating:
+            if quot % 2:
+                return matchup.p2, matchup.p1
+            else:
+                return matchup.p1, matchup.p2
+        else:
+            return matchup.p1, matchup.p2
+
     def get_game(self):
         game_number = self.next_game_number
         if (self.number_of_games is not None and
@@ -101,11 +122,11 @@ class Tournament(Competition):
             return NoGameAvailable
         self.next_game_number += 1
 
-        matchup = self.matchups[game_number % len(self.matchups)]
+        player_b, player_w = self.find_players(game_number)
         job = game_jobs.Game_job()
         job.game_id = str(game_number)
-        job.player_b = self.players[matchup.p1]
-        job.player_w = self.players[matchup.p2]
+        job.player_b = self.players[player_b]
+        job.player_w = self.players[player_w]
         job.board_size = self.board_size
         job.komi = self.komi
         job.move_limit = self.move_limit
