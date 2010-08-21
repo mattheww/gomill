@@ -34,30 +34,30 @@ Usage
 
 For example::
 
-  $ python gomill/ringmaster.py ../tournaments/<code>.tourn
+  $ ringmaster ../tournaments/<code>.tourn
 
 runs a competition; continues from where it left off if interrupted.
 
 ::
 
-  $ python gomill/ringmaster.py ../tournaments/<code>.tourn stop
+  $ ringmaster ../tournaments/<code>.tourn stop
 
 tells a running competition to stop after current game(s).
 
 ::
 
-  $ python gomill/ringmaster.py ../tournaments/<code>.tourn show
+  $ ringmaster ../tournaments/<code>.tourn show
 
 prints a report from a competition's current status.
 
 ::
 
-  $ python gomill/ringmaster.py ../tournaments/<code>.tourn reset
+  $ ringmaster ../tournaments/<code>.tourn reset
 
 deletes all state and output for the competition.
 
 
-.. program:: run_ringmaster
+.. program:: ringmaster
 
 Command-line options:
 
