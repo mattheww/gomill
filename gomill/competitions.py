@@ -30,8 +30,15 @@ class Player_config(object):
         self.args = args
         self.kwargs = kwargs
 
+class Matchup_config(object):
+    """Matchup description for use in tournament files."""
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
 control_file_globals = {
     'Player' : Player_config,
+    'Matchup' : Matchup_config,
     }
 
 def game_jobs_player_from_config(player_config):

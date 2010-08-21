@@ -3,7 +3,38 @@
 from __future__ import division
 
 from gomill import game_jobs
-from gomill.competitions import Competition, NoGameAvailable
+from gomill.competitions import Competition, NoGameAvailable, Matchup_config
+
+
+class Matchup(object):
+    """Internal description of a matchup from the configuration file.
+
+    Public attributes:
+      p1 -- player code
+      p2 -- player code
+
+    """
+
+def matchup_from_config(matchup_config):
+    """Make a Matchup from a Matchup_config.
+
+    Raises ValueError if there is an error in the configuration.
+
+    Returns a Matchup with all attributes set.
+
+    """
+    args = matchup_config.args
+    kwargs = matchup_config.kwargs
+    matchup = Matchup()
+    for key in kwargs:
+        if key not in ():
+            raise ValueError("unknown argument '%s'" % key)
+    if len(args) > 2:
+        raise ValueError("too many arguments")
+    if len(args) < 2:
+        raise ValueError("not enough arguments")
+    matchup.p1, matchup.p2 = args
+    return matchup
 
 
 class Tournament(Competition):
@@ -14,12 +45,31 @@ class Tournament(Competition):
         # Ought to validate.
         self.number_of_games = config.get('number_of_games')
 
-        self.matchups = config['matchups']
-        for p1, p2 in self.matchups:
-            if p1 not in self.players:
-                raise ValueError("unknown player %s" % p1)
-            if p2 not in self.players:
-                raise ValueError("unknown player %s" % p2)
+        self.matchups = []
+        pairings = set()
+        for i, matchup in enumerate(config['matchups']):
+            if isinstance(matchup, tuple):
+                try:
+                    p1, p2 = matchup
+                except ValueError:
+                    raise ValueError(
+                        "matchup entry %d is invalid legacy form" % i)
+                matchup = Matchup_config(p1, p2)
+            else:
+                if not isinstance(matchup, Matchup_config):
+                    raise ValueError("matchup entry %d is not a Matchup" % i)
+            try:
+                m = matchup_from_config(matchup)
+                if m.p1 not in self.players:
+                    raise ValueError("unknown player %s" % m.p1)
+                if m.p2 not in self.players:
+                    raise ValueError("unknown player %s" % m.p2)
+            except ValueError, e:
+                raise ValueError("matchup entry %d: %s" % (i, e))
+            self.matchups.append(m)
+            pairings.add(tuple(sorted((m.p1, m.p2))))
+        # matchups without regard to colour choice
+        self.pairings = sorted(pairings)
 
     def get_status(self):
         return {
@@ -54,8 +104,8 @@ class Tournament(Competition):
         matchup = self.matchups[game_number % len(self.matchups)]
         job = game_jobs.Game_job()
         job.game_id = str(game_number)
-        job.player_b = self.players[matchup[0]]
-        job.player_w = self.players[matchup[1]]
+        job.player_b = self.players[matchup.p1]
+        job.player_w = self.players[matchup.p2]
         job.board_size = self.board_size
         job.komi = self.komi
         job.move_limit = self.move_limit
@@ -90,9 +140,7 @@ class Tournament(Competition):
             print >>out, "%d/%d games played" % (
                 self._games_played(), self.number_of_games)
         print >>out
-        # matchups without regard to colour choice
-        pairings = sorted(set(tuple(sorted(t)) for t in self.matchups))
-        for player_x, player_y in pairings:
+        for player_x, player_y in self.pairings:
             self.write_pairing_report(out, player_x, player_y)
 
     def write_results_report(self, out):
