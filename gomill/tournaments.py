@@ -2,6 +2,8 @@
 
 from __future__ import division
 
+from collections import defaultdict
+
 from gomill import game_jobs
 from gomill.competitions import Competition, NoGameAvailable, Matchup_config
 
@@ -13,6 +15,7 @@ class Matchup(object):
       p1          -- player code
       p2          -- player code
       alternating -- bool
+      description -- shortish string to show in reports
 
     If alternating is False, p1 plays black and p2 plays white; otherwise they
     alternate.
@@ -31,7 +34,7 @@ def matchup_from_config(matchup_config):
     kwargs = matchup_config.kwargs
     matchup = Matchup()
     for key in kwargs:
-        if key not in ('alternating',):
+        if key not in ('alternating', 'description'):
             raise ValueError("unknown argument '%s'" % key)
     if len(args) > 2:
         raise ValueError("too many arguments")
@@ -39,6 +42,9 @@ def matchup_from_config(matchup_config):
         raise ValueError("not enough arguments")
     matchup.p1, matchup.p2 = args
     matchup.alternating = kwargs.get('alternating', True)
+    matchup.description = kwargs.get('description')
+    if matchup.description is None:
+        matchup.description = "%s v %s" % (matchup.p1, matchup.p2)
     return matchup
 
 
@@ -51,7 +57,6 @@ class Tournament(Competition):
         self.number_of_games = config.get('number_of_games')
 
         self.matchups = []
-        pairings = set()
         for i, matchup in enumerate(config['matchups']):
             if not isinstance(matchup, Matchup_config):
                 raise ValueError("matchup entry %d is not a Matchup" % i)
@@ -63,10 +68,8 @@ class Tournament(Competition):
                     raise ValueError("unknown player %s" % m.p2)
             except ValueError, e:
                 raise ValueError("matchup entry %d: %s" % (i, e))
+            m.id = i
             self.matchups.append(m)
-            pairings.add(tuple(sorted((m.p1, m.p2))))
-        # matchups without regard to colour choice
-        self.pairings = sorted(pairings)
 
     def get_status(self):
         return {
@@ -94,18 +97,16 @@ class Tournament(Competition):
     def find_players(self, game_number):
         """Find the players for the next game.
 
-        Returns a pair of player codes (black, white)
+        Returns a tuple (matchup index, black player code, white player code)
 
         """
         quot, rem = divmod(game_number, len(self.matchups))
         matchup = self.matchups[rem]
-        if matchup.alternating:
-            if quot % 2:
-                return matchup.p2, matchup.p1
-            else:
-                return matchup.p1, matchup.p2
+        if matchup.alternating and (quot % 2):
+            pb, pw = matchup.p2, matchup.p1
         else:
-            return matchup.p1, matchup.p2
+            pb, pw = matchup.p1, matchup.p2
+        return rem, pb, pw
 
     def get_game(self):
         game_number = self.next_game_number
@@ -114,7 +115,7 @@ class Tournament(Competition):
             return NoGameAvailable
         self.next_game_number += 1
 
-        player_b, player_w = self.find_players(game_number)
+        matchup_id, player_b, player_w = self.find_players(game_number)
         job = game_jobs.Game_job()
         job.game_id = str(game_number)
         job.player_b = self.players[player_b]
@@ -130,7 +131,11 @@ class Tournament(Competition):
     def process_game_result(self, response):
         self.engine_names.update(response.engine_names)
         self.engine_descriptions.update(response.engine_descriptions)
-        self.results.append(response.game_result)
+        game_number = int(response.game_id)
+        matchup_id, player_b, player_w = self.find_players(game_number)
+        assert player_b == response.game_result.player_b
+        assert player_w == response.game_result.player_w
+        self.results.append((matchup_id, response.game_result))
         # This will show results in order of games finishing rather than game
         # number, but never mind.
         self.log_history("%4s %s" %
@@ -153,21 +158,24 @@ class Tournament(Competition):
             print >>out, "%d/%d games played" % (
                 self._games_played(), self.number_of_games)
         print >>out
-        for player_x, player_y in self.pairings:
-            self.write_pairing_report(out, player_x, player_y)
+        results_by_matchup_id = defaultdict(list)
+        for matchup_id, result in self.results:
+            results_by_matchup_id[matchup_id].append(result)
+        for (i, matchup) in enumerate(self.matchups):
+            results = results_by_matchup_id[i]
+            if results:
+                self.write_matchup_report(out, matchup, results)
 
     def write_results_report(self, out):
         pass
 
-    def write_pairing_report(self, out, player_x, player_y):
+    def write_matchup_report(self, out, matchup, results):
         def p(s):
             print >>out, s
-        results = [r for r in self.results
-                   if (r.player_b == player_x and r.player_w == player_y) or
-                      (r.player_b == player_y and r.player_w == player_x)]
         total = len(results)
-        if total == 0:
-            return
+        assert total != 0
+        player_x = matchup.p1
+        player_y = matchup.p2
         x_wins = len([1 for r in results if r.winning_player == player_x])
         y_wins = len([1 for r in results if r.winning_player == player_y])
         unknown = len([1 for r in results if r.winning_player is None])
@@ -207,7 +215,7 @@ class Tournament(Competition):
         else:
             y_avg_time_s = "----"
 
-        p("%s vs %s (%d games)" % (player_x, player_y, total))
+        p("%s (%d games)" % (matchup.description, total))
         def pct(n, baseline):
             if baseline == 0:
                 if n == 0:
