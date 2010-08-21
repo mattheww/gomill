@@ -53,16 +53,8 @@ class Tournament(Competition):
         self.matchups = []
         pairings = set()
         for i, matchup in enumerate(config['matchups']):
-            if isinstance(matchup, tuple):
-                try:
-                    p1, p2 = matchup
-                except ValueError:
-                    raise ValueError(
-                        "matchup entry %d is invalid legacy form" % i)
-                matchup = Matchup_config(p1, p2)
-            else:
-                if not isinstance(matchup, Matchup_config):
-                    raise ValueError("matchup entry %d is not a Matchup" % i)
+            if not isinstance(matchup, Matchup_config):
+                raise ValueError("matchup entry %d is not a Matchup" % i)
             try:
                 m = matchup_from_config(matchup)
                 if m.p1 not in self.players:
