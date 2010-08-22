@@ -46,6 +46,9 @@ class Gtp_channel(object):
 
         May raise GtpTransportError
 
+        Raises ValueError if the command or an argument contains a character
+        forbidden in GTP.
+
         """
         if not isinstance(command, str):
             raise ValueError("bad command")
@@ -302,11 +305,14 @@ class Gtp_controller_protocol(object):
 
         channel_id -- string
         command    -- string (command name)
-        arguments  -- strings
+        arguments  -- strings or unicode objects
 
         Arguments may not contain spaces. If a command is documented as
         expecting a list of vertices, each vertex must be passed as a separate
         argument.
+
+        Arguments may be unicode objects, in which case they will be sent as
+        utf-8.
 
         Returns the result text from the engine as a string with no leading or
         trailing whitespace. (This doesn't include the leading =[id] bit.)
@@ -325,7 +331,12 @@ class Gtp_controller_protocol(object):
 
         """
         channel = self.channels[channel_id]
-        channel.send_command(command, list(arguments))
+        def fix_argument(argument):
+            if isinstance(argument, unicode):
+                return argument.encode("utf-8")
+            else:
+                return argument
+        channel.send_command(command, map(fix_argument, arguments))
         is_error, response = channel.get_response()
         if is_error:
             raise GtpEngineError(response)
