@@ -16,6 +16,7 @@ class Matchup(object):
       p2          -- player code
       alternating -- bool
       description -- shortish string to show in reports
+      handicap    -- int or None
 
     If alternating is False, p1 plays black and p2 plays white; otherwise they
     alternate.
@@ -34,7 +35,7 @@ def matchup_from_config(matchup_config):
     kwargs = matchup_config.kwargs
     matchup = Matchup()
     for key in kwargs:
-        if key not in ('alternating', 'description'):
+        if key not in ('alternating', 'description', 'handicap'):
             raise ValueError("unknown argument '%s'" % key)
     if len(args) > 2:
         raise ValueError("too many arguments")
@@ -42,9 +43,22 @@ def matchup_from_config(matchup_config):
         raise ValueError("not enough arguments")
     matchup.p1, matchup.p2 = args
     matchup.alternating = kwargs.get('alternating', True)
-    matchup.description = kwargs.get('description')
-    if matchup.description is None:
-        matchup.description = "%s v %s" % (matchup.p1, matchup.p2)
+    handicap = kwargs.get('handicap')
+    if handicap is not None:
+        if not isinstance(handicap, int) or isinstance(handicap, long):
+            raise ValueError("invalid handicap")
+        # FIXME: Upper limit should depend on board size:
+        if not 2 <= handicap <= 9:
+            raise ValueError("handicap out of range")
+        matchup.handicap = handicap
+    else:
+        matchup.handicap = None
+    desc = kwargs.get('description')
+    if desc is None:
+        desc = "%s v %s" % (matchup.p1, matchup.p2)
+        if matchup.handicap:
+            desc += " H%d" % matchup.handicap
+    matchup.description = desc
     return matchup
 
 
@@ -116,6 +130,7 @@ class Tournament(Competition):
         self.next_game_number += 1
 
         matchup_id, player_b, player_w = self.find_players(game_number)
+        matchup = self.matchups[matchup_id]
         job = game_jobs.Game_job()
         job.game_id = str(game_number)
         job.player_b = self.players[player_b]
@@ -123,6 +138,7 @@ class Tournament(Competition):
         job.board_size = self.board_size
         job.komi = self.komi
         job.move_limit = self.move_limit
+        job.handicap = matchup.handicap
         job.use_internal_scorer = self.use_internal_scorer
         job.preferred_scorers = self.preferred_scorers
         job.sgf_event = self.competition_code

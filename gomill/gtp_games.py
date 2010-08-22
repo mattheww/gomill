@@ -2,6 +2,7 @@
 
 from gomill.gomill_common import *
 from gomill import gtp_controller
+from gomill import handicap_layout
 from gomill import boards
 from gomill import sgf_writer
 from gomill.gtp_controller import (
@@ -69,6 +70,7 @@ class Game(object):
       game.use_internal_scorer() or game.use_players_to_score(...)
       game.start_players()
       game.request_engine_descriptions() [optional]
+      game.set_handicap(...) [optional]
       game.run()
       game.close_players()
       game.make_sgf() or game.write_sgf() [optional]
@@ -83,7 +85,8 @@ class Game(object):
       engine_descriptions   -- map player code -> string
 
    Methods which communicate with engines may raise GtpTransportError or
-   GtpProtocolError (eg if the engine has gone away.)
+   GtpProtocolError (eg if the engine has gone away), or GtpEngineError if the
+   engine returns an error response.
 
    """
 
@@ -94,6 +97,7 @@ class Game(object):
         self.komi = komi
         self.move_limit = move_limit
         self.moves = []
+        self.first_player = "b"
         self.result = None
         self.board = boards.Board(board_size)
         self.internal_scorer = False
@@ -101,6 +105,8 @@ class Game(object):
         self.engine_names = {}
         self.engine_descriptions = {}
         self.gtp_translations = {'b' : {}, 'w' : {}}
+        self.additional_sgf_props = []
+        self.sgf_setup_stones = None
 
     def use_internal_scorer(self, b=True):
         """Set the scoring method to internal.
@@ -252,6 +258,20 @@ class Game(object):
                 desc = s
             self.engine_descriptions[player] = desc
 
+    def set_handicap(self, handicap):
+        """Initialise the board position for a fixed handicap.
+
+        Raises ValueError if the number of stones isn't valid (see GTP spec).
+
+        """
+        points = handicap_layout.handicap_points(handicap, self.board_size)
+        for colour in "b", "w":
+            self.send_command(colour, "fixed_handicap", str(handicap))
+        self.board.apply_setup(points, [], [])
+        self.additional_sgf_props.append(('handicap', handicap))
+        self.sgf_setup_stones = [("b", coords) for coords in points]
+        self.first_player = "w"
+
     def _play_move(self, colour):
         opponent = opponent_of(colour)
         if self.known_command(colour, "gomill-genmove_claim"):
@@ -360,7 +380,7 @@ class Game(object):
         self.hit_move_limit = False
         self.margin = None
         self.forfeit_reason = None
-        player = "b"
+        player = self.first_player
         move_count = 0
         while move_count < self.move_limit:
             self._play_move(player)
@@ -491,10 +511,14 @@ class Game(object):
         sgf_game = sgf_writer.Sgf_game(self.board_size)
         sgf_game.set('komi', self.komi)
         sgf_game.set('application', "gomill:?")
+        for prop, value in self.additional_sgf_props:
+            sgf_game.set(prop, value)
         sgf_game.add_date()
         if self.engine_names:
             sgf_game.set('black-player', self.engine_names[self.players['b']])
             sgf_game.set('white-player', self.engine_names[self.players['w']])
+        if self.sgf_setup_stones:
+            sgf_game.add_setup_stones(self.sgf_setup_stones)
         for colour, move, comment in self.moves:
             sgf_game.add_move(colour, move, comment)
         if self.result is not None:

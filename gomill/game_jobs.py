@@ -54,11 +54,12 @@ class Game_job(object):
       komi                -- float
       move_limit          -- int
 
-    optional attributes:
-      sgf_pathname        -- pathname to use for the SGF file, or None
+    optional attributes (default None):
+      handicap            -- int
+      sgf_pathname        -- pathname to use for the SGF file
       sgf_event           -- string to show as SGF EVent
-      use_internal_scorer -- bool
-      preferred_scorers   -- set or list of player codes, or None
+      use_internal_scorer -- bool (default True)
+      preferred_scorers   -- set or list of player codes
 
     The game_id will be returned in the job result, so you can tell which game
     you're getting the result for. It also appears in a comment in the SGF file.
@@ -69,6 +70,7 @@ class Game_job(object):
 
     """
     def __init__(self):
+        self.handicap = None
         self.sgf_pathname = None
         self.sgf_event = None
         self.use_internal_scorer = True
@@ -94,6 +96,8 @@ class Game_job(object):
             for command, arguments in self.player_w.startup_gtp_commands:
                 game.send_command('w', command, *arguments)
             game.request_engine_descriptions()
+            if self.handicap:
+                game.set_handicap(self.handicap)
             game.run()
         except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
             raise job_manager.JobFailed("aborting game due to error:\n%s\n" % e)
