@@ -99,7 +99,11 @@ class Game_job(object):
                 game.send_command('w', command, *arguments)
             game.request_engine_descriptions()
             if self.handicap:
-                game.set_handicap(self.handicap, self.handicap_is_free)
+                try:
+                    game.set_handicap(self.handicap, self.handicap_is_free)
+                except ValueError:
+                    raise job_manager.JobFailed(
+                        "aborting game: invalid handicap")
             game.run()
         except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
             raise job_manager.JobFailed("aborting game due to error:\n%s\n" % e)
