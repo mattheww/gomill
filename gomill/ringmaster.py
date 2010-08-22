@@ -53,6 +53,10 @@ def get_competition_class(competition_type):
 # attributes must be json-serialisable, and __init__ must accept no parameters.
 # Also, the class shouldn't have any attributes that don't need serialising.
 
+# FIXME: round-tripping values via JSON is having the side-effect of converting
+# 8-bit strings to unicode objects (as if they were originally utf-8). This
+# isn't very nice, but I don't think it breaks anything.
+
 json_encodable_classes = {
     gtp_games.Game_result : 'R',
     game_jobs.Player      : 'P',
