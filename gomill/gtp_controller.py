@@ -304,6 +304,10 @@ class Gtp_controller_protocol(object):
         command    -- string (command name)
         arguments  -- strings
 
+        Arguments may not contain spaces. If a command is documented as
+        expecting a list of vertices, each vertex must be passed as a separate
+        argument.
+
         Returns the result text from the engine as a string with no leading or
         trailing whitespace. (This doesn't include the leading =[id] bit.)
 
