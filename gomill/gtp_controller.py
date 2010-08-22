@@ -47,9 +47,13 @@ class Gtp_channel(object):
         May raise GtpTransportError
 
         """
+        if not isinstance(command, str):
+            raise ValueError("bad command")
         if not _command_characters_re.search(command):
             raise ValueError("bad character in command")
         for argument in arguments:
+            if not isinstance(argument, str):
+                raise ValueError("bad argument")
             if not _command_characters_re.search(argument):
                 raise ValueError("bad character in argument")
         self.send_command_impl(command, arguments)
