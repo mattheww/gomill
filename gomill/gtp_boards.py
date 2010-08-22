@@ -279,6 +279,8 @@ class Gtp_board(object):
         self.simple_ko_point = None
         self.handicap = number_of_stones
         self.set_history_base(self.board.copy())
+        return " ".join(format_vertex((row, col))
+                        for (row, col) in points)
 
     def handle_set_free_handicap(self, args):
         if len(args) < 2:
