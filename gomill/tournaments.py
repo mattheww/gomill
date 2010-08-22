@@ -12,11 +12,12 @@ class Matchup(object):
     """Internal description of a matchup from the configuration file.
 
     Public attributes:
-      p1          -- player code
-      p2          -- player code
-      alternating -- bool
-      description -- shortish string to show in reports
-      handicap    -- int or None
+      p1             -- player code
+      p2             -- player code
+      alternating    -- bool
+      description    -- shortish string to show in reports
+      handicap       -- int or None
+      handicap_style -- 'fixed' or 'free'
 
     If alternating is False, p1 plays black and p2 plays white; otherwise they
     alternate.
@@ -35,7 +36,8 @@ def matchup_from_config(matchup_config):
     kwargs = matchup_config.kwargs
     matchup = Matchup()
     for key in kwargs:
-        if key not in ('alternating', 'description', 'handicap'):
+        if key not in ('alternating', 'description',
+                       'handicap', 'handicap_style'):
             raise ValueError("unknown argument '%s'" % key)
     if len(args) > 2:
         raise ValueError("too many arguments")
@@ -43,21 +45,30 @@ def matchup_from_config(matchup_config):
         raise ValueError("not enough arguments")
     matchup.p1, matchup.p2 = args
     matchup.alternating = kwargs.get('alternating', True)
+
+    matchup.handicap_style = kwargs.get('handicap_style', 'fixed')
+    if matchup.handicap_style not in ('fixed', 'free'):
+        raise ValueError("invalid handicap style")
     handicap = kwargs.get('handicap')
     if handicap is not None:
         if not isinstance(handicap, int) or isinstance(handicap, long):
             raise ValueError("invalid handicap")
-        # FIXME: Upper limit should depend on board size:
-        if not 2 <= handicap <= 9:
-            raise ValueError("handicap out of range")
+        if not 2 <= handicap:
+            raise ValueError("handicap too small")
+        # FIXME: should depend on board size:
+        if matchup.handicap_style == 'fixed' and handicap > 9:
+            raise ValueError("fixed handicap too large")
         matchup.handicap = handicap
     else:
         matchup.handicap = None
+
     desc = kwargs.get('description')
     if desc is None:
         desc = "%s v %s" % (matchup.p1, matchup.p2)
         if matchup.handicap:
             desc += " H%d" % matchup.handicap
+            if matchup.handicap_style == 'free':
+                desc += "free"
     matchup.description = desc
     return matchup
 
@@ -139,6 +150,7 @@ class Tournament(Competition):
         job.komi = self.komi
         job.move_limit = self.move_limit
         job.handicap = matchup.handicap
+        job.handicap_is_free = (matchup.handicap_style=='free')
         job.use_internal_scorer = self.use_internal_scorer
         job.preferred_scorers = self.preferred_scorers
         job.sgf_event = self.competition_code

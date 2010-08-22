@@ -54,8 +54,9 @@ class Game_job(object):
       komi                -- float
       move_limit          -- int
 
-    optional attributes (default None):
+    optional attributes (default None unless otherwise stated):
       handicap            -- int
+      handicap_is_free    -- bool (default False)
       sgf_pathname        -- pathname to use for the SGF file
       sgf_event           -- string to show as SGF EVent
       use_internal_scorer -- bool (default True)
@@ -71,6 +72,7 @@ class Game_job(object):
     """
     def __init__(self):
         self.handicap = None
+        self.handicap_is_free = False
         self.sgf_pathname = None
         self.sgf_event = None
         self.use_internal_scorer = True
@@ -97,7 +99,7 @@ class Game_job(object):
                 game.send_command('w', command, *arguments)
             game.request_engine_descriptions()
             if self.handicap:
-                game.set_handicap(self.handicap)
+                game.set_handicap(self.handicap, self.handicap_is_free)
             game.run()
         except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
             raise job_manager.JobFailed("aborting game due to error:\n%s\n" % e)

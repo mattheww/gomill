@@ -258,15 +258,40 @@ class Game(object):
                 desc = s
             self.engine_descriptions[player] = desc
 
-    def set_handicap(self, handicap):
-        """Initialise the board position for a fixed handicap.
+    def set_handicap(self, handicap, is_free):
+        """Initialise the board position for a handicap.
 
         Raises ValueError if the number of stones isn't valid (see GTP spec).
 
+        Raises GtpProtocolError if there's an invalid respone to
+        place_free_handicap (doesn't check the response to fixed_handicap).
+
         """
-        points = handicap_layout.handicap_points(handicap, self.board_size)
-        for colour in "b", "w":
-            self.send_command(colour, "fixed_handicap", str(handicap))
+        if is_free:
+            max_points = handicap_layout.max_free_handicap_for_board_size(
+                self.board_size)
+            if not 2 <= handicap < max_points:
+                raise ValueError
+            vertices = self.send_command(
+                "b", "place_free_handicap", str(handicap))
+            try:
+                points = [coords_from_vertex(vt, self.board_size)
+                          for vt in vertices.split(" ")]
+                if None in points:
+                    raise ValueError("response included 'pass'")
+                if len(set(points)) < len(points):
+                    raise ValueError("duplicate point")
+            except ValueError, e:
+                raise GtpProtocolError(
+                    "invalid response from place_free_handicap command "
+                    "to %s: %s" % (self.players["b"], e))
+            vertices = [format_vertex(coords) for coords in points]
+            self.send_command("w", "set_free_handicap", *vertices)
+        else:
+            # May propagate ValueError
+            points = handicap_layout.handicap_points(handicap, self.board_size)
+            for colour in "b", "w":
+                self.send_command(colour, "fixed_handicap", str(handicap))
         self.board.apply_setup(points, [], [])
         self.additional_sgf_props.append(('handicap', handicap))
         self.sgf_setup_stones = [("b", coords) for coords in points]

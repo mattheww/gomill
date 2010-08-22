@@ -300,7 +300,8 @@ class Gtp_board(object):
             number_of_stones = gtp_engine.interpret_int(args[0])
         except IndexError:
             gtp_engine.report_bad_arguments()
-        max_points = self.board_size * self.board_size - 1
+        max_points = handicap_layout.max_free_handicap_for_board_size(
+            self.board_size)
         if not 2 <= number_of_stones <= max_points:
             raise GtpError("invalid number of stones")
         if not self.board.is_empty():

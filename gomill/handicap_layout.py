@@ -43,3 +43,8 @@ def handicap_points(number_of_stones, board_size):
            '2' : board_size - altitude - 1}
     return [(pos[s[0]], pos[s[1]])
             for s in handicap_pattern[number_of_stones-2]]
+
+def max_free_handicap_for_board_size(board_size):
+    """Return the maximum number of stones for place_free_handicap command."""
+    return board_size * board_size - 1
+
