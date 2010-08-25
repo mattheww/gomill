@@ -44,7 +44,7 @@ def matchup_from_config(matchup_config):
     if len(args) < 2:
         raise ValueError("not enough arguments")
     matchup.p1, matchup.p2 = args
-    matchup.alternating = kwargs.get('alternating', True)
+    matchup.alternating = kwargs.get('alternating', False)
 
     matchup.handicap_style = kwargs.get('handicap_style', 'fixed')
     if matchup.handicap_style not in ('fixed', 'free'):
