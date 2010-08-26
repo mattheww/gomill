@@ -119,7 +119,13 @@ class Game(object):
     def use_players_to_score(self, preferred_scorers=None):
         """Specify which players' scores to trust.
 
-        The internal scorer uses area score, assuming all stones alive.
+        preferred_scorers -- iterable of player codes, or None
+
+        If preferred scorers is None, Black then White will be asked to score.
+
+        Otherwise the players will be asked in the order they appear in the list
+        (Black first if they're the same). If neither appears, the game won't be
+        scored.
 
         """
         if preferred_scorers is None:
