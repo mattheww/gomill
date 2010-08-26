@@ -60,7 +60,7 @@ class Game_job(object):
       sgf_pathname        -- pathname to use for the SGF file
       sgf_event           -- string to show as SGF EVent
       use_internal_scorer -- bool (default True)
-      preferred_scorers   -- sequence of player codes
+      preferred_scorers   -- sequence of player codes, or None
 
     The game_id will be returned in the job result, so you can tell which game
     you're getting the result for. It also appears in a comment in the SGF file.
