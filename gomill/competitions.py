@@ -134,13 +134,11 @@ class Competition(object):
             self.komi = config['komi']
             self.move_limit = config['move_limit']
             self.use_internal_scorer = False
-            self.preferred_scorers = None
+            self.preferred_scorers = config.get('preferred_scorers')
             if 'scorer' in config:
                 if config['scorer'] == "internal":
                     self.use_internal_scorer = True
-                elif config['scorer'] == "players":
-                    self.preferred_scorers = config.get('preferred_scorers')
-                else:
+                elif config['scorer'] != "players":
                     raise ValueError("invalid 'scorer' value")
         except KeyError, e:
             raise ValueError("%s not specified" % e)
