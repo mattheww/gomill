@@ -77,6 +77,9 @@ class Game(object):
 
     then retrieve the Game_result and moves.
 
+    If neither use_internal_scorer() or game.use_players_to_score() is called,
+    the game won't be scored.
+
     Public attributes for reading:
       players               -- map colour -> player code (as passed in)
       result                -- Game_result
@@ -108,16 +111,16 @@ class Game(object):
         self.additional_sgf_props = []
         self.sgf_setup_stones = None
 
-    def use_internal_scorer(self, b=True):
+    def use_internal_scorer(self):
         """Set the scoring method to internal.
 
         The internal scorer uses area score, assuming all stones alive.
 
         """
-        self.internal_scorer = b
+        self.internal_scorer = True
 
     def use_players_to_score(self, preferred_scorers=None):
-        """Specify which players' scores to trust.
+        """Set the scoring method to 'players', and say which players to use.
 
         preferred_scorers -- iterable of player codes, or None
 
@@ -128,6 +131,7 @@ class Game(object):
         scored.
 
         """
+        self.internal_scorer = False
         if preferred_scorers is None:
             self.player_scorers = ['b', 'w']
         else:
