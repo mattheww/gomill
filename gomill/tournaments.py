@@ -24,57 +24,57 @@ class Matchup(object):
 
     """
 
-def matchup_from_config(matchup_config):
-    """Make a Matchup from a Matchup_config.
-
-    Raises ValueError if there is an error in the configuration.
-
-    Returns a Matchup with all attributes set.
-
-    """
-    args = matchup_config.args
-    kwargs = matchup_config.kwargs
-    matchup = Matchup()
-    for key in kwargs:
-        if key not in ('alternating', 'description',
-                       'handicap', 'handicap_style'):
-            raise ValueError("unknown argument '%s'" % key)
-    if len(args) > 2:
-        raise ValueError("too many arguments")
-    if len(args) < 2:
-        raise ValueError("not enough arguments")
-    matchup.p1, matchup.p2 = args
-    matchup.alternating = kwargs.get('alternating', False)
-
-    matchup.handicap_style = kwargs.get('handicap_style', 'fixed')
-    if matchup.handicap_style not in ('fixed', 'free'):
-        raise ValueError("invalid handicap style")
-    handicap = kwargs.get('handicap')
-    if handicap is not None:
-        if not isinstance(handicap, int) or isinstance(handicap, long):
-            raise ValueError("invalid handicap")
-        if not 2 <= handicap:
-            raise ValueError("handicap too small")
-        # FIXME: should depend on board size:
-        if matchup.handicap_style == 'fixed' and handicap > 9:
-            raise ValueError("fixed handicap too large")
-        matchup.handicap = handicap
-    else:
-        matchup.handicap = None
-
-    desc = kwargs.get('description')
-    if desc is None:
-        desc = "%s v %s" % (matchup.p1, matchup.p2)
-        if matchup.handicap:
-            desc += " H%d" % matchup.handicap
-            if matchup.handicap_style == 'free':
-                desc += "free"
-    matchup.description = desc
-    return matchup
-
 
 class Tournament(Competition):
     """A Competition made up of repeated matchups between specified players."""
+
+    def matchup_from_config(self, matchup_config):
+        """Make a Matchup from a Matchup_config.
+
+        Raises ValueError if there is an error in the configuration.
+
+        Returns a Matchup with all attributes set.
+
+        """
+        args = matchup_config.args
+        kwargs = matchup_config.kwargs
+        matchup = Matchup()
+        for key in kwargs:
+            if key not in ('alternating', 'description',
+                           'handicap', 'handicap_style'):
+                raise ValueError("unknown argument '%s'" % key)
+        if len(args) > 2:
+            raise ValueError("too many arguments")
+        if len(args) < 2:
+            raise ValueError("not enough arguments")
+        matchup.p1, matchup.p2 = args
+        matchup.alternating = kwargs.get('alternating', False)
+
+        matchup.handicap_style = kwargs.get('handicap_style', 'fixed')
+        if matchup.handicap_style not in ('fixed', 'free'):
+            raise ValueError("invalid handicap style")
+        handicap = kwargs.get('handicap')
+        if handicap is not None:
+            if not isinstance(handicap, int) or isinstance(handicap, long):
+                raise ValueError("invalid handicap")
+            if not 2 <= handicap:
+                raise ValueError("handicap too small")
+            # FIXME: should depend on board size:
+            if matchup.handicap_style == 'fixed' and handicap > 9:
+                raise ValueError("fixed handicap too large")
+            matchup.handicap = handicap
+        else:
+            matchup.handicap = None
+
+        desc = kwargs.get('description')
+        if desc is None:
+            desc = "%s v %s" % (matchup.p1, matchup.p2)
+            if matchup.handicap:
+                desc += " H%d" % matchup.handicap
+                if matchup.handicap_style == 'free':
+                    desc += "free"
+        matchup.description = desc
+        return matchup
 
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
@@ -86,7 +86,7 @@ class Tournament(Competition):
             if not isinstance(matchup, Matchup_config):
                 raise ValueError("matchup entry %d is not a Matchup" % i)
             try:
-                m = matchup_from_config(matchup)
+                m = self.matchup_from_config(matchup)
                 if m.p1 not in self.players:
                     raise ValueError("unknown player %s" % m.p1)
                 if m.p2 not in self.players:
