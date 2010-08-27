@@ -44,5 +44,8 @@ class Setting(object):
         Raises ValueError with a description if the value is invalid.
 
         """
-        return self.interpreter(value)
+        try:
+            return self.interpreter(value)
+        except ValueError, e:
+            raise ValueError("%s: %s" % (self.name, e))
 

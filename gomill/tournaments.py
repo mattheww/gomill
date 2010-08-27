@@ -30,11 +30,13 @@ class Matchup(object):
 class Tournament(Competition):
     """A Competition made up of repeated matchups between specified players."""
 
-    global_settings = [
+    matchup_settings = [
         Setting('komi', interpret_float),
         Setting('board_size', competitions.interpret_board_size),
         Setting('move_limit', interpret_int),
         ]
+
+    global_settings = matchup_settings[:]
 
     def matchup_from_config(self, matchup_config):
         """Make a Matchup from a Matchup_config.
@@ -47,32 +49,47 @@ class Tournament(Competition):
         args = matchup_config.args
         kwargs = matchup_config.kwargs
         matchup = Matchup()
+        argument_names = set(setting.name for setting in self.matchup_settings)
+        argument_names.update(('alternating', 'description',
+                                'handicap', 'handicap_style'))
         for key in kwargs:
-            if key not in ('alternating', 'description',
-                           'handicap', 'handicap_style'):
+            if key not in argument_names:
                 raise ValueError("unknown argument '%s'" % key)
         if len(args) > 2:
             raise ValueError("too many arguments")
         if len(args) < 2:
             raise ValueError("not enough arguments")
         matchup.p1, matchup.p2 = args
+
+        for setting in self.matchup_settings:
+            if setting.name in kwargs:
+                v = setting.interpret(kwargs[setting.name])
+            else:
+                # At the moment, requiring all matchup_settings to be specified
+                # in the global part of the .tourn file.
+                v = getattr(self, setting.name)
+            setattr(matchup, setting.name, v)
+
         matchup.alternating = kwargs.get('alternating', False)
 
         matchup.handicap_style = kwargs.get('handicap_style', 'fixed')
         if matchup.handicap_style not in ('fixed', 'free'):
             raise ValueError("invalid handicap style")
         matchup.handicap = kwargs.get('handicap')
-        # FIXME: Use matchup board size once it's configurable
         competitions.validate_handicap(
-            matchup.handicap, matchup.handicap_style, self.board_size)
+            matchup.handicap, matchup.handicap_style, matchup.board_size)
 
         desc = kwargs.get('description')
         if desc is None:
             desc = "%s v %s" % (matchup.p1, matchup.p2)
+            # FIXME [[
+            desc += " %dx%d" % (matchup.board_size, matchup.board_size)
+            desc += " K%d" % matchup.komi
             if matchup.handicap:
                 desc += " H%d" % matchup.handicap
                 if matchup.handicap_style == 'free':
                     desc += "free"
+            # ]]
         matchup.description = desc
         return matchup
 

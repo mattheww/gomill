@@ -127,11 +127,7 @@ class Competition(object):
         try:
             # Not supporting defaults yet
             for setting in self.global_settings:
-                v = config[setting.name]
-                try:
-                    v = setting.interpret(v)
-                except ValueError, e:
-                    raise ValueError("%s: %s" % (setting.name, e))
+                v = setting.interpret(config[setting.name])
                 setattr(self, setting.name, v)
 
             # ought to be Settings
