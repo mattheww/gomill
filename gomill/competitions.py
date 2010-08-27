@@ -6,6 +6,8 @@ import sys
 
 from gomill import game_jobs
 from gomill import handicap_layout
+from gomill.settings import (
+    Setting, interpret_float, interpret_int, interpret_enum)
 
 
 def log_to_stdout(s):
@@ -86,6 +88,14 @@ def game_jobs_player_from_config(player_config):
         raise ValueError("%s not specified" % e)
     return player
 
+def interpret_board_size(i):
+    i = interpret_int(i)
+    if i < 2:
+        raise ValueError("too small")
+    if i > 25:
+        raise ValueError("too large")
+    return i
+
 class Competition(object):
     """A resumable processing job based around playing many GTP games.
 
@@ -109,6 +119,12 @@ class Competition(object):
     def log_history(self, s):
         self.history_logger(s)
 
+    settings = [
+        Setting('komi', interpret_float),
+        Setting('board_size', interpret_board_size),
+        Setting('move_limit', interpret_int),
+        ]
+
     def initialise_from_control_file(self, config):
         """Initialise competition data from the control file.
 
@@ -119,6 +135,15 @@ class Competition(object):
         """
         # Ought to validate properly
         try:
+            # Not supporting defaults yet
+            for setting in self.settings:
+                v = config[setting.name]
+                try:
+                    v = setting.interpret(v)
+                except ValueError, e:
+                    raise ValueError("%s: %s" % (setting.name, e))
+                setattr(self, setting.name, v)
+
             self.description = config['description']
             self.players = {}
             for player_code, player_config in config['players'].items():
@@ -131,9 +156,6 @@ class Competition(object):
                     raise ValueError("player %s: %s" % (player_code, e))
                 player.code = player_code
                 self.players[player_code] = player
-            self.board_size = config['board_size']
-            self.komi = config['komi']
-            self.move_limit = config['move_limit']
             self.use_internal_scorer = False
             self.preferred_scorers = config.get('preferred_scorers')
             if 'scorer' in config:
