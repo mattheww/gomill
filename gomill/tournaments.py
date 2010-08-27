@@ -7,6 +7,7 @@ from collections import defaultdict
 from gomill import game_jobs
 from gomill import competitions
 from gomill.competitions import Competition, NoGameAvailable, Matchup_config
+from gomill.settings import *
 
 
 class Matchup(object):
@@ -28,6 +29,12 @@ class Matchup(object):
 
 class Tournament(Competition):
     """A Competition made up of repeated matchups between specified players."""
+
+    global_settings = [
+        Setting('komi', interpret_float),
+        Setting('board_size', competitions.interpret_board_size),
+        Setting('move_limit', interpret_int),
+        ]
 
     def matchup_from_config(self, matchup_config):
         """Make a Matchup from a Matchup_config.

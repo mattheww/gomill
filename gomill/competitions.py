@@ -6,8 +6,7 @@ import sys
 
 from gomill import game_jobs
 from gomill import handicap_layout
-from gomill.settings import (
-    Setting, interpret_float, interpret_int, interpret_enum)
+from gomill import settings
 
 
 def log_to_stdout(s):
@@ -88,14 +87,6 @@ def game_jobs_player_from_config(player_config):
         raise ValueError("%s not specified" % e)
     return player
 
-def interpret_board_size(i):
-    i = interpret_int(i)
-    if i < 2:
-        raise ValueError("too small")
-    if i > 25:
-        raise ValueError("too large")
-    return i
-
 class Competition(object):
     """A resumable processing job based around playing many GTP games.
 
@@ -119,11 +110,8 @@ class Competition(object):
     def log_history(self, s):
         self.history_logger(s)
 
-    settings = [
-        Setting('komi', interpret_float),
-        Setting('board_size', interpret_board_size),
-        Setting('move_limit', interpret_int),
-        ]
+    # List of Settings, for overriding in subclasses.
+    global_settings = []
 
     def initialise_from_control_file(self, config):
         """Initialise competition data from the control file.
@@ -132,11 +120,13 @@ class Competition(object):
 
         (When resuming from saved state, this is called before set_state()).
 
+        This processes all global_settings and sets attributes (named by the
+        setting names).
+
         """
-        # Ought to validate properly
         try:
             # Not supporting defaults yet
-            for setting in self.settings:
+            for setting in self.global_settings:
                 v = config[setting.name]
                 try:
                     v = setting.interpret(v)
@@ -144,7 +134,16 @@ class Competition(object):
                     raise ValueError("%s: %s" % (setting.name, e))
                 setattr(self, setting.name, v)
 
+            # ought to be Settings
             self.description = config['description']
+            self.use_internal_scorer = False
+            self.preferred_scorers = config.get('preferred_scorers')
+            if 'scorer' in config:
+                if config['scorer'] == "internal":
+                    self.use_internal_scorer = True
+                elif config['scorer'] != "players":
+                    raise ValueError("invalid 'scorer' value")
+
             self.players = {}
             for player_code, player_config in config['players'].items():
                 if not isinstance(player_config, Player_config):
@@ -156,13 +155,7 @@ class Competition(object):
                     raise ValueError("player %s: %s" % (player_code, e))
                 player.code = player_code
                 self.players[player_code] = player
-            self.use_internal_scorer = False
-            self.preferred_scorers = config.get('preferred_scorers')
-            if 'scorer' in config:
-                if config['scorer'] == "internal":
-                    self.use_internal_scorer = True
-                elif config['scorer'] != "players":
-                    raise ValueError("invalid 'scorer' value")
+
         except KeyError, e:
             raise ValueError("%s not specified" % e)
 
@@ -269,6 +262,17 @@ class Competition(object):
 
         """
         raise NotImplementedError
+
+
+## Helper functions for settings
+
+def interpret_board_size(i):
+    i = settings.interpret_int(i)
+    if i < 2:
+        raise ValueError("too small")
+    if i > 25:
+        raise ValueError("too large")
+    return i
 
 def validate_handicap(handicap, handicap_style, board_size):
     """Check whether a handicap is allowed.

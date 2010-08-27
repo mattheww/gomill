@@ -7,9 +7,11 @@ from math import sqrt
 
 from gomill import compact_tracebacks
 from gomill import game_jobs
+from gomill import competitions
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError,
     Player_config, game_jobs_player_from_config)
+from gomill.settings import *
 
 
 def square(f):
@@ -83,6 +85,12 @@ class Cem_tuner(Competition):
     """A Competition for parameter tuning using the cross-entropy method."""
     def __init__(self, competition_code):
         Competition.__init__(self, competition_code)
+
+    global_settings = [
+        Setting('komi', interpret_float),
+        Setting('board_size', competitions.interpret_board_size),
+        Setting('move_limit', interpret_int),
+        ]
 
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)

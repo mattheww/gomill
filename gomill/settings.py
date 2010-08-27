@@ -1,5 +1,6 @@
 """Support for describing configurable values."""
 
+__all__ = ['Setting', 'interpret_float', 'interpret_int', 'interpret_enum']
 
 def interpret_enum(*values):
     def interpreter(value):

@@ -8,9 +8,11 @@ from math import log, sqrt
 
 from gomill import compact_tracebacks
 from gomill import game_jobs
+from gomill import competitions
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError,
     Player_config, game_jobs_player_from_config)
+from gomill.settings import *
 
 
 class Node(object):
@@ -251,6 +253,12 @@ class Mcts_tuner(Competition):
         # These are only for the sake of display
         self.last_simulation = None
         self.won_last_game = False
+
+    global_settings = [
+        Setting('komi', interpret_float),
+        Setting('board_size', competitions.interpret_board_size),
+        Setting('move_limit', interpret_int),
+        ]
 
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
