@@ -4,6 +4,21 @@ This follows the rules from the GTP spec.
 
 """
 
+def max_free_handicap_for_board_size(board_size):
+    """Return the maximum number of stones for place_free_handicap command."""
+    return board_size * board_size - 1
+
+def max_fixed_handicap_for_board_size(board_size):
+    """Return the maximum number of stones for fixed_handicap command."""
+    if board_size <= 7:
+        return 0
+    if board_size > 25:
+        raise ValueError
+    if board_size % 2 == 0 or board_size == 7:
+        return 4
+    else:
+        return 9
+
 handicap_pattern = [
     ['00', '22'],
     ['00', '22', '20'],
@@ -24,16 +39,8 @@ def handicap_points(number_of_stones, board_size):
     number of handicap stones and board size.
 
     """
-    if not 7 <= board_size <= 25:
+    if number_of_stones > max_fixed_handicap_for_board_size(board_size):
         raise ValueError
-    if number_of_stones <= 1:
-        raise ValueError
-    if board_size % 2 == 0 or board_size == 7:
-        if number_of_stones > 4:
-            raise ValueError
-    else:
-        if number_of_stones > 9:
-            raise ValueError
     if board_size < 13:
         altitude = 2
     else:
@@ -43,8 +50,3 @@ def handicap_points(number_of_stones, board_size):
            '2' : board_size - altitude - 1}
     return [(pos[s[0]], pos[s[1]])
             for s in handicap_pattern[number_of_stones-2]]
-
-def max_free_handicap_for_board_size(board_size):
-    """Return the maximum number of stones for place_free_handicap command."""
-    return board_size * board_size - 1
-

@@ -5,6 +5,7 @@ import shlex
 import sys
 
 from gomill import game_jobs
+from gomill import handicap_layout
 
 
 def log_to_stdout(s):
@@ -247,3 +248,28 @@ class Competition(object):
         """
         raise NotImplementedError
 
+def validate_handicap(handicap, handicap_style, board_size):
+    """Check whether a handicap is allowed.
+
+    handicap       -- int or None
+    handicap_style -- 'free' or 'fixed'
+    board_size     -- int
+
+    Raises ValueError with a description if it isn't.
+
+    """
+    if handicap is None:
+        return True
+    if handicap < 2:
+        raise ValueError("handicap too small")
+    if handicap_style == 'fixed':
+        try:
+            handicap_layout.handicap_points(handicap, board_size)
+        except ValueError:
+            raise ValueError("fixed handicap out of range for board size %d"
+                             % board_size)
+    else:
+        if handicap > \
+            handicap_layout.max_free_handicap_for_board_size(board_size):
+            raise ValueError("free handicap too large for board size %d"
+                             % board_size)

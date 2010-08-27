@@ -5,6 +5,7 @@ from __future__ import division
 from collections import defaultdict
 
 from gomill import game_jobs
+from gomill import competitions
 from gomill.competitions import Competition, NoGameAvailable, Matchup_config
 
 
@@ -53,18 +54,10 @@ class Tournament(Competition):
         matchup.handicap_style = kwargs.get('handicap_style', 'fixed')
         if matchup.handicap_style not in ('fixed', 'free'):
             raise ValueError("invalid handicap style")
-        handicap = kwargs.get('handicap')
-        if handicap is not None:
-            if not isinstance(handicap, int) or isinstance(handicap, long):
-                raise ValueError("invalid handicap")
-            if not 2 <= handicap:
-                raise ValueError("handicap too small")
-            # FIXME: should depend on board size:
-            if matchup.handicap_style == 'fixed' and handicap > 9:
-                raise ValueError("fixed handicap too large")
-            matchup.handicap = handicap
-        else:
-            matchup.handicap = None
+        matchup.handicap = kwargs.get('handicap')
+        # FIXME: Use matchup board size once it's configurable
+        competitions.validate_handicap(
+            matchup.handicap, matchup.handicap_style, self.board_size)
 
         desc = kwargs.get('description')
         if desc is None:
