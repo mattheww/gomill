@@ -1,8 +1,11 @@
 """Support for describing configurable values."""
 
+import re
+
 __all__ = ['Setting', 'allow_none',
            'interpret_bool', 'interpret_int', 'interpret_positive_int',
-           'interpret_float', 'interpret_as_utf8', 'interpret_enum']
+           'interpret_float', 'interpret_as_utf8',
+           'interpret_identifier', 'interpret_enum']
 
 def interpret_bool(b):
     if b is not True and b is not False:
@@ -40,6 +43,22 @@ def interpret_as_utf8(s):
     if s is None:
         return ""
     raise ValueError("invalid string")
+
+_identifier_re = re.compile(r"\A[-!#$%&*+-./:;<=>?^_~a-zA-Z0-9]*\Z")
+
+def interpret_identifier(s):
+    if isinstance(s, unicode):
+        try:
+            s = s.encode("ascii")
+        except UnicodeEncodeError:
+            raise ValueError("contains forbidden character")
+    elif not isinstance(s, str):
+        raise ValueError("not a string")
+    if not s:
+        raise ValueError("empty string")
+    if not _identifier_re.search(s):
+        raise ValueError("contains forbidden character")
+    return s
 
 def interpret_enum(*values):
     def interpreter(value):

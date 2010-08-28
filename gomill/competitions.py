@@ -171,8 +171,18 @@ class Competition(object):
                 player_items = config_players.items()
             except StandardError:
                 raise ControlFileError("'players': not a dictionary")
-            # FIXME: Validate player codes (before trying to sort)
+            # pre-check player codes before trying to sort them, just in case
+            for player_code, _ in player_items:
+                if not isinstance(player_code, basestring):
+                    raise ControlFileError("'players': bad code (not a string)")
             for player_code, player_config in sorted(player_items):
+                try:
+                    player_code = settings.interpret_identifier(player_code)
+                except ValueError, e:
+                    if isinstance(player_code, unicode):
+                        player_code = player_code.encode("ascii", "replace")
+                    raise ControlFileError(
+                        "'players': bad code (%s): %s" % (e, player_code))
                 if not isinstance(player_config, Player_config):
                     raise ControlFileError("player %s is %r, not a Player" %
                                            (player_code, player_config))
