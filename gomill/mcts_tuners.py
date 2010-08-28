@@ -266,19 +266,39 @@ class Mcts_tuner(Competition):
                 default='players'),
         ]
 
+    # These are used to instantiate Tree; they don't turn into Mcts_tuner
+    # attributes.
+    tree_settings = [
+        Setting('dimensions', interpret_positive_int),
+        Setting('branching_factor', interpret_positive_int),
+        Setting('max_depth', interpret_positive_int),
+        Setting('exploration_coefficient', interpret_float),
+        Setting('initial_visits', interpret_positive_int),
+        Setting('initial_wins', interpret_positive_int),
+        ]
+
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
 
         competitions.validate_handicap(
             self.handicap, self.handicap_style, self.board_size)
 
-        # Ought to validate properly
-        dimensions = config['dimensions']
-        branching_factor = config['branching_factor']
-        max_depth = config['max_depth']
-        exploration_coefficient = config['exploration_coefficient']
-        initial_visits = config['initial_visits']
-        initial_wins = config['initial_wins']
+        tree_arguments = {}
+        for setting in self.tree_settings:
+            try:
+                v = config[setting.name]
+            except KeyError:
+                if setting.has_default:
+                    v = setting.default
+                else:
+                    raise ControlFileError("'%s' not specified" % setting.name)
+            else:
+                try:
+                    v = setting.interpret(v)
+                except ValueError, e:
+                    raise ControlFileError(str(e))
+            tree_arguments[setting.name] = v
+
         self.number_of_games = config.get('number_of_games')
         try:
             self.log_after_games = config['log_after_games']
@@ -301,10 +321,8 @@ class Mcts_tuner(Competition):
             raise ControlFileError("invalid candidate_colour: %r" %
                                    self.candidate_colour)
 
-        self.tree = Tree(dimensions, branching_factor, max_depth,
-                         exploration_coefficient,
-                         initial_visits, initial_wins,
-                         self.format_parameters)
+        tree_arguments['parameter_formatter'] = self.format_parameters
+        self.tree = Tree(**tree_arguments)
 
     def format_parameters(self, optimiser_parameters):
         try:
