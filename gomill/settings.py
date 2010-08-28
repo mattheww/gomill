@@ -3,9 +3,13 @@
 import re
 
 __all__ = ['Setting', 'allow_none', 'load_settings',
-           'interpret_bool', 'interpret_int', 'interpret_positive_int',
-           'interpret_float', 'interpret_as_utf8',
-           'interpret_identifier', 'interpret_colour', 'interpret_enum']
+           'interpret_any', 'interpret_bool',
+           'interpret_int', 'interpret_positive_int', 'interpret_float',
+           'interpret_as_utf8', 'interpret_identifier',
+           'interpret_colour', 'interpret_enum']
+
+def interpret_any(v):
+    return v
 
 def interpret_bool(b):
     if b is not True and b is not False:
