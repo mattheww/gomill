@@ -336,7 +336,8 @@ class Gtp_controller_protocol(object):
                 return argument.encode("utf-8")
             else:
                 return argument
-        channel.send_command(command, map(fix_argument, arguments))
+        channel.send_command(fix_argument(command),
+                             map(fix_argument, arguments))
         is_error, response = channel.get_response()
         if is_error:
             raise GtpEngineError(response)
