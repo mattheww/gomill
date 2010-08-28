@@ -267,6 +267,9 @@ class Mcts_tuner(Competition):
         Setting('number_of_games', allow_none(interpret_int), default=None),
         Setting('candidate_colour', interpret_colour),
         Setting('log_after_games', interpret_positive_int, default=8),
+        ]
+
+    special_settings = [
         Setting('opponent', interpret_any),
         ]
 
@@ -284,10 +287,15 @@ class Mcts_tuner(Competition):
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
 
-        if self.opponent not in self.players:
+        try:
+            specials = load_settings(self.special_settings, config)
+        except ValueError, e:
+            raise ControlFileError(str(e))
+
+        if specials['opponent'] not in self.players:
             raise ControlFileError(
-                "opponent: unknown player %s" % self.opponent)
-        self.opponent = self.players[self.opponent]
+                "opponent: unknown player %s" % specials['opponent'])
+        self.opponent = self.players[specials['opponent']]
 
         competitions.validate_handicap(
             self.handicap, self.handicap_style, self.board_size)
