@@ -38,6 +38,8 @@ class Matchup_config(object):
         self.args = args
         self.kwargs = kwargs
 
+# We provide the same globals to all tournament files, because until we've
+# exec'd it we don't know what type of competition we've got.
 control_file_globals = {
     'Player' : Player_config,
     'Matchup' : Matchup_config,
