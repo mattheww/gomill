@@ -53,7 +53,7 @@ class Tournament(Competition):
         Matchup_setting('handicap', allow_none(interpret_int), default=None),
         Matchup_setting('handicap_style', interpret_enum('fixed', 'free'),
                         default='fixed'),
-        Matchup_setting('move_limit', interpret_int, default=1000),
+        Matchup_setting('move_limit', interpret_positive_int, default=1000),
         Matchup_setting('scorer', interpret_enum('internal', 'players'),
                         default='players'),
         ]

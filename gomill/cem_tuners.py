@@ -92,7 +92,7 @@ class Cem_tuner(Competition):
         Setting('handicap', allow_none(interpret_int), default=None),
         Setting('handicap_style', interpret_enum('fixed', 'free'),
                 default='fixed'),
-        Setting('move_limit', interpret_int, default=1000),
+        Setting('move_limit', interpret_positive_int, default=1000),
         Setting('description', interpret_as_utf8, default=""),
         Setting('scorer', interpret_enum('internal', 'players'),
                 default='players'),
