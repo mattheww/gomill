@@ -91,6 +91,9 @@ class Game(object):
    GtpProtocolError (eg if the engine has gone away), or GtpEngineError if the
    engine returns an error response.
 
+
+   This doesn't enforce any ko rule.
+
    """
 
     def __init__(self, players, commands, board_size, komi, move_limit):
