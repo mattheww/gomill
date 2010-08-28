@@ -46,7 +46,8 @@ control_file_globals = {
 def game_jobs_player_from_config(player_config):
     """Make a game_jobs.Player from a Player_config.
 
-    Raises ValueError if there is an error in the configuration.
+    Raises ValueError with a description if there is an error in the
+    configuration.
 
     Returns a game_jobs.Player with all required attributes set except 'code'.
 
@@ -123,22 +124,35 @@ class Competition(object):
         This processes all global_settings and sets attributes (named by the
         setting names).
 
-        """
-        try:
-            for setting in self.global_settings:
-                try:
-                    v = config[setting.name]
-                except KeyError:
-                    if setting.has_default:
-                        v = setting.default
-                    else:
-                        raise
-                else:
-                    v = setting.interpret(v)
-                setattr(self, setting.name, v)
+        It also handles the following settings and sets the corresponding
+        attributes:
+          players
+          preferred_scorers
 
+        Raises ValueError with a description if the control file has a bad or
+        missing value.
+
+        """
+        for setting in self.global_settings:
+            try:
+                v = config[setting.name]
+            except KeyError:
+                if setting.has_default:
+                    v = setting.default
+                else:
+                    raise ValueError("'%s' not specified" % setting.name)
+            else:
+                v = setting.interpret(v)
+            setattr(self, setting.name, v)
+
+        try:
             self.players = {}
-            for player_code, player_config in config['players'].items():
+            try:
+                player_items = config['players'].items()
+            except StandardError:
+                raise ValueError("'players': not a dictionary")
+            # FIXME: Validate player codes (before trying to sort)
+            for player_code, player_config in sorted(player_items):
                 if not isinstance(player_config, Player_config):
                     raise ValueError("player %s is %r, not a Player" %
                                      (player_code, player_config))
