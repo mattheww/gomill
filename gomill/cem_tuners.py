@@ -345,11 +345,11 @@ class Cem_tuner(Competition):
     def write_static_description(self, out):
         def p(s):
             print >>out, s
-        p("tuning event: %s" % self.competition_code)
+        p("CEM tuning event: %s" % self.competition_code)
         p(self.description)
         p("board size: %s" % self.board_size)
         p("komi: %s" % self.komi)
-        # FIXME: Should describe the matchups?
+        # FIXME: Should describe the matchup?
 
     def write_status_summary(self, out):
         if self.round == self.batch_size:
