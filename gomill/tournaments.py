@@ -18,8 +18,8 @@ class Matchup(object):
       p2             -- player code
       alternating    -- bool
       name           -- shortish string to show in reports
-      handicap       -- int or None
-      handicap_style -- 'fixed' or 'free'
+
+    All Tournament matchup_settings are also available as attributes.
 
     If alternating is False, p1 plays black and p2 plays white; otherwise they
     alternate.
@@ -49,6 +49,9 @@ class Tournament(Competition):
     matchup_settings = [
         Matchup_setting('board_size', competitions.interpret_board_size),
         Matchup_setting('komi', interpret_float),
+        Matchup_setting('handicap', allow_none(interpret_int), default=None),
+        Matchup_setting('handicap_style', interpret_enum('fixed', 'free'),
+                        default='fixed'),
         Matchup_setting('move_limit', interpret_int, default=1000),
         Matchup_setting('scorer', interpret_enum('internal', 'players'),
                         default='players'),
@@ -70,8 +73,7 @@ class Tournament(Competition):
         kwargs = matchup_config.kwargs
         matchup = Matchup()
         argument_names = set(setting.name for setting in self.matchup_settings)
-        argument_names.update(('alternating', 'name',
-                                'handicap', 'handicap_style'))
+        argument_names.update(('alternating', 'name'))
         for key in kwargs:
             if key not in argument_names:
                 raise ValueError("unknown argument '%s'" % key)
@@ -92,10 +94,6 @@ class Tournament(Competition):
 
         matchup.alternating = kwargs.get('alternating', False)
 
-        matchup.handicap_style = kwargs.get('handicap_style', 'fixed')
-        if matchup.handicap_style not in ('fixed', 'free'):
-            raise ValueError("invalid handicap style")
-        matchup.handicap = kwargs.get('handicap')
         competitions.validate_handicap(
             matchup.handicap, matchup.handicap_style, matchup.board_size)
 
@@ -115,6 +113,16 @@ class Tournament(Competition):
 
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
+
+        # Check default handicap settings when possible, for friendlier error
+        # reporting (would be caught in the matchup anyway).
+        if self.board_size is not _required_in_matchup:
+            try:
+                competitions.validate_handicap(
+                    self.handicap, self.handicap_style, self.board_size)
+            except ValueError, e:
+                raise ValueError("default %s" % e)
+
         # Ought to validate.
         self.number_of_games = config.get('number_of_games')
 
@@ -187,7 +195,7 @@ class Tournament(Competition):
         job.komi = matchup.komi
         job.move_limit = matchup.move_limit
         job.handicap = matchup.handicap
-        job.handicap_is_free = (matchup.handicap_style=='free')
+        job.handicap_is_free = (matchup.handicap_style == 'free')
         job.use_internal_scorer = (matchup.scorer == 'internal')
         job.preferred_scorers = self.preferred_scorers
         job.sgf_event = self.competition_code

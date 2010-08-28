@@ -1,6 +1,7 @@
 """Support for describing configurable values."""
 
-__all__ = ['Setting', 'interpret_int', 'interpret_float',
+__all__ = ['Setting', 'allow_none',
+           'interpret_int', 'interpret_float',
            'interpret_as_utf8', 'interpret_enum']
 
 def interpret_int(i):
@@ -34,6 +35,13 @@ def interpret_enum(*values):
             raise ValueError("unknown value")
         return value
     return interpreter
+
+def allow_none(fn):
+    def sub(v):
+        if v is None:
+            return None
+        return fn(v)
+    return sub
 
 _nodefault = object()
 
