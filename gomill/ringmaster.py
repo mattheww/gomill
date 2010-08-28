@@ -17,6 +17,7 @@ from gomill import compact_tracebacks
 from gomill import game_jobs
 from gomill import gtp_games
 from gomill import job_manager
+from gomill.settings import *
 from gomill.competitions import (
     NoGameAvailable, CompetitionError, ControlFileError, control_file_globals)
 
@@ -129,6 +130,9 @@ class Ringmaster(object):
             self.initialise_from_control_file(config)
         except ControlFileError, e:
             raise RingmasterError("error in control file:\n%s" % e)
+        except StandardError, e:
+            raise RingmasterError("unhandled error in control file:\n%s" %
+                                  compact_tracebacks.format_traceback(skip=1))
 
         try:
             competition_class = get_competition_class(
@@ -180,11 +184,25 @@ class Ringmaster(object):
         except EnvironmentError, e:
             raise RingmasterError("error closing history file:\n%s" % e)
 
+    ringmaster_settings = [
+        Setting('record_games', interpret_bool, False),
+        ]
+
     def initialise_from_control_file(self, config):
-        try:
-            self.record_games = config['record_games']
-        except KeyError, e:
-            raise ControlFileError("%s not specified" % e)
+        for setting in self.ringmaster_settings:
+            try:
+                v = config[setting.name]
+            except KeyError:
+                if setting.has_default:
+                    v = setting.default
+                else:
+                    raise ControlFileError("'%s' not specified" % setting.name)
+            else:
+                try:
+                    v = setting.interpret(v)
+                except ValueError, e:
+                    raise ControlFileError(str(e))
+            setattr(self, setting.name, v)
 
     def set_quiet_mode(self, b=True):
         self.chatty = not(b)
