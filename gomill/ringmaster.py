@@ -130,8 +130,11 @@ class Ringmaster(object):
         except ControlFileError, e:
             raise RingmasterError("error in control file:\n%s" % e)
 
-        competition_class = get_competition_class(
-            config.get("competition_type"))
+        try:
+            competition_class = get_competition_class(
+                config.get("competition_type"))
+        except ValueError:
+            raise RingmasterError("competition_type: unknown value")
         self.competition = competition_class(self.competition_code)
         self.competition.set_logger(self.log)
         self.competition.set_history_logger(self.log_history)
