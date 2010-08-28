@@ -27,7 +27,10 @@ class Matchup(object):
     """
 
 
-_required_in_matchup = object()
+class _Required_in_matchup(object):
+    def __str__(self):
+        return "(no global default)"
+_required_in_matchup = _Required_in_matchup()
 
 class Matchup_setting(Setting):
     # Treat 'default' as a keyword-only argument
@@ -35,6 +38,7 @@ class Matchup_setting(Setting):
         if 'default' not in kwargs:
             kwargs['default'] = _required_in_matchup
         Setting.__init__(self, *args, **kwargs)
+
 
 class Tournament(Competition):
     """A Competition made up of repeated matchups between specified players."""
