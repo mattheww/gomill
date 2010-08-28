@@ -33,7 +33,7 @@ class Tournament(Competition):
     matchup_settings = [
         Setting('komi', interpret_float),
         Setting('board_size', competitions.interpret_board_size),
-        Setting('move_limit', interpret_int),
+        Setting('move_limit', interpret_int, default=1000),
         ]
 
     global_settings = matchup_settings[:]
@@ -65,8 +65,6 @@ class Tournament(Competition):
             if setting.name in kwargs:
                 v = setting.interpret(kwargs[setting.name])
             else:
-                # At the moment, requiring all matchup_settings to be specified
-                # in the global part of the .tourn file.
                 v = getattr(self, setting.name)
             setattr(matchup, setting.name, v)
 

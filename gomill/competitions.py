@@ -125,9 +125,16 @@ class Competition(object):
 
         """
         try:
-            # Not supporting defaults yet
             for setting in self.global_settings:
-                v = setting.interpret(config[setting.name])
+                try:
+                    v = config[setting.name]
+                except KeyError:
+                    if setting.has_default:
+                        v = setting.default
+                    else:
+                        raise
+                else:
+                    v = setting.interpret(v)
                 setattr(self, setting.name, v)
 
             # ought to be Settings

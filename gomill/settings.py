@@ -22,6 +22,8 @@ def interpret_float(f):
     raise ValueError("invalid float")
 
 
+_nodefault = object()
+
 class Setting(object):
     """Describe a single setting.
 
@@ -31,10 +33,15 @@ class Setting(object):
       default value (optional)
 
     """
-    def __init__(self, name, interpreter, default=None):
+    def __init__(self, name, interpreter, default=_nodefault):
         self.name = name
         self.interpreter = interpreter
-        self.default = default
+        if default is _nodefault:
+            self.has_default = False
+            self.default = None
+        else:
+            self.has_default = True
+            self.default = default
 
     def interpret(self, value):
         """Validate the value and normalise if necessary.

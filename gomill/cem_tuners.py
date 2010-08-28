@@ -89,7 +89,7 @@ class Cem_tuner(Competition):
     global_settings = [
         Setting('komi', interpret_float),
         Setting('board_size', competitions.interpret_board_size),
-        Setting('move_limit', interpret_int),
+        Setting('move_limit', interpret_int, default=1000),
         ]
 
     def initialise_from_control_file(self, config):
