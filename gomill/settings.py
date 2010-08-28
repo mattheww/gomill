@@ -6,7 +6,7 @@ __all__ = ['Setting', 'allow_none', 'load_settings',
            'interpret_any', 'interpret_bool',
            'interpret_int', 'interpret_positive_int', 'interpret_float',
            'interpret_as_utf8', 'interpret_identifier',
-           'interpret_colour', 'interpret_enum']
+           'interpret_colour', 'interpret_enum', 'interpret_callable']
 
 def interpret_any(v):
     return v
@@ -85,6 +85,11 @@ def interpret_enum(*values):
             raise ValueError("unknown value")
         return value
     return interpreter
+
+def interpret_callable(c):
+    if not callable(c):
+        raise ValueError("invalid callable")
+    return c
 
 def allow_none(fn):
     def sub(v):

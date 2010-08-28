@@ -271,6 +271,10 @@ class Mcts_tuner(Competition):
 
     special_settings = [
         Setting('opponent', interpret_any),
+        Setting('convert_optimiser_parameters_to_engine_parameters',
+                interpret_callable),
+        Setting('format_parameters', interpret_callable),
+        Setting('make_candidate', interpret_callable),
         ]
 
     # These are used to instantiate Tree; they don't turn into Mcts_tuner
@@ -287,6 +291,9 @@ class Mcts_tuner(Competition):
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
 
+        competitions.validate_handicap(
+            self.handicap, self.handicap_style, self.board_size)
+
         try:
             specials = load_settings(self.special_settings, config)
         except ValueError, e:
@@ -297,22 +304,15 @@ class Mcts_tuner(Competition):
                 "opponent: unknown player %s" % specials['opponent'])
         self.opponent = self.players[specials['opponent']]
 
-        competitions.validate_handicap(
-            self.handicap, self.handicap_style, self.board_size)
+        self.translate_parameters_fn = \
+            specials['convert_optimiser_parameters_to_engine_parameters']
+        self.format_parameters_fn = specials['format_parameters']
+        self.candidate_maker_fn = specials['make_candidate']
 
         try:
             tree_arguments = load_settings(self.tree_settings, config)
         except ValueError, e:
             raise ControlFileError(str(e))
-
-        try:
-            self.translate_parameters_fn = \
-                config['convert_optimiser_parameters_to_engine_parameters']
-            self.format_parameters_fn = config['format_parameters']
-            self.candidate_maker_fn = config['make_candidate']
-        except KeyError, e:
-            raise ControlFileError("%s not specified" % e)
-
         tree_arguments['parameter_formatter'] = self.format_parameters
         self.tree = Tree(**tree_arguments)
 
