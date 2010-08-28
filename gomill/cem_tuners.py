@@ -28,6 +28,8 @@ class Distribution(object):
     """
     def __init__(self, parameters):
         self.dimension = len(parameters)
+        if self.dimension == 0:
+            raise ValueError
         self.parameters = parameters
         self.gaussian_params = [(mean, sqrt(variance))
                                 for (mean, variance) in parameters]
@@ -96,6 +98,19 @@ class Cem_tuner(Competition):
         Setting('description', interpret_as_utf8, default=""),
         Setting('scorer', interpret_enum('internal', 'players'),
                 default='players'),
+        Setting('batch_size', interpret_positive_int),
+        Setting('samples_per_generation', interpret_positive_int),
+        Setting('number_of_generations', interpret_positive_int),
+        Setting('elite_proportion', interpret_float),
+        Setting('step_size', interpret_float),
+        ]
+
+    special_settings = [
+        Setting('initial_distribution', interpret_any),
+        Setting('convert_optimiser_parameters_to_engine_parameters',
+                interpret_callable),
+        Setting('format_parameters', interpret_callable),
+        Setting('make_candidate', interpret_callable),
         ]
 
     def initialise_from_control_file(self, config):
@@ -104,18 +119,28 @@ class Cem_tuner(Competition):
         competitions.validate_handicap(
             self.handicap, self.handicap_style, self.board_size)
 
+        if not 0.0 < self.elite_proportion < 1.0:
+            raise ControlFileError("elite_proportion out of range (0.0 to 1.0)")
+        if not 0.0 < self.step_size < 1.0:
+            raise ControlFileError("step_size out of range (0.0 to 1.0)")
+
         try:
-            self.batch_size = config['batch_size']
-            self.samples_per_generation = config['samples_per_generation']
-            self.number_of_generations = config['number_of_generations']
-            self.elite_proportion = config['elite_proportion']
-            self.step_size = config['step_size']
+            specials = load_settings(self.special_settings, config)
+        except ValueError, e:
+            raise ControlFileError(str(e))
+
+        try:
             self.initial_distribution = Distribution(
-                config['initial_distribution'])
-            self.translate_parameters_fn = \
-                config['convert_optimiser_parameters_to_engine_parameters']
-            self.format_parameters_fn = config['format_parameters']
-            self.candidate_maker_fn = config['make_candidate']
+                specials['initial_distribution'])
+        except StandardError:
+            raise ControlFileError("initial_distribution: invalid")
+
+        self.translate_parameters_fn = \
+            specials['convert_optimiser_parameters_to_engine_parameters']
+        self.format_parameters_fn = specials['format_parameters']
+        self.candidate_maker_fn = specials['make_candidate']
+
+        try:
             # FIXME: Proper CANDIDATE object or something.
             self.matchups = config['matchups']
             for p1, p2 in self.matchups:
