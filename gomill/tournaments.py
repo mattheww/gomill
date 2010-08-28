@@ -27,13 +27,22 @@ class Matchup(object):
     """
 
 
+_required_in_matchup = object()
+
+class Matchup_setting(Setting):
+    # Treat 'default' as a keyword-only argument
+    def __init__(self, *args, **kwargs):
+        if 'default' not in kwargs:
+            kwargs['default'] = _required_in_matchup
+        Setting.__init__(self, *args, **kwargs)
+
 class Tournament(Competition):
     """A Competition made up of repeated matchups between specified players."""
 
     matchup_settings = [
-        Setting('komi', interpret_float),
-        Setting('board_size', competitions.interpret_board_size),
-        Setting('move_limit', interpret_int, default=1000),
+        Matchup_setting('komi', interpret_float),
+        Matchup_setting('board_size', competitions.interpret_board_size),
+        Matchup_setting('move_limit', interpret_int, default=1000),
         ]
 
     global_settings = matchup_settings[:]
@@ -66,6 +75,8 @@ class Tournament(Competition):
                 v = setting.interpret(kwargs[setting.name])
             else:
                 v = getattr(self, setting.name)
+                if v is _required_in_matchup:
+                    raise ValueError("%s not specified" % setting.name)
             setattr(matchup, setting.name, v)
 
         matchup.alternating = kwargs.get('alternating', False)
