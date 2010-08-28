@@ -10,7 +10,7 @@ from gomill import game_jobs
 from gomill import competitions
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError, ControlFileError,
-    Player_config, game_jobs_player_from_config, candidate_token)
+    Player_config, game_jobs_player_from_config)
 from gomill.settings import *
 
 
@@ -106,12 +106,12 @@ class Cem_tuner(Competition):
         ]
 
     special_settings = [
+        Setting('opponent', interpret_any),
         Setting('initial_distribution', interpret_any),
         Setting('convert_optimiser_parameters_to_engine_parameters',
                 interpret_callable),
         Setting('format_parameters', interpret_callable),
         Setting('make_candidate', interpret_callable),
-        Setting('matchups', interpret_any),
         ]
 
     def initialise_from_control_file(self, config):
@@ -136,25 +136,16 @@ class Cem_tuner(Competition):
         except StandardError:
             raise ControlFileError("initial_distribution: invalid")
 
+        try:
+            self.opponent = self.players[specials['opponent']]
+        except KeyError:
+            raise ControlFileError(
+                "opponent: unknown player %s" % specials['opponent'])
+
         self.translate_parameters_fn = \
             specials['convert_optimiser_parameters_to_engine_parameters']
         self.format_parameters_fn = specials['format_parameters']
         self.candidate_maker_fn = specials['make_candidate']
-
-        for p1, p2 in specials['matchups']:
-            if p1 is candidate_token:
-                if p2 is candidate_token:
-                    raise ControlFileError("matchup with two CANDIDATEs")
-                other = p2
-            elif p2 is candidate_token:
-                other = p1
-            else:
-                raise ControlFileError("matchup without CANDIDATE")
-            if other not in self.players:
-                raise ControlFileError("unknown player %s" % other)
-        # FIXME: Later sort out rotating through; for now just use last
-        # matchup but have candidate always take black
-        self.opponent = other
 
     def format_parameters(self, optimiser_parameters):
         try:
@@ -323,7 +314,7 @@ class Cem_tuner(Competition):
         job = game_jobs.Game_job()
         job.game_id = game_id
         job.player_b = candidate
-        job.player_w = self.players[self.opponent]
+        job.player_w = self.opponent
         job.board_size = self.board_size
         job.komi = self.komi
         job.move_limit = self.move_limit

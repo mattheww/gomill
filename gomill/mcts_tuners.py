@@ -299,10 +299,11 @@ class Mcts_tuner(Competition):
         except ValueError, e:
             raise ControlFileError(str(e))
 
-        if specials['opponent'] not in self.players:
+        try:
+            self.opponent = self.players[specials['opponent']]
+        except KeyError:
             raise ControlFileError(
                 "opponent: unknown player %s" % specials['opponent'])
-        self.opponent = self.players[specials['opponent']]
 
         self.translate_parameters_fn = \
             specials['convert_optimiser_parameters_to_engine_parameters']
