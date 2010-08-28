@@ -104,7 +104,7 @@ class Tournament(Competition):
             name = "%s v %s" % (matchup.p1, matchup.p2)
             # FIXME [[
             name += " %dx%d" % (matchup.board_size, matchup.board_size)
-            name += " K%d" % matchup.komi
+            name += " K%s" % matchup.komi
             if matchup.handicap:
                 name += " H%d" % matchup.handicap
                 if matchup.handicap_style == 'free':
