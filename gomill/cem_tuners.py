@@ -10,7 +10,7 @@ from gomill import game_jobs
 from gomill import competitions
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError, ControlFileError,
-    Player_config, game_jobs_player_from_config)
+    Player_config, game_jobs_player_from_config, candidate_token)
 from gomill.settings import *
 
 
@@ -111,6 +111,7 @@ class Cem_tuner(Competition):
                 interpret_callable),
         Setting('format_parameters', interpret_callable),
         Setting('make_candidate', interpret_callable),
+        Setting('matchups', interpret_any),
         ]
 
     def initialise_from_control_file(self, config):
@@ -140,23 +141,20 @@ class Cem_tuner(Competition):
         self.format_parameters_fn = specials['format_parameters']
         self.candidate_maker_fn = specials['make_candidate']
 
-        try:
-            # FIXME: Proper CANDIDATE object or something.
-            self.matchups = config['matchups']
-            for p1, p2 in self.matchups:
-                if p1 == "CANDIDATE":
-                    other = p2
-                elif p2 == "CANDIDATE":
-                    other = p1
-                else:
-                    raise ControlFileError("matchup without CANDIDATE")
-                if other not in self.players:
-                    raise ControlFileError("unknown player %s" % other)
-            # FIXME: Later sort out rotating through; for now just use last
-            # matchup but have candidate always take black
-            self.opponent = other
-        except KeyError, e:
-            raise ControlFileError("%s not specified" % e)
+        for p1, p2 in specials['matchups']:
+            if p1 is candidate_token:
+                if p2 is candidate_token:
+                    raise ControlFileError("matchup with two CANDIDATEs")
+                other = p2
+            elif p2 is candidate_token:
+                other = p1
+            else:
+                raise ControlFileError("matchup without CANDIDATE")
+            if other not in self.players:
+                raise ControlFileError("unknown player %s" % other)
+        # FIXME: Later sort out rotating through; for now just use last
+        # matchup but have candidate always take black
+        self.opponent = other
 
     def format_parameters(self, optimiser_parameters):
         try:

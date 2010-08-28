@@ -29,6 +29,14 @@ class CompetitionError(StandardError):
 class ControlFileError(StandardError):
     """Error interpreting the control file."""
 
+class Control_file_token(object):
+    def __init__(self, name):
+        self.name = name
+    def __str__(self):
+        return "<%s>" % self.name
+
+candidate_token = Control_file_token("CANDIDATE")
+
 class Player_config(object):
     """Player description for use in tournament files."""
     def __init__(self, *args, **kwargs):
@@ -46,6 +54,7 @@ class Matchup_config(object):
 control_file_globals = {
     'Player' : Player_config,
     'Matchup' : Matchup_config,
+    'CANDIDATE' : candidate_token,
     }
 
 def game_jobs_player_from_config(player_config):
