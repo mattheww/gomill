@@ -1,8 +1,13 @@
 """Support for describing configurable values."""
 
 __all__ = ['Setting', 'allow_none',
-           'interpret_int', 'interpret_float',
+           'interpret_bool', 'interpret_int', 'interpret_float',
            'interpret_as_utf8', 'interpret_enum']
+
+def interpret_bool(b):
+    if b is not True and b is not False:
+        raise ValueError("invalid True/False value")
+    return b
 
 def interpret_int(i):
     if not isinstance(i, int) or isinstance(i, long):

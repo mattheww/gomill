@@ -16,7 +16,6 @@ class Matchup(object):
     Public attributes:
       p1             -- player code
       p2             -- player code
-      alternating    -- bool
       name           -- shortish string to show in reports
 
     All Tournament matchup_settings are also available as attributes.
@@ -49,6 +48,7 @@ class Tournament(Competition):
     matchup_settings = [
         Matchup_setting('board_size', competitions.interpret_board_size),
         Matchup_setting('komi', interpret_float),
+        Matchup_setting('alternating', interpret_bool, default=False),
         Matchup_setting('handicap', allow_none(interpret_int), default=None),
         Matchup_setting('handicap_style', interpret_enum('fixed', 'free'),
                         default='fixed'),
@@ -73,7 +73,7 @@ class Tournament(Competition):
         kwargs = matchup_config.kwargs
         matchup = Matchup()
         argument_names = set(setting.name for setting in self.matchup_settings)
-        argument_names.update(('alternating', 'name'))
+        argument_names.update(('name',))
         for key in kwargs:
             if key not in argument_names:
                 raise ValueError("unknown argument '%s'" % key)
@@ -91,8 +91,6 @@ class Tournament(Competition):
                 if v is _required_in_matchup:
                     raise ValueError("%s not specified" % setting.name)
             setattr(matchup, setting.name, v)
-
-        matchup.alternating = kwargs.get('alternating', False)
 
         competitions.validate_handicap(
             matchup.handicap, matchup.handicap_style, matchup.board_size)
