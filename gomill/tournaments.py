@@ -39,13 +39,17 @@ class Matchup_setting(Setting):
 class Tournament(Competition):
     """A Competition made up of repeated matchups between specified players."""
 
+    # These settings can be specified both globally and in matchups.
+    # The global values (stored as Tournament attributes) are defaults for the
+    # matchup values (stored as Matchup attributes).
     matchup_settings = [
-        Matchup_setting('komi', interpret_float),
         Matchup_setting('board_size', competitions.interpret_board_size),
+        Matchup_setting('komi', interpret_float),
         Matchup_setting('move_limit', interpret_int, default=1000),
         ]
 
-    global_settings = matchup_settings[:]
+    global_settings = matchup_settings + [
+        ]
 
     def matchup_from_config(self, matchup_config):
         """Make a Matchup from a Matchup_config.
