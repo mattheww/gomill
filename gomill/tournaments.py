@@ -59,6 +59,7 @@ class Tournament(Competition):
 
     global_settings = matchup_settings + [
         Setting('description', interpret_as_utf8, default=""),
+        Setting('number_of_games', interpret_int),
         ]
 
     def matchup_from_config(self, matchup_config):
@@ -120,9 +121,6 @@ class Tournament(Competition):
                     self.handicap, self.handicap_style, self.board_size)
             except ValueError, e:
                 raise ValueError("default %s" % e)
-
-        # Ought to validate.
-        self.number_of_games = config.get('number_of_games')
 
         self.matchups = []
         for i, matchup in enumerate(config['matchups']):
