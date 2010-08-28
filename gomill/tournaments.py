@@ -17,7 +17,7 @@ class Matchup(object):
       p1             -- player code
       p2             -- player code
       alternating    -- bool
-      description    -- shortish string to show in reports
+      name           -- shortish string to show in reports
       handicap       -- int or None
       handicap_style -- 'fixed' or 'free'
 
@@ -70,7 +70,7 @@ class Tournament(Competition):
         kwargs = matchup_config.kwargs
         matchup = Matchup()
         argument_names = set(setting.name for setting in self.matchup_settings)
-        argument_names.update(('alternating', 'description',
+        argument_names.update(('alternating', 'name',
                                 'handicap', 'handicap_style'))
         for key in kwargs:
             if key not in argument_names:
@@ -99,18 +99,18 @@ class Tournament(Competition):
         competitions.validate_handicap(
             matchup.handicap, matchup.handicap_style, matchup.board_size)
 
-        desc = kwargs.get('description')
-        if desc is None:
-            desc = "%s v %s" % (matchup.p1, matchup.p2)
+        name = kwargs.get('name')
+        if name is None:
+            name = "%s v %s" % (matchup.p1, matchup.p2)
             # FIXME [[
-            desc += " %dx%d" % (matchup.board_size, matchup.board_size)
-            desc += " K%d" % matchup.komi
+            name += " %dx%d" % (matchup.board_size, matchup.board_size)
+            name += " K%d" % matchup.komi
             if matchup.handicap:
-                desc += " H%d" % matchup.handicap
+                name += " H%d" % matchup.handicap
                 if matchup.handicap_style == 'free':
-                    desc += "free"
+                    name += "free"
             # ]]
-        matchup.description = desc
+        matchup.name = name
         return matchup
 
     def initialise_from_control_file(self, config):
@@ -272,7 +272,7 @@ class Tournament(Competition):
         else:
             y_avg_time_s = "----"
 
-        p("%s (%d games)" % (matchup.description, total))
+        p("%s (%d games)" % (matchup.name, total))
         def pct(n, baseline):
             if baseline == 0:
                 if n == 0:
