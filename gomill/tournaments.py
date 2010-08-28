@@ -53,6 +53,7 @@ class Tournament(Competition):
         ]
 
     global_settings = matchup_settings + [
+        Setting('description', interpret_as_utf8, default=""),
         ]
 
     def matchup_from_config(self, matchup_config):

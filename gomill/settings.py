@@ -1,13 +1,7 @@
 """Support for describing configurable values."""
 
-__all__ = ['Setting', 'interpret_float', 'interpret_int', 'interpret_enum']
-
-def interpret_enum(*values):
-    def interpreter(value):
-        if value not in values:
-            raise ValueError("unknown value")
-        return value
-    return interpreter
+__all__ = ['Setting', 'interpret_int', 'interpret_float',
+           'interpret_as_utf8', 'interpret_enum']
 
 def interpret_int(i):
     if not isinstance(i, int) or isinstance(i, long):
@@ -21,6 +15,25 @@ def interpret_float(f):
         return float(f)
     raise ValueError("invalid float")
 
+def interpret_as_utf8(s):
+    if isinstance(s, str):
+        try:
+            s.decode("utf-8")
+        except UnicodeDecodeError:
+            raise ValueError("not a valid utf-8 string")
+        return s
+    if isinstance(s, unicode):
+        return s.encode("utf-8")
+    if s is None:
+        return ""
+    raise ValueError("invalid string")
+
+def interpret_enum(*values):
+    def interpreter(value):
+        if value not in values:
+            raise ValueError("unknown value")
+        return value
+    return interpreter
 
 _nodefault = object()
 

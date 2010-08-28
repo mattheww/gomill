@@ -138,7 +138,6 @@ class Competition(object):
                 setattr(self, setting.name, v)
 
             # ought to be Settings
-            self.description = config['description']
             self.use_internal_scorer = False
             self.preferred_scorers = config.get('preferred_scorers')
             if 'scorer' in config:
