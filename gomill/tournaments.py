@@ -71,6 +71,9 @@ class Tournament(Competition):
         Returns a Matchup with all attributes set.
 
         """
+        if not isinstance(matchup_config, Matchup_config):
+            raise ControlFileError("not a Matchup")
+
         args = matchup_config.args
         kwargs = matchup_config.kwargs
         matchup = Matchup()
@@ -84,6 +87,11 @@ class Tournament(Competition):
         if len(args) < 2:
             raise ControlFileError("not enough arguments")
         matchup.p1, matchup.p2 = args
+
+        if matchup.p1 not in self.players:
+            raise ControlFileError("unknown player %s" % matchup.p1)
+        if matchup.p2 not in self.players:
+            raise ControlFileError("unknown player %s" % matchup.p2)
 
         for setting in self.matchup_settings:
             if setting.name in kwargs:
@@ -140,15 +148,8 @@ class Tournament(Competition):
 
             self.matchups = []
             for i, matchup in enumerate(config_matchups):
-                if not isinstance(matchup, Matchup_config):
-                    raise ControlFileError(
-                        "matchup entry %d is not a Matchup" % i)
                 try:
                     m = self.matchup_from_config(matchup)
-                    if m.p1 not in self.players:
-                        raise ControlFileError("unknown player %s" % m.p1)
-                    if m.p2 not in self.players:
-                        raise ControlFileError("unknown player %s" % m.p2)
                 except StandardError, e:
                     raise ControlFileError("matchup entry %d: %s" % (i, e))
                 m.id = i
