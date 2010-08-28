@@ -176,9 +176,9 @@ class Tournament(Competition):
         job.game_id = str(game_number)
         job.player_b = self.players[player_b]
         job.player_w = self.players[player_w]
-        job.board_size = self.board_size
-        job.komi = self.komi
-        job.move_limit = self.move_limit
+        job.board_size = matchup.board_size
+        job.komi = matchup.komi
+        job.move_limit = matchup.move_limit
         job.handicap = matchup.handicap
         job.handicap_is_free = (matchup.handicap_style=='free')
         job.use_internal_scorer = self.use_internal_scorer
