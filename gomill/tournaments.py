@@ -122,8 +122,19 @@ class Tournament(Competition):
             except ValueError, e:
                 raise ValueError("default %s" % e)
 
+        try:
+            config_matchups = config['matchups']
+        except KeyError, e:
+            raise ValueError("%s not specified" % e)
+        try:
+            config_matchups = list(config_matchups)
+        except StandardError:
+            raise ValueError("'matchups': not a list")
+        if not config_matchups:
+            raise ValueError("no matchups specified")
+
         self.matchups = []
-        for i, matchup in enumerate(config['matchups']):
+        for i, matchup in enumerate(config_matchups):
             if not isinstance(matchup, Matchup_config):
                 raise ValueError("matchup entry %d is not a Matchup" % i)
             try:
