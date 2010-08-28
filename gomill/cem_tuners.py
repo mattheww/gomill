@@ -9,7 +9,7 @@ from gomill import compact_tracebacks
 from gomill import game_jobs
 from gomill import competitions
 from gomill.competitions import (
-    Competition, NoGameAvailable, CompetitionError,
+    Competition, NoGameAvailable, CompetitionError, ControlFileError,
     Player_config, game_jobs_player_from_config)
 from gomill.settings import *
 
@@ -124,14 +124,14 @@ class Cem_tuner(Competition):
                 elif p2 == "CANDIDATE":
                     other = p1
                 else:
-                    raise ValueError("matchup without CANDIDATE")
+                    raise ControlFileError("matchup without CANDIDATE")
                 if other not in self.players:
-                    raise ValueError("unknown player %s" % other)
+                    raise ControlFileError("unknown player %s" % other)
             # FIXME: Later sort out rotating through; for now just use last
             # matchup but have candidate always take black
             self.opponent = other
         except KeyError, e:
-            raise ValueError("%s not specified" % e)
+            raise ControlFileError("%s not specified" % e)
 
     def format_parameters(self, optimiser_parameters):
         try:
@@ -191,7 +191,7 @@ class Cem_tuner(Competition):
                     candidate_config)
             try:
                 candidate = game_jobs_player_from_config(candidate_config)
-            except ValueError, e:
+            except StandardError, e:
                 raise CompetitionError(
                     "error making candidate player\nparameters: %s\nerror: %s" %
                     (self.format_parameters(optimiser_params), e))

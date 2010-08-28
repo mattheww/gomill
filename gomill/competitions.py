@@ -26,6 +26,9 @@ class CompetitionError(StandardError):
 
     """
 
+class ControlFileError(StandardError):
+    """Error interpreting the control file."""
+
 class Player_config(object):
     """Player description for use in tournament files."""
     def __init__(self, *args, **kwargs):
@@ -48,7 +51,7 @@ control_file_globals = {
 def game_jobs_player_from_config(player_config):
     """Make a game_jobs.Player from a Player_config.
 
-    Raises ValueError with a description if there is an error in the
+    Raises ControlFileError with a description if there is an error in the
     configuration.
 
     Returns a game_jobs.Player with all required attributes set except 'code'.
@@ -60,13 +63,13 @@ def game_jobs_player_from_config(player_config):
     for key in kwargs:
         if key not in ('command_string', 'gtp_translations',
                        'startup_gtp_commands'):
-            raise ValueError("unknown argument '%s'" % key)
+            raise ControlFileError("unknown argument '%s'" % key)
     try:
         if len(args) > 1:
-            raise ValueError("too many arguments")
+            raise ControlFileError("too many arguments")
         if len(args) == 1:
             if 'command_string' in kwargs:
-                raise ValueError(
+                raise ControlFileError(
                     "command_string specified both implicitly and explicitly")
             command_string = args[0]
         else:
@@ -76,7 +79,7 @@ def game_jobs_player_from_config(player_config):
             player.cmd_args = shlex.split(command_string)
             player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
         except ValueError, e:
-            raise ValueError("%s in command_string" % e)
+            raise ControlFileError("%s in command_string" % e)
 
         player.startup_gtp_commands = []
         for s in kwargs.get('startup_gtp_commands', []):
@@ -87,7 +90,7 @@ def game_jobs_player_from_config(player_config):
         player.gtp_translations = kwargs.get('gtp_translations', {})
 
     except KeyError, e:
-        raise ValueError("%s not specified" % e)
+        raise ControlFileError("%s not specified" % e)
     return player
 
 class Competition(object):
@@ -131,10 +134,18 @@ class Competition(object):
           players
           preferred_scorers
 
-        Raises ValueError with a description if the control file has a bad or
-        missing value.
+        Raises ControlFileError with a description if the control file has a bad
+        or missing value.
 
         """
+        # Implementations in subclasses should have their own backstop exception
+        # handlers, so they can at least show what part of the control file was
+        # being interpreted when the exception occurred.
+
+        # We should accept that there may be unexpected exceptions, because
+        # control files are allowed to do things like substitute list-like
+        # objects for Python lists.
+
         for setting in self.global_settings:
             try:
                 v = config[setting.name]
@@ -142,35 +153,43 @@ class Competition(object):
                 if setting.has_default:
                     v = setting.default
                 else:
-                    raise ValueError("'%s' not specified" % setting.name)
+                    raise ControlFileError("'%s' not specified" % setting.name)
             else:
-                v = setting.interpret(v)
+                try:
+                    v = setting.interpret(v)
+                except ValueError, e:
+                    raise ControlFileError(str(e))
             setattr(self, setting.name, v)
 
         try:
-            self.players = {}
+            config_players = config['players']
+        except KeyError, e:
+            raise ControlFileError("%s not specified" % e)
+        self.players = {}
+        try:
             try:
-                player_items = config['players'].items()
+                player_items = config_players.items()
             except StandardError:
-                raise ValueError("'players': not a dictionary")
+                raise ControlFileError("'players': not a dictionary")
             # FIXME: Validate player codes (before trying to sort)
             for player_code, player_config in sorted(player_items):
                 if not isinstance(player_config, Player_config):
-                    raise ValueError("player %s is %r, not a Player" %
-                                     (player_code, player_config))
+                    raise ControlFileError("player %s is %r, not a Player" %
+                                           (player_code, player_config))
                 try:
                     player = game_jobs_player_from_config(player_config)
-                except ValueError, e:
-                    raise ValueError("player %s: %s" % (player_code, e))
+                except StandardError, e:
+                    raise ControlFileError("player %s: %s" % (player_code, e))
                 player.code = player_code
                 self.players[player_code] = player
 
             # NB, this isn't properly validated. I'm planning to change the
             # system anyway.
             self.preferred_scorers = config.get('preferred_scorers')
-
-        except KeyError, e:
-            raise ValueError("%s not specified" % e)
+        except ControlFileError:
+            raise
+        except StandardError, e:
+            raise ControlFileError("'players': unexpected error: %s" % e)
 
     def get_status(self):
         """Return full state of the competition, so it can be resumed later.
@@ -294,21 +313,18 @@ def validate_handicap(handicap, handicap_style, board_size):
     handicap_style -- 'free' or 'fixed'
     board_size     -- int
 
-    Raises ValueError with a description if it isn't.
+    Raises ControlFileError with a description if it isn't.
 
     """
     if handicap is None:
         return True
     if handicap < 2:
-        raise ValueError("handicap too small")
+        raise ControlFileError("handicap too small")
     if handicap_style == 'fixed':
-        try:
-            handicap_layout.handicap_points(handicap, board_size)
-        except ValueError:
-            raise ValueError("fixed handicap out of range for board size %d"
-                             % board_size)
+        limit = handicap_layout.max_fixed_handicap_for_board_size(board_size)
     else:
-        if handicap > \
-            handicap_layout.max_free_handicap_for_board_size(board_size):
-            raise ValueError("free handicap too large for board size %d"
-                             % board_size)
+        limit = handicap_layout.max_free_handicap_for_board_size(board_size)
+    if handicap > limit:
+        raise ControlFileError(
+            "%s handicap out of range for board size %d" %
+            (handicap_style, board_size))

@@ -6,7 +6,8 @@ from collections import defaultdict
 
 from gomill import game_jobs
 from gomill import competitions
-from gomill.competitions import Competition, NoGameAvailable, Matchup_config
+from gomill.competitions import (
+    Competition, NoGameAvailable, Matchup_config, ControlFileError)
 from gomill.settings import *
 
 
@@ -65,7 +66,7 @@ class Tournament(Competition):
     def matchup_from_config(self, matchup_config):
         """Make a Matchup from a Matchup_config.
 
-        Raises ValueError if there is an error in the configuration.
+        Raises ControlFileError if there is an error in the configuration.
 
         Returns a Matchup with all attributes set.
 
@@ -77,20 +78,23 @@ class Tournament(Competition):
         argument_names.update(('name',))
         for key in kwargs:
             if key not in argument_names:
-                raise ValueError("unknown argument '%s'" % key)
+                raise ControlFileError("unknown argument '%s'" % key)
         if len(args) > 2:
-            raise ValueError("too many arguments")
+            raise ControlFileError("too many arguments")
         if len(args) < 2:
-            raise ValueError("not enough arguments")
+            raise ControlFileError("not enough arguments")
         matchup.p1, matchup.p2 = args
 
         for setting in self.matchup_settings:
             if setting.name in kwargs:
-                v = setting.interpret(kwargs[setting.name])
+                try:
+                    v = setting.interpret(kwargs[setting.name])
+                except ValueError, e:
+                    raise ControlFileError(str(e))
             else:
                 v = getattr(self, setting.name)
                 if v is _required_in_matchup:
-                    raise ValueError("%s not specified" % setting.name)
+                    raise ControlFileError("%s not specified" % setting.name)
             setattr(matchup, setting.name, v)
 
         competitions.validate_handicap(
@@ -119,34 +123,40 @@ class Tournament(Competition):
             try:
                 competitions.validate_handicap(
                     self.handicap, self.handicap_style, self.board_size)
-            except ValueError, e:
-                raise ValueError("default %s" % e)
+            except ControlFileError, e:
+                raise ControlFileError("default %s" % e)
 
         try:
-            config_matchups = config['matchups']
-        except KeyError, e:
-            raise ValueError("%s not specified" % e)
-        try:
-            config_matchups = list(config_matchups)
-        except StandardError:
-            raise ValueError("'matchups': not a list")
-        if not config_matchups:
-            raise ValueError("no matchups specified")
-
-        self.matchups = []
-        for i, matchup in enumerate(config_matchups):
-            if not isinstance(matchup, Matchup_config):
-                raise ValueError("matchup entry %d is not a Matchup" % i)
             try:
-                m = self.matchup_from_config(matchup)
-                if m.p1 not in self.players:
-                    raise ValueError("unknown player %s" % m.p1)
-                if m.p2 not in self.players:
-                    raise ValueError("unknown player %s" % m.p2)
-            except ValueError, e:
-                raise ValueError("matchup entry %d: %s" % (i, e))
-            m.id = i
-            self.matchups.append(m)
+                config_matchups = config['matchups']
+            except KeyError, e:
+                raise ControlFileError("%s not specified" % e)
+            try:
+                config_matchups = list(config_matchups)
+            except StandardError:
+                raise ControlFileError("'matchups': not a list")
+            if not config_matchups:
+                raise ControlFileError("no matchups specified")
+
+            self.matchups = []
+            for i, matchup in enumerate(config_matchups):
+                if not isinstance(matchup, Matchup_config):
+                    raise ControlFileError(
+                        "matchup entry %d is not a Matchup" % i)
+                try:
+                    m = self.matchup_from_config(matchup)
+                    if m.p1 not in self.players:
+                        raise ControlFileError("unknown player %s" % m.p1)
+                    if m.p2 not in self.players:
+                        raise ControlFileError("unknown player %s" % m.p2)
+                except StandardError, e:
+                    raise ControlFileError("matchup entry %d: %s" % (i, e))
+                m.id = i
+                self.matchups.append(m)
+        except ControlFileError:
+            raise
+        except StandardError, e:
+            raise ControlFileError("'matchups': unexpected error: %s" % e)
 
     def get_status(self):
         return {

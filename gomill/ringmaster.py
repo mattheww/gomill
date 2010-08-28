@@ -18,7 +18,7 @@ from gomill import game_jobs
 from gomill import gtp_games
 from gomill import job_manager
 from gomill.competitions import (
-    NoGameAvailable, CompetitionError, control_file_globals)
+    NoGameAvailable, CompetitionError, ControlFileError, control_file_globals)
 
 def read_tourn_file(pathname):
     """Read the specified file as a .tourn file.
@@ -127,7 +127,7 @@ class Ringmaster(object):
                                   compact_tracebacks.format_error_and_line())
         try:
             self.initialise_from_control_file(config)
-        except ValueError, e:
+        except ControlFileError, e:
             raise RingmasterError("error in control file:\n%s" % e)
 
         competition_class = get_competition_class(
@@ -137,8 +137,11 @@ class Ringmaster(object):
         self.competition.set_history_logger(self.log_history)
         try:
             self.competition.initialise_from_control_file(config)
-        except ValueError, e:
+        except ControlFileError, e:
             raise RingmasterError("error in control file:\n%s" % e)
+        except StandardError, e:
+            raise RingmasterError("unhandled error in control file:\n%s" %
+                                  compact_tracebacks.format_traceback(skip=1))
 
     def open_files(self):
         try:
@@ -178,7 +181,7 @@ class Ringmaster(object):
         try:
             self.record_games = config['record_games']
         except KeyError, e:
-            raise ValueError("%s not specified" % e)
+            raise ControlFileError("%s not specified" % e)
 
     def set_quiet_mode(self, b=True):
         self.chatty = not(b)

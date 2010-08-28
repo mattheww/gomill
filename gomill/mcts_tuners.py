@@ -10,7 +10,7 @@ from gomill import compact_tracebacks
 from gomill import game_jobs
 from gomill import competitions
 from gomill.competitions import (
-    Competition, NoGameAvailable, CompetitionError,
+    Competition, NoGameAvailable, CompetitionError, ControlFileError,
     Player_config, game_jobs_player_from_config)
 from gomill.settings import *
 
@@ -292,14 +292,14 @@ class Mcts_tuner(Competition):
             self.candidate_maker_fn = config['make_candidate']
             opponent = config['opponent']
             if opponent not in self.players:
-                raise ValueError("unknown player %s" % opponent)
+                raise ControlFileError("unknown player %s" % opponent)
             self.opponent = self.players[opponent]
         except KeyError, e:
-            raise ValueError("%s not specified" % e)
+            raise ControlFileError("%s not specified" % e)
         self.candidate_colour = config['candidate_colour']
         if self.candidate_colour not in ('b', 'w'):
-            raise ValueError("invalid candidate_colour: %r" %
-                             self.candidate_colour)
+            raise ControlFileError("invalid candidate_colour: %r" %
+                                   self.candidate_colour)
 
         self.tree = Tree(dimensions, branching_factor, max_depth,
                          exploration_coefficient,
@@ -339,7 +339,7 @@ class Mcts_tuner(Competition):
                 candidate_config)
         try:
             candidate = game_jobs_player_from_config(candidate_config)
-        except ValueError, e:
+        except StandardError, e:
             raise CompetitionError(
                 "error making candidate player\nparameters: %s\nerror: %s" %
                 (self.format_parameters(optimiser_parameters), e))
