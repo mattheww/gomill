@@ -80,5 +80,5 @@ class Setting(object):
         try:
             return self.interpreter(value)
         except ValueError, e:
-            raise ValueError("%s: %s" % (self.name, e))
+            raise ValueError("'%s': %s" % (self.name, e))
 
