@@ -283,21 +283,10 @@ class Mcts_tuner(Competition):
         competitions.validate_handicap(
             self.handicap, self.handicap_style, self.board_size)
 
-        tree_arguments = {}
-        for setting in self.tree_settings:
-            try:
-                v = config[setting.name]
-            except KeyError:
-                if setting.has_default:
-                    v = setting.default
-                else:
-                    raise ControlFileError("'%s' not specified" % setting.name)
-            else:
-                try:
-                    v = setting.interpret(v)
-                except ValueError, e:
-                    raise ControlFileError(str(e))
-            tree_arguments[setting.name] = v
+        try:
+            tree_arguments = load_settings(self.tree_settings, config)
+        except ValueError, e:
+            raise ControlFileError(str(e))
 
         self.number_of_games = config.get('number_of_games')
         try:

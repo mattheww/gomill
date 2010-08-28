@@ -2,7 +2,7 @@
 
 import re
 
-__all__ = ['Setting', 'allow_none',
+__all__ = ['Setting', 'allow_none', 'load_settings',
            'interpret_bool', 'interpret_int', 'interpret_positive_int',
            'interpret_float', 'interpret_as_utf8',
            'interpret_identifier', 'interpret_enum']
@@ -107,4 +107,35 @@ class Setting(object):
             return self.interpreter(value)
         except ValueError, e:
             raise ValueError("'%s': %s" % (self.name, e))
+
+def load_settings(settings, config):
+    """Read settings values from configuration.
+
+    settings -- list of Settings
+    config   -- dict containing the values to be read
+
+    Returns a dict: setting name -> interpreted value
+
+    Applies defaults and
+
+    Raises ValueError if a setting which has no default isn't present in
+    'config'.
+
+    Raises ValueError with a description if a value can't be interpreted.
+
+    """
+    result = {}
+    for setting in settings:
+        try:
+            v = config[setting.name]
+        except KeyError:
+            if setting.has_default:
+                v = setting.default
+            else:
+                raise ValueError("'%s' not specified" % setting.name)
+        else:
+            # May propagate ValueError
+            v = setting.interpret(v)
+        result[setting.name] = v
+    return result
 

@@ -189,20 +189,12 @@ class Ringmaster(object):
         ]
 
     def initialise_from_control_file(self, config):
-        for setting in self.ringmaster_settings:
-            try:
-                v = config[setting.name]
-            except KeyError:
-                if setting.has_default:
-                    v = setting.default
-                else:
-                    raise ControlFileError("'%s' not specified" % setting.name)
-            else:
-                try:
-                    v = setting.interpret(v)
-                except ValueError, e:
-                    raise ControlFileError(str(e))
-            setattr(self, setting.name, v)
+        try:
+            to_set = load_settings(self.ringmaster_settings, config)
+        except ValueError, e:
+            raise ControlFileError(str(e))
+        for name, value in to_set.items():
+            setattr(self, name, value)
 
     def set_quiet_mode(self, b=True):
         self.chatty = not(b)

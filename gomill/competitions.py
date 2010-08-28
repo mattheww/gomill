@@ -146,20 +146,12 @@ class Competition(object):
         # control files are allowed to do things like substitute list-like
         # objects for Python lists.
 
-        for setting in self.global_settings:
-            try:
-                v = config[setting.name]
-            except KeyError:
-                if setting.has_default:
-                    v = setting.default
-                else:
-                    raise ControlFileError("'%s' not specified" % setting.name)
-            else:
-                try:
-                    v = setting.interpret(v)
-                except ValueError, e:
-                    raise ControlFileError(str(e))
-            setattr(self, setting.name, v)
+        try:
+            to_set = settings.load_settings(self.global_settings, config)
+        except ValueError, e:
+            raise ControlFileError(str(e))
+        for name, value in to_set.items():
+            setattr(self, name, value)
 
         try:
             config_players = config['players']
