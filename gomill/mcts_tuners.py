@@ -264,6 +264,9 @@ class Mcts_tuner(Competition):
         Setting('description', interpret_as_utf8, default=""),
         Setting('scorer', interpret_enum('internal', 'players'),
                 default='players'),
+        Setting('number_of_games', allow_none(interpret_int), default=None),
+        Setting('candidate_colour', interpret_colour),
+        Setting('log_after_games', interpret_positive_int, default=8),
         ]
 
     # These are used to instantiate Tree; they don't turn into Mcts_tuner
@@ -288,12 +291,6 @@ class Mcts_tuner(Competition):
         except ValueError, e:
             raise ControlFileError(str(e))
 
-        self.number_of_games = config.get('number_of_games')
-        try:
-            self.log_after_games = config['log_after_games']
-        except KeyError:
-            self.log_after_games = 8
-
         try:
             self.translate_parameters_fn = \
                 config['convert_optimiser_parameters_to_engine_parameters']
@@ -305,10 +302,6 @@ class Mcts_tuner(Competition):
             self.opponent = self.players[opponent]
         except KeyError, e:
             raise ControlFileError("%s not specified" % e)
-        self.candidate_colour = config['candidate_colour']
-        if self.candidate_colour not in ('b', 'w'):
-            raise ControlFileError("invalid candidate_colour: %r" %
-                                   self.candidate_colour)
 
         tree_arguments['parameter_formatter'] = self.format_parameters
         self.tree = Tree(**tree_arguments)

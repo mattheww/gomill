@@ -5,7 +5,7 @@ import re
 __all__ = ['Setting', 'allow_none', 'load_settings',
            'interpret_bool', 'interpret_int', 'interpret_positive_int',
            'interpret_float', 'interpret_as_utf8',
-           'interpret_identifier', 'interpret_enum']
+           'interpret_identifier', 'interpret_colour', 'interpret_enum']
 
 def interpret_bool(b):
     if b is not True and b is not False:
@@ -59,6 +59,21 @@ def interpret_identifier(s):
     if not _identifier_re.search(s):
         raise ValueError("contains forbidden character")
     return s
+
+_colour_dict = {
+    'b' : 'b',
+    'black' : 'b',
+    'w' : 'w',
+    'white' : 'w',
+    }
+
+def interpret_colour(s):
+    if isinstance(s, basestring):
+        try:
+            return _colour_dict[s.lower()]
+        except KeyError:
+            pass
+    raise ValueError("invalid colour")
 
 def interpret_enum(*values):
     def interpreter(value):
