@@ -87,8 +87,11 @@ class Cem_tuner(Competition):
         Competition.__init__(self, competition_code)
 
     global_settings = [
-        Setting('komi', interpret_float),
         Setting('board_size', competitions.interpret_board_size),
+        Setting('komi', interpret_float),
+        Setting('handicap', allow_none(interpret_int), default=None),
+        Setting('handicap_style', interpret_enum('fixed', 'free'),
+                default='fixed'),
         Setting('move_limit', interpret_int, default=1000),
         Setting('description', interpret_as_utf8, default=""),
         Setting('scorer', interpret_enum('internal', 'players'),
@@ -97,6 +100,10 @@ class Cem_tuner(Competition):
 
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
+
+        competitions.validate_handicap(
+            self.handicap, self.handicap_style, self.board_size)
+
         try:
             self.batch_size = config['batch_size']
             self.samples_per_generation = config['samples_per_generation']
@@ -297,6 +304,8 @@ class Cem_tuner(Competition):
         job.board_size = self.board_size
         job.komi = self.komi
         job.move_limit = self.move_limit
+        job.handicap = self.handicap
+        job.handicap_is_free = (self.handicap_style == 'free')
         job.use_internal_scorer = (self.scorer == 'internal')
         job.preferred_scorers = self.preferred_scorers
         job.sgf_event = self.competition_code
