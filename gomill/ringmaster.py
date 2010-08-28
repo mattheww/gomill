@@ -23,7 +23,7 @@ from gomill.competitions import (
 def read_tourn_file(pathname):
     """Read the specified file as a .tourn file.
 
-    A copy of tournament_globals is used as the global namespace. Returns this
+    A copy of control_file_globals is used as the global namespace. Returns this
     namespace as a dict.
 
     """
