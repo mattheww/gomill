@@ -2,6 +2,7 @@
 
 from __future__ import division
 
+import cPickle as pickle
 from collections import defaultdict
 
 from gomill import game_jobs
@@ -18,6 +19,7 @@ class Matchup(object):
       p1             -- player code
       p2             -- player code
       name           -- shortish string to show in reports
+      games_started  -- int
 
     All Tournament matchup_settings are also available as attributes.
 
@@ -25,6 +27,8 @@ class Matchup(object):
     alternate.
 
     """
+    def __init__(self):
+        self.games_started = 0
 
 
 class _Required_in_matchup(object):
@@ -56,11 +60,12 @@ class Tournament(Competition):
         Matchup_setting('move_limit', interpret_positive_int, default=1000),
         Matchup_setting('scorer', interpret_enum('internal', 'players'),
                         default='players'),
+        Matchup_setting('number_of_games', allow_none(interpret_int),
+                        default=None),
         ]
 
     global_settings = matchup_settings + [
         Setting('description', interpret_as_utf8, default=""),
-        Setting('number_of_games', interpret_int),
         ]
 
     def matchup_from_config(self, matchup_config):
@@ -165,6 +170,7 @@ class Tournament(Competition):
             'next_game_number' : self.next_game_number,
             'engine_names' : self.engine_names,
             'engine_descriptions' : self.engine_descriptions,
+            'outstanding_games' : pickle.dumps(self.outstanding_games),
             }
 
     def set_status(self, status):
@@ -172,39 +178,52 @@ class Tournament(Competition):
         self.next_game_number = status['next_game_number']
         self.engine_names = status['engine_names']
         self.engine_descriptions = status['engine_descriptions']
+        self.outstanding_games = pickle.loads(
+            status['outstanding_games'].encode('iso-8859-1'))
+        for matchup_id, result in self.results:
+            self.matchups[matchup_id].games_started += 1
+        for matchup_id, _, _ in self.outstanding_games.values():
+            self.matchups[matchup_id].games_started += 1
 
     def set_clean_status(self):
         self.results = []
         self.next_game_number = 0
         self.engine_names = {}
         self.engine_descriptions = {}
+        self.outstanding_games = {}
 
-    def _games_played(self):
-        return len(self.results)
-
-    def find_players(self, game_number):
+    def find_match(self):
         """Find the players for the next game.
 
-        Returns a tuple (matchup index, black player code, white player code)
+        Returns a tuple (matchup, black player code, white player code)
+
+        Returns (None, None, None) if all matchups are complete.
 
         """
-        quot, rem = divmod(game_number, len(self.matchups))
-        matchup = self.matchups[rem]
-        if matchup.alternating and (quot % 2):
+        available = [
+            m for m in self.matchups
+            if m.number_of_games is None or m.games_started < m.number_of_games
+            ]
+        if not available:
+            return None, None, None
+        matchup = min(available, key=lambda m: (m.games_started, m.id))
+
+        if matchup.alternating and (matchup.games_started % 2):
             pb, pw = matchup.p2, matchup.p1
         else:
             pb, pw = matchup.p1, matchup.p2
-        return rem, pb, pw
+        return matchup, pb, pw
 
     def get_game(self):
         game_number = self.next_game_number
-        if (self.number_of_games is not None and
-            game_number >= self.number_of_games):
-            return NoGameAvailable
         self.next_game_number += 1
 
-        matchup_id, player_b, player_w = self.find_players(game_number)
-        matchup = self.matchups[matchup_id]
+        matchup, player_b, player_w = self.find_match()
+        if matchup is None:
+            return NoGameAvailable
+        matchup.games_started += 1
+        self.outstanding_games[game_number] = (matchup.id, player_b, player_w)
+
         job = game_jobs.Game_job()
         job.game_id = str(game_number)
         job.player_b = self.players[player_b]
@@ -223,7 +242,7 @@ class Tournament(Competition):
         self.engine_names.update(response.engine_names)
         self.engine_descriptions.update(response.engine_descriptions)
         game_number = int(response.game_id)
-        matchup_id, player_b, player_w = self.find_players(game_number)
+        matchup_id, player_b, player_w = self.outstanding_games.pop(game_number)
         assert player_b == response.game_result.player_b
         assert player_w == response.game_result.player_w
         self.results.append((matchup_id, response.game_result))
@@ -243,12 +262,6 @@ class Tournament(Competition):
         p(self.description)
 
     def write_status_summary(self, out):
-        if self.number_of_games is None:
-            print >>out, "%d games played" % self._games_played()
-        else:
-            print >>out, "%d/%d games played" % (
-                self._games_played(), self.number_of_games)
-        print >>out
         results_by_matchup_id = defaultdict(list)
         for matchup_id, result in self.results:
             results_by_matchup_id[matchup_id].append(result)
@@ -298,7 +311,11 @@ class Tournament(Competition):
         else:
             y_avg_time_s = "----"
 
-        p("%s (%d games)" % (matchup.name, total))
+        if matchup.number_of_games is None:
+            played_s = "%d" % total
+        else:
+            played_s = "%d/%d" % (total, matchup.number_of_games)
+        p("%s (%s games)" % (matchup.name, played_s))
         def pct(n, baseline):
             if baseline == 0:
                 if n == 0:

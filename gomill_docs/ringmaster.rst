@@ -21,11 +21,14 @@ arguments in a shell-like way (see :func:`shlex.split`). '~' (home directory)
 expansion is applied to the the pathname of the executable (see
 :func:`os.path.expanduser`).
 
+
+Matchup parameters
+~~~~~~~~~~~~~~~~~~
+
 .. confval:: number_of_games
 
-  the total number of games for the tournament. If you omit this setting or
-  set it to :const:`None`, the tournament will continue until explicitly
-  stopped.
+  number of games to be played in the matchup. If you omit this setting or set
+  it to :const:`None`, the tournament will continue until explicitly stopped.
 
 
 
@@ -74,7 +77,7 @@ Command-line options:
    maximum number of games to play in the run
 
 :option:`!--max-games` is independent of any :confval:`number_of_games`
-setting in the tournament file; the competition will stop if either limit is
+settings in the tournament file; the competition will stop if either limit is
 reached.
 
 It's ok to stop a tournament with :kbd:`Ctrl-C`; incomplete games will be
