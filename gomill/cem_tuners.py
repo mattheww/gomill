@@ -91,6 +91,8 @@ class Cem_tuner(Competition):
         Setting('board_size', competitions.interpret_board_size),
         Setting('move_limit', interpret_int, default=1000),
         Setting('description', interpret_as_utf8, default=""),
+        Setting('scorer', interpret_enum('internal', 'players'),
+                default='players'),
         ]
 
     def initialise_from_control_file(self, config):
@@ -295,7 +297,7 @@ class Cem_tuner(Competition):
         job.board_size = self.board_size
         job.komi = self.komi
         job.move_limit = self.move_limit
-        job.use_internal_scorer = self.use_internal_scorer
+        job.use_internal_scorer = (self.scorer == 'internal')
         job.preferred_scorers = self.preferred_scorers
         job.sgf_event = self.competition_code
         return job

@@ -137,15 +137,6 @@ class Competition(object):
                     v = setting.interpret(v)
                 setattr(self, setting.name, v)
 
-            # ought to be Settings
-            self.use_internal_scorer = False
-            self.preferred_scorers = config.get('preferred_scorers')
-            if 'scorer' in config:
-                if config['scorer'] == "internal":
-                    self.use_internal_scorer = True
-                elif config['scorer'] != "players":
-                    raise ValueError("invalid 'scorer' value")
-
             self.players = {}
             for player_code, player_config in config['players'].items():
                 if not isinstance(player_config, Player_config):
@@ -157,6 +148,10 @@ class Competition(object):
                     raise ValueError("player %s: %s" % (player_code, e))
                 player.code = player_code
                 self.players[player_code] = player
+
+            # NB, this isn't properly validated. I'm planning to change the
+            # system anyway.
+            self.preferred_scorers = config.get('preferred_scorers')
 
         except KeyError, e:
             raise ValueError("%s not specified" % e)

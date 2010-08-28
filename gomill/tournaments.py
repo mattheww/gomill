@@ -50,6 +50,8 @@ class Tournament(Competition):
         Matchup_setting('board_size', competitions.interpret_board_size),
         Matchup_setting('komi', interpret_float),
         Matchup_setting('move_limit', interpret_int, default=1000),
+        Matchup_setting('scorer', interpret_enum('internal', 'players'),
+                        default='players'),
         ]
 
     global_settings = matchup_settings + [
@@ -186,7 +188,7 @@ class Tournament(Competition):
         job.move_limit = matchup.move_limit
         job.handicap = matchup.handicap
         job.handicap_is_free = (matchup.handicap_style=='free')
-        job.use_internal_scorer = self.use_internal_scorer
+        job.use_internal_scorer = (matchup.scorer == 'internal')
         job.preferred_scorers = self.preferred_scorers
         job.sgf_event = self.competition_code
         return job
