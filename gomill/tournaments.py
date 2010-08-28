@@ -107,7 +107,7 @@ class Tournament(Competition):
             else:
                 v = getattr(self, setting.name)
                 if v is _required_in_matchup:
-                    raise ControlFileError("%s not specified" % setting.name)
+                    raise ControlFileError("'%s' not specified" % setting.name)
             setattr(matchup, setting.name, v)
 
         competitions.validate_handicap(
@@ -116,14 +116,11 @@ class Tournament(Competition):
         name = kwargs.get('name')
         if name is None:
             name = "%s v %s" % (matchup.p1, matchup.p2)
-            # FIXME [[
-            name += " %dx%d" % (matchup.board_size, matchup.board_size)
-            name += " K%s" % matchup.komi
-            if matchup.handicap:
-                name += " H%d" % matchup.handicap
-                if matchup.handicap_style == 'free':
-                    name += "free"
-            # ]]
+        else:
+            try:
+                name = interpret_as_utf8(name)
+            except ValueError, e:
+                raise ControlFileError("name: %s" % e)
         matchup.name = name
         return matchup
 
