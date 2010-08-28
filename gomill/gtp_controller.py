@@ -22,8 +22,20 @@ class GtpEngineError(StandardError):
     """Error response from the engine."""
 
 
-_command_characters_re = re.compile(r"\A[\x21-\x7e\x80-\xff]+\Z")
+_gtp_word_characters_re = re.compile(r"\A[\x21-\x7e\x80-\xff]+\Z")
 _remove_response_controls_re = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
+
+def is_well_formed_gtp_word(s):
+    """Check whether 's' is well-formed as a single GTP word.
+
+    In particular, this rejects unicode objects and strings contaning spaces.
+
+    """
+    if not isinstance(s, str):
+        return False
+    if not _gtp_word_characters_re.search(s):
+        return False
+    return True
 
 class Gtp_channel(object):
     """A communication channel to a GTP engine.
@@ -50,15 +62,11 @@ class Gtp_channel(object):
         forbidden in GTP.
 
         """
-        if not isinstance(command, str):
+        if not is_well_formed_gtp_word(command):
             raise ValueError("bad command")
-        if not _command_characters_re.search(command):
-            raise ValueError("bad character in command")
         for argument in arguments:
-            if not isinstance(argument, str):
+            if not is_well_formed_gtp_word(argument):
                 raise ValueError("bad argument")
-            if not _command_characters_re.search(argument):
-                raise ValueError("bad character in argument")
         self.send_command_impl(command, arguments)
 
     def get_response(self):

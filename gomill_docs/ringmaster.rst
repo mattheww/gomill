@@ -17,9 +17,9 @@ Tournament files
 ----------------
 
 Commands are strings. They're not run via a shell, but they're split into
-arguments in a shell-like way (see :func:`shlex.split`). '~' expansion for the
-current user's home directory is applied to the first element (ie, the
-pathname of the executable).
+arguments in a shell-like way (see :func:`shlex.split`). '~' (home directory)
+expansion is applied to the the pathname of the executable (see
+:func:`os.path.expanduser`).
 
 .. confval:: number_of_games
 

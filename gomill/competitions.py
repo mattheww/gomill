@@ -5,6 +5,7 @@ import shlex
 import sys
 
 from gomill import game_jobs
+from gomill import gtp_controller
 from gomill import handicap_layout
 from gomill import settings
 
@@ -75,19 +76,40 @@ def game_jobs_player_from_config(player_config):
         else:
             command_string = kwargs['command_string']
 
+        if not isinstance(command_string, str):
+            raise ControlFileError("command_string not a string")
         try:
             player.cmd_args = shlex.split(command_string)
             player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
-        except ValueError, e:
+        except StandardError, e:
             raise ControlFileError("%s in command_string" % e)
 
         player.startup_gtp_commands = []
-        for s in kwargs.get('startup_gtp_commands', []):
-            words = s.split()
-            player.startup_gtp_commands.append((words[0], words[1:]))
+        if 'startup_gtp_commands' in kwargs:
+            try:
+                startup_gtp_commands = list(kwargs['startup_gtp_commands'])
+            except StandardError:
+                raise ControlFileError("'startup_gtp_commands': not a list")
+            for s in startup_gtp_commands:
+                try:
+                    words = s.split()
+                    player.startup_gtp_commands.append((words[0], words[1:]))
+                except StandardError:
+                    raise ControlFileError(
+                        "'startup_gtp_commands': invalid command string %s" % s)
 
-        # FIXME: Ought to validate properly
         player.gtp_translations = kwargs.get('gtp_translations', {})
+        try:
+            translation_items = player.gtp_translations.items()
+        except StandardError:
+            raise ControlFileError("'gtp_translations': not a dictionary")
+        for cmd1, cmd2 in translation_items:
+            if not gtp_controller.is_well_formed_gtp_word(cmd1):
+                raise ControlFileError(
+                    "'gtp_translations': invalid command %s" % cmd1)
+            if not gtp_controller.is_well_formed_gtp_word(cmd2):
+                raise ControlFileError(
+                    "'gtp_translations': invalid command %s" % cmd2)
 
     except KeyError, e:
         raise ControlFileError("%s not specified" % e)
