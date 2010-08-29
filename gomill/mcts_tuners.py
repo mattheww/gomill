@@ -317,6 +317,13 @@ class Mcts_tuner(Competition):
         tree_arguments['parameter_formatter'] = self.format_parameters
         self.tree = Tree(**tree_arguments)
 
+
+    # State attributes (*: in persistent state):
+    #  *next_game_number        -- int
+    #  *games_played            -- int
+    #  *tree                    -- Tree (root node is persisted)
+    #  *outstanding_simulations -- map game_id -> Simulation
+
     def set_clean_status(self):
         self.next_game_number = 0
         self.games_played = 0
