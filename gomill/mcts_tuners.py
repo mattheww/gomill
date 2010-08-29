@@ -319,28 +319,30 @@ class Mcts_tuner(Competition):
 
 
     # State attributes (*: in persistent state):
-    #  *next_game_number        -- int
+    #  *game_id_allocator       -- Id_allocator
     #  *games_played            -- int
     #  *tree                    -- Tree (root node is persisted)
     #  *outstanding_simulations -- map game_id -> Simulation
 
     def set_clean_status(self):
-        self.next_game_number = 0
+        self.game_id_allocator = competitions.Id_allocator()
         self.games_played = 0
         self.tree.new_root()
         self.outstanding_simulations = {}
 
     def get_status(self):
         return {
-            'next_game_number' : self.next_game_number,
-            'games_played'     : self.games_played,
+            'game_id_allocator' : pickle.dumps(self.game_id_allocator),
+            'games_played'      : self.games_played,
             # Pickling these together so that they share the Node objects
-            'tree_data'        : pickle.dumps((self.tree.root,
-                                               self.outstanding_simulations))
+            'tree_data'         : pickle.dumps((self.tree.root,
+                                                self.outstanding_simulations))
             }
 
     def set_status(self, status):
-        self.next_game_number = status['next_game_number']
+        self.game_id_allocator = pickle.loads(
+            status['game_id_allocator'].encode('iso-8859-1'))
+        self.game_id_allocator.rollback()
         self.games_played = status['games_played']
         root, outstanding_simulations = pickle.loads(
             status['tree_data'].encode('iso-8859-1'))
@@ -399,8 +401,7 @@ class Mcts_tuner(Competition):
         return simulation, simulation.get_parameters()
 
     def get_game(self):
-        game_number = self.next_game_number
-        self.next_game_number += 1
+        game_number = self.game_id_allocator.issue()
         if (self.number_of_games is not None and
             game_number >= self.number_of_games):
             return NoGameAvailable
@@ -430,6 +431,7 @@ class Mcts_tuner(Competition):
         return job
 
     def process_game_result(self, response):
+        self.game_id_allocator.fix(int(response.game_id))
         # Counting no-result as loss for the candidate
         candidate_won = (
             response.game_result.winning_colour == self.candidate_colour)

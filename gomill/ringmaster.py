@@ -14,7 +14,6 @@ except ImportError:
     import simplejson as json
 
 from gomill import compact_tracebacks
-from gomill import game_jobs
 from gomill import gtp_games
 from gomill import job_manager
 from gomill.settings import *
@@ -60,14 +59,10 @@ def get_competition_class(competition_type):
 
 json_encodable_classes = {
     gtp_games.Game_result : 'R',
-    game_jobs.Player      : 'P',
-    game_jobs.Game_job    : 'J',
     }
 
 json_decodable_classes = {
     'R' : gtp_games.Game_result,
-    'P' : game_jobs.Player,
-    'J' : game_jobs.Game_job,
     }
 
 def ringmaster_json_encode_default(obj):
@@ -215,12 +210,17 @@ class Ringmaster(object):
         print >>self.historyfile, s
         self.historyfile.flush()
 
+
+    # State attributes (*: in persistent state):
+    #  * total_errors      -- int
+    #  * comp              -- from Competition.get_status()
+    #    games_in_progress -- dict game_id -> Game_job
+    #    games_to_replay   -- dict game_id -> Game_job
+
     def write_status(self):
         competition_status = self.competition.get_status()
         status = {
             'total_errors' : self.total_errors,
-            'in_progress'  : self.games_in_progress,
-            'to_replay'    : self.games_to_replay,
             'comp'         : competition_status,
             }
         f = open(self.status_pathname + ".new", "w")
@@ -235,8 +235,7 @@ class Ringmaster(object):
         f.close()
         self.total_errors = status['total_errors']
         self.games_in_progress = {}
-        self.games_to_replay = status['to_replay']
-        self.games_to_replay.update(status['in_progress'])
+        self.games_to_replay = {}
         competition_status = status['comp']
         try:
             self.competition.set_status(competition_status)
@@ -245,7 +244,6 @@ class Ringmaster(object):
 
     def set_clean_status(self):
         self.total_errors = 0
-        # These are both maps game_id -> Game_job
         self.games_in_progress = {}
         self.games_to_replay = {}
         try:
@@ -373,6 +371,14 @@ class Ringmaster(object):
         def now():
             return datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
+        def log_games_in_progress():
+            try:
+                msg = "games in progress were: %s" % (
+                    " ".join(sorted(self.games_in_progress)))
+            except:
+                pass
+            self.log(msg)
+
         self.open_files()
         self.log("run started at %s with max_games %s" % (now(), max_games))
         self.max_games_this_run = max_games
@@ -385,16 +391,20 @@ class Ringmaster(object):
                 passed_exceptions=[CompetitionError])
         except KeyboardInterrupt:
             self.log("run interrupted at %s" % now())
+            log_games_in_progress()
             raise
         except CompetitionError, e:
             self.log("run finished with error at %s\n%s" % (now(), e))
+            log_games_in_progress()
             raise RingmasterError(e)
         except job_manager.JobSourceError, e:
             self.log("run finished with internal error at %s\n%s" % (now(), e))
+            log_games_in_progress()
             raise
         except:
             self.log("run finished with internal error at %s" % now())
             self.log(compact_tracebacks.format_traceback())
+            log_games_in_progress()
             raise
         self.log("run finished at %s" % now())
         self.close_files()

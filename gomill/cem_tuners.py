@@ -2,6 +2,7 @@
 
 from __future__ import division
 
+import cPickle as pickle
 from random import gauss as random_gauss
 from math import sqrt
 
@@ -146,9 +147,6 @@ class Cem_tuner(Competition):
         self.candidate_maker_fn = specials['make_candidate']
 
 
-    # FIXME: Currently won't cope with a restart, because it doesn't know that
-    # outstanding games will be replayed.
-
     # State attributes (*: in persistent state):
     #  *generation        -- current generation (0-based int)
     #  *distribution      -- Distribution for current generation
@@ -160,9 +158,10 @@ class Cem_tuner(Competition):
     #                        (list indexed by candidate number)
     #   started           -- number of games started
     #                        (list indexed by candidate number)
-    #   candidates        -- Players
+    #   candidates        -- Players (code attribute is the candidate code)
     #                        (list indexed by candidate number)
     #   candidate_numbers_by_code -- dict candidate code -> candidate number
+    #  *game_id_allocator -- Tagged_id_allocator
     #
     # These are all reset for each new generation.
 
@@ -178,6 +177,7 @@ class Cem_tuner(Competition):
             'sample_parameters'  : self.sample_parameters,
             'played'             : self.played,
             'wins'               : self.wins,
+            'game_id_allocator'  : pickle.dumps(self.game_id_allocator),
             }
 
     def set_status(self, status):
@@ -188,6 +188,9 @@ class Cem_tuner(Competition):
         self.wins = status['wins']
         self.prepare_candidates()
         self.started = self.played[:]
+        self.game_id_allocator = pickle.loads(
+            status['game_id_allocator'].encode('iso-8859-1'))
+        self.game_id_allocator.rollback()
 
     def reset_for_new_generation(self):
         get_sample = self.distribution.get_sample
@@ -197,6 +200,9 @@ class Cem_tuner(Competition):
         self.wins = [0] * self.samples_per_generation
         self.started = [0] * self.samples_per_generation
         self.prepare_candidates()
+        self.game_id_allocator = competitions.Tagged_id_allocator()
+        for candidate in self.candidates:
+            self.game_id_allocator.add_tag(candidate.code)
 
     @staticmethod
     def make_candidate_code(generation, candidate_number):
@@ -284,10 +290,9 @@ class Cem_tuner(Competition):
         self.started[candidate_number] += 1
 
         candidate = self.candidates[candidate_number]
-        game_id = "%sr%d" % (candidate.code, already_started)
 
         job = game_jobs.Game_job()
-        job.game_id = game_id
+        job.game_id = self.game_id_allocator.issue(candidate.code)
         job.player_b = candidate
         job.player_w = self.opponent
         job.board_size = self.board_size
@@ -301,6 +306,7 @@ class Cem_tuner(Competition):
         return job
 
     def process_game_result(self, response):
+        self.game_id_allocator.fix(response.game_id)
         gr = response.game_result
         if self.is_candidate_code(gr.player_b):
             candidate = gr.player_b

@@ -352,3 +352,77 @@ def validate_handicap(handicap, handicap_style, board_size):
         raise ControlFileError(
             "%s handicap out of range for board size %d" %
             (handicap_style, board_size))
+
+
+class Id_allocator(object):
+    """Allocate numeric IDs, keeping track of which have been finished with.
+
+    The issued ids are integers counting up from zero.
+
+    After rollback() is called, all ids which have not been fixed will be
+    reissued on subsequent calls to issue().
+
+    This class is suitable for pickling.
+
+    """
+    def __init__(self):
+        self.highest_issued = -1
+        self.outstanding = set()
+        self.to_reissue = set()
+
+    def __getstate__(self):
+        return (self.highest_issued, self.outstanding, self.to_reissue)
+
+    def __setstate__(self, state):
+        (self.highest_issued, self.outstanding, self.to_reissue) = state
+
+    def issue(self):
+        if self.to_reissue:
+            result = min(self.to_reissue)
+            self.to_reissue.discard(result)
+        else:
+            self.highest_issued += 1
+            result = self.highest_issued
+        self.outstanding.add(result)
+        return result
+
+    def fix(self, i):
+        self.outstanding.remove(i)
+
+    def rollback(self):
+        self.to_reissue.update(self.outstanding)
+        self.outstanding = set()
+
+class Tagged_id_allocator(object):
+    """Convenience class for managing multiple Id_allocators.
+
+    This class is suitable for pickling.
+
+    The issued ids are strings of the form '<tag>_<i>'.
+
+    """
+    def __init__(self):
+        self.allocators = {}
+
+    def __getstate__(self):
+        return self.allocators
+
+    def __setstate__(self, state):
+        self.allocators = state
+
+    def add_tag(self, tag):
+        if '_' in tag:
+            raise ValueError
+        self.allocators[tag] = Id_allocator()
+
+    def issue(self, tag):
+        return "%s_%d" % (tag, self.allocators[tag].issue())
+
+    def fix(self, id_string):
+        tag, i_s = id_string.split("_")
+        self.allocators[tag].fix(int(i_s))
+
+    def rollback(self):
+        for allocator in self.allocators.itervalues():
+            allocator.rollback()
+

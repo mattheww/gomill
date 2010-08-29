@@ -148,6 +148,7 @@ class Tournament(Competition):
             if not config_matchups:
                 raise ControlFileError("no matchups specified")
 
+            # List of Matchups indexed by matchup_id
             self.matchups = []
             for i, matchup in enumerate(config_matchups):
                 try:
@@ -164,39 +165,38 @@ class Tournament(Competition):
 
     # State attributes (*: in persistent state):
     #  *results             -- list of pairs (matchup_id, Game_result)
-    #  *next_game_number    -- int
+    #  *game_id_allocator   -- Id_allocator
     #  *engine_names        -- map player code -> string
     #  *engine_descriptions -- map player code -> string
-    #  *outstanding_games   -- [FIXME: will go away soon]
+    #   outstanding_games   -- map game id ->
+    #                                (matchup_id, b_player_code, w_player_code)
     #  (number of games started is in the Matchup objects, and not persisted)
 
     def set_clean_status(self):
         self.results = []
-        self.next_game_number = 0
         self.engine_names = {}
         self.engine_descriptions = {}
         self.outstanding_games = {}
+        self.game_id_allocator = competitions.Id_allocator()
 
     def get_status(self):
         return {
             'results' : self.results,
-            'next_game_number' : self.next_game_number,
+            'game_id_allocator' : pickle.dumps(self.game_id_allocator),
             'engine_names' : self.engine_names,
             'engine_descriptions' : self.engine_descriptions,
-            'outstanding_games' : pickle.dumps(self.outstanding_games),
             }
 
     def set_status(self, status):
         self.results = status['results']
-        self.next_game_number = status['next_game_number']
+        self.game_id_allocator = pickle.loads(
+            status['game_id_allocator'].encode('iso-8859-1'))
+        self.game_id_allocator.rollback()
         self.engine_names = status['engine_names']
         self.engine_descriptions = status['engine_descriptions']
-        self.outstanding_games = pickle.loads(
-            status['outstanding_games'].encode('iso-8859-1'))
         for matchup_id, result in self.results:
             self.matchups[matchup_id].games_started += 1
-        for matchup_id, _, _ in self.outstanding_games.values():
-            self.matchups[matchup_id].games_started += 1
+        self.outstanding_games = {}
 
     def find_match(self):
         """Find the players for the next game.
@@ -221,17 +221,16 @@ class Tournament(Competition):
         return matchup, pb, pw
 
     def get_game(self):
-        game_number = self.next_game_number
-        self.next_game_number += 1
+        game_id = str(self.game_id_allocator.issue())
 
         matchup, player_b, player_w = self.find_match()
         if matchup is None:
             return NoGameAvailable
         matchup.games_started += 1
-        self.outstanding_games[game_number] = (matchup.id, player_b, player_w)
+        self.outstanding_games[game_id] = (matchup.id, player_b, player_w)
 
         job = game_jobs.Game_job()
-        job.game_id = str(game_number)
+        job.game_id = game_id
         job.player_b = self.players[player_b]
         job.player_w = self.players[player_w]
         job.board_size = matchup.board_size
@@ -247,13 +246,12 @@ class Tournament(Competition):
     def process_game_result(self, response):
         self.engine_names.update(response.engine_names)
         self.engine_descriptions.update(response.engine_descriptions)
-        game_number = int(response.game_id)
-        matchup_id, player_b, player_w = self.outstanding_games.pop(game_number)
+        self.game_id_allocator.fix(int(response.game_id))
+        matchup_id, player_b, player_w = self.outstanding_games.pop(
+            response.game_id)
         assert player_b == response.game_result.player_b
         assert player_w == response.game_result.player_w
         self.results.append((matchup_id, response.game_result))
-        # This will show results in order of games finishing rather than game
-        # number, but never mind.
         self.log_history("%4s %s" %
                          (response.game_id, response.game_result.describe()))
 
