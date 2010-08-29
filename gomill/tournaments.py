@@ -161,6 +161,15 @@ class Tournament(Competition):
         except StandardError, e:
             raise ControlFileError("'matchups': unexpected error: %s" % e)
 
+
+    # State attributes (*: in persistent state):
+    #  *results             -- list of pairs (matchup_id, Game_result)
+    #  *next_game_number    -- int
+    #  *engine_names        -- map player code -> string
+    #  *engine_descriptions -- map player code -> string
+    #  *outstanding_games   -- [FIXME: will go away soon]
+    #  (number of games started is in the Matchup objects, and not persisted)
+
     def set_clean_status(self):
         self.results = []
         self.next_game_number = 0
