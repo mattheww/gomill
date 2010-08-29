@@ -54,10 +54,5 @@ Here's a sample of the control file settings for the CEM tuner::
       commands = ["kiai-settings resign_at %f" % resign_at]
       return Player(kiai + " ".join(opts), startup_gtp_commands=commands)
 
-  matchups = [
-      ('k50', CANDIDATE),
-      (CANDIDATE, 'k50'),
-      #('gnugo-l1', CANDIDATE),
-      #(CANDIDATE, 'gnugo-l1'),
-      ]
+  opponent = 'k50'
 
