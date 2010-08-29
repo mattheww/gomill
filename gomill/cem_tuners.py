@@ -145,43 +145,40 @@ class Cem_tuner(Competition):
         self.format_parameters_fn = specials['format_parameters']
         self.candidate_maker_fn = specials['make_candidate']
 
+
+    # FIXME: Currently won't cope with a restart, because it doesn't know that
+    # outstanding games will be replayed.
+
     def set_clean_status(self):
-        self.finished = False
         self.generation = 0
         self.distribution = self.initial_distribution
         self.reset_for_new_generation()
 
     def get_status(self):
         return {
-            'finished'           : self.finished,
             'generation'         : self.generation,
             'distribution'       : self.distribution.parameters,
             'sample_parameters'  : self.sample_parameters,
-            'round'              : self.round,
-            'next_candidate'     : self.next_candidate,
+            'played'             : self.played,
             'wins'               : self.wins,
-            'results_seen_count' : self.results_seen_count,
             }
 
     def set_status(self, status):
-        self.finished = status['finished']
         self.generation = status['generation']
         self.distribution = Distribution(status['distribution'])
         self.sample_parameters = status['sample_parameters']
-        self.round = status['round']
-        self.next_candidate = status['next_candidate']
+        self.played = status['played']
         self.wins = status['wins']
-        self.results_seen_count = status['results_seen_count']
         self.prepare_candidates()
+        self.started = self.played[:]
 
     def reset_for_new_generation(self):
         get_sample = self.distribution.get_sample
         self.sample_parameters = [get_sample()
                                   for _ in xrange(self.samples_per_generation)]
-        self.round = 0
-        self.next_candidate = 0
+        self.played = [0] * self.samples_per_generation
         self.wins = [0] * self.samples_per_generation
-        self.results_seen_count = 0
+        self.started = [0] * self.samples_per_generation
         self.prepare_candidates()
 
     @staticmethod
@@ -260,23 +257,18 @@ class Cem_tuner(Competition):
             self.distribution, elite_samples, self.step_size)
 
     def get_game(self):
-        if self.finished:
-            return NoGameAvailable
-
-        if self.round == self.batch_size:
+        already_started, candidate_number = min(
+            (started, i) for (i, started) in enumerate(self.started))
+        if already_started == self.batch_size:
             # Send no more games until the new generation
             return NoGameAvailable
 
-        if self.round == 0 and self.next_candidate == 0:
+        if max(self.started) == 0:
             self.log("\nstarting generation %d" % self.generation)
+        self.started[candidate_number] += 1
 
-        candidate = self.candidates[self.next_candidate]
-        game_id = "%sr%d" % (candidate.code, self.round)
-
-        self.next_candidate += 1
-        if self.next_candidate == self.samples_per_generation:
-            self.next_candidate = 0
-            self.round += 1
+        candidate = self.candidates[candidate_number]
+        game_id = "%sr%d" % (candidate.code, already_started)
 
         job = game_jobs.Game_job()
         job.game_id = game_id
@@ -293,22 +285,24 @@ class Cem_tuner(Competition):
         return job
 
     def process_game_result(self, response):
-        assert not self.finished
-        winner = response.game_result.winning_player
+        gr = response.game_result
+        if self.is_candidate_code(gr.player_b):
+            candidate = gr.player_b
+        else:
+            assert self.is_candidate_code(gr.player_w)
+            candidate = gr.player_w
+        candidate_number = self.candidate_numbers_by_code[candidate]
+        self.played[candidate_number] += 1
         # Counting no-result as loss for the candidate
-        if self.is_candidate_code(winner):
-            candidate_number = self.candidate_numbers_by_code[winner]
+        if gr.winning_player == candidate:
             self.wins[candidate_number] += 1
-        self.results_seen_count += 1
-        games_per_generation = self.batch_size * self.samples_per_generation
-        if self.results_seen_count == games_per_generation:
-            assert self.round == self.batch_size
+
+        if min(self.played) == self.batch_size:
             self.finish_generation()
             self.generation += 1
-            if self.generation == self.number_of_generations:
-                self.finished = True
-            else:
+            if self.generation != self.number_of_generations:
                 self.reset_for_new_generation()
+
 
     def format_parameters(self, optimiser_parameters):
         try:
@@ -356,12 +350,7 @@ class Cem_tuner(Competition):
         # FIXME: Should describe the matchup?
 
     def write_status_summary(self, out):
-        if self.round == self.batch_size:
-            print >>out, "generation %d: waiting for completion" % (
-                self.generation)
-        else:
-            print >>out, "generation %d: next candidate round %d #%d" % (
-                self.generation, self.round, self.next_candidate)
+        print >>out, "generation %d" % self.generation
         print >>out
         print >>out, "wins from current samples:\n%s" % self.wins
         print >>out
