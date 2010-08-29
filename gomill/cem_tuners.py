@@ -152,11 +152,7 @@ class Cem_tuner(Competition):
     #  *distribution      -- Distribution for current generation
     #  *sample_parameters -- optimiser_params
     #                        (list indexed by candidate number)
-    #  *played            -- number of games whose results have been received
-    #                        (list indexed by candidate number)
     #  *wins              -- number of games won
-    #                        (list indexed by candidate number)
-    #   started           -- number of games started
     #                        (list indexed by candidate number)
     #   candidates        -- Players (code attribute is the candidate code)
     #                        (list indexed by candidate number)
@@ -175,7 +171,6 @@ class Cem_tuner(Competition):
             'generation'         : self.generation,
             'distribution'       : self.distribution.parameters,
             'sample_parameters'  : self.sample_parameters,
-            'played'             : self.played,
             'wins'               : self.wins,
             'game_id_allocator'  : pickle.dumps(self.game_id_allocator),
             }
@@ -184,10 +179,8 @@ class Cem_tuner(Competition):
         self.generation = status['generation']
         self.distribution = Distribution(status['distribution'])
         self.sample_parameters = status['sample_parameters']
-        self.played = status['played']
         self.wins = status['wins']
         self.prepare_candidates()
-        self.started = self.played[:]
         self.game_id_allocator = pickle.loads(
             status['game_id_allocator'].encode('iso-8859-1'))
         self.game_id_allocator.rollback()
@@ -196,11 +189,11 @@ class Cem_tuner(Competition):
         get_sample = self.distribution.get_sample
         self.sample_parameters = [get_sample()
                                   for _ in xrange(self.samples_per_generation)]
-        self.played = [0] * self.samples_per_generation
         self.wins = [0] * self.samples_per_generation
-        self.started = [0] * self.samples_per_generation
         self.prepare_candidates()
         self.game_id_allocator = competitions.Tagged_id_allocator()
+        for candidate in self.candidates:
+            self.game_id_allocator.add_tag(candidate.code)
 
     @staticmethod
     def make_candidate_code(generation, candidate_number):
@@ -277,20 +270,19 @@ class Cem_tuner(Competition):
             self.distribution, elite_samples, self.step_size)
 
     def get_game(self):
-        already_started, candidate_number = min(
-            (started, i) for (i, started) in enumerate(self.started))
+        candidate_code, already_started = self.game_id_allocator.lowest_issued()
         if already_started == self.batch_size:
             # Send no more games until the new generation
             return NoGameAvailable
 
-        if max(self.started) == 0:
+        if self.game_id_allocator.highest_issued()[1] == 0:
             self.log("\nstarting generation %d" % self.generation)
-        self.started[candidate_number] += 1
 
-        candidate = self.candidates[candidate_number]
+        # FIXME: This is daft.
+        candidate = self.candidates[self.candidate_numbers_by_code[candidate_code]]
 
         job = game_jobs.Game_job()
-        job.game_id = self.game_id_allocator.issue(candidate.code)
+        job.game_id = self.game_id_allocator.issue(candidate_code)
         job.player_b = candidate
         job.player_w = self.opponent
         job.board_size = self.board_size
@@ -312,12 +304,11 @@ class Cem_tuner(Competition):
             assert self.is_candidate_code(gr.player_w)
             candidate = gr.player_w
         candidate_number = self.candidate_numbers_by_code[candidate]
-        self.played[candidate_number] += 1
         # Counting no-result as loss for the candidate
         if gr.winning_player == candidate:
             self.wins[candidate_number] += 1
 
-        if min(self.played) == self.batch_size:
+        if self.game_id_allocator.lowest_fixed()[1] == self.batch_size:
             self.finish_generation()
             self.generation += 1
             if self.generation != self.number_of_generations:

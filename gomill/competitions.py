@@ -396,6 +396,10 @@ class Id_allocator(object):
         self.to_reissue.update(self.outstanding)
         self.outstanding = set()
 
+    def count_issued(self):
+        """Return the number of ids which have been issued."""
+        return self.next_new - len(self.to_reissue)
+
     def count_fixed(self):
         """Return the number of ids which have been fixed."""
         return self.next_new - len(self.outstanding) - len(self.to_reissue)
@@ -417,11 +421,14 @@ class Tagged_id_allocator(object):
     def __setstate__(self, state):
         self.allocators = state
 
+    def add_tag(self, tag):
+        if '_' in tag:
+            raise ValueError
+        self.allocators[tag] = Id_allocator()
+
     def issue(self, tag):
         if tag not in self.allocators:
-            if '_' in tag:
-                raise ValueError
-            self.allocators[tag] = Id_allocator()
+            self.add_tag(tag)
         return "%s_%d" % (tag, self.allocators[tag].issue())
 
     def fix(self, id_string):
@@ -431,4 +438,60 @@ class Tagged_id_allocator(object):
     def rollback(self):
         for allocator in self.allocators.itervalues():
             allocator.rollback()
+
+    def lowest_issued(self):
+        """Find the tag with the fewest issued ids, and how many ids there were.
+
+        Returns a pair (tag, number issued)
+
+        If there are multiple tags with the same number issued, chooses the
+        alphabetically first tag.
+
+        """
+        n, tag = min(
+            (allocator.count_issued(), tag)
+            for (tag, allocator) in self.allocators.iteritems())
+        return tag, n
+
+    def highest_issued(self):
+        """Find the tag with the most issued ids, and how many ids there were.
+
+        Returns a pair (tag, number issued)
+
+        If there are multiple tags with the same number issued, chooses the
+        alphabetically last tag.
+
+        """
+        n, tag = max(
+            (allocator.count_issued(), tag)
+            for (tag, allocator) in self.allocators.iteritems())
+        return tag, n
+
+    def lowest_fixed(self):
+        """Find the tag with the fewest fixed ids, and how many ids there were.
+
+        Returns a pair (tag, number fixed)
+
+        If there are multiple tags with the same number fixed, chooses the
+        alphabetically first tag.
+
+        """
+        n, tag = min(
+            (allocator.count_fixed(), tag)
+            for (tag, allocator) in self.allocators.iteritems())
+        return tag, n
+
+    def highest_fixed(self):
+        """Find the tag with the most fixed ids, and how many ids there were.
+
+        Returns a pair (tag, number fixed)
+
+        If there are multiple tags with the same number fixed, chooses the
+        alphabetically last tag.
+
+        """
+        n, tag = max(
+            (allocator.count_fixed(), tag)
+            for (tag, allocator) in self.allocators.iteritems())
+        return tag, n
 
