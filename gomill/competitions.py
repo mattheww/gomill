@@ -495,3 +495,83 @@ class Tagged_id_allocator(object):
             for (tag, allocator) in self.allocators.iteritems())
         return tag, n
 
+
+class Group_scheduler(object):
+    """Schedule multiple lists of games in parallel.
+
+    This schedules for a number of _groups_, each of which may have a limit on
+    the number of games to play. It schedules from the group (of those which
+    haven't reached their limit) with the fewest issued games, with smallest
+    group code breaking ties.
+
+    group codes might be ints or short strings
+    (any sortable, pickleable and hashable object should do).
+
+    The issued tokens are pairs (group code, game number), with game numbers
+    counting up from 0 independently for each group code.
+
+    This class is suitable for pickling.
+
+    """
+    def __init__(self):
+        self.allocators = {}
+        self.limits = {}
+
+    def __getstate__(self):
+        return (self.allocators, self.limits)
+
+    def __setstate__(self, state):
+        (self.allocators, self.limits) = state
+
+    def set_groups(self, group_specs):
+        """Set the groups to be scheduled.
+
+        group_specs -- iterable of pairs (group code, limit)
+          limit -- int or None
+
+        You can call this again after the first time. The limits will be set to
+        the new values. Any existing groups not in the list are forgotten.
+
+        """
+        new_allocators = {}
+        new_limits = {}
+        for group_code, limit in group_specs:
+            if group_code in self.allocators:
+                new_allocators[group_code] = self.allocators[group_code]
+            else:
+                new_allocators[group_code] = Id_allocator()
+            new_limits[group_code] = limit
+        self.allocators = new_allocators
+        self.limits = new_limits
+
+    def issue(self):
+        """Choose the next game to start.
+
+        Returns a pair (group code, game number)
+
+        Returns (None, None) if all groups have reached their limit.
+
+        """
+        groups = [
+            (group_code, allocator.count_issued(), self.limits[group_code])
+            for (group_code, allocator) in self.allocators.iteritems()
+            ]
+        available = [
+            (issue_count, group_code)
+            for (group_code, issue_count, limit) in groups
+            if limit is None or issue_count < limit
+            ]
+        if not available:
+            return None, None
+        _, group_code = min(available)
+        return group_code, self.allocators[group_code].issue()
+
+    def fix(self, group_code, game_number):
+        """Note that a game's result has been reliably stored."""
+        self.allocators[group_code].fix(game_number)
+
+    def rollback(self):
+        """Make issued-but-not-fixed tokens available again."""
+        for allocator in self.allocators.itervalues():
+            allocator.rollback()
+

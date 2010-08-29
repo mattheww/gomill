@@ -19,7 +19,6 @@ class Matchup(object):
       p1             -- player code
       p2             -- player code
       name           -- shortish string to show in reports
-      games_started  -- int
 
     All Tournament matchup_settings are also available as attributes.
 
@@ -27,8 +26,6 @@ class Matchup(object):
     alternate.
 
     """
-    def __init__(self):
-        self.games_started = 0
 
 
 class _Required_in_matchup(object):
@@ -165,68 +162,48 @@ class Tournament(Competition):
 
     # State attributes (*: in persistent state):
     #  *results             -- list of pairs (matchup_id, Game_result)
-    #  *game_id_allocator   -- Tagged_id_allocator
+    #  *scheduler           -- Group_scheduler (group codes are matchup ids)
     #  *engine_names        -- map player code -> string
     #  *engine_descriptions -- map player code -> string
-    #   outstanding_games   -- map game id ->
-    #                                (matchup_id, b_player_code, w_player_code)
     #  (number of games started is in the Matchup objects, and not persisted)
+
+    def _set_scheduler_groups(self):
+        self.scheduler.set_groups(
+            enumerate(m.number_of_games for m in self.matchups))
 
     def set_clean_status(self):
         self.results = []
         self.engine_names = {}
         self.engine_descriptions = {}
-        self.outstanding_games = {}
-        self.game_id_allocator = competitions.Tagged_id_allocator()
+        self.scheduler = competitions.Group_scheduler()
+        self._set_scheduler_groups()
 
     def get_status(self):
         return {
             'results' : self.results,
-            'game_id_allocator' : pickle.dumps(self.game_id_allocator),
+            'scheduler' : pickle.dumps(self.scheduler),
             'engine_names' : self.engine_names,
             'engine_descriptions' : self.engine_descriptions,
             }
 
     def set_status(self, status):
         self.results = status['results']
-        self.game_id_allocator = pickle.loads(
-            status['game_id_allocator'].encode('iso-8859-1'))
-        self.game_id_allocator.rollback()
+        self.scheduler = pickle.loads(status['scheduler'].encode('iso-8859-1'))
+        self._set_scheduler_groups()
+        self.scheduler.rollback()
         self.engine_names = status['engine_names']
         self.engine_descriptions = status['engine_descriptions']
-        for matchup_id, result in self.results:
-            self.matchups[matchup_id].games_started += 1
-        self.outstanding_games = {}
-
-    def find_match(self):
-        """Find the players for the next game.
-
-        Returns a tuple (matchup, black player code, white player code)
-
-        Returns (None, None, None) if all matchups are complete.
-
-        """
-        available = [
-            m for m in self.matchups
-            if m.number_of_games is None or m.games_started < m.number_of_games
-            ]
-        if not available:
-            return None, None, None
-        matchup = min(available, key=lambda m: (m.games_started, m.id))
-
-        if matchup.alternating and (matchup.games_started % 2):
-            pb, pw = matchup.p2, matchup.p1
-        else:
-            pb, pw = matchup.p1, matchup.p2
-        return matchup, pb, pw
 
     def get_game(self):
-        matchup, player_b, player_w = self.find_match()
-        if matchup is None:
+        matchup_id, game_number = self.scheduler.issue()
+        if matchup_id is None:
             return NoGameAvailable
-        matchup.games_started += 1
-        game_id = self.game_id_allocator.issue(str(matchup.id))
-        self.outstanding_games[game_id] = (matchup.id, player_b, player_w)
+        matchup = self.matchups[matchup_id]
+        if matchup.alternating and (game_number % 2):
+            player_b, player_w = matchup.p2, matchup.p1
+        else:
+            player_b, player_w = matchup.p1, matchup.p2
+        game_id = "%d_%d" % (matchup_id, game_number)
 
         job = game_jobs.Game_job()
         job.game_id = game_id
@@ -245,11 +222,8 @@ class Tournament(Competition):
     def process_game_result(self, response):
         self.engine_names.update(response.engine_names)
         self.engine_descriptions.update(response.engine_descriptions)
-        self.game_id_allocator.fix(response.game_id)
-        matchup_id, player_b, player_w = self.outstanding_games.pop(
-            response.game_id)
-        assert player_b == response.game_result.player_b
-        assert player_w == response.game_result.player_w
+        matchup_id, game_number = map(int, response.game_id.split("_"))
+        self.scheduler.fix(matchup_id, game_number)
         self.results.append((matchup_id, response.game_result))
         self.log_history("%7s %s" %
                          (response.game_id, response.game_result.describe()))
