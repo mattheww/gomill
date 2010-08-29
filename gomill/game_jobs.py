@@ -34,8 +34,8 @@ class Game_job_result(object):
     Public attributes:
       game_id               -- int
       game_result           -- gtp_games.Game_result
-      engine_names          -- map colour -> string
-      engine_descriptions   -- map colour -> string
+      engine_names          -- map player code -> string
+      engine_descriptions   -- map player code -> string
 
     """
 
