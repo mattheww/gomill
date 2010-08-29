@@ -48,7 +48,8 @@ def interpret_as_utf8(s):
         return ""
     raise ValueError("invalid string")
 
-_identifier_re = re.compile(r"\A[-!#$%&*+-./:;<=>?^_~a-zA-Z0-9]*\Z")
+# NB, tuners use '#' in player codes
+_identifier_re = re.compile(r"\A[-!$%&*+-./:;<=>?^_~a-zA-Z0-9]*\Z")
 
 def interpret_identifier(s):
     if isinstance(s, unicode):
