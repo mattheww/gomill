@@ -252,7 +252,6 @@ class Mcts_tuner(Competition):
     def __init__(self, competition_code):
         Competition.__init__(self, competition_code)
         self.outstanding_simulations = {}
-        # These are only for the sake of display
         self.last_simulation = None
         self.won_last_game = False
 
@@ -324,6 +323,11 @@ class Mcts_tuner(Competition):
     #  *scheduler               -- Simple_scheduler
     #  *tree                    -- Tree (root node is persisted)
     #   outstanding_simulations -- map game_id -> Simulation
+
+    # These are used only for the status summary:
+    #   last_simulation         -- Simulation or None
+    #   won_last_game           -- bool
+
 
     def set_clean_status(self):
         self.scheduler = competition_schedulers.Simple_scheduler()
