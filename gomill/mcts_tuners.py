@@ -251,6 +251,7 @@ class Mcts_tuner(Competition):
     """A Competition for parameter tuning using the Monte-carlo tree search."""
     def __init__(self, competition_code):
         Competition.__init__(self, competition_code)
+        self.outstanding_simulations = {}
         # These are only for the sake of display
         self.last_simulation = None
         self.won_last_game = False
@@ -322,30 +323,23 @@ class Mcts_tuner(Competition):
     # State attributes (*: in persistent state):
     #  *scheduler               -- Simple_scheduler
     #  *tree                    -- Tree (root node is persisted)
-    #  *outstanding_simulations -- map game_id -> Simulation
+    #   outstanding_simulations -- map game_id -> Simulation
 
     def set_clean_status(self):
         self.scheduler = competition_schedulers.Simple_scheduler()
         self.tree.new_root()
-        self.outstanding_simulations = {}
 
     def get_status(self):
         return {
             'scheduler' : pickle.dumps(self.scheduler),
-            # Pickling these together so that they share the Node objects
-            'tree_data' : pickle.dumps((self.tree.root,
-                                        self.outstanding_simulations))
+            'tree_root' : pickle.dumps(self.tree.root),
             }
 
     def set_status(self, status):
         self.scheduler = pickle.loads(status['scheduler'].encode('iso-8859-1'))
         self.scheduler.rollback()
-        root, outstanding_simulations = pickle.loads(
-            status['tree_data'].encode('iso-8859-1'))
+        root = pickle.loads(status['tree_root'].encode('iso-8859-1'))
         self.tree.set_root(root)
-        for simulation in outstanding_simulations.values():
-            simulation.tree = self.tree
-        self.outstanding_simulations = outstanding_simulations
 
     def format_parameters(self, optimiser_parameters):
         try:
