@@ -166,7 +166,6 @@ class Tournament(Competition):
     #  *scheduler           -- Group_scheduler (group codes are matchup ids)
     #  *engine_names        -- map player code -> string
     #  *engine_descriptions -- map player code -> string
-    #  (number of games started is in the Matchup objects, and not persisted)
 
     def _set_scheduler_groups(self):
         self.scheduler.set_groups(
