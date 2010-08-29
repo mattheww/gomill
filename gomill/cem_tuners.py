@@ -149,6 +149,23 @@ class Cem_tuner(Competition):
     # FIXME: Currently won't cope with a restart, because it doesn't know that
     # outstanding games will be replayed.
 
+    # State attributes (*: in persistent state):
+    #  *generation        -- current generation (0-based int)
+    #  *distribution      -- Distribution for current generation
+    #  *sample_parameters -- optimiser_params
+    #                        (list indexed by candidate number)
+    #  *played            -- number of games whose results have been received
+    #                        (list indexed by candidate number)
+    #  *wins              -- number of games won
+    #                        (list indexed by candidate number)
+    #   started           -- number of games started
+    #                        (list indexed by candidate number)
+    #   candidates        -- Players
+    #                        (list indexed by candidate number)
+    #   candidate_numbers_by_code -- dict candidate code -> candidate number
+    #
+    # These are all reset for each new generation.
+
     def set_clean_status(self):
         self.generation = 0
         self.distribution = self.initial_distribution
@@ -199,7 +216,6 @@ class Cem_tuner(Competition):
         Initialises self.candidates and self.candidate_numbers_by_code.
 
         """
-        # List of Players to be indexed by candidate number
         self.candidates = []
         self.candidate_numbers_by_code = {}
         for candidate_number, optimiser_params in \
