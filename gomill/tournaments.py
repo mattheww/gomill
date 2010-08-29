@@ -165,7 +165,7 @@ class Tournament(Competition):
 
     # State attributes (*: in persistent state):
     #  *results             -- list of pairs (matchup_id, Game_result)
-    #  *game_id_allocator   -- Id_allocator
+    #  *game_id_allocator   -- Tagged_id_allocator
     #  *engine_names        -- map player code -> string
     #  *engine_descriptions -- map player code -> string
     #   outstanding_games   -- map game id ->
@@ -177,7 +177,7 @@ class Tournament(Competition):
         self.engine_names = {}
         self.engine_descriptions = {}
         self.outstanding_games = {}
-        self.game_id_allocator = competitions.Id_allocator()
+        self.game_id_allocator = competitions.Tagged_id_allocator()
 
     def get_status(self):
         return {
@@ -221,12 +221,11 @@ class Tournament(Competition):
         return matchup, pb, pw
 
     def get_game(self):
-        game_id = str(self.game_id_allocator.issue())
-
         matchup, player_b, player_w = self.find_match()
         if matchup is None:
             return NoGameAvailable
         matchup.games_started += 1
+        game_id = str(self.game_id_allocator.issue(str(matchup.id)))
         self.outstanding_games[game_id] = (matchup.id, player_b, player_w)
 
         job = game_jobs.Game_job()
@@ -246,13 +245,13 @@ class Tournament(Competition):
     def process_game_result(self, response):
         self.engine_names.update(response.engine_names)
         self.engine_descriptions.update(response.engine_descriptions)
-        self.game_id_allocator.fix(int(response.game_id))
+        self.game_id_allocator.fix(response.game_id)
         matchup_id, player_b, player_w = self.outstanding_games.pop(
             response.game_id)
         assert player_b == response.game_result.player_b
         assert player_w == response.game_result.player_w
         self.results.append((matchup_id, response.game_result))
-        self.log_history("%4s %s" %
+        self.log_history("%7s %s" %
                          (response.game_id, response.game_result.describe()))
 
     def write_static_description(self, out):

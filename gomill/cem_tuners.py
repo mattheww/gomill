@@ -201,8 +201,6 @@ class Cem_tuner(Competition):
         self.started = [0] * self.samples_per_generation
         self.prepare_candidates()
         self.game_id_allocator = competitions.Tagged_id_allocator()
-        for candidate in self.candidates:
-            self.game_id_allocator.add_tag(candidate.code)
 
     @staticmethod
     def make_candidate_code(generation, candidate_number):

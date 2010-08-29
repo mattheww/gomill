@@ -413,12 +413,11 @@ class Tagged_id_allocator(object):
     def __setstate__(self, state):
         self.allocators = state
 
-    def add_tag(self, tag):
-        if '_' in tag:
-            raise ValueError
-        self.allocators[tag] = Id_allocator()
-
     def issue(self, tag):
+        if tag not in self.allocators:
+            if '_' in tag:
+                raise ValueError
+            self.allocators[tag] = Id_allocator()
         return "%s_%d" % (tag, self.allocators[tag].issue())
 
     def fix(self, id_string):
