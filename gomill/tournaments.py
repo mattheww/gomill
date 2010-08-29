@@ -225,7 +225,7 @@ class Tournament(Competition):
         if matchup is None:
             return NoGameAvailable
         matchup.games_started += 1
-        game_id = str(self.game_id_allocator.issue(str(matchup.id)))
+        game_id = self.game_id_allocator.issue(str(matchup.id))
         self.outstanding_games[game_id] = (matchup.id, player_b, player_w)
 
         job = game_jobs.Game_job()
