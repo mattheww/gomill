@@ -266,7 +266,11 @@ class Competition(object):
         job                  -- game_jobs.Game_job
         previous_error_count -- int >= 0
 
-        Returns a pair (stop_competition, retry_game)
+        Returns a pair of bools (stop_competition, retry_game)
+
+        If stop_competition is True, the ringmaster will stop starting new
+        games. Otherwise, if retry_game is true the ringmaster will try running
+        the same game again.
 
         The job is one previously returned by get_game(). previous_error_count
         is the number of times that this particular job has failed before.
@@ -278,8 +282,7 @@ class Competition(object):
         doesn't like its command-line options.
 
         (Competition provides a default implementation which will retry a game
-         once and then stop the competition, leaving the game to be retried on
-         the next run.)
+         once and then stop the competition.)
 
         """
         if previous_error_count > 0:

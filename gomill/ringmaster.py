@@ -350,12 +350,12 @@ class Ringmaster(object):
         previous_error_count = self.game_error_counts.get(job.game_id, 0)
         stop_competition, retry_game = \
             self.competition.process_game_error(job, previous_error_count)
-        if retry_game:
+        if retry_game and not stop_competition:
             self.games_to_replay[job.game_id] = \
                 self.games_in_progress.pop(job.game_id)
             self.game_error_counts[job.game_id] = previous_error_count + 1
         else:
-            del self.games_in_progress.pop[job.game_id]
+            del self.games_in_progress[job.game_id]
             if previous_error_count != 0:
                 del self.game_error_counts[job.game_id]
         if stop_competition:
