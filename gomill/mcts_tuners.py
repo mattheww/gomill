@@ -320,27 +320,26 @@ class Mcts_tuner(Competition):
 
 
     # State attributes (*: in persistent state):
-    #  *game_id_allocator       -- Id_allocator
+    #  *scheduler               -- Simple_scheduler
     #  *tree                    -- Tree (root node is persisted)
     #  *outstanding_simulations -- map game_id -> Simulation
 
     def set_clean_status(self):
-        self.game_id_allocator = competition_schedulers.Id_allocator()
+        self.scheduler = competition_schedulers.Simple_scheduler()
         self.tree.new_root()
         self.outstanding_simulations = {}
 
     def get_status(self):
         return {
-            'game_id_allocator' : pickle.dumps(self.game_id_allocator),
+            'scheduler' : pickle.dumps(self.scheduler),
             # Pickling these together so that they share the Node objects
-            'tree_data'         : pickle.dumps((self.tree.root,
-                                                self.outstanding_simulations))
+            'tree_data' : pickle.dumps((self.tree.root,
+                                        self.outstanding_simulations))
             }
 
     def set_status(self, status):
-        self.game_id_allocator = pickle.loads(
-            status['game_id_allocator'].encode('iso-8859-1'))
-        self.game_id_allocator.rollback()
+        self.scheduler = pickle.loads(status['scheduler'].encode('iso-8859-1'))
+        self.scheduler.rollback()
         root, outstanding_simulations = pickle.loads(
             status['tree_data'].encode('iso-8859-1'))
         self.tree.set_root(root)
@@ -399,9 +398,9 @@ class Mcts_tuner(Competition):
 
     def get_game(self):
         if (self.number_of_games is not None and
-            self.game_id_allocator.count_issued() >= self.number_of_games):
+            self.scheduler.count_issued() >= self.number_of_games):
             return NoGameAvailable
-        game_id = str(self.game_id_allocator.issue())
+        game_id = str(self.scheduler.issue())
 
         simulation, optimiser_parameters = self.prepare_simulation()
         candidate = self.make_candidate(optimiser_parameters)
@@ -427,7 +426,7 @@ class Mcts_tuner(Competition):
         return job
 
     def process_game_result(self, response):
-        self.game_id_allocator.fix(int(response.game_id))
+        self.scheduler.fix(int(response.game_id))
         # Counting no-result as loss for the candidate
         candidate_won = (
             response.game_result.winning_colour == self.candidate_colour)
@@ -437,7 +436,7 @@ class Mcts_tuner(Competition):
         # FIXME: Want to describe this stuff; for now, let status summary do it
         self.last_simulation = simulation
         self.won_last_game = candidate_won
-        if self.game_id_allocator.count_fixed() % self.log_after_games == 0:
+        if self.scheduler.count_fixed() % self.log_after_games == 0:
             self.log_history(self.tree.describe())
 
     def write_static_description(self, out):
@@ -450,7 +449,7 @@ class Mcts_tuner(Competition):
         # FIXME: Should describe the matchup?
 
     def write_status_summary(self, out):
-        games_played = self.game_id_allocator.count_fixed()
+        games_played = self.scheduler.count_fixed()
         if self.number_of_games is None:
             print >>out, "%d games played" % games_played
         else:

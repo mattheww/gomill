@@ -1,14 +1,13 @@
-"""Schedule games in competitions."""
+"""Schedule games in competitions.
 
-class Id_allocator(object):
-    """Allocate numeric IDs, keeping track of which have been finished with.
+All scheduler classes are suitable for pickling.
 
-    The issued ids are integers counting up from zero.
+"""
 
-    After rollback() is called, all ids which have not been fixed will be
-    reissued on subsequent calls to issue().
+class Simple_scheduler(object):
+    """Schedule a single sequence of games.
 
-    This class is suitable for pickling.
+    The issued tokens are integers counting up from zero.
 
     """
     def __init__(self):
@@ -40,17 +39,15 @@ class Id_allocator(object):
         self.outstanding = set()
 
     def count_issued(self):
-        """Return the number of ids which have been issued."""
+        """Return the number of tokens which have been issued."""
         return self.next_new - len(self.to_reissue)
 
     def count_fixed(self):
-        """Return the number of ids which have been fixed."""
+        """Return the number of tokens which have been fixed."""
         return self.next_new - len(self.outstanding) - len(self.to_reissue)
 
 class Tagged_id_allocator(object):
-    """Convenience class for managing multiple Id_allocators.
-
-    This class is suitable for pickling.
+    """Convenience class for managing multiple Simple_schedulers.
 
     The issued ids are strings of the form '<tag>_<i>'.
 
@@ -67,7 +64,7 @@ class Tagged_id_allocator(object):
     def add_tag(self, tag):
         if '_' in tag:
             raise ValueError
-        self.allocators[tag] = Id_allocator()
+        self.allocators[tag] = Simple_scheduler()
 
     def issue(self, tag):
         if tag not in self.allocators:
@@ -153,8 +150,6 @@ class Group_scheduler(object):
     The issued tokens are pairs (group code, game number), with game numbers
     counting up from 0 independently for each group code.
 
-    This class is suitable for pickling.
-
     """
     def __init__(self):
         self.allocators = {}
@@ -182,7 +177,7 @@ class Group_scheduler(object):
             if group_code in self.allocators:
                 new_allocators[group_code] = self.allocators[group_code]
             else:
-                new_allocators[group_code] = Id_allocator()
+                new_allocators[group_code] = Simple_scheduler()
             new_limits[group_code] = limit
         self.allocators = new_allocators
         self.limits = new_limits
