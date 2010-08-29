@@ -397,11 +397,10 @@ class Mcts_tuner(Competition):
         return simulation, simulation.get_parameters()
 
     def get_game(self):
-        game_number = self.game_id_allocator.issue()
         if (self.number_of_games is not None and
-            game_number >= self.number_of_games):
+            self.game_id_allocator.count_issued() >= self.number_of_games):
             return NoGameAvailable
-        game_id = str(game_number)
+        game_id = str(self.game_id_allocator.issue())
 
         simulation, optimiser_parameters = self.prepare_simulation()
         candidate = self.make_candidate(optimiser_parameters)
