@@ -46,95 +46,6 @@ class Simple_scheduler(object):
         """Return the number of tokens which have been fixed."""
         return self.next_new - len(self.outstanding) - len(self.to_reissue)
 
-class Tagged_id_allocator(object):
-    """Convenience class for managing multiple Simple_schedulers.
-
-    The issued ids are strings of the form '<tag>_<i>'.
-
-    """
-    def __init__(self):
-        self.allocators = {}
-
-    def __getstate__(self):
-        return self.allocators
-
-    def __setstate__(self, state):
-        self.allocators = state
-
-    def add_tag(self, tag):
-        if '_' in tag:
-            raise ValueError
-        self.allocators[tag] = Simple_scheduler()
-
-    def issue(self, tag):
-        if tag not in self.allocators:
-            self.add_tag(tag)
-        return "%s_%d" % (tag, self.allocators[tag].issue())
-
-    def fix(self, id_string):
-        tag, i_s = id_string.split("_")
-        self.allocators[tag].fix(int(i_s))
-
-    def rollback(self):
-        for allocator in self.allocators.itervalues():
-            allocator.rollback()
-
-    def lowest_issued(self):
-        """Find the tag with the fewest issued ids, and how many ids there were.
-
-        Returns a pair (tag, number issued)
-
-        If there are multiple tags with the same number issued, chooses the
-        alphabetically first tag.
-
-        """
-        n, tag = min(
-            (allocator.count_issued(), tag)
-            for (tag, allocator) in self.allocators.iteritems())
-        return tag, n
-
-    def highest_issued(self):
-        """Find the tag with the most issued ids, and how many ids there were.
-
-        Returns a pair (tag, number issued)
-
-        If there are multiple tags with the same number issued, chooses the
-        alphabetically last tag.
-
-        """
-        n, tag = max(
-            (allocator.count_issued(), tag)
-            for (tag, allocator) in self.allocators.iteritems())
-        return tag, n
-
-    def lowest_fixed(self):
-        """Find the tag with the fewest fixed ids, and how many ids there were.
-
-        Returns a pair (tag, number fixed)
-
-        If there are multiple tags with the same number fixed, chooses the
-        alphabetically first tag.
-
-        """
-        n, tag = min(
-            (allocator.count_fixed(), tag)
-            for (tag, allocator) in self.allocators.iteritems())
-        return tag, n
-
-    def highest_fixed(self):
-        """Find the tag with the most fixed ids, and how many ids there were.
-
-        Returns a pair (tag, number fixed)
-
-        If there are multiple tags with the same number fixed, chooses the
-        alphabetically last tag.
-
-        """
-        n, tag = max(
-            (allocator.count_fixed(), tag)
-            for (tag, allocator) in self.allocators.iteritems())
-        return tag, n
-
 
 class Group_scheduler(object):
     """Schedule multiple lists of games in parallel.
@@ -213,3 +124,17 @@ class Group_scheduler(object):
         for allocator in self.allocators.itervalues():
             allocator.rollback()
 
+    def nothing_issued_yet(self):
+        """Say whether nothing has been issued yet."""
+        return all(allocator.count_issued() == 0
+                   for allocator in self.allocators.itervalues())
+
+    def all_fixed(self):
+        """Check whether all groups have reached their limits.
+
+        This returns true if all groups have limits, and each group has as many
+        _fixed_ tokens as its limit.
+
+        """
+        return all(allocator.count_fixed() >= self.limits[g]
+                   for (g, allocator) in self.allocators.iteritems())

@@ -158,7 +158,7 @@ class Cem_tuner(Competition):
     #   candidates        -- Players (code attribute is the candidate code)
     #                        (list indexed by candidate number)
     #   candidate_numbers_by_code -- dict candidate code -> candidate number
-    #  *game_id_allocator -- Tagged_id_allocator
+    #  *scheduler         -- Group_scheduler (group codes are candidate numbers)
     #
     # These are all reset for each new generation.
 
@@ -173,7 +173,7 @@ class Cem_tuner(Competition):
             'distribution'       : self.distribution.parameters,
             'sample_parameters'  : self.sample_parameters,
             'wins'               : self.wins,
-            'game_id_allocator'  : pickle.dumps(self.game_id_allocator),
+            'scheduler'          : pickle.dumps(self.scheduler),
             }
 
     def set_status(self, status):
@@ -182,9 +182,9 @@ class Cem_tuner(Competition):
         self.sample_parameters = status['sample_parameters']
         self.wins = status['wins']
         self.prepare_candidates()
-        self.game_id_allocator = pickle.loads(
-            status['game_id_allocator'].encode('iso-8859-1'))
-        self.game_id_allocator.rollback()
+        self.scheduler = pickle.loads(status['scheduler'].encode('iso-8859-1'))
+        self.scheduler.rollback()
+        # FIXME: if batch size has changed, tell the scheduler.
 
     def reset_for_new_generation(self):
         get_sample = self.distribution.get_sample
@@ -192,9 +192,10 @@ class Cem_tuner(Competition):
                                   for _ in xrange(self.samples_per_generation)]
         self.wins = [0] * self.samples_per_generation
         self.prepare_candidates()
-        self.game_id_allocator = competition_schedulers.Tagged_id_allocator()
-        for candidate in self.candidates:
-            self.game_id_allocator.add_tag(candidate.code)
+        self.scheduler = competition_schedulers.Group_scheduler()
+        self.scheduler.set_groups(
+            (i, self.batch_size) for i in xrange(self.samples_per_generation)
+            )
 
     @staticmethod
     def make_candidate_code(generation, candidate_number):
@@ -271,19 +272,17 @@ class Cem_tuner(Competition):
             self.distribution, elite_samples, self.step_size)
 
     def get_game(self):
-        candidate_code, already_started = self.game_id_allocator.lowest_issued()
-        if already_started == self.batch_size:
-            # Send no more games until the new generation
-            return NoGameAvailable
-
-        if self.game_id_allocator.highest_issued()[1] == 0:
+        if self.scheduler.nothing_issued_yet():
             self.log("\nstarting generation %d" % self.generation)
 
-        # FIXME: This is daft.
-        candidate = self.candidates[self.candidate_numbers_by_code[candidate_code]]
+        candidate_number, round_id = self.scheduler.issue()
+        if candidate_number is None:
+            return NoGameAvailable
+
+        candidate = self.candidates[candidate_number]
 
         job = game_jobs.Game_job()
-        job.game_id = self.game_id_allocator.issue(candidate_code)
+        job.game_id = "%s_%d" % (candidate.code, round_id)
         job.player_b = candidate
         job.player_w = self.opponent
         job.board_size = self.board_size
@@ -297,19 +296,17 @@ class Cem_tuner(Competition):
         return job
 
     def process_game_result(self, response):
-        self.game_id_allocator.fix(response.game_id)
+        candidate_code, round_id_s = response.game_id.split("_")
+        candidate_number = self.candidate_numbers_by_code[candidate_code]
+        self.scheduler.fix(candidate_number, int(round_id_s))
         gr = response.game_result
-        if self.is_candidate_code(gr.player_b):
-            candidate = gr.player_b
-        else:
-            assert self.is_candidate_code(gr.player_w)
-            candidate = gr.player_w
-        candidate_number = self.candidate_numbers_by_code[candidate]
+        assert candidate_code in (gr.player_b, gr.player_w)
+
         # Counting no-result as loss for the candidate
-        if gr.winning_player == candidate:
+        if gr.winning_player == candidate_code:
             self.wins[candidate_number] += 1
 
-        if self.game_id_allocator.lowest_fixed()[1] == self.batch_size:
+        if self.scheduler.all_fixed():
             self.finish_generation()
             self.generation += 1
             if self.generation != self.number_of_generations:
