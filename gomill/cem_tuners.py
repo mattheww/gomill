@@ -85,8 +85,6 @@ def update_distribution(distribution, elites, step_size):
 
 class Cem_tuner(Competition):
     """A Competition for parameter tuning using the cross-entropy method."""
-    def __init__(self, competition_code):
-        Competition.__init__(self, competition_code)
 
     global_settings = [
         Setting('board_size', competitions.interpret_board_size),
@@ -147,21 +145,44 @@ class Cem_tuner(Competition):
         self.format_parameters_fn = specials['format_parameters']
         self.candidate_maker_fn = specials['make_candidate']
 
-    def format_parameters(self, optimiser_parameters):
-        try:
-            return self.format_parameters_fn(optimiser_parameters)
-        except StandardError:
-            return ("[error from user-defined parameter formatter]\n"
-                    "[optimiser parameters %s]" % optimiser_parameters)
+    def set_clean_status(self):
+        self.finished = False
+        self.generation = 0
+        self.distribution = self.initial_distribution
+        self.reset_for_new_generation()
 
-    def format_distribution(self, distribution):
-        """Pretty-print a distribution.
+    def get_status(self):
+        return {
+            'finished'           : self.finished,
+            'generation'         : self.generation,
+            'distribution'       : self.distribution.parameters,
+            'sample_parameters'  : self.sample_parameters,
+            'round'              : self.round,
+            'next_candidate'     : self.next_candidate,
+            'wins'               : self.wins,
+            'results_seen_count' : self.results_seen_count,
+            }
 
-        Returns a string.
+    def set_status(self, status):
+        self.finished = status['finished']
+        self.generation = status['generation']
+        self.distribution = Distribution(status['distribution'])
+        self.sample_parameters = status['sample_parameters']
+        self.round = status['round']
+        self.next_candidate = status['next_candidate']
+        self.wins = status['wins']
+        self.results_seen_count = status['results_seen_count']
+        self.prepare_candidates()
 
-        """
-        return "%s\n%s" % (self.format_parameters(distribution.get_means()),
-                           distribution.format())
+    def reset_for_new_generation(self):
+        get_sample = self.distribution.get_sample
+        self.sample_parameters = [get_sample()
+                                  for _ in xrange(self.samples_per_generation)]
+        self.round = 0
+        self.next_candidate = 0
+        self.wins = [0] * self.samples_per_generation
+        self.results_seen_count = 0
+        self.prepare_candidates()
 
     @staticmethod
     def make_candidate_code(generation, candidate_number):
@@ -177,6 +198,8 @@ class Cem_tuner(Competition):
         This is run for each new generation, and when reloading state.
 
         Requires generation and sample_parameters to be already set.
+
+        Initialises self.candidates and self.candidate_numbers_by_code.
 
         """
         # List of Players to be indexed by candidate number
@@ -213,41 +236,14 @@ class Cem_tuner(Competition):
             self.candidates.append(candidate)
             self.candidate_numbers_by_code[candidate_code] = candidate_number
 
-    def reset_for_new_generation(self):
-        get_sample = self.distribution.get_sample
-        self.sample_parameters = [get_sample()
-                                  for _ in xrange(self.samples_per_generation)]
-        assert len(self.sample_parameters) == self.samples_per_generation
-        self.round = 0
-        self.next_candidate = 0
-        self.wins = [0] * self.samples_per_generation
-        self.results_seen_count = 0
-        self.prepare_candidates()
+    def finish_generation(self):
+        """Process a generation's results and calculate the new distribution.
 
-    def get_results_required_count(self):
-        return self.batch_size * self.samples_per_generation
+        Writes a description of the generation to the history log.
 
-    def format_generation_results(self, ordered_samples, elite_count):
-        """Pretty-print the results of a single generation.
-
-        ordered_samples -- list of pairs (wins, candidate number)
-        elite_count     -- number of samples to mark as elite
-
-        Returns a list of strings
+        Updates self.distribution.
 
         """
-        result = []
-        for i, (wins, candidate_number) in enumerate(ordered_samples):
-            opt_parameters = self.sample_parameters[candidate_number]
-            result.append(
-                "%s%s %s %3d" %
-                (self.make_candidate_code(self.generation, candidate_number),
-                 "*" if i < elite_count else " ",
-                 self.format_parameters(opt_parameters),
-                 wins))
-        return "\n".join(result)
-
-    def finish_generation(self):
         sorter = [(wins, candidate_number)
                   for (candidate_number, wins) in enumerate(self.wins)]
         sorter.sort(reverse=True)
@@ -262,35 +258,6 @@ class Cem_tuner(Competition):
                          for (wins, index) in sorter[:elite_count]]
         self.distribution = update_distribution(
             self.distribution, elite_samples, self.step_size)
-
-    def get_status(self):
-        return {
-            'finished'           : self.finished,
-            'distribution'       : self.distribution.parameters,
-            'sample_parameters'  : self.sample_parameters,
-            'generation'         : self.generation,
-            'round'              : self.round,
-            'next_candidate'     : self.next_candidate,
-            'wins'               : self.wins,
-            'results_seen_count' : self.results_seen_count,
-            }
-
-    def set_status(self, status):
-        self.finished = status['finished']
-        self.distribution = Distribution(status['distribution'])
-        self.sample_parameters = status['sample_parameters']
-        self.generation = status['generation']
-        self.round = status['round']
-        self.next_candidate = status['next_candidate']
-        self.wins = status['wins']
-        self.results_seen_count = status['results_seen_count']
-        self.prepare_candidates()
-
-    def set_clean_status(self):
-        self.finished = False
-        self.generation = 0
-        self.distribution = self.initial_distribution
-        self.reset_for_new_generation()
 
     def get_game(self):
         if self.finished:
@@ -333,7 +300,8 @@ class Cem_tuner(Competition):
             candidate_number = self.candidate_numbers_by_code[winner]
             self.wins[candidate_number] += 1
         self.results_seen_count += 1
-        if self.results_seen_count == self.get_results_required_count():
+        games_per_generation = self.batch_size * self.samples_per_generation
+        if self.results_seen_count == games_per_generation:
             assert self.round == self.batch_size
             self.finish_generation()
             self.generation += 1
@@ -341,6 +309,42 @@ class Cem_tuner(Competition):
                 self.finished = True
             else:
                 self.reset_for_new_generation()
+
+    def format_parameters(self, optimiser_parameters):
+        try:
+            return self.format_parameters_fn(optimiser_parameters)
+        except StandardError:
+            return ("[error from user-defined parameter formatter]\n"
+                    "[optimiser parameters %s]" % optimiser_parameters)
+
+    def format_distribution(self, distribution):
+        """Pretty-print a distribution.
+
+        Returns a string.
+
+        """
+        return "%s\n%s" % (self.format_parameters(distribution.get_means()),
+                           distribution.format())
+
+    def format_generation_results(self, ordered_samples, elite_count):
+        """Pretty-print the results of a single generation.
+
+        ordered_samples -- list of pairs (wins, candidate number)
+        elite_count     -- number of samples to mark as elite
+
+        Returns a list of strings
+
+        """
+        result = []
+        for i, (wins, candidate_number) in enumerate(ordered_samples):
+            opt_parameters = self.sample_parameters[candidate_number]
+            result.append(
+                "%s%s %s %3d" %
+                (self.make_candidate_code(self.generation, candidate_number),
+                 "*" if i < elite_count else " ",
+                 self.format_parameters(opt_parameters),
+                 wins))
+        return "\n".join(result)
 
     def write_static_description(self, out):
         def p(s):

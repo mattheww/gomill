@@ -161,6 +161,13 @@ class Tournament(Competition):
         except StandardError, e:
             raise ControlFileError("'matchups': unexpected error: %s" % e)
 
+    def set_clean_status(self):
+        self.results = []
+        self.next_game_number = 0
+        self.engine_names = {}
+        self.engine_descriptions = {}
+        self.outstanding_games = {}
+
     def get_status(self):
         return {
             'results' : self.results,
@@ -181,13 +188,6 @@ class Tournament(Competition):
             self.matchups[matchup_id].games_started += 1
         for matchup_id, _, _ in self.outstanding_games.values():
             self.matchups[matchup_id].games_started += 1
-
-    def set_clean_status(self):
-        self.results = []
-        self.next_game_number = 0
-        self.engine_names = {}
-        self.engine_descriptions = {}
-        self.outstanding_games = {}
 
     def find_match(self):
         """Find the players for the next game.

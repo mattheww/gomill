@@ -317,6 +317,31 @@ class Mcts_tuner(Competition):
         tree_arguments['parameter_formatter'] = self.format_parameters
         self.tree = Tree(**tree_arguments)
 
+    def set_clean_status(self):
+        self.next_game_number = 0
+        self.games_played = 0
+        self.tree.new_root()
+        self.outstanding_simulations = {}
+
+    def get_status(self):
+        return {
+            'next_game_number' : self.next_game_number,
+            'games_played'     : self.games_played,
+            # Pickling these together so that they share the Node objects
+            'tree_data'        : pickle.dumps((self.tree.root,
+                                               self.outstanding_simulations))
+            }
+
+    def set_status(self, status):
+        self.next_game_number = status['next_game_number']
+        self.games_played = status['games_played']
+        root, outstanding_simulations = pickle.loads(
+            status['tree_data'].encode('iso-8859-1'))
+        self.tree.set_root(root)
+        for simulation in outstanding_simulations.values():
+            simulation.tree = self.tree
+        self.outstanding_simulations = outstanding_simulations
+
     def format_parameters(self, optimiser_parameters):
         try:
             return self.format_parameters_fn(optimiser_parameters)
@@ -365,31 +390,6 @@ class Mcts_tuner(Competition):
         simulation = Simulation(self.tree)
         simulation.walk()
         return simulation, simulation.get_parameters()
-
-    def get_status(self):
-        return {
-            'next_game_number' : self.next_game_number,
-            'games_played'     : self.games_played,
-            # Pickling these together so that they share the Node objects
-            'tree_data'        : pickle.dumps((self.tree.root,
-                                               self.outstanding_simulations))
-            }
-
-    def set_status(self, status):
-        self.next_game_number = status['next_game_number']
-        self.games_played = status['games_played']
-        root, outstanding_simulations = pickle.loads(
-            status['tree_data'].encode('iso-8859-1'))
-        self.tree.set_root(root)
-        for simulation in outstanding_simulations.values():
-            simulation.tree = self.tree
-        self.outstanding_simulations = outstanding_simulations
-
-    def set_clean_status(self):
-        self.next_game_number = 0
-        self.games_played = 0
-        self.tree.new_root()
-        self.outstanding_simulations = {}
 
     def get_game(self):
         game_number = self.next_game_number
