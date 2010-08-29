@@ -369,23 +369,23 @@ class Id_allocator(object):
 
     """
     def __init__(self):
-        self.highest_issued = -1
+        self.next_new = 0
         self.outstanding = set()
         self.to_reissue = set()
 
     def __getstate__(self):
-        return (self.highest_issued, self.outstanding, self.to_reissue)
+        return (self.next_new, self.outstanding, self.to_reissue)
 
     def __setstate__(self, state):
-        (self.highest_issued, self.outstanding, self.to_reissue) = state
+        (self.next_new, self.outstanding, self.to_reissue) = state
 
     def issue(self):
         if self.to_reissue:
             result = min(self.to_reissue)
             self.to_reissue.discard(result)
         else:
-            self.highest_issued += 1
-            result = self.highest_issued
+            result = self.next_new
+            self.next_new += 1
         self.outstanding.add(result)
         return result
 
@@ -395,6 +395,10 @@ class Id_allocator(object):
     def rollback(self):
         self.to_reissue.update(self.outstanding)
         self.outstanding = set()
+
+    def count_fixed(self):
+        """Return the number of ids which have been fixed."""
+        return self.next_new - len(self.outstanding) - len(self.to_reissue)
 
 class Tagged_id_allocator(object):
     """Convenience class for managing multiple Id_allocators.

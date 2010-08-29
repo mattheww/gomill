@@ -320,20 +320,17 @@ class Mcts_tuner(Competition):
 
     # State attributes (*: in persistent state):
     #  *game_id_allocator       -- Id_allocator
-    #  *games_played            -- int
     #  *tree                    -- Tree (root node is persisted)
     #  *outstanding_simulations -- map game_id -> Simulation
 
     def set_clean_status(self):
         self.game_id_allocator = competitions.Id_allocator()
-        self.games_played = 0
         self.tree.new_root()
         self.outstanding_simulations = {}
 
     def get_status(self):
         return {
             'game_id_allocator' : pickle.dumps(self.game_id_allocator),
-            'games_played'      : self.games_played,
             # Pickling these together so that they share the Node objects
             'tree_data'         : pickle.dumps((self.tree.root,
                                                 self.outstanding_simulations))
@@ -343,7 +340,6 @@ class Mcts_tuner(Competition):
         self.game_id_allocator = pickle.loads(
             status['game_id_allocator'].encode('iso-8859-1'))
         self.game_id_allocator.rollback()
-        self.games_played = status['games_played']
         root, outstanding_simulations = pickle.loads(
             status['tree_data'].encode('iso-8859-1'))
         self.tree.set_root(root)
@@ -437,12 +433,11 @@ class Mcts_tuner(Competition):
             response.game_result.winning_colour == self.candidate_colour)
         simulation = self.outstanding_simulations.pop(response.game_id)
         simulation.update_stats(candidate_won)
-        self.games_played += 1
         self.log_history(simulation.describe(candidate_won))
         # FIXME: Want to describe this stuff; for now, let status summary do it
         self.last_simulation = simulation
         self.won_last_game = candidate_won
-        if self.games_played % self.log_after_games == 0:
+        if self.game_id_allocator.count_fixed() % self.log_after_games == 0:
             self.log_history(self.tree.describe())
 
     def write_static_description(self, out):
@@ -455,11 +450,12 @@ class Mcts_tuner(Competition):
         # FIXME: Should describe the matchup?
 
     def write_status_summary(self, out):
+        games_played = self.game_id_allocator.count_fixed()
         if self.number_of_games is None:
-            print >>out, "%d games played" % self.games_played
+            print >>out, "%d games played" % games_played
         else:
             print >>out, "%d/%d games played" % (
-                self.games_played, self.number_of_games)
+                games_played, self.number_of_games)
         print >>out
         if self.last_simulation is not None:
             print >>out, "Last simulation: %s" % (
