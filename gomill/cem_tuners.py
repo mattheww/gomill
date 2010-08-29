@@ -9,6 +9,7 @@ from math import sqrt
 from gomill import compact_tracebacks
 from gomill import game_jobs
 from gomill import competitions
+from gomill import competition_schedulers
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError, ControlFileError,
     Player_config, game_jobs_player_from_config)
@@ -191,7 +192,7 @@ class Cem_tuner(Competition):
                                   for _ in xrange(self.samples_per_generation)]
         self.wins = [0] * self.samples_per_generation
         self.prepare_candidates()
-        self.game_id_allocator = competitions.Tagged_id_allocator()
+        self.game_id_allocator = competition_schedulers.Tagged_id_allocator()
         for candidate in self.candidates:
             self.game_id_allocator.add_tag(candidate.code)
 

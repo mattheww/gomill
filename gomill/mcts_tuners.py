@@ -9,6 +9,7 @@ from math import log, sqrt
 from gomill import compact_tracebacks
 from gomill import game_jobs
 from gomill import competitions
+from gomill import competition_schedulers
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError, ControlFileError,
     Player_config, game_jobs_player_from_config)
@@ -324,7 +325,7 @@ class Mcts_tuner(Competition):
     #  *outstanding_simulations -- map game_id -> Simulation
 
     def set_clean_status(self):
-        self.game_id_allocator = competitions.Id_allocator()
+        self.game_id_allocator = competition_schedulers.Id_allocator()
         self.tree.new_root()
         self.outstanding_simulations = {}
 

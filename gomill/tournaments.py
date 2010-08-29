@@ -7,6 +7,7 @@ from collections import defaultdict
 
 from gomill import game_jobs
 from gomill import competitions
+from gomill import competition_schedulers
 from gomill.competitions import (
     Competition, NoGameAvailable, Matchup_config, ControlFileError)
 from gomill.settings import *
@@ -175,7 +176,7 @@ class Tournament(Competition):
         self.results = []
         self.engine_names = {}
         self.engine_descriptions = {}
-        self.scheduler = competitions.Group_scheduler()
+        self.scheduler = competition_schedulers.Group_scheduler()
         self._set_scheduler_groups()
 
     def get_status(self):
