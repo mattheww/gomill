@@ -96,7 +96,7 @@ class Gtp_channel(object):
             if not is_well_formed_gtp_word(argument):
                 raise ValueError("bad argument")
         if self.log_dest is not None:
-            self._log(">>", "%s %s" % (command, " ".join(arguments)))
+            self._log(">>", command + ("".join(" " + a for a in arguments)))
         self.send_command_impl(command, arguments)
 
     def get_response(self):
