@@ -28,7 +28,7 @@ def format_vertex(coords):
 
     coords -- pair (row, col), or None for a pass
 
-    The result suitable for use directly in GTP responses.
+    The result is suitable for use directly in GTP responses.
 
     """
     if coords is None:
