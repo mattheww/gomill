@@ -188,6 +188,8 @@ class Competition(object):
         or missing value.
 
         """
+        # This is called for all commands, so it mustn't log anything.
+
         # Implementations in subclasses should have their own backstop exception
         # handlers, so they can at least show what part of the control file was
         # being interpreted when the exception occurred.
@@ -243,6 +245,11 @@ class Competition(object):
         except StandardError, e:
             raise ControlFileError("'players': unexpected error: %s" % e)
 
+    def set_clean_status(self):
+        """Reset competition state to its initial value."""
+        # This is called before logging is set up, so it mustn't log anything.
+        raise NotImplementedError
+
     def get_status(self):
         """Return full state of the competition, so it can be resumed later.
 
@@ -253,21 +260,12 @@ class Competition(object):
         raise NotImplementedError
 
     def set_status(self, status):
-        """Reset competition state to previously a reported value.
+        """Reset competition state to a previously reported value.
 
         'status' will be a value previously reported by get_status().
 
-        This is called for the 'show' command, so it mustn't log anything.
-
         """
-        raise NotImplementedError
-
-    def set_clean_status(self):
-        """Reset competition state to its initial value.
-
-        This is called before logging is set up, so it mustn't log anything.
-
-        """
+        # This is called for the 'show' command, so it mustn't log anything.
         raise NotImplementedError
 
     def get_game(self):
