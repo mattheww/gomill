@@ -1,3 +1,5 @@
+import sys
+
 from gomill import gtp_controller
 
 from gomill_tests import test_gtp_board
@@ -6,9 +8,12 @@ from gomill import gtp_boards
 
 def test():
     controller = gtp_controller.Gtp_controller_protocol()
+
     c1 = gtp_controller.Subprocess_gtp_channel(
         "./player -m kiai.simple_montecarlo_player".split())
     controller.add_channel("first", c1)
+
+    controller.enable_logging(sys.stdout)
 
     gtp_board = gtp_boards.Gtp_board(test_gtp_board.dummy_move_generator, [9])
     engine = test_gtp_board.kiai_dummy_engine(gtp_board)
@@ -19,15 +24,12 @@ def test():
 
     controller.add_channel("second", c2)
 
+
     def send_command(channel_id, command, *arguments):
-        print ">>%s: %s %s" % (channel_id, command, arguments)
         try:
             response = controller.do_command(channel_id, command, *arguments)
         except gtp_controller.GtpEngineError, e:
-            print "**ERROR:", e
-            return None
-        else:
-            print response
+            response = None
         return response
 
     i = 0

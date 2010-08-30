@@ -49,6 +49,34 @@ class Gtp_channel(object):
     they've been closed.
 
     """
+    def __init__(self):
+        self.log_dest = None
+        self.log_prefix = None
+
+    def enable_logging(self, log_dest, prefix=""):
+        """Log all messages sent and received over the channel.
+
+        log_dest -- writable file-like object (eg an open file)
+        prefix   -- short string to prepend to logged lines
+
+        """
+        self.log_dest = log_dest
+        self.log_prefix = prefix
+
+    def _log(self, marker, message):
+        """Log a message.
+
+        marker  -- string that goes before the log prefix
+        message -- string to log
+
+        Swallows all errors.
+
+        """
+        try:
+            self.log_dest.write(marker + self.log_prefix + message + "\n")
+            self.log_dest.flush()
+        except StandardError:
+            pass
 
     def send_command(self, command, arguments):
         """Send a GTP command over the channel.
@@ -67,6 +95,8 @@ class Gtp_channel(object):
         for argument in arguments:
             if not is_well_formed_gtp_word(argument):
                 raise ValueError("bad argument")
+        if self.log_dest is not None:
+            self._log(">>", "%s %s" % (command, " ".join(arguments)))
         self.send_command_impl(command, arguments)
 
     def get_response(self):
@@ -92,7 +122,15 @@ class Gtp_channel(object):
         the engine's response).
 
         """
-        return self.get_response_impl()
+        result = self.get_response_impl()
+        if self.log_dest is not None:
+            is_error, response = result
+            if is_error:
+                response = "? " + response
+            else:
+                response = "= " + response
+            self._log("<<", response.rstrip())
+        return result
 
     # For subclasses to override:
 
@@ -125,6 +163,7 @@ class Internal_gtp_channel(Gtp_channel):
 
     """
     def __init__(self, engine):
+        Gtp_channel.__init__(self)
         self.engine = engine
         self.outstanding_commands = []
         self.session_is_ended = False
@@ -248,6 +287,7 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
 
     """
     def __init__(self, command):
+        Linebased_gtp_channel.__init__(self)
         try:
             p = subprocess.Popen(command,
                                  preexec_fn=permit_sigpipe, close_fds=True,
@@ -296,6 +336,17 @@ class Gtp_controller_protocol(object):
     def __init__(self):
         self.channels = {}
         self.known_commands = {}
+        self.log_dest = None
+
+    def enable_logging(self, log_dest):
+        """Log all messages sent and received by the controller.
+
+        log_dest -- writable file-like object (eg an open file)
+
+        """
+        self.log_dest = log_dest
+        for channel_id, channel in self.channels.iteritems():
+            channel.enable_logging(self.log_dest, prefix=" %s: " % channel_id)
 
     def add_channel(self, channel_id, channel):
         """Register a communication channel.
@@ -306,6 +357,8 @@ class Gtp_controller_protocol(object):
         """
         if channel_id in self.channels:
             raise ValueError("channel %s already registered" % channel_id)
+        if self.log_dest is not None:
+            channel.enable_logging(self.log_dest, prefix=" %s: " % channel_id)
         self.channels[channel_id] = channel
 
     def do_command(self, channel_id, command, *arguments):
