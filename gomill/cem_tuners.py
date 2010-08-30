@@ -294,7 +294,6 @@ class Cem_tuner(Competition):
         job.handicap = self.handicap
         job.handicap_is_free = (self.handicap_style == 'free')
         job.use_internal_scorer = (self.scorer == 'internal')
-        job.preferred_scorers = self.preferred_scorers
         job.sgf_event = self.competition_code
         return job
 

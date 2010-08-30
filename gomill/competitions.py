@@ -49,8 +49,9 @@ control_file_globals = {
 
 _player_settings = [
     Setting('command_string', interpret_8bit_string),
+    Setting('is_reliable_scorer', interpret_bool, default=True),
     Setting('gtp_translations', interpret_map, default=dict),
-    Setting('startup_gtp_commands', interpret_sequence, default=list)
+    Setting('startup_gtp_commands', interpret_sequence, default=list),
     ]
 
 def game_jobs_player_from_config(player_config):
@@ -79,6 +80,8 @@ def game_jobs_player_from_config(player_config):
         player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
     except StandardError, e:
         raise ControlFileError("'command_string': %s" % e)
+
+    player.is_reliable_scorer = config['is_reliable_scorer']
 
     player.startup_gtp_commands = []
     try:
@@ -176,7 +179,6 @@ class Competition(object):
         It also handles the following settings and sets the corresponding
         attributes:
           players
-          preferred_scorers
 
         Raises ControlFileError with a description if the control file has a bad
         or missing value.
@@ -233,10 +235,6 @@ class Competition(object):
             raise ControlFileError("'players' : %s" % e)
         except StandardError, e:
             raise ControlFileError("'players': unexpected error: %s" % e)
-
-        # NB, this isn't properly validated. I'm planning to change the
-        # system anyway.
-        self.preferred_scorers = config.get('preferred_scorers')
 
 
     def set_clean_status(self):

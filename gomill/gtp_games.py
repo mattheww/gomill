@@ -67,7 +67,7 @@ class Game(object):
     Normal use:
 
       game = Game(...)
-      game.use_internal_scorer() or game.use_players_to_score(...)
+      game.use_internal_scorer() or game.allow_scorer(...)
       game.start_players()
       game.request_engine_descriptions() [optional]
       game.set_handicap(...) [optional]
@@ -77,8 +77,8 @@ class Game(object):
 
     then retrieve the Game_result and moves.
 
-    If neither use_internal_scorer() or game.use_players_to_score() is called,
-    the game won't be scored.
+    If neither use_internal_scorer() nor game.allow_scorer() is called, the game
+    won't be scored.
 
     Public attributes for reading:
       players               -- map colour -> player code (as passed in)
@@ -107,7 +107,7 @@ class Game(object):
         self.result = None
         self.board = boards.Board(board_size)
         self.internal_scorer = False
-        self.player_scorers = []
+        self.allowed_scorers = []
         self.engine_names = {}
         self.engine_descriptions = {}
         self.gtp_translations = {'b' : {}, 'w' : {}}
@@ -122,28 +122,15 @@ class Game(object):
         """
         self.internal_scorer = True
 
-    def use_players_to_score(self, preferred_scorers=None):
-        """Set the scoring method to 'players', and say which players to use.
+    def allow_scorer(self, colour):
+        """Allow the specified player to score the game.
 
-        preferred_scorers -- iterable of player codes, or None
-
-        If preferred scorers is None, Black then White will be asked to score.
-
-        Otherwise the players will be asked in the order they appear in the list
-        (Black first if they're the same). If neither appears, the game won't be
-        scored.
+        If this is called for both colours, the first player specified will be
+        asked to score; if it doesn't support final-score, or final-score
+        returns an error, the second engine will be asked.
 
         """
-        self.internal_scorer = False
-        if preferred_scorers is None:
-            self.player_scorers = ['b', 'w']
-        else:
-            self.player_scorers = []
-            for player in preferred_scorers:
-                if player == self.players['b']:
-                    self.player_scorers.append('b')
-                if player == self.players['w']:
-                    self.player_scorers.append('w')
+        self.allowed_scorers.append(colour)
 
     def set_gtp_translations(self, translations):
         """Set GTP command translations.
@@ -370,9 +357,8 @@ class Game(object):
 
     def _handle_pass_pass(self):
         def ask(colour):
-            try:
-                final_score = self.send_command(colour, "final_score")
-            except GtpEngineError:
+            final_score = self.maybe_send_command(colour, "final_score")
+            if final_score is None:
                 return False
             final_score = final_score.upper()
             if final_score == "0":
@@ -400,7 +386,7 @@ class Game(object):
             else:
                 self.margin = 0
         else:
-            for colour in self.player_scorers:
+            for colour in self.allowed_scorers:
                 if ask(colour):
                     break
 

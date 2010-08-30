@@ -15,6 +15,7 @@ class Player(object):
       cmd_args -- list of strings, as for subprocess.Popen
 
     optional attributes:
+      is_reliable_scorer   -- bool
       gtp_translations     -- map command string -> command string
       startup_gtp_commands -- list of pairs (command_name, arguments)
 
@@ -26,6 +27,7 @@ class Player(object):
 
     """
     def __init__(self):
+        self.is_reliable_scorer = True
         self.gtp_translations = {}
         self.startup_gtp_commands = []
 
@@ -62,7 +64,6 @@ class Game_job(object):
       sgf_pathname        -- pathname to use for the SGF file
       sgf_event           -- string to show as SGF EVent
       use_internal_scorer -- bool (default True)
-      preferred_scorers   -- sequence of player codes, or None
       game_data           -- arbitrary pickleable data
 
     The game_id will be returned in the job result, so you can tell which game
@@ -70,7 +71,9 @@ class Game_job(object):
 
     Leave sgf_pathname None if you don't want to write an SGF file.
 
-    See gtp_games for an explanation of the 'scorer' attributes.
+    If use_internal_scorer is False, the Players' is_reliable_scorer attributes
+    are used to decide which player is asked to score the game (if both are
+    marked as reliable, black will be tried before white).
 
     game_data is returned in the job result. It's provided as a convenient way
     to pass a small amount of information from get_job() to process_response().
@@ -82,7 +85,6 @@ class Game_job(object):
         self.sgf_pathname = None
         self.sgf_event = None
         self.use_internal_scorer = True
-        self.preferred_scorers = None
         self.game_data = None
 
     # The code here has to be happy to run in a separate process.
@@ -94,8 +96,11 @@ class Game_job(object):
             self.board_size, self.komi, self.move_limit)
         if self.use_internal_scorer:
             game.use_internal_scorer()
-        elif self.preferred_scorers:
-            game.use_players_to_score(self.preferred_scorers)
+        else:
+            if self.player_b.is_reliable_scorer:
+                game.allow_scorer('b')
+            if self.player_w.is_reliable_scorer:
+                game.allow_scorer('w')
         game.set_gtp_translations({'b' : self.player_b.gtp_translations,
                                    'w' : self.player_w.gtp_translations})
         try:
