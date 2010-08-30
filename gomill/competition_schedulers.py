@@ -26,6 +26,13 @@ class Simple_scheduler(object):
         self.to_reissue = set()
         self.issued = 0
         self.fixed = 0
+        self._check_consistent()
+
+    def _check_consistent(self):
+        assert self.issued == \
+            self.next_new - len(self.to_reissue)
+        assert self.fixed == \
+            self.next_new - len(self.outstanding) - len(self.to_reissue)
 
     def __getstate__(self):
         return (self.next_new, self.outstanding, self.to_reissue)
@@ -34,6 +41,7 @@ class Simple_scheduler(object):
         (self.next_new, self.outstanding, self.to_reissue) = state
         self.issued = self.next_new - len(self.to_reissue)
         self.fixed = self.issued - len(self.outstanding)
+        self._check_consistent()
 
     def issue(self):
         """Choose the next game to start.
@@ -49,18 +57,21 @@ class Simple_scheduler(object):
             self.next_new += 1
         self.outstanding.add(result)
         self.issued += 1
+        self._check_consistent()
         return result
 
     def fix(self, token):
         """Note that a game's result has been reliably stored."""
         self.outstanding.remove(token)
         self.fixed += 1
+        self._check_consistent()
 
     def rollback(self):
         """Make issued-but-not-fixed tokens available again."""
         self.issued -= len(self.outstanding)
         self.to_reissue.update(self.outstanding)
         self.outstanding = set()
+        self._check_consistent()
 
 
 class Group_scheduler(object):
@@ -126,6 +137,7 @@ class Group_scheduler(object):
             for (group_code, issue_count, limit) in groups
             if limit is None or issue_count < limit
             ]
+        print available
         if not available:
             return None, None
         _, group_code = min(available)
