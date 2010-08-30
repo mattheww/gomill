@@ -46,6 +46,9 @@ class Node(object):
         'rsqrt_visits',
         )
 
+    def __repr__(self):
+        return "<Node:%.2f{%s}>" % (self.value, repr(self.children))
+
 
 class Tree(object):
     """Run monte-carlo tree search over parameter space.

@@ -60,7 +60,6 @@ class Game_result(object):
          self.cpu_times,
          ) = state
 
-
     def describe(self):
         """Return a short human-readable description of the result."""
         if self.winning_player is not None:
@@ -75,6 +74,10 @@ class Game_result(object):
         if self.detail is not None:
             s += " (%s)" % self.detail
         return s
+
+    def __repr__(self):
+        return "<Game_result: %s>" % self.describe()
+
 
 class Game(object):
     """A single game between two GTP engines.

@@ -225,6 +225,14 @@ class Ringmaster(object):
     def status_file_exists(self):
         return os.path.exists(self.status_pathname)
 
+    def print_status(self):
+        """Print the contents of the status file, for debugging."""
+        from pprint import pprint
+        f = open(self.status_pathname, "rb")
+        status = pickle.load(f)
+        f.close()
+        pprint(status)
+
     def report(self):
         """Write the full competition report to the report file."""
         f = open(self.report_pathname, "w")
@@ -462,7 +470,8 @@ def main():
         command = "run"
     else:
         command = args[1]
-        if command not in ("run", "stop", "show", "report", "reset"):
+        if command not in ("run", "stop", "show", "report", "reset",
+                           "debugstatus"):
             parser.error("no such command: %s" % command)
     tourn_pathname = args[0]
     if not tourn_pathname.endswith(".tourn"):
@@ -485,6 +494,8 @@ def main():
             do_report(ringmaster)
         elif command == "reset":
             do_reset(ringmaster)
+        elif command == "debugstatus":
+            ringmaster.print_status()
         else:
             raise AssertionError
     except RingmasterError, e:
