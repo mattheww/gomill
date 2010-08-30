@@ -86,7 +86,12 @@ def update_distribution(distribution, elites, step_size):
 
 
 class Cem_tuner(Competition):
-    """A Competition for parameter tuning using the cross-entropy method."""
+    """A Competition for parameter tuning using the cross-entropy method.
+
+    The game ids are like 'g0#1r3', where 0 is the generation number, 1 is the
+    candidate number and 3 is the round number.
+
+    """
 
     global_settings = [
         Setting('board_size', competitions.interpret_board_size),

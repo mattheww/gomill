@@ -43,7 +43,12 @@ class Matchup_setting(Setting):
 
 
 class Tournament(Competition):
-    """A Competition made up of repeated matchups between specified players."""
+    """A Competition made up of repeated matchups between specified players.
+
+    The game ids are like '0_2', where 0 is the matchup id and 2 is the game
+    number within the matchup.
+
+    """
 
     # These settings can be specified both globally and in matchups.
     # The global values (stored as Tournament attributes) are defaults for the

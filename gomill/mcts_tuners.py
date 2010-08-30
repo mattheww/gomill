@@ -248,7 +248,11 @@ class Simulation(object):
 
 
 class Mcts_tuner(Competition):
-    """A Competition for parameter tuning using the Monte-carlo tree search."""
+    """A Competition for parameter tuning using the Monte-carlo tree search.
+
+    The game ids are strings containing integers starting from zero.
+
+    """
     def __init__(self, competition_code):
         Competition.__init__(self, competition_code)
         self.outstanding_simulations = {}
