@@ -46,6 +46,13 @@ control_file_globals = {
     'Matchup' : Matchup_config,
     }
 
+
+_player_settings = [
+    Setting('command_string', interpret_8bit_string),
+    Setting('gtp_translations', interpret_map, default=dict),
+    Setting('startup_gtp_commands', interpret_sequence, default=list)
+    ]
+
 def game_jobs_player_from_config(player_config):
     """Make a game_jobs.Player from a Player_config.
 
@@ -55,61 +62,49 @@ def game_jobs_player_from_config(player_config):
     Returns a game_jobs.Player with all required attributes set except 'code'.
 
     """
-    args = player_config.args
-    kwargs = player_config.kwargs
+    if len(player_config.args) > 1:
+        raise ControlFileError("too many arguments")
+    if player_config.args:
+        if 'command_string' in player_config.kwargs:
+            raise ControlFileError(
+                "command_string specified both implicitly and explicitly")
+        player_config.kwargs['command_string'] = player_config.args[0]
+
+    config = load_settings(_player_settings, player_config.kwargs, strict=True)
+
     player = game_jobs.Player()
-    for key in kwargs:
-        if key not in ('command_string', 'gtp_translations',
-                       'startup_gtp_commands'):
-            raise ControlFileError("unknown argument '%s'" % key)
+
     try:
-        if len(args) > 1:
-            raise ControlFileError("too many arguments")
-        if len(args) == 1:
-            if 'command_string' in kwargs:
-                raise ControlFileError(
-                    "command_string specified both implicitly and explicitly")
-            command_string = args[0]
-        else:
-            command_string = kwargs['command_string']
+        player.cmd_args = shlex.split(config['command_string'])
+        player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
+    except StandardError, e:
+        raise ControlFileError("'command_string': %s" % e)
 
-        if not isinstance(command_string, str):
-            raise ControlFileError("'command_string': not a string")
-        try:
-            player.cmd_args = shlex.split(command_string)
-            player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
-        except StandardError, e:
-            raise ControlFileError("'command_string': %s" % e)
-
-        if 'startup_gtp_commands' in kwargs:
-            player.startup_gtp_commands = []
+    player.startup_gtp_commands = []
+    try:
+        for s in config['startup_gtp_commands']:
             try:
-                for s in interpret_sequence(kwargs['startup_gtp_commands']):
-                    try:
-                        words = s.split()
-                        if not all(gtp_controller.is_well_formed_gtp_word(word)
-                                   for word in words):
-                            raise StandardError
-                    except StandardError:
-                        raise ValueError("invalid command string %s" % s)
-                    player.startup_gtp_commands.append((words[0], words[1:]))
-            except ValueError, e:
-                raise ControlFileError("'startup_gtp_commands': %s" % e)
+                words = s.split()
+                if not all(gtp_controller.is_well_formed_gtp_word(word)
+                           for word in words):
+                    raise StandardError
+            except StandardError:
+                raise ValueError("invalid command string %s" % s)
+            player.startup_gtp_commands.append((words[0], words[1:]))
+    except ValueError, e:
+        raise ControlFileError("'startup_gtp_commands': %s" % e)
 
-        if 'gtp_translations' in kwargs:
-            player.gtp_translations = {}
-            try:
-                for cmd1, cmd2 in interpret_map(kwargs['gtp_translations']):
-                    if not gtp_controller.is_well_formed_gtp_word(cmd1):
-                        raise ValueError("invalid command %s" % cmd1)
-                    if not gtp_controller.is_well_formed_gtp_word(cmd2):
-                        raise ValueError("invalid command %s" % cmd2)
-                    player.gtp_translations[cmd1] = cmd2
-            except ValueError, e:
-                raise ControlFileError("'gtp_translations': %s" % e)
+    player.gtp_translations = {}
+    try:
+        for cmd1, cmd2 in config['gtp_translations']:
+            if not gtp_controller.is_well_formed_gtp_word(cmd1):
+                raise ValueError("invalid command %s" % cmd1)
+            if not gtp_controller.is_well_formed_gtp_word(cmd2):
+                raise ValueError("invalid command %s" % cmd2)
+            player.gtp_translations[cmd1] = cmd2
+    except ValueError, e:
+        raise ControlFileError("'gtp_translations': %s" % e)
 
-    except KeyError, e:
-        raise ControlFileError("%s not specified" % e)
     return player
 
 class Competition(object):

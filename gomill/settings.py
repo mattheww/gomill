@@ -5,7 +5,7 @@ import re
 __all__ = ['Setting', 'allow_none', 'load_settings',
            'interpret_any', 'interpret_bool',
            'interpret_int', 'interpret_positive_int', 'interpret_float',
-           'interpret_as_utf8', 'interpret_identifier',
+           'interpret_8bit_string', 'interpret_as_utf8', 'interpret_identifier',
            'interpret_colour', 'interpret_enum', 'interpret_callable',
            'interpret_sequence', 'interpret_map',
            ]
@@ -36,6 +36,16 @@ def interpret_float(f):
     if isinstance(f, int) or isinstance(f, long):
         return float(f)
     raise ValueError("invalid float")
+
+def interpret_8bit_string(s):
+    if isinstance(s, str):
+        return s
+    if isinstance(s, unicode):
+        try:
+            return s.encode("ascii")
+        except UnicodeEncodeError:
+            raise ValueError("non-ascii character in unicode string")
+    raise ValueError("not a string")
 
 def interpret_as_utf8(s):
     if isinstance(s, str):
@@ -123,7 +133,7 @@ class Setting(object):
     Instantiate with:
       setting name
       interpreter function
-      default value (optional)
+      default value or type (optional)
 
     """
     def __init__(self, name, interpreter, default=_nodefault):
@@ -149,29 +159,42 @@ class Setting(object):
         except ValueError, e:
             raise ValueError("'%s': %s" % (self.name, e))
 
-def load_settings(settings, config):
+def load_settings(settings, config, strict=False):
     """Read settings values from configuration.
 
     settings -- list of Settings
     config   -- dict containing the values to be read
+    strict   -- bool
 
     Returns a dict: setting name -> interpreted value
 
-    Applies defaults and
+    Applies defaults.
 
     Raises ValueError if a setting which has no default isn't present in
     'config'.
 
     Raises ValueError with a description if a value can't be interpreted.
 
+    If strict is true, raises ValueError if there's an entry in config which
+    isn't the name of a known setting.
+
     """
+    if strict:
+        permitted = set(setting.name for setting in settings)
+        for key in config:
+            if key not in permitted:
+                raise ValueError("unknown setting '%s'" % key)
+
     result = {}
     for setting in settings:
         try:
             v = config[setting.name]
         except KeyError:
             if setting.has_default:
-                v = setting.default
+                if callable(setting.default):
+                    v = setting.default()
+                else:
+                    v = setting.default
             else:
                 raise ValueError("'%s' not specified" % setting.name)
         else:
