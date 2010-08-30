@@ -448,9 +448,7 @@ class Ringmaster(object):
                 except EnvironmentError, e:
                     print >>sys.stderr, e
 
-def do_run(ringmaster, worker_count=None, quiet=False, max_games=None):
-    if quiet:
-        ringmaster.set_quiet_mode()
+def do_run(ringmaster, worker_count=None, max_games=None):
     if ringmaster.status_file_exists():
         ringmaster.load_status()
     else:
@@ -516,8 +514,9 @@ def main():
         if command == "run":
             if options.log_gtp:
                 ringmaster.enable_gtp_logging()
-            do_run(ringmaster,
-                   options.parallel, options.quiet, options.max_games)
+            if options.quiet:
+                ringmaster.set_quiet_mode()
+            do_run(ringmaster, options.parallel, options.max_games)
         elif command == "show":
             do_show(ringmaster)
         elif command == "stop":
