@@ -57,6 +57,9 @@ class Ringmaster(object):
     Ringmaster objects are used as a job source for the job manager.
 
     """
+    # Can bump this to prevent people loading incompatible .status files.
+    status_format_version = 0
+
     def __init__(self, tourn_pathname):
         self.chatty = True
         self.worker_count = None
@@ -196,14 +199,16 @@ class Ringmaster(object):
             'comp'         : competition_status,
             }
         f = open(self.status_pathname + ".new", "wb")
-        pickle.dump(status, f, protocol=-1)
+        pickle.dump((self.status_format_version, status), f, protocol=-1)
         f.close()
         os.rename(self.status_pathname + ".new", self.status_pathname)
 
     def load_status(self):
         f = open(self.status_pathname, "rb")
-        status = pickle.load(f)
+        status_format_version, status = pickle.load(f)
         f.close()
+        if status_format_version != self.status_format_version:
+            raise RingmasterError("incompatible status file")
         self.total_errors = status['total_errors']
         self.games_in_progress = {}
         self.games_to_replay = {}
@@ -229,8 +234,9 @@ class Ringmaster(object):
         """Print the contents of the status file, for debugging."""
         from pprint import pprint
         f = open(self.status_pathname, "rb")
-        status = pickle.load(f)
+        status_format_version, status = pickle.load(f)
         f.close()
+        print "status_format_version:", status_format_version
         pprint(status)
 
     def report(self):
