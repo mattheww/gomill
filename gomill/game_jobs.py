@@ -59,24 +59,25 @@ class Game_job(object):
       move_limit          -- int
 
     optional attributes (default None unless otherwise stated):
+      game_data           -- arbitrary pickleable data
       handicap            -- int
       handicap_is_free    -- bool (default False)
+      use_internal_scorer -- bool (default True)
       sgf_pathname        -- pathname to use for the SGF file
       sgf_event           -- string to show as SGF EVent
-      use_internal_scorer -- bool (default True)
-      game_data           -- arbitrary pickleable data
+      gtp_log_pathname    -- pathname to log all GTP messages to
 
     The game_id will be returned in the job result, so you can tell which game
     you're getting the result for. It also appears in a comment in the SGF file.
+
+    game_data is returned in the job result. It's provided as a convenient way
+    to pass a small amount of information from get_job() to process_response().
 
     Leave sgf_pathname None if you don't want to write an SGF file.
 
     If use_internal_scorer is False, the Players' is_reliable_scorer attributes
     are used to decide which player is asked to score the game (if both are
     marked as reliable, black will be tried before white).
-
-    game_data is returned in the job result. It's provided as a convenient way
-    to pass a small amount of information from get_job() to process_response().
 
     """
     def __init__(self):
@@ -86,6 +87,7 @@ class Game_job(object):
         self.sgf_event = None
         self.use_internal_scorer = True
         self.game_data = None
+        self.gtp_log_pathname = None
 
     # The code here has to be happy to run in a separate process.
 
@@ -103,6 +105,10 @@ class Game_job(object):
                 game.allow_scorer('w')
         game.set_gtp_translations({'b' : self.player_b.gtp_translations,
                                    'w' : self.player_w.gtp_translations})
+        if self.gtp_log_pathname is not None:
+            # the controller will flush() this after each write, so I think we
+            # can get away without closing it.
+            game.set_gtp_log(open(self.gtp_log_pathname, "w"))
         try:
             game.start_players()
             for command, arguments in self.player_b.startup_gtp_commands:

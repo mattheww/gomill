@@ -113,6 +113,7 @@ class Game(object):
         self.gtp_translations = {'b' : {}, 'w' : {}}
         self.additional_sgf_props = []
         self.sgf_setup_stones = None
+        self.gtp_log_dest = None
 
     def use_internal_scorer(self):
         """Set the scoring method to internal.
@@ -200,9 +201,19 @@ class Game(object):
         command = self._translate_gtp_command(colour, command)
         return self.controller.known_command(colour, command)
 
+    def set_gtp_log(self, log_dest):
+        """Enable logging by the GTP controller.
+
+        log_dest -- writable file-like object (eg an open file)
+
+        """
+        self.gtp_log_dest = log_dest
+
     def start_players(self):
         """Start the engine subprocesses."""
         self.controller = gtp_controller.Gtp_controller_protocol()
+        if self.gtp_log_dest is not None:
+            self.controller.enable_logging(self.gtp_log_dest)
         for colour in ("b", "w"):
             try:
                 channel = gtp_controller.Subprocess_gtp_channel(
