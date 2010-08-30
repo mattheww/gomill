@@ -157,7 +157,6 @@ class Cem_tuner(Competition):
     #                        (list indexed by candidate number)
     #   candidates        -- Players (code attribute is the candidate code)
     #                        (list indexed by candidate number)
-    #   candidate_numbers_by_code -- dict candidate code -> candidate number
     #  *scheduler         -- Group_scheduler (group codes are candidate numbers)
     #
     # These are all reset for each new generation.
@@ -205,10 +204,6 @@ class Cem_tuner(Competition):
     def make_candidate_code(generation, candidate_number):
         return "g%d#%d" % (generation, candidate_number)
 
-    @staticmethod
-    def is_candidate_code(player_code):
-        return '#' in player_code
-
     def prepare_candidates(self):
         """Set up the candidates array.
 
@@ -216,11 +211,10 @@ class Cem_tuner(Competition):
 
         Requires generation and sample_parameters to be already set.
 
-        Initialises self.candidates and self.candidate_numbers_by_code.
+        Initialises self.candidates.
 
         """
         self.candidates = []
-        self.candidate_numbers_by_code = {}
         for candidate_number, optimiser_params in \
                 enumerate(self.sample_parameters):
             candidate_code = self.make_candidate_code(
@@ -250,7 +244,6 @@ class Cem_tuner(Competition):
                     (self.format_parameters(optimiser_params), e))
             candidate.code = candidate_code
             self.candidates.append(candidate)
-            self.candidate_numbers_by_code[candidate_code] = candidate_number
 
     def finish_generation(self):
         """Process a generation's results and calculate the new distribution.
@@ -287,6 +280,7 @@ class Cem_tuner(Competition):
 
         job = game_jobs.Game_job()
         job.game_id = "%s_%d" % (candidate.code, round_id)
+        job.game_data = (candidate_number, candidate.code, round_id)
         job.player_b = candidate
         job.player_w = self.opponent
         job.board_size = self.board_size
@@ -300,9 +294,8 @@ class Cem_tuner(Competition):
         return job
 
     def process_game_result(self, response):
-        candidate_code, round_id_s = response.game_id.split("_")
-        candidate_number = self.candidate_numbers_by_code[candidate_code]
-        self.scheduler.fix(candidate_number, int(round_id_s))
+        candidate_number, candidate_code, round_id = response.game_data
+        self.scheduler.fix(candidate_number, round_id)
         gr = response.game_result
         assert candidate_code in (gr.player_b, gr.player_w)
 

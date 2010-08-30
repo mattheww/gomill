@@ -322,7 +322,7 @@ class Mcts_tuner(Competition):
     # State attributes (*: in persistent state):
     #  *scheduler               -- Simple_scheduler
     #  *tree                    -- Tree (root node is persisted)
-    #   outstanding_simulations -- map game_id -> Simulation
+    #   outstanding_simulations -- map game_number -> Simulation
 
     # These are used only for the status summary:
     #   last_simulation         -- Simulation or None
@@ -398,15 +398,16 @@ class Mcts_tuner(Competition):
         if (self.number_of_games is not None and
             self.scheduler.issued >= self.number_of_games):
             return NoGameAvailable
-        game_id = str(self.scheduler.issue())
+        game_number = self.scheduler.issue()
 
         simulation, optimiser_parameters = self.prepare_simulation()
         candidate = self.make_candidate(optimiser_parameters)
-        candidate.code = "#" + game_id
-        self.outstanding_simulations[game_id] = simulation
+        candidate.code = "#%d" % game_number
+        self.outstanding_simulations[game_number] = simulation
 
         job = game_jobs.Game_job()
-        job.game_id = game_id
+        job.game_id = str(game_number)
+        job.game_data = game_number
         if self.candidate_colour == 'b':
             job.player_b = candidate
             job.player_w = self.opponent
@@ -424,11 +425,12 @@ class Mcts_tuner(Competition):
         return job
 
     def process_game_result(self, response):
-        self.scheduler.fix(int(response.game_id))
+        game_number = response.game_data
+        self.scheduler.fix(game_number)
         # Counting no-result as loss for the candidate
         candidate_won = (
             response.game_result.winning_colour == self.candidate_colour)
-        simulation = self.outstanding_simulations.pop(response.game_id)
+        simulation = self.outstanding_simulations.pop(game_number)
         simulation.update_stats(candidate_won)
         self.log_history(simulation.describe(candidate_won))
         # FIXME: Want to describe this stuff; for now, let status summary do it

@@ -33,6 +33,7 @@ class Game_job_result(object):
 
     Public attributes:
       game_id               -- short string
+      game_data             -- arbitrary (copied from the Game_job)
       game_result           -- gtp_games.Game_result
       engine_names          -- map player code -> string
       engine_descriptions   -- map player code -> string
@@ -61,6 +62,7 @@ class Game_job(object):
       sgf_event           -- string to show as SGF EVent
       use_internal_scorer -- bool (default True)
       preferred_scorers   -- sequence of player codes, or None
+      game_data           -- arbitrary pickleable data
 
     The game_id will be returned in the job result, so you can tell which game
     you're getting the result for. It also appears in a comment in the SGF file.
@@ -68,6 +70,9 @@ class Game_job(object):
     Leave sgf_pathname None if you don't want to write an SGF file.
 
     See gtp_games for an explanation of the 'scorer' attributes.
+
+    game_data is returned in the job result. It's provided as a convenient way
+    to pass a small amount of information from get_job() to process_response().
 
     """
     def __init__(self):
@@ -77,6 +82,7 @@ class Game_job(object):
         self.sgf_event = None
         self.use_internal_scorer = True
         self.preferred_scorers = None
+        self.game_data = None
 
     # The code here has to be happy to run in a separate process.
 
@@ -119,6 +125,7 @@ class Game_job(object):
         response.game_result = game.result
         response.engine_names = game.engine_names
         response.engine_descriptions = game.engine_descriptions
+        response.game_data = self.game_data
         return response
 
     def record_game(self, game):

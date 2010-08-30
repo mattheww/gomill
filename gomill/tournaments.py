@@ -207,6 +207,7 @@ class Tournament(Competition):
 
         job = game_jobs.Game_job()
         job.game_id = game_id
+        job.game_data = (matchup_id, game_number)
         job.player_b = self.players[player_b]
         job.player_w = self.players[player_w]
         job.board_size = matchup.board_size
@@ -222,7 +223,7 @@ class Tournament(Competition):
     def process_game_result(self, response):
         self.engine_names.update(response.engine_names)
         self.engine_descriptions.update(response.engine_descriptions)
-        matchup_id, game_number = map(int, response.game_id.split("_"))
+        matchup_id, game_number = response.game_data
         self.scheduler.fix(matchup_id, game_number)
         self.results.append((matchup_id, response.game_result))
         self.log_history("%7s %s" %
