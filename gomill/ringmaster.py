@@ -135,7 +135,7 @@ class Ringmaster(object):
         except ValueError:
             raise RingmasterError("competition_type: unknown value")
         self.competition = competition_class(self.competition_code)
-        self.competition.set_logger(self.log)
+        self.competition.set_event_logger(self.log)
         self.competition.set_history_logger(self.log_history)
         try:
             self.competition.initialise_from_control_file(config)

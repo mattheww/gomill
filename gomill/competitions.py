@@ -10,9 +10,6 @@ from gomill import handicap_layout
 from gomill import settings
 
 
-def log_to_stdout(s):
-    print s
-
 def log_discard(s):
     pass
 
@@ -124,20 +121,30 @@ class Competition(object):
     """
     def __init__(self, competition_code):
         self.competition_code = competition_code
-        self.logger = log_to_stdout
+        self.event_logger = log_discard
         self.history_logger = log_discard
 
-    def set_logger(self, logger):
+    def set_event_logger(self, logger):
         """Set a callback for the event log.
 
         logger -- function taking a string argument
 
-        By default, the event log is standard output.
+        Until this is called, event log output is silently discarded.
 
         """
-        self.logger = logger
+        self.event_logger = logger
 
-    def log(self, s):
+    def set_history_logger(self, logger):
+        """Set a callback for the history log.
+
+        logger -- function taking a string argument
+
+        Until this is called, event log output is silently discarded.
+
+        """
+        self.history_logger = logger
+
+    def log_event(self, s):
         """Write a message to the event log.
 
         The event log logs all game starts and finishes; competitions can add
@@ -146,17 +153,7 @@ class Competition(object):
         A newline is added to the message.
 
         """
-        self.logger(s)
-
-    def set_history_logger(self, logger):
-        """Set a callback for the event log.
-
-        logger -- function taking a string argument
-
-        By default, the history log is discarded.
-
-        """
-        self.history_logger = logger
+        self.event_logger(s)
 
     def log_history(self, s):
         """Write a message to the history log.

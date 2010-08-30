@@ -275,7 +275,7 @@ class Cem_tuner(Competition):
 
     def get_game(self):
         if self.scheduler.nothing_issued_yet():
-            self.log("\nstarting generation %d" % self.generation)
+            self.log_event("\nstarting generation %d" % self.generation)
 
         candidate_number, round_id = self.scheduler.issue()
         if candidate_number is None:
