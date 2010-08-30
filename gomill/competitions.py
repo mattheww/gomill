@@ -204,22 +204,20 @@ class Competition(object):
         for name, value in to_set.items():
             setattr(self, name, value)
 
+        try:
+            specials = load_settings(
+                [Setting('players', interpret_map)], config)
+        except ValueError, e:
+            raise ControlFileError(str(e))
+
         # dict player_code -> game_jobs.Player
         self.players = {}
         try:
-            config_players = config['players']
-        except KeyError, e:
-            raise ControlFileError("%s not specified" % e)
-        try:
-            try:
-                player_items = interpret_map(config_players)
-            except ValueError, e:
-                raise ControlFileError(str(e))
-            # pre-check player codes before trying to sort them, just in case
-            for player_code, _ in player_items:
+            # pre-check player codes before trying to sort them, just in case.
+            for player_code, _ in specials['players']:
                 if not isinstance(player_code, basestring):
                     raise ControlFileError("bad player code (not a string)")
-            for player_code, player_config in sorted(player_items):
+            for player_code, player_config in sorted(specials['players']):
                 try:
                     player_code = interpret_identifier(player_code)
                 except ValueError, e:
@@ -236,14 +234,15 @@ class Competition(object):
                     raise ControlFileError("player %s: %s" % (player_code, e))
                 player.code = player_code
                 self.players[player_code] = player
-
-            # NB, this isn't properly validated. I'm planning to change the
-            # system anyway.
-            self.preferred_scorers = config.get('preferred_scorers')
         except ControlFileError, e:
             raise ControlFileError("'players' : %s" % e)
         except StandardError, e:
             raise ControlFileError("'players': unexpected error: %s" % e)
+
+        # NB, this isn't properly validated. I'm planning to change the
+        # system anyway.
+        self.preferred_scorers = config.get('preferred_scorers')
+
 
     def set_clean_status(self):
         """Reset competition state to its initial value."""

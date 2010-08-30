@@ -71,6 +71,10 @@ class Tournament(Competition):
         Setting('description', interpret_as_utf8, default=""),
         ]
 
+    special_settings = [
+        Setting('matchups', interpret_sequence),
+        ]
+
     def matchup_from_config(self, matchup_config):
         """Make a Matchup from a Matchup_config.
 
@@ -139,30 +143,22 @@ class Tournament(Competition):
             except ControlFileError, e:
                 raise ControlFileError("default %s" % e)
 
+        try:
+            specials = load_settings(self.special_settings, config)
+        except ValueError, e:
+            raise ControlFileError(str(e))
+
         # List of Matchups indexed by matchup_id
         self.matchups = []
-        try:
-            config_matchups = config['matchups']
-        except KeyError, e:
-            raise ControlFileError("%s not specified" % e)
-        try:
+        if not specials['matchups']:
+            raise ControlFileError("matchups: empty list")
+        for i, matchup in enumerate(specials['matchups']):
             try:
-                config_matchups = interpret_sequence(config_matchups)
-            except ValueError, e:
-                raise ControlFileError(str(e))
-            if not config_matchups:
-                raise ControlFileError("empty list")
-            for i, matchup in enumerate(config_matchups):
-                try:
-                    m = self.matchup_from_config(matchup)
-                except StandardError, e:
-                    raise ControlFileError("entry %d: %s" % (i, e))
-                m.id = i
-                self.matchups.append(m)
-        except ControlFileError, e:
-            raise ControlFileError("'matchups' : %s" % e)
-        except StandardError, e:
-            raise ControlFileError("'matchups': unexpected error: %s" % e)
+                m = self.matchup_from_config(matchup)
+            except StandardError, e:
+                raise ControlFileError("matchup entry %d: %s" % (i, e))
+            m.id = i
+            self.matchups.append(m)
 
 
     # State attributes (*: in persistent state):
