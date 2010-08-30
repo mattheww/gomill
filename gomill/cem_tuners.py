@@ -279,7 +279,7 @@ class Cem_tuner(Competition):
         candidate = self.candidates[candidate_number]
 
         job = game_jobs.Game_job()
-        job.game_id = "%s_%d" % (candidate.code, round_id)
+        job.game_id = "%sr%d" % (candidate.code, round_id)
         job.game_data = (candidate_number, candidate.code, round_id)
         job.player_b = candidate
         job.player_w = self.opponent
