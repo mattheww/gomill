@@ -358,7 +358,6 @@ class Cem_tuner(Competition):
         p(self.description)
         p("board size: %s" % self.board_size)
         p("komi: %s" % self.komi)
-        # FIXME: Should describe the matchup?
 
     def write_status_summary(self, out):
         print >>out, "generation %d" % self.generation

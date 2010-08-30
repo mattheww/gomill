@@ -450,7 +450,6 @@ class Mcts_tuner(Competition):
         p(self.description)
         p("board size: %s" % self.board_size)
         p("komi: %s" % self.komi)
-        # FIXME: Should describe the matchup?
 
     def write_status_summary(self, out):
         games_played = self.scheduler.fixed
