@@ -2,7 +2,6 @@
 
 from __future__ import division
 
-import cPickle as pickle
 from random import gauss as random_gauss
 from math import sqrt
 
@@ -182,7 +181,7 @@ class Cem_tuner(Competition):
             'distribution'       : self.distribution.parameters,
             'sample_parameters'  : self.sample_parameters,
             'wins'               : self.wins,
-            'scheduler'          : pickle.dumps(self.scheduler),
+            'scheduler'          : self.scheduler,
             }
 
     def set_status(self, status):
@@ -191,7 +190,7 @@ class Cem_tuner(Competition):
         self.sample_parameters = status['sample_parameters']
         self.wins = status['wins']
         self.prepare_candidates()
-        self.scheduler = pickle.loads(status['scheduler'].encode('iso-8859-1'))
+        self.scheduler = status['scheduler']
         # Might as well notice if they changed the batch_size
         self._set_scheduler_groups()
         self.scheduler.rollback()

@@ -25,6 +25,8 @@ class Player(object):
     responses will be ignored, but the game will be aborted if any startup
     command returns an error.
 
+    Players are suitable for pickling.
+
     """
     def __init__(self):
         self.is_reliable_scorer = True
@@ -40,6 +42,8 @@ class Game_job_result(object):
       game_result           -- gtp_games.Game_result
       engine_names          -- map player code -> string
       engine_descriptions   -- map player code -> string
+
+    Game_job_results are suitable for pickling.
 
     """
 
@@ -78,6 +82,9 @@ class Game_job(object):
     If use_internal_scorer is False, the Players' is_reliable_scorer attributes
     are used to decide which player is asked to score the game (if both are
     marked as reliable, black will be tried before white).
+
+
+    Game_jobs are suitable for pickling.
 
     """
     def __init__(self):

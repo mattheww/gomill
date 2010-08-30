@@ -2,7 +2,6 @@
 
 from __future__ import division
 
-import cPickle as pickle
 import random
 from math import log, sqrt
 
@@ -339,14 +338,14 @@ class Mcts_tuner(Competition):
 
     def get_status(self):
         return {
-            'scheduler' : pickle.dumps(self.scheduler),
-            'tree_root' : pickle.dumps(self.tree.root),
+            'scheduler' : self.scheduler,
+            'tree_root' : self.tree.root,
             }
 
     def set_status(self, status):
-        self.scheduler = pickle.loads(status['scheduler'].encode('iso-8859-1'))
+        self.scheduler = status['scheduler']
         self.scheduler.rollback()
-        root = pickle.loads(status['tree_root'].encode('iso-8859-1'))
+        root = status['tree_root']
         self.tree.set_root(root)
 
     def format_parameters(self, optimiser_parameters):

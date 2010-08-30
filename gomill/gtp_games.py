@@ -33,6 +33,8 @@ class Game_result(object):
     cpu_times are user time + system time. '?' means that gomill-cpu_time gave
     an error.
 
+    Game_results are suitable for pickling.
+
     """
     def describe(self):
         """Return a short human-readable description of the result."""

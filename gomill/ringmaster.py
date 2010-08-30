@@ -2,16 +2,12 @@
 
 from __future__ import division
 
+import cPickle as pickle
 import datetime
 import os
 import shutil
 import sys
 from optparse import OptionParser
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
 
 from gomill import compact_tracebacks
 from gomill import gtp_games
@@ -47,41 +43,6 @@ def get_competition_class(competition_type):
         return mcts_tuners.Mcts_tuner
     else:
         raise ValueError
-
-
-# To be work here, a class must be a simple holder for its attributes, all its
-# attributes must be json-serialisable, and __init__ must accept no parameters.
-# Also, the class shouldn't have any attributes that don't need serialising.
-
-# FIXME: round-tripping values via JSON is having the side-effect of converting
-# 8-bit strings to unicode objects (as if they were originally utf-8). This
-# isn't very nice, but I don't think it breaks anything.
-
-json_encodable_classes = {
-    gtp_games.Game_result : 'R',
-    }
-
-json_decodable_classes = {
-    'R' : gtp_games.Game_result,
-    }
-
-def ringmaster_json_encode_default(obj):
-    cls = json_encodable_classes.get(obj.__class__)
-    if cls is None:
-        raise TypeError(repr(obj) + " is not JSON-serialisable")
-    result = obj.__dict__
-    result['_cls'] = cls
-    return result
-
-def ringmaster_json_decode_object_hook(dct):
-    try:
-        cls = json_decodable_classes[dct.pop('_cls')]
-    except KeyError:
-        return dct
-    result = cls()
-    for key, value in dct.iteritems():
-        setattr(result, key, value)
-    return result
 
 
 def clear_screen():
@@ -234,15 +195,14 @@ class Ringmaster(object):
             'total_errors' : self.total_errors,
             'comp'         : competition_status,
             }
-        f = open(self.status_pathname + ".new", "w")
-        json.dump(status, f, default=ringmaster_json_encode_default,
-                  encoding='iso-8859-1')
+        f = open(self.status_pathname + ".new", "wb")
+        pickle.dump(status, f, protocol=-1)
         f.close()
         os.rename(self.status_pathname + ".new", self.status_pathname)
 
     def load_status(self):
-        f = open(self.status_pathname)
-        status = json.load(f, object_hook=ringmaster_json_decode_object_hook)
+        f = open(self.status_pathname, "rb")
+        status = pickle.load(f)
         f.close()
         self.total_errors = status['total_errors']
         self.games_in_progress = {}

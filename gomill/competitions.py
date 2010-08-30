@@ -245,8 +245,7 @@ class Competition(object):
     def get_status(self):
         """Return full state of the competition, so it can be resumed later.
 
-        The returned result must be serialisable using json. In addition, it can
-        include Game_result objects.
+        The returned result must be pickleable.
 
         """
         raise NotImplementedError

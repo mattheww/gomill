@@ -2,7 +2,6 @@
 
 from __future__ import division
 
-import cPickle as pickle
 from collections import defaultdict
 
 from gomill import game_jobs
@@ -181,14 +180,14 @@ class Tournament(Competition):
     def get_status(self):
         return {
             'results' : self.results,
-            'scheduler' : pickle.dumps(self.scheduler),
+            'scheduler' : self.scheduler,
             'engine_names' : self.engine_names,
             'engine_descriptions' : self.engine_descriptions,
             }
 
     def set_status(self, status):
         self.results = status['results']
-        self.scheduler = pickle.loads(status['scheduler'].encode('iso-8859-1'))
+        self.scheduler = status['scheduler']
         self._set_scheduler_groups()
         self.scheduler.rollback()
         self.engine_names = status['engine_names']
