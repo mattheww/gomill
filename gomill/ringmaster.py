@@ -204,9 +204,14 @@ class Ringmaster(object):
         os.rename(self.status_pathname + ".new", self.status_pathname)
 
     def load_status(self):
-        f = open(self.status_pathname, "rb")
-        status_format_version, status = pickle.load(f)
-        f.close()
+        try:
+            f = open(self.status_pathname, "rb")
+            status_format_version, status = pickle.load(f)
+            f.close()
+        except pickle.UnpicklingError:
+            raise RingmasterError("corrupt status file")
+        except StandardError, e:
+            raise RingmasterError("error reading status file: %s" % e)
         if status_format_version != self.status_format_version:
             raise RingmasterError("incompatible status file")
         self.total_errors = status['total_errors']
