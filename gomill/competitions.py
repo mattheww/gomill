@@ -265,7 +265,8 @@ class Competition(object):
 
         Returns a game_jobs.Game_job, or NoGameAvailable
 
-        (Doesn't set sgf_pathname: the ringmaster does that).
+        (Doesn't set sgf_pathname or gtp_log_pathname: the ringmaster does
+        that).
 
         """
         raise NotImplementedError

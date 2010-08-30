@@ -76,9 +76,17 @@ Command-line options:
 
    maximum number of games to play in the run
 
+.. cmdoption:: --log-gtp
+
+   log all GTP traffic
+
 :option:`!--max-games` is independent of any :confval:`number_of_games`
 settings in the tournament file; the competition will stop if either limit is
 reached.
+
+If :option:`!--log-gtp` is set, the ringmaster logs all GTP commands and
+responses. It writes a separate log file for each game, in the
+`<code>.sgflogs` directory.
 
 It's ok to stop a tournament with :kbd:`Ctrl-C`; incomplete games will be
 rerun from scratch on the next run.

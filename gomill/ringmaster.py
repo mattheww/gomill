@@ -104,6 +104,7 @@ class Ringmaster(object):
         self.stopping_reason = None
         # Map game_id -> int
         self.game_error_counts = {}
+        self.write_gtp_logs = False
 
         stem = tourn_pathname.rpartition(".tourn")[0]
         self.competition_code = os.path.basename(stem)
@@ -113,6 +114,7 @@ class Ringmaster(object):
         self.history_pathname = stem + ".hist"
         self.report_pathname = stem + ".report"
         self.sgf_dir_pathname = stem + ".games"
+        self.gtplog_dir_pathname = stem + ".gtplogs"
 
         try:
             config = read_tourn_file(tourn_pathname)
@@ -167,6 +169,14 @@ class Ringmaster(object):
             except EnvironmentError:
                 raise RingmasterError("failed to create SGF directory:\n%s" % e)
 
+        if self.write_gtp_logs:
+            try:
+                if not os.path.exists(self.gtplog_dir_pathname):
+                    os.mkdir(self.gtplog_dir_pathname)
+            except EnvironmentError:
+                raise RingmasterError(
+                    "failed to create GTP log directory:\n%s" % e)
+
     def close_files(self):
         try:
             self.logfile.close()
@@ -191,6 +201,9 @@ class Ringmaster(object):
 
     def set_quiet_mode(self, b=True):
         self.chatty = not(b)
+
+    def enable_gtp_logging(self, b=True):
+        self.write_gtp_logs = b
 
     def set_parallel_worker_count(self, n):
         self.worker_count = n
@@ -308,6 +321,9 @@ class Ringmaster(object):
             if self.record_games:
                 job.sgf_pathname = os.path.join(
                     self.sgf_dir_pathname, "%s.sgf" % job.game_id)
+            if self.write_gtp_logs:
+                job.gtp_log_pathname = os.path.join(
+                        self.gtplog_dir_pathname, "%s.log" % job.game_id)
         if job.game_id in self.games_in_progress:
             raise CompetitionError("duplicate game id: %s" % job.game_id)
         self.games_in_progress[job.game_id] = job
@@ -415,14 +431,22 @@ class Ringmaster(object):
             self.status_pathname,
             self.command_pathname,
             self.history_pathname,
-            self.report_pathname]:
+            self.report_pathname,
+            ]:
             if os.path.exists(pathname):
                 try:
                     os.remove(pathname)
                 except EnvironmentError, e:
                     print >>sys.stderr, e
-        if os.path.exists(self.sgf_dir_pathname):
-            shutil.rmtree(self.sgf_dir_pathname)
+        for pathname in [
+            self.sgf_dir_pathname,
+            self.gtplog_dir_pathname,
+            ]:
+            if os.path.exists(pathname):
+                try:
+                    shutil.rmtree(pathname)
+                except EnvironmentError, e:
+                    print >>sys.stderr, e
 
 def do_run(ringmaster, worker_count=None, quiet=False, max_games=None):
     if quiet:
@@ -469,6 +493,8 @@ def main():
                       help="number of worker processes")
     parser.add_option("--quiet", "-q", action="store_true",
                       help="silent except for warnings and errors")
+    parser.add_option("--log-gtp", action="store_true",
+                      help="write GTP logs")
     (options, args) = parser.parse_args()
     if len(args) == 0:
         parser.error("no control file specified")
@@ -488,6 +514,8 @@ def main():
             raise RingmasterError("control file %s not found" % tourn_pathname)
         ringmaster = Ringmaster(tourn_pathname)
         if command == "run":
+            if options.log_gtp:
+                ringmaster.enable_gtp_logging()
             do_run(ringmaster,
                    options.parallel, options.quiet, options.max_games)
         elif command == "show":
