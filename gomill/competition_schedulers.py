@@ -58,9 +58,9 @@ class Simple_scheduler(object):
 
     def rollback(self):
         """Make issued-but-not-fixed tokens available again."""
+        self.issued -= len(self.outstanding)
         self.to_reissue.update(self.outstanding)
         self.outstanding = set()
-        self.issued -= len(self.to_reissue)
 
 
 class Group_scheduler(object):
