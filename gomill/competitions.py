@@ -128,15 +128,45 @@ class Competition(object):
         self.history_logger = log_discard
 
     def set_logger(self, logger):
+        """Set a callback for the event log.
+
+        logger -- function taking a string argument
+
+        By default, the event log is standard output.
+
+        """
         self.logger = logger
 
     def log(self, s):
+        """Write a message to the event log.
+
+        The event log logs all game starts and finishes; competitions can add
+        lines to mark things like the start of new generations.
+
+        A newline is added to the message.
+
+        """
         self.logger(s)
 
     def set_history_logger(self, logger):
+        """Set a callback for the event log.
+
+        logger -- function taking a string argument
+
+        By default, the history log is discarded.
+
+        """
         self.history_logger = logger
 
     def log_history(self, s):
+        """Write a message to the history log.
+
+        The history log is used to show things like game results and tuning
+        event intermediate status.
+
+        A newline is added to the message.
+
+        """
         self.history_logger(s)
 
     # List of Settings, for overriding in subclasses.
