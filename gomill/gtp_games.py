@@ -36,6 +36,31 @@ class Game_result(object):
     Game_results are suitable for pickling.
 
     """
+
+    # These are just to make the .state file more compact.
+
+    def __getstate__(self):
+        return (
+            self.player_b,
+            self.player_w,
+            self.winning_colour,
+            self.winning_player,
+            self.sgf_result,
+            self.detail,
+            self.cpu_times,
+            )
+
+    def __setstate__(self, state):
+        (self.player_b,
+         self.player_w,
+         self.winning_colour,
+         self.winning_player,
+         self.sgf_result,
+         self.detail,
+         self.cpu_times,
+         ) = state
+
+
     def describe(self):
         """Return a short human-readable description of the result."""
         if self.winning_player is not None:
