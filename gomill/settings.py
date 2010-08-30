@@ -6,7 +6,9 @@ __all__ = ['Setting', 'allow_none', 'load_settings',
            'interpret_any', 'interpret_bool',
            'interpret_int', 'interpret_positive_int', 'interpret_float',
            'interpret_as_utf8', 'interpret_identifier',
-           'interpret_colour', 'interpret_enum', 'interpret_callable']
+           'interpret_colour', 'interpret_enum', 'interpret_callable',
+           'interpret_sequence', 'interpret_map',
+           ]
 
 def interpret_any(v):
     return v
@@ -91,6 +93,20 @@ def interpret_callable(c):
     if not callable(c):
         raise ValueError("invalid callable")
     return c
+
+def interpret_sequence(l):
+    try:
+        l = list(l)
+    except StandardError:
+        raise ValueError("not a sequence")
+    return l
+
+def interpret_map(m):
+    try:
+        result = m.items()
+    except StandardError:
+        raise ValueError("not a map")
+    return result
 
 def allow_none(fn):
     def sub(v):

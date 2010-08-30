@@ -7,7 +7,7 @@ import sys
 from gomill import game_jobs
 from gomill import gtp_controller
 from gomill import handicap_layout
-from gomill import settings
+from gomill.settings import *
 
 
 def log_discard(s):
@@ -74,40 +74,39 @@ def game_jobs_player_from_config(player_config):
             command_string = kwargs['command_string']
 
         if not isinstance(command_string, str):
-            raise ControlFileError("command_string not a string")
+            raise ControlFileError("'command_string': not a string")
         try:
             player.cmd_args = shlex.split(command_string)
             player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
         except StandardError, e:
-            raise ControlFileError("%s in command_string" % e)
+            raise ControlFileError("'command_string': %s" % e)
 
         if 'startup_gtp_commands' in kwargs:
             player.startup_gtp_commands = []
             try:
-                startup_gtp_commands = list(kwargs['startup_gtp_commands'])
-            except StandardError:
-                raise ControlFileError("'startup_gtp_commands': not a list")
-            for s in startup_gtp_commands:
-                try:
-                    words = s.split()
+                for s in interpret_sequence(kwargs['startup_gtp_commands']):
+                    try:
+                        words = s.split()
+                        if not all(gtp_controller.is_well_formed_gtp_word(word)
+                                   for word in words):
+                            raise StandardError
+                    except StandardError:
+                        raise ValueError("invalid command string %s" % s)
                     player.startup_gtp_commands.append((words[0], words[1:]))
-                except StandardError:
-                    raise ControlFileError(
-                        "'startup_gtp_commands': invalid command string %s" % s)
+            except ValueError, e:
+                raise ControlFileError("'startup_gtp_commands': %s" % e)
 
         if 'gtp_translations' in kwargs:
             player.gtp_translations = {}
             try:
-                translation_items = player.gtp_translations.items()
-            except StandardError:
-                raise ControlFileError("'gtp_translations': not a dictionary")
-            for cmd1, cmd2 in translation_items:
-                if not gtp_controller.is_well_formed_gtp_word(cmd1):
-                    raise ControlFileError(
-                        "'gtp_translations': invalid command %s" % cmd1)
-                if not gtp_controller.is_well_formed_gtp_word(cmd2):
-                    raise ControlFileError(
-                        "'gtp_translations': invalid command %s" % cmd2)
+                for cmd1, cmd2 in interpret_map(kwargs['gtp_translations']):
+                    if not gtp_controller.is_well_formed_gtp_word(cmd1):
+                        raise ValueError("invalid command %s" % cmd1)
+                    if not gtp_controller.is_well_formed_gtp_word(cmd2):
+                        raise ValueError("invalid command %s" % cmd2)
+                    player.gtp_translations[cmd1] = cmd2
+            except ValueError, e:
+                raise ControlFileError("'gtp_translations': %s" % e)
 
     except KeyError, e:
         raise ControlFileError("%s not specified" % e)
@@ -199,37 +198,38 @@ class Competition(object):
         # objects for Python lists.
 
         try:
-            to_set = settings.load_settings(self.global_settings, config)
+            to_set = load_settings(self.global_settings, config)
         except ValueError, e:
             raise ControlFileError(str(e))
         for name, value in to_set.items():
             setattr(self, name, value)
 
+        # dict player_code -> game_jobs.Player
+        self.players = {}
         try:
             config_players = config['players']
         except KeyError, e:
             raise ControlFileError("%s not specified" % e)
-        self.players = {}
         try:
             try:
-                player_items = config_players.items()
-            except StandardError:
-                raise ControlFileError("'players': not a dictionary")
+                player_items = interpret_map(config_players)
+            except ValueError, e:
+                raise ControlFileError(str(e))
             # pre-check player codes before trying to sort them, just in case
             for player_code, _ in player_items:
                 if not isinstance(player_code, basestring):
-                    raise ControlFileError("'players': bad code (not a string)")
+                    raise ControlFileError("bad player code (not a string)")
             for player_code, player_config in sorted(player_items):
                 try:
-                    player_code = settings.interpret_identifier(player_code)
+                    player_code = interpret_identifier(player_code)
                 except ValueError, e:
                     if isinstance(player_code, unicode):
                         player_code = player_code.encode("ascii", "replace")
                     raise ControlFileError(
-                        "'players': bad code (%s): %s" % (e, player_code))
+                        "bad code (%s): %s" % (e, player_code))
                 if not isinstance(player_config, Player_config):
-                    raise ControlFileError("player %s is %r, not a Player" %
-                                           (player_code, player_config))
+                    raise ControlFileError(
+                        "player %s is not a Player" % player_code)
                 try:
                     player = game_jobs_player_from_config(player_config)
                 except StandardError, e:
@@ -240,8 +240,8 @@ class Competition(object):
             # NB, this isn't properly validated. I'm planning to change the
             # system anyway.
             self.preferred_scorers = config.get('preferred_scorers')
-        except ControlFileError:
-            raise
+        except ControlFileError, e:
+            raise ControlFileError("'players' : %s" % e)
         except StandardError, e:
             raise ControlFileError("'players': unexpected error: %s" % e)
 
@@ -352,7 +352,7 @@ class Competition(object):
 ## Helper functions for settings
 
 def interpret_board_size(i):
-    i = settings.interpret_int(i)
+    i = interpret_int(i)
     if i < 2:
         raise ValueError("too small")
     if i > 25:
