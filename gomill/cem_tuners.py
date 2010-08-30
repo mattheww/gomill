@@ -167,6 +167,11 @@ class Cem_tuner(Competition):
         self.distribution = self.initial_distribution
         self.reset_for_new_generation()
 
+    def _set_scheduler_groups(self):
+        self.scheduler.set_groups(
+            (i, self.batch_size) for i in xrange(self.samples_per_generation)
+            )
+
     def get_status(self):
         return {
             'generation'         : self.generation,
@@ -183,8 +188,9 @@ class Cem_tuner(Competition):
         self.wins = status['wins']
         self.prepare_candidates()
         self.scheduler = pickle.loads(status['scheduler'].encode('iso-8859-1'))
+        # Might as well notice if they changed the batch_size
+        self._set_scheduler_groups()
         self.scheduler.rollback()
-        # FIXME: if batch size has changed, tell the scheduler.
 
     def reset_for_new_generation(self):
         get_sample = self.distribution.get_sample
@@ -193,9 +199,7 @@ class Cem_tuner(Competition):
         self.wins = [0] * self.samples_per_generation
         self.prepare_candidates()
         self.scheduler = competition_schedulers.Group_scheduler()
-        self.scheduler.set_groups(
-            (i, self.batch_size) for i in xrange(self.samples_per_generation)
-            )
+        self._set_scheduler_groups()
 
     @staticmethod
     def make_candidate_code(generation, candidate_number):
