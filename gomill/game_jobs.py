@@ -27,6 +27,7 @@ class Player(object):
     """
     def __init__(self):
         self.gtp_translations = {}
+        self.startup_gtp_commands = []
 
 class Game_job_result(object):
     """Information returned after a worker process plays a game.

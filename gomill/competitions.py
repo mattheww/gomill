@@ -84,8 +84,8 @@ def game_jobs_player_from_config(player_config):
         except StandardError, e:
             raise ControlFileError("%s in command_string" % e)
 
-        player.startup_gtp_commands = []
         if 'startup_gtp_commands' in kwargs:
+            player.startup_gtp_commands = []
             try:
                 startup_gtp_commands = list(kwargs['startup_gtp_commands'])
             except StandardError:
@@ -98,18 +98,19 @@ def game_jobs_player_from_config(player_config):
                     raise ControlFileError(
                         "'startup_gtp_commands': invalid command string %s" % s)
 
-        player.gtp_translations = kwargs.get('gtp_translations', {})
-        try:
-            translation_items = player.gtp_translations.items()
-        except StandardError:
-            raise ControlFileError("'gtp_translations': not a dictionary")
-        for cmd1, cmd2 in translation_items:
-            if not gtp_controller.is_well_formed_gtp_word(cmd1):
-                raise ControlFileError(
-                    "'gtp_translations': invalid command %s" % cmd1)
-            if not gtp_controller.is_well_formed_gtp_word(cmd2):
-                raise ControlFileError(
-                    "'gtp_translations': invalid command %s" % cmd2)
+        if 'gtp_translations' in kwargs:
+            player.gtp_translations = {}
+            try:
+                translation_items = player.gtp_translations.items()
+            except StandardError:
+                raise ControlFileError("'gtp_translations': not a dictionary")
+            for cmd1, cmd2 in translation_items:
+                if not gtp_controller.is_well_formed_gtp_word(cmd1):
+                    raise ControlFileError(
+                        "'gtp_translations': invalid command %s" % cmd1)
+                if not gtp_controller.is_well_formed_gtp_word(cmd2):
+                    raise ControlFileError(
+                        "'gtp_translations': invalid command %s" % cmd2)
 
     except KeyError, e:
         raise ControlFileError("%s not specified" % e)
