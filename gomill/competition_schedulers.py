@@ -1,5 +1,11 @@
 """Schedule games in competitions.
 
+These schedulers are used to keep track of the ids of games which have been
+started, and which have reported their results.
+
+They provide a mechanism to reissue ids of games which were in progress when an
+unclean shutdown occurred.
+
 All scheduler classes are suitable for pickling.
 
 """
@@ -30,6 +36,11 @@ class Simple_scheduler(object):
         self.fixed = self.issued - len(self.outstanding)
 
     def issue(self):
+        """Choose the next game to start.
+
+        Returns an integer 'token'.
+
+        """
         if self.to_reissue:
             result = min(self.to_reissue)
             self.to_reissue.discard(result)
@@ -40,11 +51,13 @@ class Simple_scheduler(object):
         self.issued += 1
         return result
 
-    def fix(self, i):
-        self.outstanding.remove(i)
+    def fix(self, token):
+        """Note that a game's result has been reliably stored."""
+        self.outstanding.remove(token)
         self.fixed += 1
 
     def rollback(self):
+        """Make issued-but-not-fixed tokens available again."""
         self.to_reissue.update(self.outstanding)
         self.outstanding = set()
         self.issued -= len(self.to_reissue)
