@@ -56,3 +56,17 @@ Here's a sample of the control file settings for the CEM tuner::
 
   opponent = 'k50'
 
+
+Changing settings in the middle of a run::
+
+   batch_size -- safe to increase
+   samples_per_generation -- not safe
+   number_of_generations -- safe
+   elite_proportion -- safe
+   step_size -- safe
+
+   format_parameters -- safe
+   convert_optimiser_parameters_to_engine_parameters -- not safe
+   make_candidate -- not safe
+                     (but ok if you're changing non-play-affecting options)
+
