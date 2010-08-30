@@ -396,7 +396,7 @@ class Mcts_tuner(Competition):
 
     def get_game(self):
         if (self.number_of_games is not None and
-            self.scheduler.count_issued() >= self.number_of_games):
+            self.scheduler.issued >= self.number_of_games):
             return NoGameAvailable
         game_id = str(self.scheduler.issue())
 
@@ -434,7 +434,7 @@ class Mcts_tuner(Competition):
         # FIXME: Want to describe this stuff; for now, let status summary do it
         self.last_simulation = simulation
         self.won_last_game = candidate_won
-        if self.scheduler.count_fixed() % self.log_after_games == 0:
+        if self.scheduler.fixed % self.log_after_games == 0:
             self.log_history(self.tree.describe())
 
     def write_static_description(self, out):
@@ -447,7 +447,7 @@ class Mcts_tuner(Competition):
         # FIXME: Should describe the matchup?
 
     def write_status_summary(self, out):
-        games_played = self.scheduler.count_fixed()
+        games_played = self.scheduler.fixed
         if self.number_of_games is None:
             print >>out, "%d games played" % games_played
         else:

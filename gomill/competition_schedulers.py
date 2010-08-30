@@ -9,17 +9,25 @@ class Simple_scheduler(object):
 
     The issued tokens are integers counting up from zero.
 
+    Public attributes (treat as read-only):
+      issued -- int
+      fixed  -- int
+
     """
     def __init__(self):
         self.next_new = 0
         self.outstanding = set()
         self.to_reissue = set()
+        self.issued = 0
+        self.fixed = 0
 
     def __getstate__(self):
         return (self.next_new, self.outstanding, self.to_reissue)
 
     def __setstate__(self, state):
         (self.next_new, self.outstanding, self.to_reissue) = state
+        self.issued = self.next_new - len(self.to_reissue)
+        self.fixed = self.issued - len(self.outstanding)
 
     def issue(self):
         if self.to_reissue:
@@ -29,22 +37,17 @@ class Simple_scheduler(object):
             result = self.next_new
             self.next_new += 1
         self.outstanding.add(result)
+        self.issued += 1
         return result
 
     def fix(self, i):
         self.outstanding.remove(i)
+        self.fixed += 1
 
     def rollback(self):
         self.to_reissue.update(self.outstanding)
         self.outstanding = set()
-
-    def count_issued(self):
-        """Return the number of tokens which have been issued."""
-        return self.next_new - len(self.to_reissue)
-
-    def count_fixed(self):
-        """Return the number of tokens which have been fixed."""
-        return self.next_new - len(self.outstanding) - len(self.to_reissue)
+        self.issued -= len(self.to_reissue)
 
 
 class Group_scheduler(object):
@@ -102,7 +105,7 @@ class Group_scheduler(object):
 
         """
         groups = [
-            (group_code, allocator.count_issued(), self.limits[group_code])
+            (group_code, allocator.issued, self.limits[group_code])
             for (group_code, allocator) in self.allocators.iteritems()
             ]
         available = [
@@ -126,7 +129,7 @@ class Group_scheduler(object):
 
     def nothing_issued_yet(self):
         """Say whether nothing has been issued yet."""
-        return all(allocator.count_issued() == 0
+        return all(allocator.issued == 0
                    for allocator in self.allocators.itervalues())
 
     def all_fixed(self):
@@ -136,5 +139,5 @@ class Group_scheduler(object):
         _fixed_ tokens as its limit.
 
         """
-        return all(allocator.count_fixed() >= self.limits[g]
+        return all(allocator.fixed >= self.limits[g]
                    for (g, allocator) in self.allocators.iteritems())
