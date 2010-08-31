@@ -26,6 +26,14 @@ class Matchup(object):
     alternate.
 
     """
+    def describe_details(self):
+        # Not describing 'alternating', because it's obvious from the results
+        s = "board size: %s   " % self.board_size
+        if self.handicap is not None:
+            s += "handicap: %s (%s)   " % (
+                self.handicap, self.handicap_style)
+        s += "komi: %s" % self.komi
+        return s
 
 
 class _Required_in_matchup(object):
@@ -233,8 +241,6 @@ class Tournament(Competition):
         p("tournament: %s" % self.competition_code)
         for code, description in sorted(self.engine_descriptions.items()):
             p("player %s: %s" % (code, description))
-        p("board size: %s" % self.board_size)
-        p("komi: %s" % self.komi)
         p(self.description)
 
     def write_status_summary(self, out):
@@ -252,6 +258,7 @@ class Tournament(Competition):
     def write_matchup_report(self, out, matchup, results):
         def p(s):
             print >>out, s
+
         total = len(results)
         assert total != 0
         player_x = matchup.p1
@@ -301,6 +308,8 @@ class Tournament(Competition):
             return "%.2f%%" % (100 * n/baseline)
         if unknown > 0:
             p("unknown results: %d %s" % (unknown, pct(unknown, total)))
+
+        p(matchup.describe_details())
 
         pad = max(len(player_x), len(player_y)) + 2
         xname = player_x.ljust(pad)
