@@ -5,7 +5,8 @@ import re
 __all__ = ['Setting', 'allow_none', 'load_settings',
            'interpret_any', 'interpret_bool',
            'interpret_int', 'interpret_positive_int', 'interpret_float',
-           'interpret_8bit_string', 'interpret_as_utf8', 'interpret_identifier',
+           'interpret_8bit_string', 'interpret_identifier',
+           'interpret_as_utf8', 'interpret_as_utf8_stripped',
            'interpret_colour', 'interpret_enum', 'interpret_callable',
            'interpret_sequence', 'interpret_map',
            ]
@@ -59,6 +60,9 @@ def interpret_as_utf8(s):
     if s is None:
         return ""
     raise ValueError("invalid string")
+
+def interpret_as_utf8_stripped(s):
+    return interpret_as_utf8(s).strip()
 
 # NB, tuners use '#' in player codes
 _identifier_re = re.compile(r"\A[-!$%&*+-./:;<=>?^_~a-zA-Z0-9]*\Z")

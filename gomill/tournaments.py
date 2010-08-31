@@ -75,7 +75,7 @@ class Tournament(Competition):
         ]
 
     global_settings = matchup_settings + [
-        Setting('description', interpret_as_utf8, default=""),
+        Setting('description', interpret_as_utf8_stripped, default=""),
         ]
 
     special_settings = [
@@ -239,9 +239,12 @@ class Tournament(Competition):
         def p(s):
             print >>out, s
         p("tournament: %s" % self.competition_code)
+        p(self.description)
+        p('')
         for code, description in sorted(self.engine_descriptions.items()):
             p("player %s: %s" % (code, description))
-        p(self.description)
+            p('')
+        p('')
 
     def write_status_summary(self, out):
         results_by_matchup_id = defaultdict(list)
