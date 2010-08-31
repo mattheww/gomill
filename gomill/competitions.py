@@ -313,7 +313,8 @@ class Competition(object):
 
         out -- writeable file-like object
 
-        This reports on 'static' data, rather than the game results.
+        This reports on 'static' data (eg, player descriptions), rather than the
+        game results.
 
         """
         raise NotImplementedError
@@ -323,19 +324,19 @@ class Competition(object):
 
         out -- writeable file-like object
 
-        This reports on the game results, and shouldn't duplicate information
-        from write_static_description().
+        This is supposed to fit on one screen; it's displayed continuously in
+        'chatty' mode.
 
         """
         raise NotImplementedError
 
     def write_results_report(self, out):
-        """Write a detailed report of a completed competition.
+        """Write a detailed report of competition status/results.
 
         out -- writeable file-like object
 
-        This reports on the game results, and shouldn't duplicate information
-        from write_static_description() or write_status_summary().
+        This shouldn't duplicate information from write_static_description() or
+        write_status_summary().
 
         """
         raise NotImplementedError
