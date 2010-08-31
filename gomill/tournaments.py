@@ -266,20 +266,37 @@ class Tournament(Competition):
         x_wins = sum(r.winning_player == player_x for r in results)
         y_wins = sum(r.winning_player == player_y for r in results)
         unknown = sum(r.winning_player is None for r in results)
-        b_wins = sum(r.winning_colour == 'b' for r in results)
-        w_wins = sum(r.winning_colour == 'w' for r in results)
-        xb_wins = sum(r.winning_player == player_x and r.winning_colour == 'b'
-                      for r in results)
-        xw_wins = sum(r.winning_player == player_x and r.winning_colour == 'w'
-                      for r in results)
-        yb_wins = sum(r.winning_player == player_y and r.winning_colour == 'b'
-                      for r in results)
-        yw_wins = sum(r.winning_player == player_y and r.winning_colour == 'w'
-                      for r in results)
+
         xb_played = sum(r.player_b == player_x for r in results)
         xw_played = sum(r.player_w == player_x for r in results)
         yb_played = sum(r.player_b == player_y for r in results)
         yw_played = sum(r.player_w == player_y for r in results)
+
+        # Trust the results, not the matchup config
+        if xw_played == 0 and yb_played == 0:
+            alternating = False
+            x_colour = 'black'
+            y_colour = 'white'
+        elif xb_played == 0 and yw_played == 0:
+            alternating = False
+            x_colour = 'white'
+            y_colour = 'black'
+        else:
+            alternating = True
+            b_wins = sum(r.winning_colour == 'b' for r in results)
+            w_wins = sum(r.winning_colour == 'w' for r in results)
+            xb_wins = sum(
+                r.winning_player == player_x and r.winning_colour == 'b'
+                for r in results)
+            xw_wins = sum(
+                r.winning_player == player_x and r.winning_colour == 'w'
+                for r in results)
+            yb_wins = sum(
+                r.winning_player == player_y and r.winning_colour == 'b'
+                for r in results)
+            yw_wins = sum(
+                r.winning_player == player_y and r.winning_colour == 'w'
+                for r in results)
 
         x_times = [r.cpu_times[player_x] for r in results]
         x_known_times = [t for t in x_times if t is not None and t != '?']
@@ -315,18 +332,29 @@ class Tournament(Competition):
         xname = player_x.ljust(pad)
         yname = player_y.ljust(pad)
 
-        p(" " * (pad+17) + "   black         white        avg cpu")
-        p("%s %4d %7s    %4d %7s  %4d %7s  %s"
-          % (xname, x_wins, pct(x_wins, total),
-             xb_wins, pct(xb_wins, xb_played),
-             xw_wins, pct(xw_wins, xw_played),
-             x_avg_time_s))
-        p("%s %4d %7s    %4d %7s  %4d %7s  %s"
-          % (yname, y_wins, pct(y_wins, total),
-             yb_wins, pct(yb_wins, yb_played),
-             yw_wins, pct(yw_wins, yw_played),
-             y_avg_time_s))
-        p(" " * (pad+17) + "%4d %7s  %4d %7s"
-          % (b_wins, pct(b_wins, total), w_wins, pct(w_wins, total)))
+        if alternating:
+            p(" " * (pad) +
+              " wins               black         white        avg cpu")
+            p("%s %4d %7s    %4d %7s  %4d %7s  %s"
+              % (xname, x_wins, pct(x_wins, total),
+                 xb_wins, pct(xb_wins, xb_played),
+                 xw_wins, pct(xw_wins, xw_played),
+                 x_avg_time_s))
+            p("%s %4d %7s    %4d %7s  %4d %7s  %s"
+              % (yname, y_wins, pct(y_wins, total),
+                 yb_wins, pct(yb_wins, yb_played),
+                 yw_wins, pct(yw_wins, yw_played),
+                 y_avg_time_s))
+            p(" " * (pad+17) + "%4d %7s  %4d %7s"
+              % (b_wins, pct(b_wins, total), w_wins, pct(w_wins, total)))
+        else:
+            p(" " * pad + " wins                     avg cpu")
+            p("%s %4d %7s   (%s) %s"
+              % (xname, x_wins, pct(x_wins, total),
+                 x_colour, x_avg_time_s))
+            p("%s %4d %7s   (%s) %s"
+              % (yname, y_wins, pct(y_wins, total),
+                 y_colour, y_avg_time_s))
+
         p("")
 
