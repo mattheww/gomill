@@ -9,9 +9,19 @@ import shlex
 import sys
 from optparse import OptionParser, SUPPRESS_HELP
 
+from gomill import ascii_boards
 from gomill import gtp_games
 from gomill.gtp_controller import (
     GtpProtocolError, GtpTransportError, GtpEngineError)
+from gomill.gomill_common import format_vertex
+
+def print_move(colour, move, board):
+    print colour.upper(), format_vertex(move)
+
+def print_board(colour, move, board):
+    print colour.upper(), format_vertex(move)
+    print ascii_boards.render_board(board)
+    print
 
 def main():
     usage = "%prog [options] --black='<command>' --white='<command>'"
@@ -20,6 +30,8 @@ def main():
     parser.add_option("--white", help=SUPPRESS_HELP)
     parser.add_option("--komi", type="float", default=7.5)
     parser.add_option("--size", type="int", default=19)
+    parser.add_option("--verbose", type="choice", choices=('0','1','2'),
+                      default=0, metavar="0|1|2")
 
     (options, args) = parser.parse_args()
     if args:
@@ -37,6 +49,10 @@ def main():
         board_size=options.size,
         komi=options.komi,
         move_limit=200)
+    if options.verbose == '1':
+        game.set_move_callback(print_move)
+    elif options.verbose == '2':
+        game.set_move_callback(print_board)
 
     game.allow_scorer('b')
     game.allow_scorer('w')
