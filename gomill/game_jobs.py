@@ -152,23 +152,24 @@ class Game_job(object):
         w_player = game.players['w']
 
         sgf_game = game.make_sgf()
-        sgf_game.set('application', "gomill:?")
         if self.sgf_event is not None:
             sgf_game.set('event', self.sgf_event)
-            notes = ["Event %s" % self.sgf_event]
+            notes = ["Event '%s'" % self.sgf_event]
         else:
             notes = []
         notes += [
             "Game id %s" % self.game_id,
             "Date %s" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "Black %s %s" % (b_player, game.engine_descriptions[b_player]),
-            "White %s %s" % (w_player, game.engine_descriptions[w_player]),
             "Result %s" % game.result.describe(),
             ]
         for player in [b_player, w_player]:
             cpu_time = game.result.cpu_times[player]
             if cpu_time is not None and cpu_time != "?":
                 notes.append("%s cpu time: %ss" % (player, "%.2f" % cpu_time))
+        notes += [
+            "Black %s %s" % (b_player, game.engine_descriptions[b_player]),
+            "White %s %s" % (w_player, game.engine_descriptions[w_player]),
+            ]
         sgf_game.set('root-comment', "\n".join(notes))
         f = open(self.sgf_pathname, "w")
         f.write(sgf_game.as_string())
