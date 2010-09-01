@@ -1,4 +1,5 @@
 import sys
+import os
 
 from gomill import gtp_controller
 
@@ -9,8 +10,12 @@ from gomill import gtp_boards
 def test():
     controller = gtp_controller.Gtp_controller_protocol()
 
+    # Enable diagnostics to stderr, but send them to /dev/null
+    devnull = open(os.devnull, "w")
     c1 = gtp_controller.Subprocess_gtp_channel(
-        "./player -m kiai.simple_montecarlo_player".split())
+        "./player -m kiai.simple_montecarlo_player --diag=t".split(),
+        stderr=devnull.fileno())
+    devnull.close()
     controller.add_channel("first", c1)
 
     controller.enable_logging(sys.stdout)
