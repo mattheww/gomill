@@ -235,17 +235,6 @@ class Tournament(Competition):
         self.log_history("%7s %s" %
                          (response.game_id, response.game_result.describe()))
 
-    def write_static_description(self, out):
-        def p(s):
-            print >>out, s
-        p("tournament: %s" % self.competition_code)
-        p(self.description)
-        p('')
-        for code, description in sorted(self.engine_descriptions.items()):
-            p("player %s: %s" % (code, description))
-            p('')
-        p('')
-
     def write_matchup_report(self, out, matchup, results):
         def p(s):
             print >>out, s
@@ -359,8 +348,15 @@ class Tournament(Competition):
                 self.write_matchup_report(out, matchup, results)
 
     def write_short_report(self, out):
-        self.write_static_description(out)
+        def p(s):
+            print >>out, s
+        p("tournament: %s" % self.competition_code)
+        p(self.description)
+        p('')
         self.write_screen_report(out)
+        for code, description in sorted(self.engine_descriptions.items()):
+            p("player %s: %s" % (code, description))
+        p('')
 
     write_full_report = write_short_report
 
