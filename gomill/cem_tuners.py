@@ -357,7 +357,7 @@ class Cem_tuner(Competition):
         p("board size: %s" % self.board_size)
         p("komi: %s" % self.komi)
 
-    def write_status_summary(self, out):
+    def write_screen_report(self, out):
         print >>out, "generation %d" % self.generation
         print >>out
         print >>out, "wins from current samples:\n%s" % self.wins
@@ -368,5 +368,9 @@ class Cem_tuner(Competition):
             print >>out, "distribution for generation %d:" % self.generation
         print >>out, self.format_distribution(self.distribution)
 
-    def write_results_report(self, out):
-        pass
+    def write_short_report(self, out):
+        self.write_static_description(out)
+        self.write_screen_report(out)
+
+    write_full_report = write_short_report
+

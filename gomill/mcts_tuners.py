@@ -452,7 +452,7 @@ class Mcts_tuner(Competition):
         p("board size: %s" % self.board_size)
         p("komi: %s" % self.komi)
 
-    def write_status_summary(self, out):
+    def write_screen_report(self, out):
         games_played = self.scheduler.fixed
         if self.number_of_games is None:
             print >>out, "%d games played" % games_played
@@ -468,5 +468,9 @@ class Mcts_tuner(Competition):
             self.format_parameters(self.tree.retrieve_best_parameters()))
         #waitforkey = raw_input()
 
-    def write_results_report(self, out):
-        pass
+    def write_short_report(self, out):
+        self.write_static_description(out)
+        self.write_screen_report(out)
+
+    write_full_report = write_short_report
+

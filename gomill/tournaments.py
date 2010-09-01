@@ -246,18 +246,6 @@ class Tournament(Competition):
             p('')
         p('')
 
-    def write_status_summary(self, out):
-        results_by_matchup_id = defaultdict(list)
-        for matchup_id, result in self.results:
-            results_by_matchup_id[matchup_id].append(result)
-        for (i, matchup) in enumerate(self.matchups):
-            results = results_by_matchup_id[i]
-            if results:
-                self.write_matchup_report(out, matchup, results)
-
-    def write_results_report(self, out):
-        pass
-
     def write_matchup_report(self, out, matchup, results):
         def p(s):
             print >>out, s
@@ -360,4 +348,19 @@ class Tournament(Competition):
                  y_colour, y_avg_time_s))
 
         p("")
+
+    def write_screen_report(self, out):
+        results_by_matchup_id = defaultdict(list)
+        for matchup_id, result in self.results:
+            results_by_matchup_id[matchup_id].append(result)
+        for (i, matchup) in enumerate(self.matchups):
+            results = results_by_matchup_id[i]
+            if results:
+                self.write_matchup_report(out, matchup, results)
+
+    def write_short_report(self, out):
+        self.write_static_description(out)
+        self.write_screen_report(out)
+
+    write_full_report = write_short_report
 

@@ -308,35 +308,39 @@ class Competition(object):
         else:
             return (False, True)
 
-    def write_static_description(self, out):
-        """Write a description of the competition.
-
-        out -- writeable file-like object
-
-        This reports on 'static' data (eg, player descriptions), rather than the
-        game results.
-
-        """
-        raise NotImplementedError
-
-    def write_status_summary(self, out):
-        """Write a summary of current competition status.
+    def write_screen_report(self, out):
+        """Write a one-screen summary of current competition status.
 
         out -- writeable file-like object
 
         This is supposed to fit on one screen; it's displayed continuously in
         'chatty' mode.
 
+        This should focus on describing incomplete competitions usefully.
+
         """
         raise NotImplementedError
 
-    def write_results_report(self, out):
+    def write_short_report(self, out):
+        """Write a short report of the competition status/results.
+
+        out -- writeable file-like object
+
+        This is used for the ringmaster's 'show' command.
+
+        This should be useful for both completed and incomplete competitions.
+
+        """
+        raise NotImplementedError
+
+    def write_full_report(self, out):
         """Write a detailed report of competition status/results.
 
         out -- writeable file-like object
 
-        This shouldn't duplicate information from write_static_description() or
-        write_status_summary().
+        This is used for the ringmaster's 'report' command.
+
+        This should focus on describing completed competitions well.
 
         """
         raise NotImplementedError

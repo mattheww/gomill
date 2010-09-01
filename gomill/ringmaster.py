@@ -247,15 +247,16 @@ class Ringmaster(object):
     def report(self):
         """Write the full competition report to the report file."""
         f = open(self.report_pathname, "w")
-        self.competition.write_static_description(f)
-        self.competition.write_status_summary(f)
-        self.competition.write_results_report(f)
+        self.competition.write_full_report(f)
         f.close()
 
     def print_status_report(self):
-        """Write current status to standard output."""
-        self.competition.write_static_description(sys.stdout)
-        self.competition.write_status_summary(sys.stdout)
+        """Write current status to standard output.
+
+        This is for the 'show' command.
+
+        """
+        self.competition.write_short_report(sys.stdout)
 
     def get_job(self):
 
@@ -322,7 +323,7 @@ class Ringmaster(object):
             clear_screen()
             if self.total_errors > 0:
                 print "!! %d errors occurred; see log file." % self.total_errors
-            self.competition.write_status_summary(sys.stdout)
+            self.competition.write_screen_report(sys.stdout)
 
     def process_response(self, response):
         self.log("response from game %s" % response.game_id)
