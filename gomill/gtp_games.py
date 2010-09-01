@@ -1,6 +1,7 @@
 """Run a game between two GTP engines."""
 
 from gomill.gomill_common import *
+from gomill import compact_tracebacks
 from gomill import gtp_controller
 from gomill import handicap_layout
 from gomill import boards
@@ -144,6 +145,7 @@ class Game(object):
         self.additional_sgf_props = []
         self.sgf_setup_stones = None
         self.gtp_log_dest = None
+        self.after_move_callback = None
 
     def use_internal_scorer(self):
         """Set the scoring method to internal.
@@ -190,6 +192,23 @@ class Game(object):
                 "protocol error sending command '%s' to player %s: %s" %
                 (command, self.players[colour], e))
         return response
+
+    def set_move_callback(self, fn):
+        """Specify a callback function to be called after every move.
+
+        This function is called after each move is played, including passes but
+        not resignations.
+
+        It is passed three parameters: colour, move, board
+          move is a pair (row, col), or None for a pass
+
+        Treat the board parameter as read-only.
+
+        Exceptions raised from the callback will be propagated unchanged out of
+        run().
+
+        """
+        self.after_move_callback = fn
 
     def send_command(self, colour, command, *arguments):
         """Send the specified GTP command to one of the players.
@@ -388,6 +407,8 @@ class Game(object):
         else:
             self.pass_count = 0
         self.moves.append((colour, move, comment))
+        if self.after_move_callback:
+            self.after_move_callback(colour, move, self.board)
         try:
             self.send_command(opponent, "play", colour, move_s)
         except GtpEngineError, e:
