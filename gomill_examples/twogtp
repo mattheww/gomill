@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+"""'Traditional' twogtp implementation.
+
+This runs a single game between two local GTP engines and reports the result.
+
+"""
+
+import shlex
+import sys
+from optparse import OptionParser, SUPPRESS_HELP
+
+from gomill import gtp_games
+from gomill.gtp_controller import (
+    GtpProtocolError, GtpTransportError, GtpEngineError)
+
+def main():
+    usage = "%prog [options] --black='<command>' --white='<command>'"
+    parser = OptionParser(usage=usage)
+    parser.add_option("--black", help=SUPPRESS_HELP)
+    parser.add_option("--white", help=SUPPRESS_HELP)
+    parser.add_option("--komi", type="float", default=7.5)
+    parser.add_option("--size", type="int", default=19)
+
+    (options, args) = parser.parse_args()
+    if args:
+        parser.error("too many arguments")
+    if not options.black or not options.white:
+        parser.error("players not specified")
+
+    black_command = shlex.split(options.black)
+    white_command = shlex.split(options.white)
+    game = gtp_games.Game(
+        players={'b' : black_command[0],
+                 'w' : white_command[0]},
+        commands={'b' : black_command,
+                  'w' : white_command},
+        board_size=options.size,
+        komi=options.komi,
+        move_limit=200)
+
+    game.allow_scorer('b')
+    game.allow_scorer('w')
+
+    try:
+        game.start_players()
+        game.run()
+    except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
+        sys.exit("aborting game due to error:\n%s\n" % e)
+    try:
+        game.close_players()
+    except StandardError, e:
+        sys.exit("error shutting down players:\n%s\n" % e)
+
+    print game.result.describe()
+
+if __name__ == "__main__":
+    main()
+
