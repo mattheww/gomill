@@ -48,7 +48,7 @@ def main():
                   'w' : white_command},
         board_size=options.size,
         komi=options.komi,
-        move_limit=200)
+        move_limit=1000)
     if options.verbose == '1':
         game.set_move_callback(print_move)
     elif options.verbose == '2':
