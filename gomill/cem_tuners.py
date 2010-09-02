@@ -241,12 +241,12 @@ class Cem_tuner(Competition):
                     "user-defined candidate function returned %r, not Player" %
                     candidate_config)
             try:
-                candidate = self.game_jobs_player_from_config(candidate_config)
+                candidate = self.game_jobs_player_from_config(
+                    candidate_code, candidate_config)
             except StandardError, e:
                 raise CompetitionError(
                     "error making candidate player\nparameters: %s\nerror: %s" %
                     (self.format_parameters(optimiser_params), e))
-            candidate.code = candidate_code
             self.candidates.append(candidate)
 
     def finish_generation(self):

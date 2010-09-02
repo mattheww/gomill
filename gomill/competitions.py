@@ -187,24 +187,23 @@ class Competition(object):
                     raise ControlFileError(
                         "player %s is not a Player" % player_code)
                 try:
-                    player = self.game_jobs_player_from_config(player_config)
+                    player = self.game_jobs_player_from_config(
+                        player_code, player_config)
                 except StandardError, e:
                     raise ControlFileError("player %s: %s" % (player_code, e))
-                player.code = player_code
                 self.players[player_code] = player
         except ControlFileError, e:
             raise ControlFileError("'players' : %s" % e)
         except StandardError, e:
             raise ControlFileError("'players': unexpected error: %s" % e)
 
-    def game_jobs_player_from_config(self, player_config):
+    def game_jobs_player_from_config(self, code, player_config):
         """Make a game_jobs.Player from a Player_config.
 
         Raises ControlFileError with a description if there is an error in the
         configuration.
 
-        Returns a game_jobs.Player with all required attributes set except
-        'code'.
+        Returns a game_jobs.Player
 
         """
         if len(player_config.args) > 1:
@@ -219,6 +218,7 @@ class Competition(object):
                                strict=True)
 
         player = game_jobs.Player()
+        player.code = code
 
         try:
             player.cmd_args = shlex.split(config['command_string'])
