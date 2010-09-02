@@ -45,6 +45,8 @@ class Control_file_token(object):
     def __repr__(self):
         return "<%s>" % self.name
 
+STDERR = Control_file_token('STDERR')
+LOG = Control_file_token('LOG')
 DISCARD = Control_file_token('DISCARD')
 
 
@@ -53,6 +55,8 @@ DISCARD = Control_file_token('DISCARD')
 control_file_globals = {
     'Player' : Player_config,
     'Matchup' : Matchup_config,
+    'STDERR' : STDERR,
+    'LOG' : LOG,
     'DISCARD' : DISCARD,
     }
 
@@ -62,67 +66,8 @@ _player_settings = [
     Setting('is_reliable_scorer', interpret_bool, default=True),
     Setting('gtp_translations', interpret_map, default=dict),
     Setting('startup_gtp_commands', interpret_sequence, default=list),
-    Setting('stderr', interpret_enum(None, DISCARD), default=None),
+    Setting('stderr', interpret_enum(STDERR, LOG, DISCARD), default=LOG),
     ]
-
-def game_jobs_player_from_config(player_config):
-    """Make a game_jobs.Player from a Player_config.
-
-    Raises ControlFileError with a description if there is an error in the
-    configuration.
-
-    Returns a game_jobs.Player with all required attributes set except 'code'.
-
-    """
-    if len(player_config.args) > 1:
-        raise ControlFileError("too many arguments")
-    if player_config.args:
-        if 'command_string' in player_config.kwargs:
-            raise ControlFileError(
-                "command_string specified both implicitly and explicitly")
-        player_config.kwargs['command_string'] = player_config.args[0]
-
-    config = load_settings(_player_settings, player_config.kwargs, strict=True)
-
-    player = game_jobs.Player()
-
-    try:
-        player.cmd_args = shlex.split(config['command_string'])
-        player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
-    except StandardError, e:
-        raise ControlFileError("'command_string': %s" % e)
-
-    player.is_reliable_scorer = config['is_reliable_scorer']
-
-    player.startup_gtp_commands = []
-    try:
-        for s in config['startup_gtp_commands']:
-            try:
-                words = s.split()
-                if not all(gtp_controller.is_well_formed_gtp_word(word)
-                           for word in words):
-                    raise StandardError
-            except StandardError:
-                raise ValueError("invalid command string %s" % s)
-            player.startup_gtp_commands.append((words[0], words[1:]))
-    except ValueError, e:
-        raise ControlFileError("'startup_gtp_commands': %s" % e)
-
-    player.gtp_translations = {}
-    try:
-        for cmd1, cmd2 in config['gtp_translations']:
-            if not gtp_controller.is_well_formed_gtp_word(cmd1):
-                raise ValueError("invalid command %s" % cmd1)
-            if not gtp_controller.is_well_formed_gtp_word(cmd2):
-                raise ValueError("invalid command %s" % cmd2)
-            player.gtp_translations[cmd1] = cmd2
-    except ValueError, e:
-        raise ControlFileError("'gtp_translations': %s" % e)
-
-    if config['stderr'] is DISCARD:
-        player.stderr_pathname = os.devnull
-
-    return player
 
 class Competition(object):
     """A resumable processing job based around playing many GTP games.
@@ -130,10 +75,12 @@ class Competition(object):
     This is an abstract base class.
 
     """
-    def __init__(self, competition_code):
+
+    def __init__(self, competition_code, default_engine_stderr_pathname=None):
         self.competition_code = competition_code
         self.event_logger = log_discard
         self.history_logger = log_discard
+        self.default_engine_stderr_pathname = default_engine_stderr_pathname
 
     def set_event_logger(self, logger):
         """Set a callback for the event log.
@@ -240,7 +187,7 @@ class Competition(object):
                     raise ControlFileError(
                         "player %s is not a Player" % player_code)
                 try:
-                    player = game_jobs_player_from_config(player_config)
+                    player = self.game_jobs_player_from_config(player_config)
                 except StandardError, e:
                     raise ControlFileError("player %s: %s" % (player_code, e))
                 player.code = player_code
@@ -249,6 +196,69 @@ class Competition(object):
             raise ControlFileError("'players' : %s" % e)
         except StandardError, e:
             raise ControlFileError("'players': unexpected error: %s" % e)
+
+    def game_jobs_player_from_config(self, player_config):
+        """Make a game_jobs.Player from a Player_config.
+
+        Raises ControlFileError with a description if there is an error in the
+        configuration.
+
+        Returns a game_jobs.Player with all required attributes set except
+        'code'.
+
+        """
+        if len(player_config.args) > 1:
+            raise ControlFileError("too many arguments")
+        if player_config.args:
+            if 'command_string' in player_config.kwargs:
+                raise ControlFileError(
+                    "command_string specified both implicitly and explicitly")
+            player_config.kwargs['command_string'] = player_config.args[0]
+
+        config = load_settings(_player_settings, player_config.kwargs,
+                               strict=True)
+
+        player = game_jobs.Player()
+
+        try:
+            player.cmd_args = shlex.split(config['command_string'])
+            player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
+        except StandardError, e:
+            raise ControlFileError("'command_string': %s" % e)
+
+        player.is_reliable_scorer = config['is_reliable_scorer']
+
+        player.startup_gtp_commands = []
+        try:
+            for s in config['startup_gtp_commands']:
+                try:
+                    words = s.split()
+                    if not all(gtp_controller.is_well_formed_gtp_word(word)
+                               for word in words):
+                        raise StandardError
+                except StandardError:
+                    raise ValueError("invalid command string %s" % s)
+                player.startup_gtp_commands.append((words[0], words[1:]))
+        except ValueError, e:
+            raise ControlFileError("'startup_gtp_commands': %s" % e)
+
+        player.gtp_translations = {}
+        try:
+            for cmd1, cmd2 in config['gtp_translations']:
+                if not gtp_controller.is_well_formed_gtp_word(cmd1):
+                    raise ValueError("invalid command %s" % cmd1)
+                if not gtp_controller.is_well_formed_gtp_word(cmd2):
+                    raise ValueError("invalid command %s" % cmd2)
+                player.gtp_translations[cmd1] = cmd2
+        except ValueError, e:
+            raise ControlFileError("'gtp_translations': %s" % e)
+
+        if config['stderr'] is DISCARD:
+            player.stderr_pathname = os.devnull
+        elif config['stderr'] is LOG:
+            player.stderr_pathname = self.default_engine_stderr_pathname
+
+        return player
 
 
     def set_clean_status(self):

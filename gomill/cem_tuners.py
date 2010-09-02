@@ -11,7 +11,7 @@ from gomill import competitions
 from gomill import competition_schedulers
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError, ControlFileError,
-    Player_config, game_jobs_player_from_config)
+    Player_config)
 from gomill.settings import *
 
 
@@ -241,7 +241,7 @@ class Cem_tuner(Competition):
                     "user-defined candidate function returned %r, not Player" %
                     candidate_config)
             try:
-                candidate = game_jobs_player_from_config(candidate_config)
+                candidate = self.game_jobs_player_from_config(candidate_config)
             except StandardError, e:
                 raise CompetitionError(
                     "error making candidate player\nparameters: %s\nerror: %s" %

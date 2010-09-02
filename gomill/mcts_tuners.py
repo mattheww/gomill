@@ -11,7 +11,7 @@ from gomill import competitions
 from gomill import competition_schedulers
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError, ControlFileError,
-    Player_config, game_jobs_player_from_config)
+    Player_config)
 from gomill.settings import *
 
 
@@ -255,8 +255,8 @@ class Mcts_tuner(Competition):
     The game ids are strings containing integers starting from zero.
 
     """
-    def __init__(self, competition_code):
-        Competition.__init__(self, competition_code)
+    def __init__(self, competition_code, **kwargs):
+        Competition.__init__(self, competition_code, **kwargs)
         self.outstanding_simulations = {}
         self.last_simulation = None
         self.won_last_game = False
@@ -383,7 +383,7 @@ class Mcts_tuner(Competition):
                 "user-defined candidate function returned %r, not Player" %
                 candidate_config)
         try:
-            candidate = game_jobs_player_from_config(candidate_config)
+            candidate = self.game_jobs_player_from_config(candidate_config)
         except StandardError, e:
             raise CompetitionError(
                 "error making candidate player\nparameters: %s\nerror: %s" %

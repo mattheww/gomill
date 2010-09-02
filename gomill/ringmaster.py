@@ -100,7 +100,9 @@ class Ringmaster(object):
                 config.get("competition_type"))
         except ValueError:
             raise RingmasterError("competition_type: unknown value")
-        self.competition = competition_class(self.competition_code)
+        self.competition = competition_class(
+            self.competition_code,
+            default_engine_stderr_pathname=self.log_pathname)
         try:
             self.competition.initialise_from_control_file(config)
         except ControlFileError, e:
@@ -376,6 +378,7 @@ class Ringmaster(object):
         self.open_files()
         self.competition.set_event_logger(self.log)
         self.competition.set_history_logger(self.log_history)
+
         self.log("run started at %s with max_games %s" % (now(), max_games))
         self.max_games_this_run = max_games
         self.update_display()
