@@ -69,7 +69,7 @@ class Game_job(object):
       use_internal_scorer -- bool (default True)
       sgf_pathname        -- pathname to use for the SGF file
       sgf_event           -- string to show as SGF EVent
-      gtp_log_pathname    -- pathname to log all GTP messages to
+      gtp_log_pathname    -- pathname to use for the GTP log
 
     The game_id will be returned in the job result, so you can tell which game
     you're getting the result for. It also appears in a comment in the SGF file.
@@ -77,11 +77,14 @@ class Game_job(object):
     game_data is returned in the job result. It's provided as a convenient way
     to pass a small amount of information from get_job() to process_response().
 
-    Leave sgf_pathname None if you don't want to write an SGF file.
-
     If use_internal_scorer is False, the Players' is_reliable_scorer attributes
     are used to decide which player is asked to score the game (if both are
     marked as reliable, black will be tried before white).
+
+    If sgf_pathname is set, an SGF file will be written after the game is over.
+
+    If gtp_log_pathname is set, all GTP messages to and from both players will
+    be logged (this doesn't append; any existing file will be overwritten).
 
 
     Game_jobs are suitable for pickling.
