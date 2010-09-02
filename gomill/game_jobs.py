@@ -128,10 +128,10 @@ class Game_job(object):
         # we never write to these files in this process, so I think we can get
         # away without closing them.
         if self.player_b.stderr_pathname is not None:
-            stderr_b = open(self.player_b.stderr_pathname, "wa")
+            stderr_b = open(self.player_b.stderr_pathname, "a")
             game.set_stderr('b', stderr_b)
         if self.player_w.stderr_pathname is not None:
-            stderr_w = open(self.player_w.stderr_pathname, "wa")
+            stderr_w = open(self.player_w.stderr_pathname, "a")
             game.set_stderr('w', stderr_w)
         try:
             game.start_players()
