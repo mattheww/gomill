@@ -103,6 +103,7 @@ class Game(object):
         game.set_gtp_translations(...)
         game.set_move_callback...()
         game.set_gtp_log(...)
+        game.set_stderr(...)
       game.start_players()
       game.request_engine_descriptions() [optional]
       game.set_handicap(...) [optional]
@@ -206,6 +207,20 @@ class Game(object):
         """
         self.gtp_log_dest = log_dest
 
+    def set_stderr(self, colour, stderr_dest):
+        """Set the destination of an engine's standard error stream.
+
+        stderr_dest -- open file
+
+        By default, the engine's standard error is left as the standard error of
+        the calling process.
+
+        stderr_dest is just a way of indicating an open file descriptor, so it
+        has to be a true file (or at least implement fileno().
+
+        """
+        self.engine_stderr_dest[colour] = stderr_dest
+
 
     ## Main methods
 
@@ -277,7 +292,8 @@ class Game(object):
         for colour in ("b", "w"):
             try:
                 channel = gtp_controller.Subprocess_gtp_channel(
-                    self.commands[colour])
+                    self.commands[colour],
+                    stderr=self.engine_stderr_dest[colour])
             except GtpTransportError, e:
                 raise GtpTransportError("error creating player %s:\n%s" %
                                         (self.players[colour], e))
