@@ -98,13 +98,17 @@ class Game(object):
     Normal use:
 
       game = Game(...)
-      game.use_internal_scorer() or game.allow_scorer(...)
+      call configuration methods [all are optional]:
+        game.use_internal_scorer() or game.allow_scorer(...)
+        game.set_gtp_translations(...)
+        game.set_move_callback...()
+        game.set_gtp_log(...)
       game.start_players()
       game.request_engine_descriptions() [optional]
       game.set_handicap(...) [optional]
       game.run()
       game.close_players()
-      game.make_sgf() or game.write_sgf() [optional]
+      game.make_sgf() or game.write_sgf(...) [optional]
 
     then retrieve the Game_result and moves.
 
@@ -145,7 +149,11 @@ class Game(object):
         self.additional_sgf_props = []
         self.sgf_setup_stones = None
         self.gtp_log_dest = None
+        self.engine_stderr_dest = {'b' : None, 'w' : None}
         self.after_move_callback = None
+
+
+    ## Configuration methods (callable before start_players)
 
     def use_internal_scorer(self):
         """Set the scoring method to internal.
@@ -173,6 +181,34 @@ class Game(object):
         """
         self.gtp_translations = translations
 
+    def set_move_callback(self, fn):
+        """Specify a callback function to be called after every move.
+
+        This function is called after each move is played, including passes but
+        not resignations.
+
+        It is passed three parameters: colour, move, board
+          move is a pair (row, col), or None for a pass
+
+        Treat the board parameter as read-only.
+
+        Exceptions raised from the callback will be propagated unchanged out of
+        run().
+
+        """
+        self.after_move_callback = fn
+
+    def set_gtp_log(self, log_dest):
+        """Enable logging by the GTP controller.
+
+        log_dest -- writable file-like object (eg an open file)
+
+        """
+        self.gtp_log_dest = log_dest
+
+
+    ## Main methods
+
     def _translate_gtp_command(self, colour, command):
         return self.gtp_translations[colour].get(command, command)
 
@@ -192,23 +228,6 @@ class Game(object):
                 "protocol error sending command '%s' to player %s: %s" %
                 (command, self.players[colour], e))
         return response
-
-    def set_move_callback(self, fn):
-        """Specify a callback function to be called after every move.
-
-        This function is called after each move is played, including passes but
-        not resignations.
-
-        It is passed three parameters: colour, move, board
-          move is a pair (row, col), or None for a pass
-
-        Treat the board parameter as read-only.
-
-        Exceptions raised from the callback will be propagated unchanged out of
-        run().
-
-        """
-        self.after_move_callback = fn
 
     def send_command(self, colour, command, *arguments):
         """Send the specified GTP command to one of the players.
@@ -249,14 +268,6 @@ class Game(object):
         """Check whether the specified GTP command is supported."""
         command = self._translate_gtp_command(colour, command)
         return self.controller.known_command(colour, command)
-
-    def set_gtp_log(self, log_dest):
-        """Enable logging by the GTP controller.
-
-        log_dest -- writable file-like object (eg an open file)
-
-        """
-        self.gtp_log_dest = log_dest
 
     def start_players(self):
         """Start the engine subprocesses."""
@@ -456,6 +467,8 @@ class Game(object):
         """Run a complete game between the two players.
 
         Sets self.moves and self.result.
+
+        Sets CPU times in the game result if available via GTP.
 
         """
         self.pass_count = 0
