@@ -15,15 +15,20 @@ class Player(object):
       cmd_args -- list of strings, as for subprocess.Popen
 
     optional attributes:
-      is_reliable_scorer   -- bool
+      is_reliable_scorer   -- bool (default True)
       gtp_translations     -- map command string -> command string
       startup_gtp_commands -- list of pairs (command_name, arguments)
+      stderr_pathname      -- pathname or None (default None)
 
     See gtp_games for an explanation of gtp_translations.
 
     The startup commands will be executed before starting the game. Their
     responses will be ignored, but the game will be aborted if any startup
     command returns an error.
+
+    If stderr_pathname is set, the specified file will be opened in append mode
+    and the player's standard error will be sent there. Otherwise the player's
+    standard error will be left as the standard error of the calling process.
 
     Players are suitable for pickling.
 
@@ -32,6 +37,7 @@ class Player(object):
         self.is_reliable_scorer = True
         self.gtp_translations = {}
         self.startup_gtp_commands = []
+        self.stderr_pathname = None
 
 class Game_job_result(object):
     """Information returned after a worker process plays a game.
@@ -119,6 +125,14 @@ class Game_job(object):
             # the controller will flush() this after each write, so I think we
             # can get away without closing it.
             game.set_gtp_log(open(self.gtp_log_pathname, "w"))
+        # we never write to these files in this process, so I think we can get
+        # away without closing them.
+        if self.player_b.stderr_pathname is not None:
+            stderr_b = open(self.player_b.stderr_pathname, "wa")
+            game.set_stderr('b', stderr_b)
+        if self.player_w.stderr_pathname is not None:
+            stderr_w = open(self.player_w.stderr_pathname, "wa")
+            game.set_stderr('w', stderr_w)
         try:
             game.start_players()
             for command, arguments in self.player_b.startup_gtp_commands:

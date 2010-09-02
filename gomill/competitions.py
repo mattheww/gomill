@@ -39,11 +39,21 @@ class Matchup_config(object):
         self.args = args
         self.kwargs = kwargs
 
+class Control_file_token(object):
+    def __init__(self, name):
+        self.name = name
+    def __repr__(self):
+        return "<%s>" % self.name
+
+DISCARD = Control_file_token('DISCARD')
+
+
 # We provide the same globals to all tournament files, because until we've
 # exec'd it we don't know what type of competition we've got.
 control_file_globals = {
     'Player' : Player_config,
     'Matchup' : Matchup_config,
+    'DISCARD' : DISCARD,
     }
 
 
@@ -52,6 +62,7 @@ _player_settings = [
     Setting('is_reliable_scorer', interpret_bool, default=True),
     Setting('gtp_translations', interpret_map, default=dict),
     Setting('startup_gtp_commands', interpret_sequence, default=list),
+    Setting('stderr', interpret_enum(None, DISCARD), default=None),
     ]
 
 def game_jobs_player_from_config(player_config):
@@ -107,6 +118,9 @@ def game_jobs_player_from_config(player_config):
             player.gtp_translations[cmd1] = cmd2
     except ValueError, e:
         raise ControlFileError("'gtp_translations': %s" % e)
+
+    if config['stderr'] is DISCARD:
+        player.stderr_pathname = os.devnull
 
     return player
 
