@@ -260,6 +260,19 @@ class Ringmaster(object):
         """
         self.competition.write_short_report(sys.stdout)
 
+    def _prepare_job(self, job):
+        """Finish off a Game_job provided by the Competition.
+
+        job -- incomplete Game_job, as returned by Competition.get_game()
+
+        """
+        if self.record_games:
+            job.sgf_pathname = os.path.join(
+                self.sgf_dir_pathname, "%s.sgf" % job.game_id)
+        if self.write_gtp_logs:
+            job.gtp_log_pathname = os.path.join(
+                    self.gtplog_dir_pathname, "%s.log" % job.game_id)
+
     def get_job(self):
 
         def describe_stopping():
@@ -300,14 +313,9 @@ class Ringmaster(object):
             job = self.competition.get_game()
             if job is NoGameAvailable:
                 return job_manager.NoJobAvailable
-            if self.record_games:
-                job.sgf_pathname = os.path.join(
-                    self.sgf_dir_pathname, "%s.sgf" % job.game_id)
-            if self.write_gtp_logs:
-                job.gtp_log_pathname = os.path.join(
-                        self.gtplog_dir_pathname, "%s.log" % job.game_id)
-        if job.game_id in self.games_in_progress:
-            raise CompetitionError("duplicate game id: %s" % job.game_id)
+            if job.game_id in self.games_in_progress:
+                raise CompetitionError("duplicate game id: %s" % job.game_id)
+            self._prepare_job(job)
         self.games_in_progress[job.game_id] = job
         start_msg = "starting game %s: %s (b) vs %s (w)" % (
             job.game_id, job.player_b.code, job.player_w.code)
