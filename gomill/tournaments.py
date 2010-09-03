@@ -56,6 +56,11 @@ class Tournament(Competition):
     number within the matchup.
 
     """
+    def __init__(self, competition_code, **kwargs):
+        Competition.__init__(self, competition_code, **kwargs)
+        self.working_matchups = set()
+        self.probationary_matchups = set()
+
 
     # These settings can be specified both globally and in matchups.
     # The global values (stored as Tournament attributes) are defaults for the
@@ -169,10 +174,14 @@ class Tournament(Competition):
 
 
     # State attributes (*: in persistent state):
-    #  *results             -- list of pairs (matchup_id, Game_result)
-    #  *scheduler           -- Group_scheduler (group codes are matchup ids)
-    #  *engine_names        -- map player code -> string
-    #  *engine_descriptions -- map player code -> string
+    #  *results               -- list of pairs (matchup_id, Game_result)
+    #  *scheduler             -- Group_scheduler (group codes are matchup ids)
+    #  *engine_names          -- map player code -> string
+    #  *engine_descriptions   -- map player code -> string
+    #   working_matchups      -- set of matchup ids
+    #       (matchups which have successfully completed a game in this run)
+    #   probationary_matchups -- set of matchup ids
+    #       (matchups which failed to complete their last game)
 
     def _set_scheduler_groups(self):
         self.scheduler.set_groups(
@@ -230,10 +239,24 @@ class Tournament(Competition):
         self.engine_names.update(response.engine_names)
         self.engine_descriptions.update(response.engine_descriptions)
         matchup_id, game_number = response.game_data
+        self.working_matchups.add(matchup_id)
+        self.probationary_matchups.discard(matchup_id)
         self.scheduler.fix(matchup_id, game_number)
         self.results.append((matchup_id, response.game_result))
         self.log_history("%7s %s" %
                          (response.game_id, response.game_result.describe()))
+
+    def process_game_error(self, job, previous_error_count):
+        # ignoring previous_error_count, as we can consider all jobs for the
+        # same matchup to be equivalent.
+        matchup_id, game_data = job.game_data
+        if (matchup_id not in self.working_matchups or
+            matchup_id in self.probationary_matchups):
+            # Stop the tournament
+            return True, False
+        self.probationary_matchups.add(matchup_id)
+        # Retry the game
+        return False, True
 
     def write_matchup_report(self, out, matchup, results):
         def p(s):
