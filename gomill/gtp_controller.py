@@ -228,7 +228,8 @@ class Linebased_gtp_channel(Gtp_channel):
             if not s.endswith("\n"):
                 break
         if not lines:
-            raise GtpTransportError("EOF and empty response")
+            # Means 'EOF and empty response'
+            raise GtpTransportError("engine has closed the channel")
         first_line = lines[0]
         # It's certain that first line isn't empty
         if first_line[0] == "?":
@@ -340,6 +341,8 @@ class Gtp_controller_protocol(object):
         self.channels = {}
         self.known_commands = {}
         self.log_dest = None
+        # channels which have ever managed to send a GTP response
+        self.working_channels = set()
 
     def enable_logging(self, log_dest):
         """Log all messages sent and received by the controller.
@@ -403,6 +406,7 @@ class Gtp_controller_protocol(object):
         channel.send_command(fix_argument(command),
                              map(fix_argument, arguments))
         is_error, response = channel.get_response()
+        self.working_channels.add(channel_id)
         if is_error:
             raise GtpEngineError(response)
         return response
@@ -452,4 +456,8 @@ class Gtp_controller_protocol(object):
 
         """
         return channel_id in self.channels
+
+    def channel_ever_worked(self, channel_id):
+        """Say whether the channel has had a successful GTP command-response."""
+        return channel_id in self.working_channels
 

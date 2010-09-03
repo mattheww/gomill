@@ -228,20 +228,26 @@ class Game(object):
         return self.gtp_translations[colour].get(command, command)
 
     def _send_command(self, colour, command, arguments):
+        def format_command():
+            if self.controller.channel_ever_worked(colour):
+                return "command '%s'" % command
+            else:
+                return "first command ('%s')" % command
+
         try:
             response = self.controller.do_command(colour, command, *arguments)
         except GtpEngineError, e:
             raise GtpEngineError(
-                "error from command '%s' to player %s: %s" %
-                (command, self.players[colour], e))
+                "error from %s to player %s: %s" %
+                (format_command(), self.players[colour], e))
         except GtpTransportError, e:
             raise GtpTransportError(
-                "transport error sending command '%s' to player %s: %s" %
-                (command, self.players[colour], e))
+                "transport error sending %s to player %s: %s" %
+                (format_command(), self.players[colour], e))
         except GtpProtocolError, e:
             raise GtpProtocolError(
-                "protocol error sending command '%s' to player %s: %s" %
-                (command, self.players[colour], e))
+                "GTP protocol error sending %s to player %s: %s" %
+                (format_command(), self.players[colour], e))
         return response
 
     def send_command(self, colour, command, *arguments):
