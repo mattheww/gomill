@@ -67,6 +67,8 @@ class Ringmaster(object):
         self.max_games_this_run = None
         self.stopping = False
         self.stopping_reason = None
+        # When this is set, we stop clearing the screen
+        self.stopping_quietly = False
         # Map game_id -> int
         self.game_error_counts = {}
         self.write_gtp_logs = False
@@ -188,7 +190,7 @@ class Ringmaster(object):
 
 
     # State attributes (*: in persistent state):
-    #  * total_errors      -- int
+    #  * void_game_count   -- int
     #  * comp              -- from Competition.get_status()
     #    games_in_progress -- dict game_id -> Game_job
     #    games_to_replay   -- dict game_id -> Game_job
@@ -196,7 +198,7 @@ class Ringmaster(object):
     def write_status(self):
         competition_status = self.competition.get_status()
         status = {
-            'total_errors' : self.total_errors,
+            'void_game_count' : self.void_game_count,
             'comp'         : competition_status,
             }
         f = open(self.status_pathname + ".new", "wb")
@@ -215,7 +217,7 @@ class Ringmaster(object):
             raise RingmasterError("error reading status file: %s" % e)
         if status_format_version != self.status_format_version:
             raise RingmasterError("incompatible status file")
-        self.total_errors = status['total_errors']
+        self.void_game_count = status['void_game_count']
         self.games_in_progress = {}
         self.games_to_replay = {}
         competition_status = status['comp']
@@ -225,7 +227,7 @@ class Ringmaster(object):
             raise RingmasterError(e)
 
     def set_clean_status(self):
-        self.total_errors = 0
+        self.void_game_count = 0
         self.games_in_progress = {}
         self.games_to_replay = {}
         try:
@@ -280,7 +282,7 @@ class Ringmaster(object):
     def get_job(self):
 
         def describe_stopping():
-            if self.chatty:
+            if self.chatty and self.worker_count is not None:
                 print "waiting for workers to finish: %s" % self.stopping_reason
                 print "%d games in progress" % len(self.games_in_progress)
 
@@ -326,7 +328,8 @@ class Ringmaster(object):
         self.log(start_msg)
         if self.chatty:
             print start_msg
-            print "%d games in progress" % len(self.games_in_progress)
+            if self.worker_count is not None:
+                print "%d games in progress" % len(self.games_in_progress)
             if self.max_games_this_run is not None:
                 print ("will start at most %d more games in this run" %
                        self.max_games_this_run)
@@ -335,16 +338,17 @@ class Ringmaster(object):
     def update_display(self):
         if self.chatty:
             clear_screen()
-            if self.total_errors > 0:
-                print "!! %d errors occurred; see log file." % self.total_errors
+            if self.void_game_count > 0:
+                print "%d void games; see log file." % self.void_game_count
             self.competition.write_screen_report(sys.stdout)
 
     def process_response(self, response):
         self.log("response from game %s" % response.game_id)
         self.competition.process_game_result(response)
         del self.games_in_progress[response.game_id]
-        self.write_status()
-        self.update_display()
+        if not self.stopping_quietly:
+            self.write_status()
+            self.update_display()
         if self.chatty:
             print
             print "game %s completed: %s" % (
@@ -353,8 +357,9 @@ class Ringmaster(object):
     def process_error_response(self, job, message):
         warning_message = "error from worker for game %s\n%s" % (
             job.game_id, message)
-        self.warn(warning_message)
-        self.total_errors += 1
+        # We'll print this after the display update
+        self.log(warning_message)
+        self.void_game_count += 1
         previous_error_count = self.game_error_counts.get(job.game_id, 0)
         stop_competition, retry_game = \
             self.competition.process_game_error(job, previous_error_count)
@@ -366,13 +371,17 @@ class Ringmaster(object):
             del self.games_in_progress[job.game_id]
             if previous_error_count != 0:
                 del self.game_error_counts[job.game_id]
-        if stop_competition:
-            self.stopping = True
-            self.stopping_reason = "seen errors, giving up on competition"
         self.write_status()
-        self.update_display()
-        if self.chatty:
-            # we need to reprint this because the screen was cleared
+        if stop_competition:
+            print warning_message
+            if not self.stopping_quietly:
+                self.warn("halting run due to void games")
+                print
+                self.stopping = True
+                self.stopping_reason = "halting run due to void games"
+                self.stopping_quietly = True
+        else:
+            self.update_display()
             print warning_message
 
     def run(self, max_games=None):

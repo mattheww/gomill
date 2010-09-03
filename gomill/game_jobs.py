@@ -148,12 +148,11 @@ class Game_job(object):
                         "aborting game: invalid handicap")
             game.run()
         except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
-            raise job_manager.JobFailed("aborting game due to error:\n%s\n" % e)
+            raise job_manager.JobFailed("aborting game due to error:\n%s" % e)
         try:
             game.close_players()
         except StandardError, e:
-            raise job_manager.JobFailed(
-                "error shutting down players:\n%s\n" % e)
+            raise job_manager.JobFailed("error shutting down players:\n%s" % e)
         if self.sgf_pathname is not None:
             self.record_game(game)
         response = Game_job_result()
