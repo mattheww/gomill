@@ -14,7 +14,8 @@ from gomill import gtp_games
 from gomill import job_manager
 from gomill.settings import *
 from gomill.competitions import (
-    NoGameAvailable, CompetitionError, ControlFileError, control_file_globals)
+    NoGameAvailable, CompetitionError, ControlFileError, control_file_globals,
+    LOG, DISCARD)
 
 def read_tourn_file(pathname):
     """Read the specified file as a .tourn file.
@@ -100,9 +101,7 @@ class Ringmaster(object):
                 config.get("competition_type"))
         except ValueError:
             raise RingmasterError("competition_type: unknown value")
-        self.competition = competition_class(
-            self.competition_code,
-            default_engine_stderr_pathname=self.log_pathname)
+        self.competition = competition_class(self.competition_code)
         try:
             self.competition.initialise_from_control_file(config)
         except ControlFileError, e:
@@ -272,6 +271,11 @@ class Ringmaster(object):
         if self.write_gtp_logs:
             job.gtp_log_pathname = os.path.join(
                     self.gtplog_dir_pathname, "%s.log" % job.game_id)
+        for player in (job.player_b, job.player_w):
+            if player._stderr is DISCARD:
+                player.stderr_pathname = os.devnull
+            elif player._stderr is LOG:
+                player.stderr_pathname = self.log_pathname
 
     def get_job(self):
 

@@ -76,11 +76,10 @@ class Competition(object):
 
     """
 
-    def __init__(self, competition_code, default_engine_stderr_pathname=None):
+    def __init__(self, competition_code):
         self.competition_code = competition_code
         self.event_logger = log_discard
         self.history_logger = log_discard
-        self.default_engine_stderr_pathname = default_engine_stderr_pathname
 
     def set_event_logger(self, logger):
         """Set a callback for the event log.
@@ -203,7 +202,7 @@ class Competition(object):
         Raises ControlFileError with a description if there is an error in the
         configuration.
 
-        Returns a game_jobs.Player
+        Returns an incomplete game_jobs.Player (see get_game() for details).
 
         """
         if len(player_config.args) > 1:
@@ -253,10 +252,7 @@ class Competition(object):
         except ValueError, e:
             raise ControlFileError("'gtp_translations': %s" % e)
 
-        if config['stderr'] is DISCARD:
-            player.stderr_pathname = os.devnull
-        elif config['stderr'] is LOG:
-            player.stderr_pathname = self.default_engine_stderr_pathname
+        player._stderr = config['stderr']
 
         return player
 
@@ -286,12 +282,14 @@ class Competition(object):
     def get_game(self):
         """Return the details of the next game to play.
 
-        Returns a game_jobs.Game_job, or NoGameAvailable
+        Returns a game_jobs.Game_job, or NoGameAvailable.
 
         The Game_job is incomplete in the following ways (which are left to the
         ringmaster to finish off):
-          sgf_pathname isn't set
-          gtp_log_pathname isn't set
+         - sgf_pathname isn't set
+         - gtp_log_pathname isn't set
+         - the Players' stderr_pathname isn't set; instead they have a _stderr
+           attribute with value STDERR, LOG, or DISCARD.
 
         """
         raise NotImplementedError
