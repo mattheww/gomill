@@ -323,14 +323,8 @@ class Competition(object):
         or (in particular) if it exits as soon as it's invoked because it
         doesn't like its command-line options.
 
-        (Competition provides a default implementation which will retry a game
-         once and then stop the competition.)
-
         """
-        if previous_error_count > 0:
-            return (True, True)
-        else:
-            return (False, True)
+        raise NotImplementedError
 
     def write_screen_report(self, out):
         """Write a one-screen summary of current competition status.
