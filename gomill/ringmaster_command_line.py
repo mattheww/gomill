@@ -40,7 +40,7 @@ def do_reset(ringmaster):
     ringmaster.delete_state_and_output()
 
 
-def main():
+def run(argv, ringmaster_class):
     usage = ("%prog [options] <control file> [command]\n\n"
              "commands: run (default), stop, show, report, reset, check")
     parser = OptionParser(usage=usage, prog="ringmaster")
@@ -71,7 +71,7 @@ def main():
     try:
         if not os.path.exists(tourn_pathname):
             raise RingmasterError("control file %s not found" % tourn_pathname)
-        ringmaster = Ringmaster(tourn_pathname)
+        ringmaster = ringmaster_class(tourn_pathname)
         if command == "run":
             if options.log_gtp:
                 ringmaster.enable_gtp_logging()
@@ -107,6 +107,9 @@ def main():
         compact_tracebacks.log_traceback()
         exit_status = 4
     sys.exit(exit_status)
+
+def main():
+    run(sys.argv, Ringmaster)
 
 if __name__ == "__main__":
     main()
