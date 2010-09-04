@@ -37,31 +37,31 @@ Usage
 
 For example::
 
-  $ ringmaster ../tournaments/<code>.tourn
+  $ ringmaster <code>.tourn
 
 runs a competition; continues from where it left off if interrupted.
 
 ::
 
-  $ ringmaster ../tournaments/<code>.tourn stop
+  $ ringmaster <code>.tourn stop
 
-tells a running competition to stop after current game(s).
+tells a running competition to stop after the current game(s).
 
 ::
 
-  $ ringmaster ../tournaments/<code>.tourn show
+  $ ringmaster <code>.tourn show
 
 prints a report from a competition's current status.
 
 ::
 
-  $ ringmaster ../tournaments/<code>.tourn reset
+  $ ringmaster <code>.tourn reset
 
 deletes all state and output for the competition.
 
 ::
 
-  $ ringmaster ../tournaments/<code>.tourn check
+  $ ringmaster <code>.tourn check
 
 runs a test invocation of the competition's players.
 
@@ -87,8 +87,7 @@ Command-line options:
    log all GTP traffic
 
 :option:`!--max-games` is independent of any :confval:`number_of_games`
-settings in the tournament file; the competition will stop if either limit is
-reached.
+settings in the tournament file; the run will halt if either limit is reached.
 
 If :option:`!--log-gtp` is set, the ringmaster logs all GTP commands and
 responses. It writes a separate log file for each game, in the
