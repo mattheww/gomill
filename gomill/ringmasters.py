@@ -341,7 +341,7 @@ class Ringmaster(object):
         if self.worker_count is not None:
             p("%d games in progress" % len(self.games_in_progress))
         if self.stopping:
-            if self.worker_count is None:
+            if self.worker_count is None or not self.games_in_progress:
                 p(self.stopping_reason)
             else:
                 p("waiting for workers to finish: %s" %
