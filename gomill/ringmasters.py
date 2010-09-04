@@ -58,6 +58,12 @@ class RingmasterInternalError(StandardError):
 class Ringmaster(object):
     """Manage a competition as described by a control file.
 
+    Most methods can raise RingmasterError.
+
+    Instantiate with the pathname of the control file. The control file is read
+    and interpreted at instantiation time (and errors are reported at that
+    point).
+
     Ringmaster objects are used as a job source for the job manager.
 
     """
@@ -65,6 +71,13 @@ class Ringmaster(object):
     status_format_version = 0
 
     def __init__(self, tourn_pathname):
+        """Instantiate and initialise a Ringmaster.
+
+        Reads the control file.
+
+        Creates the Competition and initialises it from the control file.
+
+        """
         self.chatty = True
         self.worker_count = None
         self.max_games_this_run = None
@@ -94,7 +107,7 @@ class Ringmaster(object):
             raise RingmasterError("error in control file:\n%s" %
                                   compact_tracebacks.format_error_and_line())
         try:
-            self.initialise_from_control_file(config)
+            self._initialise_from_control_file(config)
         except ControlFileError, e:
             raise RingmasterError("error in control file:\n%s" % e)
         except StandardError, e:
@@ -115,7 +128,12 @@ class Ringmaster(object):
             raise RingmasterError("unhandled error in control file:\n%s" %
                                   compact_tracebacks.format_traceback(skip=1))
 
-    def open_files(self):
+    def _open_files(self):
+        """Open the log files and ensure that output directories exist.
+
+        Also removes the command file if it exists.
+
+        """
         try:
             if os.path.exists(self.command_pathname):
                 os.remove(self.command_pathname)
@@ -147,7 +165,8 @@ class Ringmaster(object):
                 raise RingmasterError(
                     "failed to create GTP log directory:\n%s" % e)
 
-    def close_files(self):
+    def _close_files(self):
+        """Close the log files."""
         try:
             self.logfile.close()
         except EnvironmentError, e:
@@ -161,7 +180,12 @@ class Ringmaster(object):
         Setting('record_games', interpret_bool, False),
         ]
 
-    def initialise_from_control_file(self, config):
+    def _initialise_from_control_file(self, config):
+        """Interpret the parts of the control file which belong to Ringmaster.
+
+        Sets attributes from ringmaster_settings.
+
+        """
         try:
             to_set = load_settings(self.ringmaster_settings, config)
         except ValueError, e:
@@ -199,6 +223,7 @@ class Ringmaster(object):
     #    games_to_replay   -- dict game_id -> Game_job
 
     def write_status(self):
+        """Write the persistent state file."""
         competition_status = self.competition.get_status()
         status = {
             'void_game_count' : self.void_game_count,
@@ -210,6 +235,7 @@ class Ringmaster(object):
         os.rename(self.status_pathname + ".new", self.status_pathname)
 
     def load_status(self):
+        """Read the persistent state file and load the state it contains."""
         try:
             f = open(self.status_pathname, "rb")
             status_format_version, status = pickle.load(f)
@@ -230,6 +256,7 @@ class Ringmaster(object):
             raise RingmasterError(e)
 
     def set_clean_status(self):
+        """Reset persistent state to the initial values."""
         self.void_game_count = 0
         self.games_in_progress = {}
         self.games_to_replay = {}
@@ -239,10 +266,11 @@ class Ringmaster(object):
             raise RingmasterError(e)
 
     def status_file_exists(self):
+        """Check whether the persistent state file exists."""
         return os.path.exists(self.status_pathname)
 
     def print_status(self):
-        """Print the contents of the status file, for debugging."""
+        """Print the contents of the persistent state file, for debugging."""
         from pprint import pprint
         f = open(self.status_pathname, "rb")
         status_format_version, status = pickle.load(f)
@@ -257,12 +285,24 @@ class Ringmaster(object):
         f.close()
 
     def print_status_report(self):
-        """Write current status to standard output.
+        """Write current competition status to standard output.
 
         This is for the 'show' command.
 
         """
         self.competition.write_short_report(sys.stdout)
+
+    def update_display(self):
+        """Redisplay the 'live' competition description.
+
+        Does nothing in quiet mode.
+
+        """
+        if self.chatty:
+            clear_screen()
+            if self.void_game_count > 0:
+                print "%d void games; see log file." % self.void_game_count
+            self.competition.write_screen_report(sys.stdout)
 
     def _prepare_job(self, job):
         """Finish off a Game_job provided by the Competition.
@@ -283,6 +323,7 @@ class Ringmaster(object):
                 player.stderr_pathname = self.log_pathname
 
     def get_job(self):
+        """Job supply function for the job manager."""
 
         def describe_stopping():
             if self.chatty and self.worker_count is not None:
@@ -338,14 +379,8 @@ class Ringmaster(object):
                        self.max_games_this_run)
         return job
 
-    def update_display(self):
-        if self.chatty:
-            clear_screen()
-            if self.void_game_count > 0:
-                print "%d void games; see log file." % self.void_game_count
-            self.competition.write_screen_report(sys.stdout)
-
     def process_response(self, response):
+        """Job response function for the job manager."""
         self.log("response from game %s" % response.game_id)
         self.competition.process_game_result(response)
         del self.games_in_progress[response.game_id]
@@ -358,6 +393,7 @@ class Ringmaster(object):
                 response.game_id, response.game_result.describe())
 
     def process_error_response(self, job, message):
+        """Job error response function for the job manager."""
         warning_message = "error from worker for game %s\n%s" % (
             job.game_id, message)
         # We'll print this after the display update
@@ -388,6 +424,15 @@ class Ringmaster(object):
             print warning_message
 
     def run(self, max_games=None):
+        """Run the competition.
+
+        max_games -- int or None (maximum games to start in this run)
+
+        Returns when max_games have been played in this run, when the
+        Competition is over, or when a 'stop' command is received via the
+        command file.
+
+        """
         def now():
             return datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
@@ -399,7 +444,7 @@ class Ringmaster(object):
                 pass
             self.log(msg)
 
-        self.open_files()
+        self._open_files()
         self.competition.set_event_logger(self.log)
         self.competition.set_history_logger(self.log_history)
 
@@ -430,9 +475,14 @@ class Ringmaster(object):
             log_games_in_progress()
             raise
         self.log("run finished at %s" % now())
-        self.close_files()
+        self._close_files()
 
     def delete_state_and_output(self):
+        """Delete all files generated by this competition.
+
+        Deletes the persistent state file, game records, log files, and reports.
+
+        """
         for pathname in [
             self.log_pathname,
             self.status_pathname,
