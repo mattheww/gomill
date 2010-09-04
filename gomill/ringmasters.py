@@ -424,8 +424,8 @@ class Ringmaster(object):
         self.log("response from game %s" % response.game_id)
         self.competition.process_game_result(response)
         del self.games_in_progress[response.game_id]
+        self.write_status()
         if not self.stopping_quietly:
-            self.write_status()
             self.update_display()
         if self.chatty:
             print
