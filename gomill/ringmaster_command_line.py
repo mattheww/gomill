@@ -5,8 +5,8 @@ import sys
 from optparse import OptionParser
 
 from gomill import compact_tracebacks
-from gomill import job_manager # FIXME
-from gomill.ringmasters import Ringmaster, RingmasterError
+from gomill.ringmasters import (
+    Ringmaster, RingmasterError, RingmasterInternalError)
 
 def do_run(ringmaster, options):
     if not ringmaster.check_players(discard_stderr=True):
@@ -104,7 +104,7 @@ def run(argv, ringmaster_class):
         exit_status = 1
     except KeyboardInterrupt:
         exit_status = 3
-    except job_manager.JobSourceError, e:
+    except RingmasterInternalError, e:
         print >>sys.stderr, "ringmaster: internal error"
         print >>sys.stderr, e
         exit_status = 4

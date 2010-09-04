@@ -51,6 +51,10 @@ def clear_screen():
 class RingmasterError(StandardError):
     """Error reported by a Ringmaster."""
 
+class RingmasterInternalError(StandardError):
+    """Error reported by a Ringmaster which indicates a bug."""
+
+
 class Ringmaster(object):
     """Manage a competition as described by a control file.
 
@@ -419,7 +423,7 @@ class Ringmaster(object):
         except job_manager.JobSourceError, e:
             self.log("run finished with internal error at %s\n%s" % (now(), e))
             log_games_in_progress()
-            raise
+            raise RingmasterInternalError(e)
         except:
             self.log("run finished with internal error at %s" % now())
             self.log(compact_tracebacks.format_traceback())
