@@ -16,11 +16,14 @@ from gomill.competitions import (
     NoGameAvailable, CompetitionError, ControlFileError, control_file_globals,
     LOG, DISCARD)
 
-def read_tourn_file(pathname, provided_globals):
-    """Read the specified file as a .tourn file.
+def read_python_file(pathname, provided_globals):
+    """Load Python code from the specified file.
 
-    A copy of provided_globals is used as the global namespace. Returns this
-    namespace as a dict.
+    pathname         -- string
+    provided_globals -- dict
+
+    The file contents are executed, with a copy of provided_globals as the
+    global and local namespace. Returns that namespace.
 
     """
     result = provided_globals.copy()
@@ -84,9 +87,9 @@ class Ringmaster(object):
         self.gtplog_dir_pathname = stem + ".gtplogs"
 
         try:
-            config = read_tourn_file(tourn_pathname, control_file_globals)
+            config = read_python_file(tourn_pathname, control_file_globals)
         except EnvironmentError, e:
-            raise RingmasterError("failed to open control file:\n%s" % e)
+            raise RingmasterError("failed to read control file:\n%s" % e)
         except:
             raise RingmasterError("error in control file:\n%s" %
                                   compact_tracebacks.format_error_and_line())
