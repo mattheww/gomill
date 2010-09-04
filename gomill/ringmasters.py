@@ -16,14 +16,14 @@ from gomill.competitions import (
     NoGameAvailable, CompetitionError, ControlFileError, control_file_globals,
     LOG, DISCARD)
 
-def read_tourn_file(pathname):
+def read_tourn_file(pathname, provided_globals):
     """Read the specified file as a .tourn file.
 
-    A copy of control_file_globals is used as the global namespace. Returns this
+    A copy of provided_globals is used as the global namespace. Returns this
     namespace as a dict.
 
     """
-    result = control_file_globals.copy()
+    result = provided_globals.copy()
     f = open(pathname)
     exec f in result
     f.close()
@@ -43,7 +43,6 @@ def get_competition_class(competition_type):
         return mcts_tuners.Mcts_tuner
     else:
         raise ValueError
-
 
 def clear_screen():
     os.system("clear")
@@ -103,7 +102,7 @@ class Ringmaster(object):
         self.gtplog_dir_pathname = stem + ".gtplogs"
 
         try:
-            config = read_tourn_file(tourn_pathname)
+            config = read_tourn_file(tourn_pathname, control_file_globals)
         except EnvironmentError, e:
             raise RingmasterError("failed to open control file:\n%s" % e)
         except:
