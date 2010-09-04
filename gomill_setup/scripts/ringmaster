@@ -1,3 +1,3 @@
 #!/usr/bin/env python
-from gomill import ringmaster
-ringmaster.main()
+from gomill import ringmaster_command_line
+ringmaster_command_line.main()
