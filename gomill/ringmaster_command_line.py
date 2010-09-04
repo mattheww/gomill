@@ -74,7 +74,7 @@ def run(argv, ringmaster_class):
     parser.add_option("--parallel", "-j", type="int",
                       help="number of worker processes")
     parser.add_option("--quiet", "-q", action="store_true",
-                      help="silent except for warnings and errors")
+                      help="be silent except for warnings and errors")
     parser.add_option("--log-gtp", action="store_true",
                       help="write GTP logs")
     (options, args) = parser.parse_args()
