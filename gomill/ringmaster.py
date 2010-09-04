@@ -469,7 +469,7 @@ class Ringmaster(object):
             try:
                 game_jobs.check_player(player)
             except game_jobs.CheckFailed, e:
-                print "player %s failed startup check: %s" % (player.code, e)
+                print "player %s failed startup check:\n%s" % (player.code, e)
                 return False
         return True
 

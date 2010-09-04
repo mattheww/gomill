@@ -212,15 +212,28 @@ def check_player(player):
      - the engine accepts any startup_gtp_commands
 
     """
+    def send(command, *arguments):
+        try:
+            return controller.do_command(player.code, command, *arguments)
+        except GtpEngineError, e:
+            raise CheckFailed(
+                "error from command '%s': %s" % (command, e))
+        except GtpTransportError, e:
+            raise CheckFailed(
+                "transport error sending command '%s': %s" % (command, e))
+        except GtpProtocolError, e:
+            raise CheckFailed(
+                "GTP protocol error sending command '%s': %s" % (command, e))
+
     controller = gtp_controller.Gtp_controller_protocol()
     try:
         # Leaving stderr as process's stderr
         channel = gtp_controller.Subprocess_gtp_channel(player.cmd_args)
         controller.add_channel(player.code, channel)
-        controller.do_command(player.code, "known_command", "boardsize")
+        send("known_command", "boardsize")
         for command, arguments in player.startup_gtp_commands:
-            controller.do_command(player.code, command, *arguments)
-        controller.do_command(player.code, "quit")
+            send(command, *arguments)
+        send("quit")
         controller.close_channel(player.code)
     except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
         raise CheckFailed(str(e))
