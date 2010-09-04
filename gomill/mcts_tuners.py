@@ -260,6 +260,7 @@ class Mcts_tuner(Competition):
         self.outstanding_simulations = {}
         self.last_simulation = None
         self.won_last_game = False
+        self.halt_on_next_failure = True
 
     global_settings = [
         Setting('board_size', competitions.interpret_board_size),
@@ -329,8 +330,9 @@ class Mcts_tuner(Competition):
     #  *scheduler               -- Simple_scheduler
     #  *tree                    -- Tree (root node is persisted)
     #   outstanding_simulations -- map game_number -> Simulation
+    #   halt_on_next_failure    -- bool
 
-    # These are used only for the status summary:
+    # These are used only for the screen report:
     #   last_simulation         -- Simulation or None
     #   won_last_game           -- bool
 
@@ -430,6 +432,7 @@ class Mcts_tuner(Competition):
         return job
 
     def process_game_result(self, response):
+        self.halt_on_next_failure = False
         game_number = response.game_data
         self.scheduler.fix(game_number)
         # Counting no-result as loss for the candidate
@@ -443,6 +446,20 @@ class Mcts_tuner(Competition):
         self.won_last_game = candidate_won
         if self.scheduler.fixed % self.log_after_games == 0:
             self.log_history(self.tree.describe())
+
+    def process_game_error(self, job, previous_error_count):
+        ## If the very first game gives an error, halt.
+        ## If two games in a row give an error, halt.
+        ## Otherwise, forget about the failed game
+        game_number = job.game_data
+        del self.outstanding_simulations[game_number]
+        self.scheduler.fix(game_number)
+        if self.halt_on_next_failure:
+            # Stop the tournament
+            return True, False
+        self.halt_on_next_failure = True
+        # Just carry on; don't retry the game
+        return False, False
 
     def write_static_description(self, out):
         def p(s):
