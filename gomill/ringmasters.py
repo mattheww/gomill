@@ -57,6 +57,9 @@ class Ringmaster(object):
     # For --version command
     public_version = "gomill ringmaster v0.5"
 
+    # Class attribute so that subclasses can modify
+    control_file_globals = control_file_globals
+
     def __init__(self, tourn_pathname):
         """Instantiate and initialise a Ringmaster.
 
@@ -87,7 +90,7 @@ class Ringmaster(object):
         self.gtplog_dir_pathname = stem + ".gtplogs"
 
         try:
-            config = read_python_file(tourn_pathname, control_file_globals)
+            config = read_python_file(tourn_pathname, self.control_file_globals)
         except EnvironmentError, e:
             raise RingmasterError("failed to read control file:\n%s" % e)
         except:
