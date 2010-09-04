@@ -446,7 +446,7 @@ class Ringmaster(object):
 
     def process_error_response(self, job, message):
         """Job error response function for the job manager."""
-        self.warn("error from worker for game %s\n%s" % (
+        self.warn("game %s -- %s" % (
             job.game_id, message))
         self.void_game_count += 1
         previous_error_count = self.game_error_counts.get(job.game_id, 0)
