@@ -29,21 +29,6 @@ def read_tourn_file(pathname, provided_globals):
     f.close()
     return result
 
-def get_competition_class(competition_type):
-    if competition_type is None:
-        competition_type = "tournament"
-    if competition_type == "tournament":
-        from gomill import tournaments
-        return tournaments.Tournament
-    elif competition_type == "cem_tuner":
-        from gomill import cem_tuners
-        return cem_tuners.Cem_tuner
-    elif competition_type == "mcts_tuner":
-        from gomill import mcts_tuners
-        return mcts_tuners.Mcts_tuner
-    else:
-        raise ValueError
-
 class RingmasterError(StandardError):
     """Error reported by a Ringmaster."""
 
@@ -114,7 +99,7 @@ class Ringmaster(object):
                                   compact_tracebacks.format_traceback(skip=1))
 
         try:
-            competition_class = get_competition_class(
+            competition_class = self._get_competition_class(
                 config.get("competition_type"))
         except ValueError:
             raise RingmasterError("competition_type: unknown value")
@@ -126,6 +111,31 @@ class Ringmaster(object):
         except StandardError, e:
             raise RingmasterError("unhandled error in control file:\n%s" %
                                   compact_tracebacks.format_traceback(skip=1))
+
+    @staticmethod
+    def _get_competition_class(competition_type):
+        """Find the competition class.
+
+        competition_type -- string
+
+        Returns a Competition subclass.
+
+        Raises ValueError if the competition type is unknown.
+
+        """
+        if competition_type is None:
+            competition_type = "tournament"
+        if competition_type == "tournament":
+            from gomill import tournaments
+            return tournaments.Tournament
+        elif competition_type == "cem_tuner":
+            from gomill import cem_tuners
+            return cem_tuners.Cem_tuner
+        elif competition_type == "mcts_tuner":
+            from gomill import mcts_tuners
+            return mcts_tuners.Mcts_tuner
+        else:
+            raise ValueError
 
     def _open_files(self):
         """Open the log files and ensure that output directories exist.
