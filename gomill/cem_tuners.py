@@ -91,6 +91,9 @@ class Cem_tuner(Competition):
     candidate number and 3 is the round number.
 
     """
+    def __init__(self, competition_code, **kwargs):
+        Competition.__init__(self, competition_code, **kwargs)
+        self.seen_successful_game = False
 
     global_settings = [
         Setting('board_size', competitions.interpret_board_size),
@@ -164,6 +167,8 @@ class Cem_tuner(Competition):
     #  *scheduler         -- Group_scheduler (group codes are candidate numbers)
     #
     # These are all reset for each new generation.
+    #
+    #   seen_successful_game -- bool (per-run state)
 
     def set_clean_status(self):
         self.generation = 0
@@ -297,6 +302,7 @@ class Cem_tuner(Competition):
         return job
 
     def process_game_result(self, response):
+        self.seen_successful_game = True
         candidate_number, candidate_code, round_id = response.game_data
         self.scheduler.fix(candidate_number, round_id)
         gr = response.game_result
@@ -311,6 +317,15 @@ class Cem_tuner(Competition):
             self.generation += 1
             if self.generation != self.number_of_generations:
                 self.reset_for_new_generation()
+
+    def process_game_error(self, job, previous_error_count):
+        ## If the very first game gives an error, halt.
+        ## Otherwise, retry once and halt on a second failure.
+        if (not self.seen_successful_game) or (previous_error_count > 0):
+            # Stop the tournament
+            return True, False
+        # Retry the game
+        return False, True
 
 
     def format_parameters(self, optimiser_parameters):
