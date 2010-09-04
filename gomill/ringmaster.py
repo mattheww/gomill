@@ -451,7 +451,7 @@ class Ringmaster(object):
                 except EnvironmentError, e:
                     print >>sys.stderr, e
 
-    def check_players(self):
+    def check_players(self, discard_stderr=False):
         """Check that the engines required for the competition will run.
 
         If an engine fails, prints a description of the problem and returns
@@ -466,7 +466,7 @@ class Ringmaster(object):
             raise RingmasterError(e)
         for player in to_check:
             try:
-                game_jobs.check_player(player)
+                game_jobs.check_player(player, discard_stderr=discard_stderr)
             except game_jobs.CheckFailed, e:
                 print "player %s failed startup check:\n%s" % (player.code, e)
                 return False

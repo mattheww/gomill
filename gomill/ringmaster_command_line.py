@@ -9,6 +9,9 @@ from gomill import job_manager # FIXME
 from gomill.ringmaster import Ringmaster, RingmasterError
 
 def do_run(ringmaster, options):
+    if not ringmaster.check_players(discard_stderr=True):
+        print "(use the 'check' command to see stderr output)"
+        return 1
     if options.log_gtp:
         ringmaster.enable_gtp_logging()
     if options.quiet:
@@ -46,7 +49,7 @@ def do_reset(ringmaster, options):
     ringmaster.delete_state_and_output()
 
 def do_check(ringmaster, options):
-    if not ringmaster.check_players():
+    if not ringmaster.check_players(discard_stderr=False):
         return 1
 
 def do_debugstatus(ringmaster, options):

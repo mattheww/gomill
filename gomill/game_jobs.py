@@ -196,7 +196,7 @@ class Game_job(object):
 class CheckFailed(StandardError):
     """Error reported by check_player()"""
 
-def check_player(player):
+def check_player(player, discard_stderr=False):
     """Do a test run of a GTP engine.
 
     player -- Player object
@@ -225,10 +225,14 @@ def check_player(player):
             raise CheckFailed(
                 "GTP protocol error sending command '%s': %s" % (command, e))
 
+    if discard_stderr:
+        stderr = open("/dev/null", "w")
+    else:
+        stderr = None
     controller = gtp_controller.Gtp_controller_protocol()
     try:
-        # Leaving stderr as process's stderr
-        channel = gtp_controller.Subprocess_gtp_channel(player.cmd_args)
+        channel = gtp_controller.Subprocess_gtp_channel(
+            player.cmd_args, stderr=stderr)
         controller.add_channel(player.code, channel)
         send("known_command", "boardsize")
         for command, arguments in player.startup_gtp_commands:
@@ -237,3 +241,10 @@ def check_player(player):
         controller.close_channel(player.code)
     except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
         raise CheckFailed(str(e))
+    finally:
+        try:
+            if stderr is not None:
+                stderr.close()
+        except Exception:
+            pass
+
