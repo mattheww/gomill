@@ -238,15 +238,15 @@ class Game(object):
             response = self.controller.do_command(colour, command, *arguments)
         except GtpEngineError, e:
             raise GtpEngineError(
-                "error from %s to player %s: %s" %
+                "error from %s to player %s:\n%s" %
                 (format_command(), self.players[colour], e))
         except GtpTransportError, e:
             raise GtpTransportError(
-                "transport error sending %s to player %s: %s" %
+                "transport error sending %s to player %s:\n%s" %
                 (format_command(), self.players[colour], e))
         except GtpProtocolError, e:
             raise GtpProtocolError(
-                "GTP protocol error sending %s to player %s: %s" %
+                "GTP protocol error sending %s to player %s:\n%s" %
                 (format_command(), self.players[colour], e))
         return response
 
