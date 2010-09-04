@@ -68,7 +68,8 @@ _actions = {
 def run(argv, ringmaster_class):
     usage = ("%prog [options] <control file> [command]\n\n"
              "commands: run (default), stop, show, report, reset, check")
-    parser = OptionParser(usage=usage, prog="ringmaster")
+    parser = OptionParser(usage=usage, prog="ringmaster",
+                          version=ringmaster_class.public_version)
     parser.add_option("--max-games", "-g", type="int",
                       help="maximum number of games to play in this run")
     parser.add_option("--parallel", "-j", type="int",

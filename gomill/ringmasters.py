@@ -70,6 +70,9 @@ class Ringmaster(object):
     # Can bump this to prevent people loading incompatible .status files.
     status_format_version = 0
 
+    # For --version command
+    public_version = "gomill ringmaster v0.5"
+
     def __init__(self, tourn_pathname):
         """Instantiate and initialise a Ringmaster.
 
