@@ -427,8 +427,6 @@ class Ringmaster(object):
         start_msg = "starting game %s: %s (b) vs %s (w)" % (
             job.game_id, job.player_b.code, job.player_w.code)
         self.log(start_msg)
-        if self.chatty:
-            self.presenter.say('events', start_msg)
 
         return job
 
@@ -442,7 +440,7 @@ class Ringmaster(object):
         self.write_status()
         if self.chatty:
             self.presenter.say(
-                'events',
+                'results',
                 "game %s completed: %s" % (
                     response.game_id, response.game_result.describe()))
 

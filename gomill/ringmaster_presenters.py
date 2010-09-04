@@ -20,7 +20,7 @@ class Presenter(object):
         ('status', None, 999),
         ('screen_report', None, 999),
         ('warnings', "Warnings", 6),
-        ('events', "Events", 8),
+        ('results', "Results", 8),
         )
 
     def __init__(self):
