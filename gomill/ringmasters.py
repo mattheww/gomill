@@ -338,15 +338,15 @@ class Ringmaster(object):
         def p(s):
             self.presenter.say('status', s)
         self.presenter.clear('status')
-        if self.worker_count is not None:
-            p("%d games in progress" % len(self.games_in_progress))
         if self.stopping:
             if self.worker_count is None or not self.games_in_progress:
                 p(self.stopping_reason)
             else:
                 p("waiting for workers to finish: %s" %
                   self.stopping_reason)
-        else:
+        if self.worker_count is not None:
+            p("%d games in progress" % len(self.games_in_progress))
+        if not self.stopping:
             if self.max_games_this_run is not None:
                 p("will start at most %d more games in this run" %
                   self.max_games_this_run)
