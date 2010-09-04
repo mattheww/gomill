@@ -8,6 +8,10 @@ from gomill import compact_tracebacks
 from gomill.ringmasters import (
     Ringmaster, RingmasterError, RingmasterInternalError)
 
+
+# Action functions return the desired exit status; implicit return is fine to
+# indicate a successful exit.
+
 def do_run(ringmaster, options):
     if not ringmaster.check_players(discard_stderr=True):
         print "(use the 'check' command to see stderr output)"
@@ -55,7 +59,6 @@ def do_check(ringmaster, options):
 def do_debugstatus(ringmaster, options):
     ringmaster.print_status()
 
-
 _actions = {
     "run" : do_run,
     "stop" : do_stop,
@@ -65,6 +68,7 @@ _actions = {
     "check" : do_check,
     "debugstatus" : do_debugstatus,
     }
+
 
 def run(argv, ringmaster_class):
     usage = ("%prog [options] <control file> [command]\n\n"
