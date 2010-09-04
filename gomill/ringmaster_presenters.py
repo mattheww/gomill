@@ -3,31 +3,44 @@
 import os
 import sys
 
+class Box(object):
+    def __init__(self, name, limit):
+        self.name = name
+        self.limit = limit
+        self.contents = []
+
+    def layout(self):
+        return "\n".join(self.contents[-self.limit:])
+
+
 class Presenter(object):
 
-    box_names = (
-        'screen_report',
-        'warnings',
-        'status',
-        'events',
+    box_specs = (
+        ('status', 999),
+        ('screen_report', 999),
+        ('warnings', 6),
+        ('events', 8),
         )
 
     def __init__(self):
         self.boxes = {}
-        for box in self.box_names:
-            self.boxes[box] = []
+        self.box_list = []
+        for t in self.box_specs:
+            box = Box(*t)
+            self.boxes[box.name] = box
+            self.box_list.append(box)
 
     def clear(self, box):
-        self.boxes[box] = []
+        self.boxes[box].contents = []
 
     def say(self, box, s):
-        self.boxes[box].append(s)
+        self.boxes[box].contents.append(s)
 
     def refresh(self):
         self.clear_screen()
-        for box in self.box_names:
-            print "[[%s]]" % box
-            print "\n".join(self.boxes[box])
+        for box in self.box_list:
+            print "[[%s]]" % box.name
+            print box.layout()
             print
 
     @staticmethod
