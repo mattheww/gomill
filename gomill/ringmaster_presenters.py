@@ -4,8 +4,9 @@ import os
 import sys
 
 class Box(object):
-    def __init__(self, name, limit):
+    def __init__(self, name, heading, limit):
         self.name = name
+        self.heading = heading
         self.limit = limit
         self.contents = []
 
@@ -16,10 +17,10 @@ class Box(object):
 class Presenter(object):
 
     box_specs = (
-        ('status', 999),
-        ('screen_report', 999),
-        ('warnings', 6),
-        ('events', 8),
+        ('status', None, 999),
+        ('screen_report', None, 999),
+        ('warnings', "Warnings", 6),
+        ('events', "Events", 8),
         )
 
     def __init__(self):
@@ -39,7 +40,10 @@ class Presenter(object):
     def refresh(self):
         self.clear_screen()
         for box in self.box_list:
-            print "[[%s]]" % box.name
+            if not box.contents:
+                continue
+            if box.heading:
+                print "= %s = " % box.heading
             print box.layout()
             print
 
