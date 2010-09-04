@@ -59,6 +59,12 @@ prints a report from a competition's current status.
 
 deletes all state and output for the competition.
 
+::
+
+  $ ringmaster ../tournaments/<code>.tourn check
+
+runs a test invocation of the competition's players.
+
 
 .. program:: ringmaster
 
