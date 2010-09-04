@@ -159,20 +159,13 @@ class In_process_job_manager(Job_manager):
                 break
             try:
                 response = job.run()
-            except JobFailed, e:
+            except StandardError, e:
+                if isinstance(e, JobFailed):
+                    msg = str(e)
+                else:
+                    msg = compact_tracebacks.format_traceback(skip=1)
                 try:
-                    job_source.process_error_response(job, str(e))
-                except StandardError, e:
-                    for cls in self.passed_exceptions:
-                        if isinstance(e, cls):
-                            raise
-                    raise JobSourceError(
-                        "error from process_error_response()\n%s" %
-                        compact_tracebacks.format_traceback(skip=1))
-            except StandardError:
-                try:
-                    job_source.process_error_response(
-                        job, compact_tracebacks.format_traceback(skip=1))
+                    job_source.process_error_response(job, msg)
                 except StandardError, e:
                     for cls in self.passed_exceptions:
                         if isinstance(e, cls):
