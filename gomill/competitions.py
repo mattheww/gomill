@@ -138,7 +138,7 @@ class Competition(object):
 
         It also handles the following settings and sets the corresponding
         attributes:
-          players
+          players -- map player code -> game_jobs.Player
 
         Raises ControlFileError with a description if the control file has a bad
         or missing value.
@@ -167,7 +167,6 @@ class Competition(object):
         except ValueError, e:
             raise ControlFileError(str(e))
 
-        # dict player_code -> game_jobs.Player
         self.players = {}
         try:
             # pre-check player codes before trying to sort them, just in case.
@@ -277,6 +276,17 @@ class Competition(object):
 
         """
         # This is called for the 'show' command, so it mustn't log anything.
+        raise NotImplementedError
+
+    def get_players_to_check(self):
+        """List the Players for check_players() to check.
+
+        Returns a list of game_jobs.Player objects. Their stderr_pathname
+        attribute will be ignored.
+
+        This is called without the competition status being set.
+
+        """
         raise NotImplementedError
 
     def get_game(self):

@@ -2,6 +2,7 @@
 
 import datetime
 
+from gomill import gtp_controller
 from gomill import gtp_games
 from gomill import job_manager
 from gomill.gtp_controller import (
@@ -191,3 +192,32 @@ class Game_job(object):
         f.write(sgf_game.as_string())
         f.close()
 
+
+class CheckFailed(StandardError):
+    """Error reported by check_player()"""
+
+def check_player(player):
+    """Do a test run of a GTP engine.
+
+    player -- Player object
+
+    This starts a subprocess for each engine, sends it a GTP command, and ends
+    the process again.
+
+    Raises CheckFailed if the player doesn't pass.
+
+    Currently checks:
+     - the engine subprocess starts, and can reply to a GTP command
+     - the engine supports 'known_command'
+
+    """
+    controller = gtp_controller.Gtp_controller_protocol()
+    try:
+        # Leaving stderr as process's stderr
+        channel = gtp_controller.Subprocess_gtp_channel(player.cmd_args)
+        controller.add_channel(player.code, channel)
+        controller.do_command(player.code, "known_command", "boardsize")
+        controller.do_command(player.code, "quit")
+        controller.close_channel(player.code)
+    except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
+        raise CheckFailed(str(e))

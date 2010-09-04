@@ -213,6 +213,32 @@ class Cem_tuner(Competition):
     def make_candidate_code(generation, candidate_number):
         return "g%d#%d" % (generation, candidate_number)
 
+    def _make_candidate(self, candidate_code, optimiser_params):
+        try:
+            engine_parameters = self.translate_parameters_fn(optimiser_params)
+        except StandardError:
+            raise CompetitionError(
+                "error from user-defined parameter converter\n%s" %
+                compact_tracebacks.format_traceback(skip=1))
+        try:
+            candidate_config = self.candidate_maker_fn(engine_parameters)
+        except StandardError:
+            raise CompetitionError(
+                "error from user-defined candidate function\n%s" %
+                compact_tracebacks.format_traceback(skip=1))
+        if not isinstance(candidate_config, Player_config):
+            raise CompetitionError(
+                "user-defined candidate function returned %r, not Player" %
+                candidate_config)
+        try:
+            candidate = self.game_jobs_player_from_config(
+                candidate_code, candidate_config)
+        except StandardError, e:
+            raise CompetitionError(
+                "error making candidate player\nparameters: %s\nerror: %s" %
+                (self.format_parameters(optimiser_params), e))
+        return candidate
+
     def prepare_candidates(self):
         """Set up the candidates array.
 
@@ -228,31 +254,8 @@ class Cem_tuner(Competition):
                 enumerate(self.sample_parameters):
             candidate_code = self.make_candidate_code(
                 self.generation, candidate_number)
-            try:
-                engine_parameters = \
-                    self.translate_parameters_fn(optimiser_params)
-            except StandardError:
-                raise CompetitionError(
-                    "error from user-defined parameter converter\n%s" %
-                    compact_tracebacks.format_traceback(skip=1))
-            try:
-                candidate_config = self.candidate_maker_fn(engine_parameters)
-            except StandardError:
-                raise CompetitionError(
-                    "error from user-defined candidate function\n%s" %
-                    compact_tracebacks.format_traceback(skip=1))
-            if not isinstance(candidate_config, Player_config):
-                raise CompetitionError(
-                    "user-defined candidate function returned %r, not Player" %
-                    candidate_config)
-            try:
-                candidate = self.game_jobs_player_from_config(
-                    candidate_code, candidate_config)
-            except StandardError, e:
-                raise CompetitionError(
-                    "error making candidate player\nparameters: %s\nerror: %s" %
-                    (self.format_parameters(optimiser_params), e))
-            self.candidates.append(candidate)
+            self.candidates.append(
+                self._make_candidate(candidate_code, optimiser_params))
 
     def finish_generation(self):
         """Process a generation's results and calculate the new distribution.
@@ -276,6 +279,11 @@ class Cem_tuner(Competition):
                          for (wins, index) in sorter[:elite_count]]
         self.distribution = update_distribution(
             self.distribution, elite_samples, self.step_size)
+
+    def get_players_to_check(self):
+        candidate = self._make_candidate(
+            'candidate', self.initial_distribution.get_sample())
+        return [candidate, self.opponent]
 
     def get_game(self):
         if self.scheduler.nothing_issued_yet():

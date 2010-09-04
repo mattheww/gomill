@@ -172,7 +172,6 @@ class Tournament(Competition):
             m.id = i
             self.matchups.append(m)
 
-
     # State attributes (*: in persistent state):
     #  *results               -- list of pairs (matchup_id, Game_result)
     #  *scheduler             -- Group_scheduler (group codes are matchup ids)
@@ -209,6 +208,13 @@ class Tournament(Competition):
         self.scheduler.rollback()
         self.engine_names = status['engine_names']
         self.engine_descriptions = status['engine_descriptions']
+
+    def get_players_to_check(self):
+        used_players = set()
+        for m in self.matchups:
+            used_players.add(m.p1)
+            used_players.add(m.p2)
+        return [self.players[code] for code in sorted(used_players)]
 
     def get_game(self):
         matchup_id, game_number = self.scheduler.issue()

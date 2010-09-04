@@ -402,6 +402,11 @@ class Mcts_tuner(Competition):
         simulation.walk()
         return simulation, simulation.get_parameters()
 
+    def get_players_to_check(self):
+        test_parameters = [.5] * self.tree.dimensions
+        candidate = self.make_candidate('candidate', test_parameters)
+        return [candidate, self.opponent]
+
     def get_game(self):
         if (self.number_of_games is not None and
             self.scheduler.issued >= self.number_of_games):

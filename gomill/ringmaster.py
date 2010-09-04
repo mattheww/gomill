@@ -10,7 +10,7 @@ import sys
 from optparse import OptionParser
 
 from gomill import compact_tracebacks
-from gomill import gtp_games
+from gomill import game_jobs
 from gomill import job_manager
 from gomill.settings import *
 from gomill.competitions import (
@@ -452,6 +452,25 @@ class Ringmaster(object):
                 except EnvironmentError, e:
                     print >>sys.stderr, e
 
+    def check_players(self):
+        """Check that the engines required for the competition will run.
+
+        If an engine fails, prints a description of the problem and returns
+        False without continuing to check.
+
+        Otherwise returns True.
+
+        """
+        for player in self.competition.get_players_to_check():
+            try:
+                game_jobs.check_player(player)
+            except game_jobs.CheckFailed, e:
+                print "player %s failed startup check: %s" % (player.code, e)
+                return False
+        return True
+
+
+
 def do_run(ringmaster, worker_count=None, max_games=None):
     if ringmaster.status_file_exists():
         ringmaster.load_status()
@@ -485,9 +504,10 @@ def do_stop(ringmaster):
 def do_reset(ringmaster):
     ringmaster.delete_state_and_output()
 
+
 def main():
     usage = ("%prog [options] <control file> [command]\n\n"
-             "commands: run (default), stop, show, report, reset")
+             "commands: run (default), stop, show, report, reset, check")
     parser = OptionParser(usage=usage, prog="ringmaster")
     parser.add_option("--max-games", "-g", type="int",
                       help="maximum number of games to play in this run")
@@ -507,11 +527,12 @@ def main():
     else:
         command = args[1]
         if command not in ("run", "stop", "show", "report", "reset",
-                           "debugstatus"):
+                           "check", "debugstatus"):
             parser.error("no such command: %s" % command)
     tourn_pathname = args[0]
     if not tourn_pathname.endswith(".tourn"):
         parser.error("not a .tourn file")
+    exit_status = 0
     try:
         if not os.path.exists(tourn_pathname):
             raise RingmasterError("control file %s not found" % tourn_pathname)
@@ -530,23 +551,27 @@ def main():
             do_report(ringmaster)
         elif command == "reset":
             do_reset(ringmaster)
+        elif command == "check":
+            if not ringmaster.check_players():
+                exit_status = 1
         elif command == "debugstatus":
             ringmaster.print_status()
         else:
             raise AssertionError
     except RingmasterError, e:
         print >>sys.stderr, "ringmaster:", e
-        sys.exit(1)
+        exit_status = 1
     except KeyboardInterrupt:
-        sys.exit(3)
+        exit_status = 3
     except job_manager.JobSourceError, e:
         print >>sys.stderr, "ringmaster: internal error"
         print >>sys.stderr, e
-        sys.exit(4)
+        exit_status = 4
     except:
         print >>sys.stderr, "ringmaster: internal error"
         compact_tracebacks.log_traceback()
-        sys.exit(4)
+        exit_status = 4
+    sys.exit(exit_status)
 
 if __name__ == "__main__":
     main()
