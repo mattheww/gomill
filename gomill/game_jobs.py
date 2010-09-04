@@ -109,6 +109,20 @@ class Game_job(object):
     # The code here has to be happy to run in a separate process.
 
     def run(self):
+        files_to_close = []
+        try:
+            return self._run(files_to_close)
+        finally:
+            # These files are all either flushed after every write, or not
+            # written to at all from this process, so there shouldn't be any
+            # errors from close().
+            for f in files_to_close:
+                try:
+                    f.close()
+                except EnvironmentError:
+                    pass
+
+    def _run(self, files_to_close):
         game = gtp_games.Game(
             {'b' : self.player_b.code, 'w' : self.player_w.code},
             {'b' : self.player_b.cmd_args, 'w' : self.player_w.cmd_args},
@@ -123,16 +137,16 @@ class Game_job(object):
         game.set_gtp_translations({'b' : self.player_b.gtp_translations,
                                    'w' : self.player_w.gtp_translations})
         if self.gtp_log_pathname is not None:
-            # the controller will flush() this after each write, so I think we
-            # can get away without closing it.
-            game.set_gtp_log(open(self.gtp_log_pathname, "w"))
-        # we never write to these files in this process, so I think we can get
-        # away without closing them.
+            gtp_log_file = open(self.gtp_log_pathname, "w")
+            files_to_close.append(gtp_log_file)
+            game.set_gtp_log(gtp_log_file)
         if self.player_b.stderr_pathname is not None:
             stderr_b = open(self.player_b.stderr_pathname, "a")
+            files_to_close.append(stderr_b)
             game.set_stderr('b', stderr_b)
         if self.player_w.stderr_pathname is not None:
             stderr_w = open(self.player_w.stderr_pathname, "a")
+            files_to_close.append(stderr_w)
             game.set_stderr('w', stderr_w)
         try:
             game.start_players()
