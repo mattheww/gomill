@@ -44,9 +44,6 @@ def get_competition_class(competition_type):
     else:
         raise ValueError
 
-def clear_screen():
-    os.system("clear")
-
 class RingmasterError(StandardError):
     """Error reported by a Ringmaster."""
 
@@ -310,6 +307,15 @@ class Ringmaster(object):
         """
         self.competition.write_short_report(sys.stdout)
 
+    @staticmethod
+    def clear_screen():
+        """Try to clear the terminal screen (if stdout is a terminal)."""
+        try:
+            if os.isatty(sys.stdout.fileno()):
+                os.system("clear")
+        except StandardError:
+            pass
+
     def update_display(self):
         """Redisplay the 'live' competition description.
 
@@ -317,7 +323,7 @@ class Ringmaster(object):
 
         """
         if self.chatty:
-            clear_screen()
+            self.clear_screen()
             if self.void_game_count > 0:
                 print "%d void games; see log file." % self.void_game_count
             self.competition.write_screen_report(sys.stdout)
