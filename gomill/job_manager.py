@@ -109,8 +109,16 @@ class Multiprocessing_job_manager(Job_manager):
 
             response = self.response_queue.get()
             if isinstance(response, JobError):
-                job_source.process_error_response(
-                    response.job, response.msg)
+                try:
+                    job_source.process_error_response(
+                        response.job, response.msg)
+                except StandardError, e:
+                    for cls in self.passed_exceptions:
+                        if isinstance(e, cls):
+                            raise
+                    raise JobSourceError(
+                        "error from process_error_response()\n%s" %
+                        compact_tracebacks.format_traceback(skip=1))
             else:
                 try:
                     job_source.process_response(response)
@@ -152,10 +160,26 @@ class In_process_job_manager(Job_manager):
             try:
                 response = job.run()
             except JobFailed, e:
-                job_source.process_error_response(job, str(e))
+                try:
+                    job_source.process_error_response(job, str(e))
+                except StandardError, e:
+                    for cls in self.passed_exceptions:
+                        if isinstance(e, cls):
+                            raise
+                    raise JobSourceError(
+                        "error from process_error_response()\n%s" %
+                        compact_tracebacks.format_traceback(skip=1))
             except StandardError:
-                job_source.process_error_response(
-                    job, compact_tracebacks.format_traceback(skip=1))
+                try:
+                    job_source.process_error_response(
+                        job, compact_tracebacks.format_traceback(skip=1))
+                except StandardError, e:
+                    for cls in self.passed_exceptions:
+                        if isinstance(e, cls):
+                            raise
+                    raise JobSourceError(
+                        "error from process_error_response()\n%s" %
+                        compact_tracebacks.format_traceback(skip=1))
             else:
                 try:
                     job_source.process_response(response)
