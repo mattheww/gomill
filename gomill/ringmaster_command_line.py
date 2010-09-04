@@ -30,12 +30,7 @@ def do_run(ringmaster, options):
     ringmaster.report()
 
 def do_stop(ringmaster, options):
-    try:
-        f = open(ringmaster.command_pathname, "w")
-        f.write("stop")
-        f.close()
-    except EnvironmentError, e:
-        raise RingmasterError("error writing command file:\n%s" % e)
+    ringmaster.write_command("stop")
 
 def do_show(ringmaster, options):
     if not ringmaster.status_file_exists():

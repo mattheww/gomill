@@ -278,6 +278,22 @@ class Ringmaster(object):
         print "status_format_version:", status_format_version
         pprint(status)
 
+    def write_command(self, command):
+        """Write a command to the command file.
+
+        command -- short string
+
+        Overwrites the command file if it already exists.
+
+        """
+        # Short enough that I think we can get aw
+        try:
+            f = open(self.command_pathname, "w")
+            f.write(command)
+            f.close()
+        except EnvironmentError, e:
+            raise RingmasterError("error writing command file:\n%s" % e)
+
     def report(self):
         """Write the full competition report to the report file."""
         f = open(self.report_pathname, "w")
