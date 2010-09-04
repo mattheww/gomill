@@ -209,6 +209,7 @@ def check_player(player):
     Currently checks:
      - the engine subprocess starts, and can reply to a GTP command
      - the engine supports 'known_command'
+     - the engine accepts any startup_gtp_commands
 
     """
     controller = gtp_controller.Gtp_controller_protocol()
@@ -217,6 +218,8 @@ def check_player(player):
         channel = gtp_controller.Subprocess_gtp_channel(player.cmd_args)
         controller.add_channel(player.code, channel)
         controller.do_command(player.code, "known_command", "boardsize")
+        for command, arguments in player.startup_gtp_commands:
+            controller.do_command(player.code, command, *arguments)
         controller.do_command(player.code, "quit")
         controller.close_channel(player.code)
     except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
