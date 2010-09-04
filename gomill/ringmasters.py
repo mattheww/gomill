@@ -7,10 +7,12 @@ import datetime
 import os
 import shutil
 import sys
+from cStringIO import StringIO
 
 from gomill import compact_tracebacks
 from gomill import game_jobs
 from gomill import job_manager
+from gomill import ringmaster_presenters
 from gomill.settings import *
 from gomill.competitions import (
     NoGameAvailable, CompetitionError, ControlFileError, control_file_globals,
@@ -73,8 +75,6 @@ class Ringmaster(object):
         self.max_games_this_run = None
         self.stopping = False
         self.stopping_reason = None
-        # When this is set, we stop clearing the screen
-        self.stopping_quietly = False
         # Map game_id -> int
         self.game_error_counts = {}
         self.write_gtp_logs = False
@@ -117,6 +117,8 @@ class Ringmaster(object):
         except StandardError, e:
             raise RingmasterError("unhandled error in control file:\n%s" %
                                   compact_tracebacks.format_traceback(skip=1))
+
+        self.presenter = ringmaster_presenters.Presenter()
 
     @staticmethod
     def _get_competition_class(competition_type):
@@ -222,9 +224,11 @@ class Ringmaster(object):
         self.logfile.flush()
 
     def warn(self, s):
-        print >>sys.stderr, "**", s
-        print >>self.logfile, s
-        self.logfile.flush()
+        if not self.chatty:
+            print >>sys.stderr, s
+        self.log(s)
+        if self.chatty:
+            self.presenter.say('warnings', s)
 
     def log_history(self, s):
         print >>self.historyfile, s
@@ -323,26 +327,41 @@ class Ringmaster(object):
         """
         self.competition.write_short_report(sys.stdout)
 
-    @staticmethod
-    def clear_screen():
-        """Try to clear the terminal screen (if stdout is a terminal)."""
-        try:
-            if os.isatty(sys.stdout.fileno()):
-                os.system("clear")
-        except StandardError:
-            pass
-
     def update_display(self):
         """Redisplay the 'live' competition description.
 
         Does nothing in quiet mode.
 
         """
-        if self.chatty:
-            self.clear_screen()
-            if self.void_game_count > 0:
-                print "%d void games; see log file." % self.void_game_count
-            self.competition.write_screen_report(sys.stdout)
+        if not self.chatty:
+            return
+        def p(s):
+            self.presenter.say('status', s)
+        self.presenter.clear('status')
+        if self.worker_count is not None:
+            p("%d games in progress" % len(self.games_in_progress))
+        if self.stopping:
+            if self.worker_count is None:
+                p(self.stopping_reason)
+            else:
+                p("waiting for workers to finish: %s" %
+                  self.stopping_reason)
+        else:
+            if self.max_games_this_run is not None:
+                p("will start at most %d more games in this run" %
+                  self.max_games_this_run)
+
+        self.presenter.clear('screen_report')
+        if self.void_game_count > 0:
+            self.presenter.say(
+                'screen_report',
+                "%d void games; see log file." % self.void_game_count)
+        si = StringIO()
+        self.competition.write_screen_report(si)
+        self.presenter.say('screen_report', si.getvalue())
+        si.close()
+
+        self.presenter.refresh()
 
     def _prepare_job(self, job):
         """Finish off a Game_job provided by the Competition.
@@ -364,28 +383,27 @@ class Ringmaster(object):
 
     def get_job(self):
         """Job supply function for the job manager."""
+        job = self._get_job()
+        self.update_display()
+        return job
 
-        def describe_stopping():
-            if self.chatty and self.worker_count is not None:
-                print "waiting for workers to finish: %s" % self.stopping_reason
-                print "%d games in progress" % len(self.games_in_progress)
+    def _get_job(self):
+        """Main implementation of get_job()."""
 
         if self.stopping:
-            describe_stopping()
             return job_manager.NoJobAvailable
         try:
             if os.path.exists(self.command_pathname):
                 command = open(self.command_pathname).read()
                 if command == "stop":
-                    self.warn("stop command received; "
-                              "waiting for games to finish")
+                    self.log("stop command received; "
+                             "waiting for games to finish")
                     self.stopping = True
                     self.stopping_reason = "stop command received"
                     try:
                         os.remove(self.command_pathname)
                     except EnvironmentError, e:
                         self.warn("error removing .cmd file:\n%s" % e)
-                    describe_stopping()
                     return job_manager.NoJobAvailable
         except EnvironmentError, e:
             self.warn("error reading .cmd file:\n%s" % e)
@@ -393,7 +411,6 @@ class Ringmaster(object):
             if self.max_games_this_run == 0:
                 self.stopping = True
                 self.stopping_reason = "max-games reached for this run"
-                describe_stopping()
                 return job_manager.NoJobAvailable
             self.max_games_this_run -= 1
 
@@ -411,33 +428,28 @@ class Ringmaster(object):
             job.game_id, job.player_b.code, job.player_w.code)
         self.log(start_msg)
         if self.chatty:
-            print start_msg
-            if self.worker_count is not None:
-                print "%d games in progress" % len(self.games_in_progress)
-            if self.max_games_this_run is not None:
-                print ("will start at most %d more games in this run" %
-                       self.max_games_this_run)
+            self.presenter.say('events', start_msg)
+
         return job
 
     def process_response(self, response):
         """Job response function for the job manager."""
+        # We log before processing the result, in case there's an error from the
+        # competition code.
         self.log("response from game %s" % response.game_id)
         self.competition.process_game_result(response)
         del self.games_in_progress[response.game_id]
         self.write_status()
-        if not self.stopping_quietly:
-            self.update_display()
         if self.chatty:
-            print
-            print "game %s completed: %s" % (
-                response.game_id, response.game_result.describe())
+            self.presenter.say(
+                'events',
+                "game %s completed: %s" % (
+                    response.game_id, response.game_result.describe()))
 
     def process_error_response(self, job, message):
         """Job error response function for the job manager."""
-        warning_message = "error from worker for game %s\n%s" % (
-            job.game_id, message)
-        # We'll print this after the display update
-        self.log(warning_message)
+        self.warn("error from worker for game %s\n%s" % (
+            job.game_id, message))
         self.void_game_count += 1
         previous_error_count = self.game_error_counts.get(job.game_id, 0)
         stop_competition, retry_game = \
@@ -452,16 +464,9 @@ class Ringmaster(object):
                 del self.game_error_counts[job.game_id]
         self.write_status()
         if stop_competition:
-            print warning_message
-            if not self.stopping_quietly:
-                self.warn("halting run due to void games")
-                print
-                self.stopping = True
-                self.stopping_reason = "halting run due to void games"
-                self.stopping_quietly = True
-        else:
-            self.update_display()
-            print warning_message
+            self.warn("halting run due to void games")
+            self.stopping = True
+            self.stopping_reason = "halting run due to void games"
 
     def run(self, max_games=None):
         """Run the competition.
