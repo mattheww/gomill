@@ -6,7 +6,7 @@ from optparse import OptionParser
 
 from gomill import compact_tracebacks
 from gomill import job_manager # FIXME
-from gomill.ringmaster import Ringmaster, RingmasterError
+from gomill.ringmasters import Ringmaster, RingmasterError
 
 def do_run(ringmaster, options):
     if not ringmaster.check_players(discard_stderr=True):
