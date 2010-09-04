@@ -249,14 +249,16 @@ class Tournament(Competition):
     def process_game_error(self, job, previous_error_count):
         # ignoring previous_error_count, as we can consider all jobs for the
         # same matchup to be equivalent.
+        stop_competition = False
+        retry_game = False
         matchup_id, game_data = job.game_data
         if (matchup_id not in self.working_matchups or
             matchup_id in self.probationary_matchups):
-            # Stop the tournament
-            return True, False
-        self.probationary_matchups.add(matchup_id)
-        # Retry the game
-        return False, True
+            stop_competition = True
+        else:
+            self.probationary_matchups.add(matchup_id)
+            retry_game = True
+        return stop_competition, retry_game
 
     def write_matchup_report(self, out, matchup, results):
         def p(s):

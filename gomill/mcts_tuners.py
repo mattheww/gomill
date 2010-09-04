@@ -451,15 +451,16 @@ class Mcts_tuner(Competition):
         ## If the very first game gives an error, halt.
         ## If two games in a row give an error, halt.
         ## Otherwise, forget about the failed game
+        stop_competition = False
+        retry_game = False
         game_number = job.game_data
         del self.outstanding_simulations[game_number]
         self.scheduler.fix(game_number)
         if self.halt_on_next_failure:
-            # Stop the tournament
-            return True, False
-        self.halt_on_next_failure = True
-        # Just carry on; don't retry the game
-        return False, False
+            stop_competition = True
+        else:
+            self.halt_on_next_failure = True
+        return stop_competition, retry_game
 
     def write_static_description(self, out):
         def p(s):

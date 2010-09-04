@@ -321,11 +321,13 @@ class Cem_tuner(Competition):
     def process_game_error(self, job, previous_error_count):
         ## If the very first game gives an error, halt.
         ## Otherwise, retry once and halt on a second failure.
+        stop_competition = False
+        retry_game = False
         if (not self.seen_successful_game) or (previous_error_count > 0):
-            # Stop the tournament
-            return True, False
-        # Retry the game
-        return False, True
+            stop_competition = True
+        else:
+            retry_game = True
+        return stop_competition, retry_game
 
 
     def format_parameters(self, optimiser_parameters):
