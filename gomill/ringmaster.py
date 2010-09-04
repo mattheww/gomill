@@ -461,7 +461,11 @@ class Ringmaster(object):
         Otherwise returns True.
 
         """
-        for player in self.competition.get_players_to_check():
+        try:
+            to_check = self.competition.get_players_to_check()
+        except CompetitionError, e:
+            raise RingmasterError(e)
+        for player in to_check:
             try:
                 game_jobs.check_player(player)
             except game_jobs.CheckFailed, e:
