@@ -18,7 +18,8 @@ NoGameAvailable = object()
 class CompetitionError(StandardError):
     """Error from competition code.
 
-    Might be a bug in tuner code, or an error in a user-provided function.
+    This is intended for errors from user-provided functions, but it might also
+    indicate a bug in tuner code.
 
     The ringmaster should display the error and terminate immediately.
 
