@@ -3,7 +3,64 @@
 import os
 import sys
 
+
+class Presenter(object):
+    """Abstract base class for presenters.
+
+    This accepts messages on four _channels_, with codes
+      warnings
+      status
+      screen_report
+      results
+
+    Some presenters will delay display until refresh() is called; some will
+    display them immediately.
+
+    """
+
+    # If this is true, ringmaster needn't bother doing the work to prepare most
+    # of the display.
+    shows_warnings_only = False
+
+    def clear(self, channel):
+        """Clear the contents of the specified channel."""
+        raise NotImplementedError
+
+    def say(self, channel, s):
+        """Add a message to the specified channel.
+
+        channel -- channel code
+        s       -- string to display (no trailing newline)
+
+        """
+        raise NotImplementedError
+
+    def refresh(self):
+        """Re-render the current screen."""
+        raise NotImplementedError
+
+
+class Quiet_presenter(object):
+    """Presenter which shows only warnings.
+
+    Warnings are displayed immediately, and go to stderr.
+
+    """
+    shows_warnings_only = True
+
+    def clear(self, channel):
+        pass
+
+    def say(self, channel, s):
+        if channel == 'warnings':
+            print >>sys.stderr, s
+
+    def refresh(self):
+        pass
+
+
 class Box(object):
+    """Description of screen layout for the clearing presenter."""
     def __init__(self, name, heading, limit):
         self.name = name
         self.heading = heading
@@ -13,8 +70,12 @@ class Box(object):
     def layout(self):
         return "\n".join(self.contents[-self.limit:])
 
-
 class Clearing_presenter(object):
+    """Low-tech full-screen presenter.
+
+    This shows all channels.
+
+    """
 
     shows_warnings_only = False
 
@@ -58,16 +119,3 @@ class Clearing_presenter(object):
         except StandardError:
             pass
 
-class Quiet_presenter(object):
-
-    shows_warnings_only = True
-
-    def clear(self, box):
-        pass
-
-    def say(self, box, s):
-        if box == 'warnings':
-            print >>sys.stderr, s
-
-    def refresh(self):
-        pass
