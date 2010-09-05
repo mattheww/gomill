@@ -220,6 +220,7 @@ class Ringmaster(object):
         self.logfile.flush()
 
     def warn(self, s):
+        """Log a message and say it on the 'warnings' channel."""
         self.log(s)
         self.presenter.say('warnings', s)
 
