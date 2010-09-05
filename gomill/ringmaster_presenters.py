@@ -1,6 +1,7 @@
 """Live display for ringmasters."""
 
 import os
+import subprocess
 import sys
 
 
@@ -82,8 +83,8 @@ class Clearing_presenter(object):
     box_specs = (
         ('status', None, 999),
         ('screen_report', None, 999),
-        ('warnings', "Warnings", 6),
-        ('results', "Results", 8),
+        ('warnings', "Warnings", 4),
+        ('results', "Results", 6),
         )
 
     def __init__(self):
@@ -93,6 +94,7 @@ class Clearing_presenter(object):
             box = Box(*t)
             self.boxes[box.name] = box
             self.box_list.append(box)
+        self.clear_method = None
 
     def clear(self, box):
         self.boxes[box].contents = []
@@ -110,12 +112,29 @@ class Clearing_presenter(object):
             print box.layout()
             print
 
-    @staticmethod
-    def clear_screen():
+    def screen_height(self):
+        """Return the current terminal height, or best guess."""
+        return os.environ.get("LINES", 80)
+
+    def clear_screen(self):
         """Try to clear the terminal screen (if stdout is a terminal)."""
-        try:
-            if os.isatty(sys.stdout.fileno()):
-                os.system("clear")
-        except StandardError:
-            pass
+        if self.clear_method is None:
+            try:
+                isatty = os.isatty(sys.stdout.fileno())
+            except StandardError:
+                isatty = False
+            if isatty:
+                self.clear_method = "clear"
+            else:
+                self.clear_method = "delimiter"
+
+        if self.clear_method == "clear":
+            try:
+                subprocess.call("clear")
+            except StandardError:
+                self.clear_method = "newlines"
+        if self.clear_method == "newlines":
+            print "\n" * (self.screen_height()+1)
+        elif self.clear_method == "delimiter":
+            print 78 * "-"
 
