@@ -224,6 +224,10 @@ class Ringmaster(object):
         self.log(s)
         self.presenter.say('warnings', s)
 
+    def say(self, channel, s):
+        """Say a message on the specified channel."""
+        self.presenter.say(channel, s)
+
     def log_history(self, s):
         print >>self.historyfile, s
         self.historyfile.flush()
@@ -354,7 +358,7 @@ class Ringmaster(object):
         if self.presenter.shows_warnings_only:
             return
         def p(s):
-            self.presenter.say('status', s)
+            self.say('status', s)
         self.presenter.clear('status')
         if self.stopping:
             if self.worker_count is None or not self.games_in_progress:
@@ -376,13 +380,13 @@ class Ringmaster(object):
 
         self.presenter.clear('screen_report')
         if self.void_game_count > 0:
-            self.presenter.say(
+            self.say(
                 'screen_report',
                 "%d void games; see log file." % self.void_game_count)
         si = StringIO()
         self.competition.write_screen_report(si)
         # FIXME: Find a nicer way of handling the final newline.
-        self.presenter.say('screen_report', si.getvalue()[:-1])
+        self.say('screen_report', si.getvalue()[:-1])
         si.close()
 
         self.presenter.refresh()
@@ -458,10 +462,8 @@ class Ringmaster(object):
         self.competition.process_game_result(response)
         del self.games_in_progress[response.game_id]
         self.write_status()
-        self.presenter.say(
-            'results',
-            "game %s completed: %s" % (
-                response.game_id, response.game_result.describe()))
+        self.say('results', "game %s completed: %s" % (
+            response.game_id, response.game_result.describe()))
 
     def process_error_response(self, job, message):
         """Job error response function for the job manager."""
@@ -482,7 +484,7 @@ class Ringmaster(object):
         self.write_status()
         if stop_competition and not self.stopping:
             # No need to log: _halt competition will do so
-            self.presenter.say('warnings', "halting run due to void games")
+            self.say('warnings', "halting run due to void games")
             self._halt_competition("too many void games")
 
     def run(self, max_games=None):
