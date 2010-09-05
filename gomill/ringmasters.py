@@ -472,7 +472,7 @@ class Ringmaster(object):
             if previous_error_count != 0:
                 del self.game_error_counts[job.game_id]
         self.write_status()
-        if stop_competition:
+        if stop_competition and not self.stopping:
             self.warn("halting run due to void games")
             self._halt_competition("halting run due to void games")
 
