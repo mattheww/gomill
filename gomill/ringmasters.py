@@ -356,12 +356,13 @@ class Ringmaster(object):
             else:
                 p("waiting for workers to finish: %s" %
                   self.stopping_reason)
-        if self.worker_count is None:
-            gms = "game"
-        else:
-            gms = "%d games" % len(self.games_in_progress)
-        p("%s in progress: %s" %
-          (gms, " ".join(sorted(self.games_in_progress))))
+        if self.games_in_progress:
+            if self.worker_count is None:
+                gms = "game"
+            else:
+                gms = "%d games" % len(self.games_in_progress)
+            p("%s in progress: %s" %
+              (gms, " ".join(sorted(self.games_in_progress))))
         if not self.stopping:
             if self.max_games_this_run is not None:
                 p("will start at most %d more games in this run" %
