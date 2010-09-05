@@ -14,7 +14,7 @@ class Box(object):
         return "\n".join(self.contents[-self.limit:])
 
 
-class Presenter(object):
+class Clearing_presenter(object):
 
     box_specs = (
         ('status', None, 999),
@@ -56,3 +56,14 @@ class Presenter(object):
         except StandardError:
             pass
 
+class Quiet_presenter(object):
+
+    def clear(self, box):
+        pass
+
+    def say(self, box, s):
+        if box == 'warnings':
+            print >>sys.stderr, s
+
+    def refresh(self):
+        pass

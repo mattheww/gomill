@@ -73,6 +73,7 @@ class Ringmaster(object):
         self.chatty = True
         self.worker_count = None
         self.max_games_this_run = None
+        self.presenter = None
         self.stopping = False
         self.stopping_reason = None
         # Map game_id -> int
@@ -117,8 +118,6 @@ class Ringmaster(object):
         except StandardError, e:
             raise RingmasterError("unhandled error in control file:\n%s" %
                                   compact_tracebacks.format_traceback(skip=1))
-
-        self.presenter = ringmaster_presenters.Presenter()
 
     @staticmethod
     def _get_competition_class(competition_type):
@@ -224,15 +223,18 @@ class Ringmaster(object):
         self.logfile.flush()
 
     def warn(self, s):
-        if not self.chatty:
-            print >>sys.stderr, s
         self.log(s)
-        if self.chatty:
-            self.presenter.say('warnings', s)
+        self.presenter.say('warnings', s)
 
     def log_history(self, s):
         print >>self.historyfile, s
         self.historyfile.flush()
+
+    def _initialise_presenter(self):
+        if self.chatty:
+            self.presenter = ringmaster_presenters.Clearing_presenter()
+        else:
+            self.presenter = ringmaster_presenters.Quiet_presenter()
 
 
     # State attributes (*: in persistent state):
@@ -473,7 +475,8 @@ class Ringmaster(object):
                 del self.game_error_counts[job.game_id]
         self.write_status()
         if stop_competition and not self.stopping:
-            self.warn("halting run due to void games")
+            # No need to log: _halt competition will do so
+            self.presenter.say('warnings', "halting run due to void games")
             self._halt_competition("halting run due to void games")
 
     def run(self, max_games=None):
@@ -500,6 +503,8 @@ class Ringmaster(object):
         self._open_files()
         self.competition.set_event_logger(self.log)
         self.competition.set_history_logger(self.log_history)
+
+        self._initialise_presenter()
 
         self.log("run started at %s with max_games %s" % (now(), max_games))
         self.max_games_this_run = max_games
