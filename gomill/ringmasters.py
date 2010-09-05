@@ -327,7 +327,17 @@ class Ringmaster(object):
         """
         self.competition.write_short_report(sys.stdout)
 
-    def update_display(self):
+    def _halt_competition(self, reason):
+        """Make the competition stop submitting new games.
+
+        reason -- message for the log and the status box.
+
+        """
+        self.stopping = True
+        self.stopping_reason = reason
+        self.log("halting competiton: %s" % reason)
+
+    def _update_display(self):
         """Redisplay the 'live' competition description.
 
         Does nothing in quiet mode.
@@ -389,7 +399,7 @@ class Ringmaster(object):
     def get_job(self):
         """Job supply function for the job manager."""
         job = self._get_job()
-        self.update_display()
+        self._update_display()
         return job
 
     def _get_job(self):
@@ -401,10 +411,7 @@ class Ringmaster(object):
             if os.path.exists(self.command_pathname):
                 command = open(self.command_pathname).read()
                 if command == "stop":
-                    self.log("stop command received; "
-                             "waiting for games to finish")
-                    self.stopping = True
-                    self.stopping_reason = "stop command received"
+                    self._halt_competition("stop command received")
                     try:
                         os.remove(self.command_pathname)
                     except EnvironmentError, e:
@@ -414,8 +421,7 @@ class Ringmaster(object):
             self.warn("error reading .cmd file:\n%s" % e)
         if self.max_games_this_run is not None:
             if self.max_games_this_run == 0:
-                self.stopping = True
-                self.stopping_reason = "max-games reached for this run"
+                self._halt_competition("max-games reached for this run")
                 return job_manager.NoJobAvailable
             self.max_games_this_run -= 1
 
@@ -468,8 +474,7 @@ class Ringmaster(object):
         self.write_status()
         if stop_competition:
             self.warn("halting run due to void games")
-            self.stopping = True
-            self.stopping_reason = "halting run due to void games"
+            self._halt_competition("halting run due to void games")
 
     def run(self, max_games=None):
         """Run the competition.
@@ -498,7 +503,7 @@ class Ringmaster(object):
 
         self.log("run started at %s with max_games %s" % (now(), max_games))
         self.max_games_this_run = max_games
-        self.update_display()
+        self._update_display()
         try:
             allow_mp = (self.worker_count is not None)
             job_manager.run_jobs(
