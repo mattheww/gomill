@@ -445,7 +445,8 @@ class Ringmaster(object):
             if job is NoGameAvailable:
                 return job_manager.NoJobAvailable
             if job.game_id in self.games_in_progress:
-                raise CompetitionError("duplicate game id: %s" % job.game_id)
+                raise RingmasterInternalError(
+                    "duplicate game id: %s" % job.game_id)
             self._prepare_job(job)
         self.games_in_progress[job.game_id] = job
         start_msg = "starting game %s: %s (b) vs %s (w)" % (
@@ -522,16 +523,17 @@ class Ringmaster(object):
             job_manager.run_jobs(
                 job_source=self,
                 allow_mp=allow_mp, max_workers=self.worker_count,
-                passed_exceptions=[CompetitionError])
+                passed_exceptions=[RingmasterError, CompetitionError,
+                                   RingmasterInternalError])
         except KeyboardInterrupt:
             self.log("run interrupted at %s" % now())
             log_games_in_progress()
             raise
-        except CompetitionError, e:
+        except (RingmasterError, CompetitionError), e:
             self.log("run finished with error at %s\n%s" % (now(), e))
             log_games_in_progress()
             raise RingmasterError(e)
-        except job_manager.JobSourceError, e:
+        except (job_manager.JobSourceError, RingmasterInternalError), e:
             self.log("run finished with internal error at %s\n%s" % (now(), e))
             log_games_in_progress()
             raise RingmasterInternalError(e)
