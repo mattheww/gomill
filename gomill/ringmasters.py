@@ -70,7 +70,7 @@ class Ringmaster(object):
         Creates the Competition and initialises it from the control file.
 
         """
-        self.chatty = True
+        self.display_mode = 'clearing'
         self.worker_count = None
         self.max_games_this_run = None
         self.presenter = None
@@ -209,9 +209,6 @@ class Ringmaster(object):
         for name, value in to_set.items():
             setattr(self, name, value)
 
-    def set_quiet_mode(self, b=True):
-        self.chatty = not(b)
-
     def enable_gtp_logging(self, b=True):
         self.write_gtp_logs = b
 
@@ -230,11 +227,19 @@ class Ringmaster(object):
         print >>self.historyfile, s
         self.historyfile.flush()
 
+    _presenter_classes = {
+        'clearing' : ringmaster_presenters.Clearing_presenter,
+        'quiet'    : ringmaster_presenters.Quiet_presenter,
+        }
+
+    def set_display_mode(self, presenter_code):
+        """Specify the presenter to use during run()."""
+        if presenter_code not in self._presenter_classes:
+            raise RingmasterError("unknown presenter type: %s" % presenter_code)
+        self.display_mode = presenter_code
+
     def _initialise_presenter(self):
-        if self.chatty:
-            self.presenter = ringmaster_presenters.Clearing_presenter()
-        else:
-            self.presenter = ringmaster_presenters.Quiet_presenter()
+        self.presenter = self._presenter_classes[self.display_mode]()
 
 
     # State attributes (*: in persistent state):
@@ -345,7 +350,7 @@ class Ringmaster(object):
         Does nothing in quiet mode.
 
         """
-        if not self.chatty:
+        if self.presenter.shows_warnings_only:
             return
         def p(s):
             self.presenter.say('status', s)
@@ -452,11 +457,10 @@ class Ringmaster(object):
         self.competition.process_game_result(response)
         del self.games_in_progress[response.game_id]
         self.write_status()
-        if self.chatty:
-            self.presenter.say(
-                'results',
-                "game %s completed: %s" % (
-                    response.game_id, response.game_result.describe()))
+        self.presenter.say(
+            'results',
+            "game %s completed: %s" % (
+                response.game_id, response.game_result.describe()))
 
     def process_error_response(self, job, message):
         """Job error response function for the job manager."""

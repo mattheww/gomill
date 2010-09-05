@@ -19,7 +19,7 @@ def do_run(ringmaster, options):
     if options.log_gtp:
         ringmaster.enable_gtp_logging()
     if options.quiet:
-        ringmaster.set_quiet_mode()
+        ringmaster.set_display_mode('quiet')
     if ringmaster.status_file_exists():
         ringmaster.load_status()
     else:

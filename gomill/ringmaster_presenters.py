@@ -16,6 +16,8 @@ class Box(object):
 
 class Clearing_presenter(object):
 
+    shows_warnings_only = False
+
     box_specs = (
         ('status', None, 999),
         ('screen_report', None, 999),
@@ -57,6 +59,8 @@ class Clearing_presenter(object):
             pass
 
 class Quiet_presenter(object):
+
+    shows_warnings_only = True
 
     def clear(self, box):
         pass
