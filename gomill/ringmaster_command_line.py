@@ -13,6 +13,8 @@ from gomill.ringmasters import (
 # indicate a successful exit.
 
 def do_run(ringmaster, options):
+    if not options.quiet:
+        print "running startup checks on all players"
     if not ringmaster.check_players(discard_stderr=True):
         print "(use the 'check' command to see stderr output)"
         return 1
