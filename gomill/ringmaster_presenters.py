@@ -96,11 +96,11 @@ class Clearing_presenter(object):
             self.box_list.append(box)
         self.clear_method = None
 
-    def clear(self, box):
-        self.boxes[box].contents = []
+    def clear(self, channel):
+        self.boxes[channel].contents = []
 
-    def say(self, box, s):
-        self.boxes[box].contents.append(s)
+    def say(self, channel, s):
+        self.boxes[channel].contents.append(s)
 
     def refresh(self):
         self.clear_screen()
