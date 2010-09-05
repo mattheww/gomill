@@ -352,7 +352,7 @@ class Ringmaster(object):
         self.presenter.clear('status')
         if self.stopping:
             if self.worker_count is None or not self.games_in_progress:
-                p(self.stopping_reason)
+                p("halting: %s" % self.stopping_reason)
             else:
                 p("waiting for workers to finish: %s" %
                   self.stopping_reason)
@@ -477,7 +477,7 @@ class Ringmaster(object):
         if stop_competition and not self.stopping:
             # No need to log: _halt competition will do so
             self.presenter.say('warnings', "halting run due to void games")
-            self._halt_competition("halting run due to void games")
+            self._halt_competition("too many void games")
 
     def run(self, max_games=None):
         """Run the competition.
