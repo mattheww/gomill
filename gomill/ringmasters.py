@@ -362,7 +362,8 @@ class Ringmaster(object):
                 "%d void games; see log file." % self.void_game_count)
         si = StringIO()
         self.competition.write_screen_report(si)
-        self.presenter.say('screen_report', si.getvalue())
+        # FIXME: Find a nicer way of handling the final newline.
+        self.presenter.say('screen_report', si.getvalue()[:-1])
         si.close()
 
         self.presenter.refresh()

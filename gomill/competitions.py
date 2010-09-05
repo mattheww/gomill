@@ -341,8 +341,11 @@ class Competition(object):
 
         out -- writeable file-like object
 
-        This is supposed to fit on one screen; it's displayed continuously in
-        'chatty' mode.
+        This is supposed to fit comfortably on one screen; it's normally
+        displayed continuously by the ringmaster. Aim for about 30 lines.
+
+        It should end with a newline, but not have additional blank lines at
+        the end.
 
         This should focus on describing incomplete competitions usefully.
 
@@ -356,6 +359,9 @@ class Competition(object):
 
         This is used for the ringmaster's 'show' command.
 
+        It should end with a newline, but not have additional blank lines at
+        the end.
+
         This should be useful for both completed and incomplete competitions.
 
         """
@@ -367,6 +373,8 @@ class Competition(object):
         out -- writeable file-like object
 
         This is used for the ringmaster's 'report' command.
+
+        It should end with a newline.
 
         This should focus on describing completed competitions well.
 
