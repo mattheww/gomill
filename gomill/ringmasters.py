@@ -260,10 +260,13 @@ class Ringmaster(object):
             'void_game_count' : self.void_game_count,
             'comp'         : competition_status,
             }
-        f = open(self.status_pathname + ".new", "wb")
-        pickle.dump((self.status_format_version, status), f, protocol=-1)
-        f.close()
-        os.rename(self.status_pathname + ".new", self.status_pathname)
+        try:
+            f = open(self.status_pathname + ".new", "wb")
+            pickle.dump((self.status_format_version, status), f, protocol=-1)
+            f.close()
+            os.rename(self.status_pathname + ".new", self.status_pathname)
+        except EnvironmentError, e:
+            raise RingmasterError("error writing persistent state:\n%s" % e)
 
     def load_status(self):
         """Read the persistent state file and load the state it contains."""
