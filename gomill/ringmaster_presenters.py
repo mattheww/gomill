@@ -168,8 +168,10 @@ class Clearing_presenter(Presenter):
 
         if self.clear_method == "clear":
             try:
-                subprocess.call("clear")
+                retcode = subprocess.call("clear")
             except StandardError:
+                retcode = 1
+            if retcode != 0:
                 self.clear_method = "newlines"
         if self.clear_method == "newlines":
             print "\n" * (self.screen_height()+1)
