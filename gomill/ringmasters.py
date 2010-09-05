@@ -7,7 +7,6 @@ import datetime
 import os
 import shutil
 import sys
-from cStringIO import StringIO
 
 from gomill import compact_tracebacks
 from gomill import game_jobs
@@ -382,15 +381,11 @@ class Ringmaster(object):
                   self.max_games_this_run)
 
         self.presenter.clear('screen_report')
+        sr = self.presenter.get_stream('screen_report')
         if self.void_game_count > 0:
-            self.say(
-                'screen_report',
-                "%d void games; see log file." % self.void_game_count)
-        si = StringIO()
-        self.competition.write_screen_report(si)
-        # FIXME: Find a nicer way of handling the final newline.
-        self.say('screen_report', si.getvalue()[:-1])
-        si.close()
+            print >>sr, "%d void games; see log file." % self.void_game_count
+        self.competition.write_screen_report(sr)
+        sr.close()
 
         self.presenter.refresh()
 

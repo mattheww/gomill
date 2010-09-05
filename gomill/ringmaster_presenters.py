@@ -3,6 +3,7 @@
 import os
 import subprocess
 import sys
+from cStringIO import StringIO
 
 
 class Presenter(object):
@@ -47,8 +48,34 @@ class Presenter(object):
         """
         raise NotImplementedError
 
+    def get_stream(self, channel):
+        """Return a file-like object wired up to the specified channel.
 
-class Quiet_presenter(object):
+        When the object is closed, the text written it is sent to the channel
+        (except that any trailing newline is removed).
+
+        """
+        return _Channel_writer(self, channel)
+
+class _Channel_writer(object):
+    """Support for get_stream() implementation."""
+    def __init__(self, parent, channel):
+        self.parent = parent
+        self.channel = channel
+        self.stringio = StringIO()
+
+    def write(self, s):
+        self.stringio.write(s)
+
+    def close(self):
+        s = self.stringio.getvalue()
+        if s.endswith("\n"):
+            s = s[:-1]
+        self.parent.say(self.channel, s)
+        self.stringio.close()
+
+
+class Quiet_presenter(Presenter):
     """Presenter which shows only warnings.
 
     Warnings go to stderr.
@@ -78,7 +105,7 @@ class Box(object):
     def layout(self):
         return "\n".join(self.contents[-self.limit:])
 
-class Clearing_presenter(object):
+class Clearing_presenter(Presenter):
     """Low-tech full-screen presenter.
 
     This shows all channels.
