@@ -14,8 +14,10 @@ class Presenter(object):
       screen_report
       results
 
-    Some presenters will delay display until refresh() is called; some will
-    display them immediately.
+    Warnings are always displayed immediately.
+
+    Some presenters will delay display of other channels until refresh() is
+    called; some will display them immediately.
 
     """
 
@@ -37,14 +39,19 @@ class Presenter(object):
         raise NotImplementedError
 
     def refresh(self):
-        """Re-render the current screen."""
+        """Re-render the current screen.
+
+        This typically displays the full status and screen_report, and the most
+        recent warnings and results.
+
+        """
         raise NotImplementedError
 
 
 class Quiet_presenter(object):
     """Presenter which shows only warnings.
 
-    Warnings are displayed immediately, and go to stderr.
+    Warnings go to stderr.
 
     """
     shows_warnings_only = True
@@ -77,14 +84,14 @@ class Clearing_presenter(object):
     This shows all channels.
 
     """
-
     shows_warnings_only = False
 
+    # warnings has to be last, so we can add to it immediately
     box_specs = (
         ('status', None, 999),
         ('screen_report', None, 999),
-        ('warnings', "Warnings", 4),
         ('results', "Results", 6),
+        ('warnings', "Warnings", 4),
         )
 
     def __init__(self):
@@ -101,6 +108,9 @@ class Clearing_presenter(object):
 
     def say(self, channel, s):
         self.boxes[channel].contents.append(s)
+        # 'warnings' box heading might be missing, but never mind.
+        if channel == 'warnings':
+            print s
 
     def refresh(self):
         self.clear_screen()
@@ -110,7 +120,8 @@ class Clearing_presenter(object):
             if box.heading:
                 print "= %s = " % box.heading
             print box.layout()
-            print
+            if box.name != 'warnings':
+                print
 
     def screen_height(self):
         """Return the current terminal height, or best guess."""
