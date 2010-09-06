@@ -12,6 +12,7 @@ from gomill import compact_tracebacks
 from gomill import game_jobs
 from gomill import job_manager
 from gomill import ringmaster_presenters
+from gomill import terminal_input
 from gomill.settings import *
 from gomill.competitions import (
     NoGameAvailable, CompetitionError, ControlFileError, control_file_globals,
@@ -73,6 +74,7 @@ class Ringmaster(object):
         self.worker_count = None
         self.max_games_this_run = None
         self.presenter = None
+        self.terminal_reader = None
         self.stopping = False
         self.stopping_reason = None
         # Map game_id -> int
@@ -245,6 +247,10 @@ class Ringmaster(object):
     def _initialise_presenter(self):
         self.presenter = self._presenter_classes[self.display_mode]()
 
+    def _initialise_terminal_reader(self):
+        self.terminal_reader = terminal_input.Terminal_reader()
+        self.terminal_reader.initialise()
+
 
     # State attributes (*: in persistent state):
     #  * void_game_count   -- int
@@ -379,6 +385,8 @@ class Ringmaster(object):
             if self.max_games_this_run is not None:
                 p("will start at most %d more games in this run" %
                   self.max_games_this_run)
+            if self.terminal_reader.is_enabled():
+                p("(Ctrl-X to halt gracefully)")
 
         self.presenter.clear('screen_report')
         sr = self.presenter.get_stream('screen_report')
@@ -418,6 +426,13 @@ class Ringmaster(object):
 
         if self.stopping:
             return job_manager.NoJobAvailable
+
+        if self.terminal_reader.stop_was_requested():
+            self._halt_competition("stop instruction received from terminal")
+            if self.presenter.shows_warnings_only:
+                self.terminal_reader.acknowledge()
+            return job_manager.NoJobAvailable
+
         try:
             if os.path.exists(self.command_pathname):
                 command = open(self.command_pathname).read()
@@ -512,6 +527,7 @@ class Ringmaster(object):
         self.competition.set_history_logger(self.log_history)
 
         self._initialise_presenter()
+        self._initialise_terminal_reader()
 
         self.log("run started at %s with max_games %s" % (now(), max_games))
         self.max_games_this_run = max_games
