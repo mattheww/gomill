@@ -61,7 +61,10 @@ class Terminal_reader(object):
         # I don't see a clean way to avoid it.
         if os.tcgetpgrp(0) != os.getpid():
             return False
-        termios.tcsetattr(self.tty, termios.TCSANOW, self.cbreak_tcattr)
+        try:
+            termios.tcsetattr(self.tty, termios.TCSANOW, self.cbreak_tcattr)
+        except EnvironmentError:
+            return False
         try:
             seen_ctrl_x = False
             while True:
@@ -70,6 +73,8 @@ class Terminal_reader(object):
                     break
                 if c == "\x18":
                     seen_ctrl_x = True
+        except EnvironmentError:
+            seen_ctrl_x = False
         finally:
             termios.tcsetattr(self.tty, termios.TCSANOW, self.clean_tcattr)
         return seen_ctrl_x
