@@ -62,14 +62,16 @@ class Terminal_reader(object):
         if os.tcgetpgrp(0) != os.getpid():
             return False
         termios.tcsetattr(self.tty, termios.TCSANOW, self.cbreak_tcattr)
-        seen_ctrl_x = False
-        while True:
-            c = os.read(0, 1)
-            if not c:
-                break
-            if c == "\x18":
-                seen_ctrl_x = True
-        termios.tcsetattr(self.tty, termios.TCSANOW, self.clean_tcattr)
+        try:
+            seen_ctrl_x = False
+            while True:
+                c = os.read(0, 1)
+                if not c:
+                    break
+                if c == "\x18":
+                    seen_ctrl_x = True
+        finally:
+            termios.tcsetattr(self.tty, termios.TCSANOW, self.clean_tcattr)
         return seen_ctrl_x
 
     def acknowledge(self):
