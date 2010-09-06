@@ -29,7 +29,7 @@ class Terminal_reader(object):
         try:
             self.tty = open("/dev/tty", "w+")
             # Check this is available
-            os.tcgetpgrp(0)
+            os.tcgetpgrp(self.tty.fileno())
             self.clean_tcattr = termios.tcgetattr(self.tty)
             iflag, oflag, cflag, lflag, ispeed, ospeed, cc = self.clean_tcattr
             new_lflag = lflag & (0xffffffff ^ termios.ICANON)
@@ -59,7 +59,7 @@ class Terminal_reader(object):
         # Don't try to read the terminal if we're in the background.
         # There's a race here, if we're backgrounded just after this check, but
         # I don't see a clean way to avoid it.
-        if os.tcgetpgrp(0) != os.getpid():
+        if os.tcgetpgrp(self.tty.fileno()) != os.getpid():
             return False
         try:
             termios.tcsetattr(self.tty, termios.TCSANOW, self.cbreak_tcattr)
@@ -68,7 +68,7 @@ class Terminal_reader(object):
         try:
             seen_ctrl_x = False
             while True:
-                c = os.read(0, 1)
+                c = os.read(self.tty.fileno(), 1)
                 if not c:
                     break
                 if c == "\x18":
