@@ -110,34 +110,10 @@ class Tree(object):
             node.children.append(child)
         self.node_count += child_count
 
-    def choose_action(self, node):
-        assert node.children is not None
-        uct_numerator = self.exploration_coefficient * sqrt(log(node.visits))
-        def urgency((i, child)):
-            return child.value + uct_numerator * child.rsqrt_visits
-        start = random.randrange(len(node.children))
-        children = list(enumerate(node.children))
-        return max(children[start:] + children[:start], key=urgency)
-
     def retrieve_best_parameters(self):
-        lo = [0.0] * self.dimensions
-        breadth = 1.0
-        node = self.root
-        while node.children is not None:
-            best = None
-            best_choice = None
-            best_wins = -1
-            for i, child in enumerate(node.children):
-                if child.wins > best_wins:
-                    best_wins = child.wins
-                    best = child
-                    best_choice = i
-            breadth /= self.branching_factor
-            cube_pos = self.cube_pos_from_child_number(best_choice)
-            for d in range(self.dimensions):
-                lo[d] += breadth * cube_pos[d]
-            node = best
-        return [lo[d] + 0.5*breadth for d in range(self.dimensions)]
+        simulation = Greedy_simulation(self)
+        simulation.walk()
+        return simulation.get_parameters()
 
     def describe(self):
         def describe_node(cube_pos, lo_param, node):
@@ -177,14 +153,13 @@ class Tree(object):
 
 
 class Simulation(object):
-    """FIXME"""
+    """A single monte-carlo simulation."""
     def __init__(self, tree):
         self.tree = tree
         self.node_path = []
         self.choice_path = [] # For description only
         self.parameter_min = [0.0] * tree.dimensions
         self.parameter_breadth = 1.0
-        self.debug = []
 
     def get_parameters(self):
         return [self.parameter_min[d] + .5*self.parameter_breadth
@@ -192,6 +167,15 @@ class Simulation(object):
 
     def describe_steps(self):
         return " ".join(map(str, self.choice_path))
+
+    def choose_action(self, node):
+        uct_numerator = (self.tree.exploration_coefficient *
+                         sqrt(log(node.visits)))
+        def urgency((i, child)):
+            return child.value + uct_numerator * child.rsqrt_visits
+        start = random.randrange(len(node.children))
+        children = list(enumerate(node.children))
+        return max(children[start:] + children[:start], key=urgency)
 
     def step(self, choice, node):
         cube_pos = self.tree.cube_pos_from_child_number(choice)
@@ -204,12 +188,16 @@ class Simulation(object):
     def walk(self):
         node = self.tree.root
         while node.children is not None:
-            choice, node = self.tree.choose_action(node)
+            choice, node = self.choose_action(node)
             self.step(choice, node)
+
+    def run(self):
+        self.walk()
+        node = self.node_path[-1]
         if (node.visits != self.tree.initial_visits and
             len(self.node_path) < self.tree.max_depth):
             self.tree.expand(node)
-            choice, child = self.tree.choose_action(node)
+            choice, child = self.choose_action(node)
             self.step(choice, child)
 
     def update_stats(self, candidate_won):
@@ -229,6 +217,18 @@ class Simulation(object):
         params_s = self.tree.format_parameters(optimiser_parameters)
         won_s = ("lost", "won")[candidate_won]
         return "%s [%s] %s" % (params_s, self.describe_steps(), won_s)
+
+class Greedy_simulation(Simulation):
+    """Variant of simulation that chooses the node with most wins.
+
+    This is used to pick the 'best' parameters from the current state of the
+    tree.
+
+    """
+    def choose_action(self, node):
+        def wins((i, node)):
+            return node.wins
+        return max(enumerate(node.children), key=wins)
 
 
 class Mcts_tuner(Competition):
@@ -381,7 +381,7 @@ class Mcts_tuner(Competition):
 
         """
         simulation = Simulation(self.tree)
-        simulation.walk()
+        simulation.run()
         return simulation, simulation.get_parameters()
 
     def get_players_to_check(self):
