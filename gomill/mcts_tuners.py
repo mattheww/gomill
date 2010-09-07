@@ -23,6 +23,7 @@ class Node(object):
       wins
       visits
       value        -- wins / visits
+      rsqrt_visits -- 1 / sqrt(visits)
 
     """
     def count_tree_size(self):
