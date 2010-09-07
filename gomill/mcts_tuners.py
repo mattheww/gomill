@@ -153,22 +153,31 @@ class Tree(object):
 
 
 class Simulation(object):
-    """A single monte-carlo simulation."""
+    """A single monte-carlo simulation.
+
+    Instantiate with the Tree the simulation will run in.
+
+    Use the methods in the following order:
+      run()
+      get_parameters()
+      update_stats(b)
+      describe()
+
+    """
     def __init__(self, tree):
         self.tree = tree
         self.node_path = []
         self.choice_path = [] # For description only
         self.parameter_min = [0.0] * tree.dimensions
         self.parameter_breadth = 1.0
+        self.candidate_won = None
 
-    def get_parameters(self):
-        return [self.parameter_min[d] + .5*self.parameter_breadth
-                for d in range(self.tree.dimensions)]
+    def _choose_action(self, node):
+        """Choose the best action from the specified node.
 
-    def describe_steps(self):
-        return " ".join(map(str, self.choice_path))
+        Returns a pair (child index, node)
 
-    def choose_action(self, node):
+        """
         uct_numerator = (self.tree.exploration_coefficient *
                          sqrt(log(node.visits)))
         def urgency((i, child)):
@@ -177,7 +186,13 @@ class Simulation(object):
         children = list(enumerate(node.children))
         return max(children[start:] + children[:start], key=urgency)
 
-    def step(self, choice, node):
+    def _step(self, choice, node):
+        """Step down one level in the tree.
+
+        choice -- child index
+        node   -- corresponding Node
+
+        """
         cube_pos = self.tree.cube_pos_from_child_number(choice)
         self.parameter_breadth /= self.tree.branching_factor
         for d in range(self.tree.dimensions):
@@ -186,21 +201,45 @@ class Simulation(object):
         self.choice_path.append(choice)
 
     def walk(self):
+        """Choose a node sequence, without expansion."""
         node = self.tree.root
         while node.children is not None:
-            choice, node = self.choose_action(node)
-            self.step(choice, node)
+            choice, node = self._choose_action(node)
+            self._step(choice, node)
 
     def run(self):
+        """Choose the node sequence for this simulation.
+
+        This walks down from the root, using _choose_action() at each level,
+        until it reaches a leaf; if the leaf has already been visited, this
+        expands it and chooses one more action.
+
+        """
         self.walk()
         node = self.node_path[-1]
         if (node.visits != self.tree.initial_visits and
             len(self.node_path) < self.tree.max_depth):
             self.tree.expand(node)
-            choice, child = self.choose_action(node)
-            self.step(choice, child)
+            choice, child = self._choose_action(node)
+            self._step(choice, child)
+
+    def get_parameters(self):
+        """Retrieve the point in parameter space given by the node sequence.
+
+        Returns optimiser_parameters
+
+        """
+        return [self.parameter_min[d] + .5*self.parameter_breadth
+                for d in range(self.tree.dimensions)]
 
     def update_stats(self, candidate_won):
+        """Update the tree's node statistics with the simulation's results.
+
+        This updates visits (and wins, if appropriate) for each node in the
+        simulation's node sequence.
+
+        """
+        self.candidate_won = candidate_won
         for node in self.node_path:
             node.visits += 1
             node.rsqrt_visits = sqrt(1/node.visits)
@@ -212,10 +251,18 @@ class Simulation(object):
             self.tree.root.wins += 1 # For description only
         self.tree.root.rsqrt_visits = sqrt(1/self.tree.root.visits)
 
-    def describe(self, candidate_won):
-        optimiser_parameters = self.get_parameters()
-        params_s = self.tree.format_parameters(optimiser_parameters)
-        won_s = ("lost", "won")[candidate_won]
+    def describe_steps(self):
+        """Return a text description of the simulation's node sequence."""
+        return " ".join(map(str, self.choice_path))
+
+    def describe(self):
+        """Return a text description of the simulation.
+
+        candidate_won -- bool
+
+        """
+        params_s = self.tree.format_parameters(self.get_parameters())
+        won_s = ("lost", "won")[self.candidate_won]
         return "%s [%s] %s" % (params_s, self.describe_steps(), won_s)
 
 class Greedy_simulation(Simulation):
@@ -225,7 +272,7 @@ class Greedy_simulation(Simulation):
     tree.
 
     """
-    def choose_action(self, node):
+    def _choose_action(self, node):
         def wins((i, node)):
             return node.wins
         return max(enumerate(node.children), key=wins)
@@ -241,7 +288,6 @@ class Mcts_tuner(Competition):
         Competition.__init__(self, competition_code, **kwargs)
         self.outstanding_simulations = {}
         self.last_simulation = None
-        self.won_last_game = False
         self.halt_on_next_failure = True
 
     global_settings = [
@@ -314,9 +360,8 @@ class Mcts_tuner(Competition):
     #   outstanding_simulations -- map game_number -> Simulation
     #   halt_on_next_failure    -- bool
 
-    # These are used only for the screen report:
+    # This is used only for the screen report:
     #   last_simulation         -- Simulation or None
-    #   won_last_game           -- bool
 
 
     def set_clean_status(self):
@@ -418,10 +463,9 @@ class Mcts_tuner(Competition):
             response.game_result.winning_colour == self.candidate_colour)
         simulation = self.outstanding_simulations.pop(game_number)
         simulation.update_stats(candidate_won)
-        self.log_history(simulation.describe(candidate_won))
+        self.log_history(simulation.describe())
         # FIXME: Want to describe this stuff; for now, let status summary do it
         self.last_simulation = simulation
-        self.won_last_game = candidate_won
         if self.scheduler.fixed % self.log_after_games == 0:
             self.log_history(self.tree.describe())
 
@@ -458,7 +502,7 @@ class Mcts_tuner(Competition):
         print >>out
         if self.last_simulation is not None:
             print >>out, "Last simulation: %s" % (
-                self.last_simulation.describe(self.won_last_game))
+                self.last_simulation.describe())
         print >>out, self.tree.describe()
         print >>out, "Best parameter vector: %s" % (
             self.format_parameters(self.tree.retrieve_best_parameters()))
