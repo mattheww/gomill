@@ -54,10 +54,26 @@ class Node(object):
 class Tree(object):
     """A tree of MCTS nodes representing N-dimensional parameter space.
 
+    Parameters (available as read-only attributes):
       dimensions       -- number of dimensions in the parameter space
       branching_factor -- subdivisions of each dimension at each generation
+      max_depth        -- number of generations below the root
+      initial_visits   -- visit count for newly-created nodes
+      initial_wins     -- win count for newly-created nodes
+      exploration_coefficient -- constant for UCT formula (float)
 
-    Each expanded node has dimension*branching_factor children.
+    References to 'optimiser_parameters' below mean a sequence of length
+    'dimensions', whose values are floats in the range 0.0..1.0, representing a
+    point in this space.
+
+    Public attributes:
+      root             -- Node
+    All changing state is in the tree of Node objects started at 'root'. Each
+    expanded node in this tree has dimension*branching_factor children.
+
+    Instantiate with:
+      all parameters listed above
+      parameter_formatter -- function optimiser_parameters -> string
 
     """
     def __init__(self, dimensions, branching_factor, max_depth,
@@ -70,7 +86,7 @@ class Tree(object):
         self.exploration_coefficient = exploration_coefficient
         self.initial_visits = initial_visits
         self.initial_wins = initial_wins
-        self.initial_rsqrt_visits = 1/sqrt(initial_visits)
+        self._initial_rsqrt_visits = 1/sqrt(initial_visits)
         self.format_parameters = parameter_formatter
 
     def new_root(self):
@@ -81,7 +97,7 @@ class Tree(object):
         self.root.wins = self.initial_wins
         self.root.visits = self.initial_visits
         self.root.value = self.initial_wins / self.initial_visits
-        self.root.rsqrt_visits = self.initial_rsqrt_visits
+        self.root.rsqrt_visits = self._initial_rsqrt_visits
         self.expand(self.root)
 
     def set_root(self, node):
@@ -118,7 +134,7 @@ class Tree(object):
             child.wins = self.initial_wins
             child.visits = self.initial_visits
             child.value = self.initial_wins / self.initial_visits
-            child.rsqrt_visits = self.initial_rsqrt_visits
+            child.rsqrt_visits = self._initial_rsqrt_visits
             node.children.append(child)
         self.node_count += child_count
 
