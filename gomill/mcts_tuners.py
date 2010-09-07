@@ -342,8 +342,8 @@ class Mcts_tuner(Competition):
             return ("[error from user-defined parameter formatter]\n"
                     "[optimiser parameters %s]" % optimiser_parameters)
 
-    def make_candidate(self, candidate_code, optimiser_parameters):
-        """FIXME
+    def make_candidate(self, player_code, optimiser_parameters):
+        """Make a player using the specified optimiser parameters.
 
         Returns a game_jobs.Player.
 
@@ -367,7 +367,7 @@ class Mcts_tuner(Competition):
                 candidate_config)
         try:
             candidate = self.game_jobs_player_from_config(
-                candidate_code, candidate_config)
+                player_code, candidate_config)
         except StandardError, e:
             raise CompetitionError(
                 "error making candidate player\nparameters: %s\nerror: %s" %
