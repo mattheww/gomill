@@ -374,16 +374,6 @@ class Mcts_tuner(Competition):
                 (self.format_parameters(optimiser_parameters), e))
         return candidate
 
-    def prepare_simulation(self):
-        """FIXME
-
-        Returns a pair (simulation, optimiser parameter vector)
-
-        """
-        simulation = Simulation(self.tree)
-        simulation.run()
-        return simulation, simulation.get_parameters()
-
     def get_players_to_check(self):
         test_parameters = [.5] * self.tree.dimensions
         candidate = self.make_candidate('candidate', test_parameters)
@@ -395,9 +385,10 @@ class Mcts_tuner(Competition):
             return NoGameAvailable
         game_number = self.scheduler.issue()
 
-        simulation, optimiser_parameters = self.prepare_simulation()
+        simulation = Simulation(self.tree)
+        simulation.run()
         candidate = self.make_candidate(
-            "#%d" % game_number, optimiser_parameters)
+            "#%d" % game_number, simulation.get_parameters())
         self.outstanding_simulations[game_number] = simulation
 
         job = game_jobs.Game_job()
