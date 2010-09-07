@@ -52,7 +52,12 @@ class Node(object):
 
 
 class Tree(object):
-    """Run monte-carlo tree search over parameter space.
+    """A tree of MCTS nodes representing N-dimensional parameter space.
+
+      dimensions       -- number of dimensions in the parameter space
+      branching_factor -- subdivisions of each dimension at each generation
+
+    Each expanded node has dimension*branching_factor children.
 
     """
     def __init__(self, dimensions, branching_factor, max_depth,
@@ -69,6 +74,7 @@ class Tree(object):
         self.format_parameters = parameter_formatter
 
     def new_root(self):
+        """Initialise the tree with an expanded root node."""
         self.node_count = 1 # For description only
         self.root = Node()
         self.root.children = None
@@ -79,6 +85,11 @@ class Tree(object):
         self.expand(self.root)
 
     def set_root(self, node):
+        """Use the specified node as the tree's root.
+
+        This is used when restoring serialised state.
+
+        """
         self.root = node
         self.node_count = node.count_tree_size()
 
@@ -97,6 +108,7 @@ class Tree(object):
         return result
 
     def expand(self, node):
+        """Add children to the specified node."""
         assert node.children is None
         node.children = []
         child_count = self.branching_factor ** self.dimensions
@@ -111,11 +123,21 @@ class Tree(object):
         self.node_count += child_count
 
     def retrieve_best_parameters(self):
+        """Find the parameters with the most promising simulation results.
+
+        Returns optimiser_parameters
+
+        This walks the tree from the root, at each point choosing the node with
+        most wins, and returns the parameters corresponding to the leaf node.
+
+        """
         simulation = Greedy_simulation(self)
         simulation.walk()
         return simulation.get_parameters()
 
     def describe(self):
+        """Return a text description of the current state of the tree."""
+
         def describe_node(cube_pos, lo_param, node):
             parameters = self.format_parameters(lo_param) + "+"
             return "%s %s %.3f %3d" % (
