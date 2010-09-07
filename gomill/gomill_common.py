@@ -49,7 +49,8 @@ def coords_from_vertex(vertex, board_size):
     vertex specification for a board of size 'board_size'.
 
     """
-    assert 0 < board_size <= 25
+    if not 0 < board_size <= 25:
+        raise ValueError("board_size out of range")
     s = vertex.lower()
     if s == "pass":
         return None
