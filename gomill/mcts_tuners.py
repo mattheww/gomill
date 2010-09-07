@@ -111,21 +111,12 @@ class Tree(object):
 
     def choose_action(self, node):
         assert node.children is not None
-        child_count = len(node.children)
         uct_numerator = self.exploration_coefficient * sqrt(log(node.visits))
-        start = random.randrange(child_count)
-        best_urgency = -1.0
-        best_choice = None
-        best_child = None
-        for i in range(start, child_count) + range(start):
-            child = node.children[i]
-            uct_term = uct_numerator * child.rsqrt_visits
-            urgency = child.value + uct_term
-            if urgency > best_urgency:
-                best_urgency = urgency
-                best_choice = i
-                best_child = child
-        return best_choice, best_child
+        def urgency((i, child)):
+            return child.value + uct_numerator * child.rsqrt_visits
+        start = random.randrange(len(node.children))
+        children = list(enumerate(node.children))
+        return max(children[start:] + children[:start], key=urgency)
 
     def retrieve_best_parameters(self):
         lo = [0.0] * self.dimensions
