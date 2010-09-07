@@ -230,16 +230,6 @@ class Simulation(object):
         won_s = ("lost", "won")[candidate_won]
         return "%s [%s] %s" % (params_s, self.describe_steps(), won_s)
 
-    def __getstate__(self):
-        # We don't want to pickle the tree object (and it's unpicklable, anyway)
-        result = self.__dict__.copy()
-        del result['tree']
-        return result
-
-    def __setstate__(self, state):
-        # Leaves tree unset; unpickler has to restore it
-        self.__dict__ = state
-
 
 class Mcts_tuner(Competition):
     """A Competition for parameter tuning using the Monte-carlo tree search.
