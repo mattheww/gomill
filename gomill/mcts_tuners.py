@@ -107,7 +107,7 @@ class Tree(object):
                 i, coord = divmod(i, subdivisions)
                 v.append(coord)
             v.reverse() # so that first coordinate changes most slowly
-            self._cube_coordinates.append(v)
+            self._cube_coordinates.append(tuple(v))
 
     def new_root(self):
         """Initialise the tree with an expanded root node."""
@@ -194,15 +194,19 @@ class Tree(object):
         """Return a 'typical' optimiser_parameters."""
         return [.5] * self.dimensions
 
+    def describe_choice(self, choice):
+        """Return a text description of a child's coordinates in its parent."""
+        return str(self._cube_pos_from_child_number(choice))
+
     def describe(self):
         """Return a text description of the current state of the tree."""
 
         def describe_node(node, choice_path):
             parameters = self.format_parameters(
                 self.parameters_for_path(choice_path))
-            cube_pos = self._cube_pos_from_child_number(choice_path[-1])
+            choice_s = self.describe_choice(choice_path[-1])
             return "%s %s %.3f %3d" % (
-                cube_pos, parameters, node.value,
+                choice_s, parameters, node.value,
                 node.visits - self.initial_visits)
 
         root = self.root
@@ -311,7 +315,7 @@ class Simulation(object):
 
     def describe_steps(self):
         """Return a text description of the simulation's node sequence."""
-        return " ".join(map(str, self.choice_path))
+        return " ".join(map(self.tree.describe_choice, self.choice_path))
 
     def describe(self):
         """Return a text description of the simulation.
