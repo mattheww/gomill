@@ -314,14 +314,16 @@ class Simulation(object):
         return " ".join(map(self.tree.describe_choice, self.choice_path))
 
     def describe(self):
-        """Return a text description of the simulation.
+        """Return a text description of the simulation."""
+        return "%s [%s] %s" % (
+            self.tree.format_parameters(self.get_parameters()),
+            self.describe_steps(),
+            ("lost", "won")[self.candidate_won])
 
-        candidate_won -- bool
-
-        """
-        params_s = self.tree.format_parameters(self.get_parameters())
-        won_s = ("lost", "won")[self.candidate_won]
-        return "%s [%s] %s" % (params_s, self.describe_steps(), won_s)
+    def describe_briefly(self):
+        """Return a (less-than-) one line descrition of the simulation."""
+        return "%s %s" % (self.tree.format_parameters(self.get_parameters()),
+                          ("lost", "won")[self.candidate_won])
 
 class Greedy_simulation(Simulation):
     """Variant of simulation that chooses the node with most wins.
@@ -522,10 +524,11 @@ class Mcts_tuner(Competition):
         simulation = self.outstanding_simulations.pop(game_number)
         simulation.update_stats(candidate_won)
         self.log_history(simulation.describe())
-        # FIXME: Want to describe this stuff; for now, let status summary do it
         self.last_simulation = simulation
         if self.scheduler.fixed % self.log_after_games == 0:
             self.log_history(self.tree.describe())
+        return "%s %s" % (simulation.describe_briefly(),
+                          response.game_result.sgf_result)
 
     def process_game_error(self, job, previous_error_count):
         ## If the very first game gives an error, halt.
