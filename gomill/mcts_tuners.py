@@ -235,22 +235,13 @@ class Simulation(object):
         children = list(enumerate(node.children))
         return max(children[start:] + children[:start], key=urgency)
 
-    def _step(self, choice, node):
-        """Step down one level in the tree.
-
-        choice -- child index
-        node   -- corresponding Node
-
-        """
-        self.node_path.append(node)
-        self.choice_path.append(choice)
-
     def walk(self):
         """Choose a node sequence, without expansion."""
         node = self.tree.root
         while node.children is not None:
             choice, node = self._choose_action(node)
-            self._step(choice, node)
+            self.node_path.append(node)
+            self.choice_path.append(choice)
 
     def run(self):
         """Choose the node sequence for this simulation.
@@ -266,7 +257,8 @@ class Simulation(object):
             len(self.node_path) < self.tree.max_depth):
             self.tree.expand(node)
             choice, child = self._choose_action(node)
-            self._step(choice, child)
+            self.node_path.append(child)
+            self.choice_path.append(choice)
 
     def get_parameters(self):
         """Retrieve the point in parameter space given by the node sequence.
