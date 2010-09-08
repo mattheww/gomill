@@ -166,8 +166,8 @@ class Tree(object):
         for child_index in choice_path:
             cube_pos = self._cube_coordinates[child_index]
             breadth /= self.subdivisions
-            for d in range(self.dimensions):
-                lo[d] += breadth * cube_pos[d]
+            for d, coord in enumerate(cube_pos):
+                lo[d] += breadth * coord
         return [f + .5*breadth for f in lo]
 
     def retrieve_best_parameters(self):
