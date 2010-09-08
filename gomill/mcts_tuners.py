@@ -175,6 +175,10 @@ class Tree(object):
         simulation.walk()
         return simulation.get_parameters()
 
+    def get_test_parameters(self):
+        """Return a 'typical' optimiser_parameters."""
+        return [.5] * self.dimensions
+
     def describe(self):
         """Return a text description of the current state of the tree."""
 
@@ -460,7 +464,7 @@ class Mcts_tuner(Competition):
         return candidate
 
     def get_players_to_check(self):
-        test_parameters = [.5] * self.tree.dimensions
+        test_parameters = self.tree.get_test_parameters()
         candidate = self.make_candidate('candidate', test_parameters)
         return [candidate, self.opponent]
 
