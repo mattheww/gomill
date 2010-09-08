@@ -69,7 +69,7 @@ class Tree(object):
     Public attributes:
       root             -- Node
     All changing state is in the tree of Node objects started at 'root'. Each
-    expanded node in this tree has dimension*branching_factor children.
+    expanded node in this tree has branching_factor**dimension children.
 
     Instantiate with:
       all parameters listed above
