@@ -124,6 +124,10 @@ class Tree(object):
             node.children.append(child)
         self.node_count += child_count
 
+    def is_ripe(self, node):
+        """Say whether a node has been visted enough times to be expanded."""
+        return node.visits != self.initial_visits
+
     def cube_pos_from_child_number(self, child_number):
         """Work out the position of a given child in a child cube.
 
@@ -253,8 +257,8 @@ class Simulation(object):
         """
         self.walk()
         node = self.node_path[-1]
-        if (node.visits != self.tree.initial_visits and
-            len(self.node_path) < self.tree.max_depth):
+        if (len(self.node_path) < self.tree.max_depth and
+            self.tree.is_ripe(node)):
             self.tree.expand(node)
             choice, child = self._choose_action(node)
             self.node_path.append(child)
