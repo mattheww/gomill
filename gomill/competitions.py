@@ -310,6 +310,9 @@ class Competition(object):
 
         response -- game_jobs.Game_job_result
 
+        This may return a text description of the game result, to override the
+        default (it should normally include response.game_result.sgf_result).
+
         """
         raise NotImplementedError
 

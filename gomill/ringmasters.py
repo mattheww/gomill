@@ -473,11 +473,13 @@ class Ringmaster(object):
         # We log before processing the result, in case there's an error from the
         # competition code.
         self.log("response from game %s" % response.game_id)
-        self.competition.process_game_result(response)
+        result_description = self.competition.process_game_result(response)
         del self.games_in_progress[response.game_id]
         self.write_status()
+        if result_description is None:
+            result_description = response.game_result.describe()
         self.say('results', "game %s completed: %s" % (
-            response.game_id, response.game_result.describe()))
+            response.game_id, result_description))
 
     def process_error_response(self, job, message):
         """Job error response function for the job manager."""
