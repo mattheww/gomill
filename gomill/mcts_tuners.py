@@ -86,6 +86,7 @@ class Tree(object):
                  parameter_formatter):
         self.dimensions = dimensions
         self.subdivisions = subdivisions
+        self.branching_factor = subdivisions ** dimensions
         self.max_depth = max_depth
         self.exploration_coefficient = exploration_coefficient
         self.initial_visits = initial_visits
@@ -93,6 +94,17 @@ class Tree(object):
         self._initial_value = initial_wins / initial_visits
         self._initial_rsqrt_visits = 1/sqrt(initial_visits)
         self.format_parameters = parameter_formatter
+
+        # map child index -> coordinate vector
+        self._cube_coordinates = []
+        for child_index in xrange(self.branching_factor):
+            v = []
+            i = child_index
+            for d in range(dimensions):
+                i, coord = divmod(i, subdivisions)
+                v.append(coord)
+            self._cube_coordinates.append(v)
+
 
     def new_root(self):
         """Initialise the tree with an expanded root node."""
@@ -118,7 +130,7 @@ class Tree(object):
         """Add children to the specified node."""
         assert node.children is None
         node.children = []
-        child_count = self.subdivisions ** self.dimensions
+        child_count = self.branching_factor
         for _ in xrange(child_count):
             child = Node()
             child.children = None
@@ -133,19 +145,14 @@ class Tree(object):
         """Say whether a node has been visted enough times to be expanded."""
         return node.visits != self.initial_visits
 
-    def cube_pos_from_child_number(self, child_number):
-        """Work out the position of a given child in a child cube.
+    def _cube_pos_from_child_number(self, child_number):
+        """Work out the coordinates of a given child in its parent cube.
 
         Returns a list of length 'dimensions' with values in
         range('subdivisions').
 
         """
-        result = []
-        i = child_number
-        for d in range(self.dimensions):
-            i, r = divmod(i, self.subdivisions)
-            result.append(r)
-        return result
+        return self._cube_coordinates[child_number]
 
     def parameters_for_path(self, choice_path):
         """Retrieve the point in parameter space given by a node.
@@ -161,7 +168,7 @@ class Tree(object):
         lo = [0.0] * self.dimensions
         breadth = 1.0
         for child_index in choice_path:
-            cube_pos = self.cube_pos_from_child_number(child_index)
+            cube_pos = self._cube_pos_from_child_number(child_index)
             breadth /= self.subdivisions
             for d in range(self.dimensions):
                 lo[d] += breadth * cube_pos[d]
@@ -190,7 +197,7 @@ class Tree(object):
         def describe_node(node, choice_path):
             parameters = self.format_parameters(
                 self.parameters_for_path(choice_path))
-            cube_pos = self.cube_pos_from_child_number(choice_path[-1])
+            cube_pos = self._cube_pos_from_child_number(choice_path[-1])
             return "%s %s %.3f %3d" % (
                 cube_pos, parameters, node.value,
                 node.visits - self.initial_visits)
