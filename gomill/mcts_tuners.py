@@ -103,8 +103,8 @@ class Tree(object):
             for d in range(dimensions):
                 i, coord = divmod(i, subdivisions)
                 v.append(coord)
+            v.reverse() # so that first coordinate changes most slowly
             self._cube_coordinates.append(v)
-
 
     def new_root(self):
         """Initialise the tree with an expanded root node."""
