@@ -237,8 +237,11 @@ class Simulation(object):
     """
     def __init__(self, tree):
         self.tree = tree
+        # list of Nodes
         self.node_path = []
+        # corresponding list of child indices
         self.choice_path = []
+        # bool
         self.candidate_won = None
 
     def _choose_action(self, node):
