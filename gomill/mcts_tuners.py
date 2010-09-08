@@ -174,8 +174,10 @@ class Tree(object):
     def describe(self):
         """Return a text description of the current state of the tree."""
 
-        def describe_node(cube_pos, lo_param, node):
-            parameters = self.format_parameters(lo_param) + "+"
+        def describe_node(node, choice_path):
+            parameters = self.format_parameters(
+                self.parameters_for_path(choice_path))
+            cube_pos = self.cube_pos_from_child_number(choice_path[-1])
             return "%s %s %.3f %3d" % (
                 cube_pos, parameters, node.value,
                 node.visits - self.initial_visits)
@@ -191,22 +193,13 @@ class Tree(object):
             "%d nodes" % self.node_count,
             "Win rate %d/%d = %s" % (wins, visits, win_rate)
             ]
-        lo = [0.0] * self.dimensions
-        breadth = 1.0
+
         for choice, node in enumerate(self.root.children):
-            breadth2 = breadth / self.branching_factor
-            cube_pos = self.cube_pos_from_child_number(choice)
-            lo2 = [lo[d] + breadth2 * cube_pos[d]
-                   for d in range(self.dimensions)]
-            result.append("  " + describe_node(cube_pos, lo2, node))
+            result.append("  " + describe_node(node, [choice]))
             if node.children is None:
                 continue
             for choice2, node2 in enumerate(node.children):
-                breadth3 = breadth2 / self.branching_factor
-                cube_pos2 = self.cube_pos_from_child_number(choice2)
-                lo3 = [lo2[d] + breadth3 * cube_pos2[d]
-                       for d in range(self.dimensions)]
-                result.append("    " + describe_node(cube_pos2, lo3, node2))
+                result.append("    " + describe_node(node2, [choice, choice2]))
         return "\n".join(result)
 
 
