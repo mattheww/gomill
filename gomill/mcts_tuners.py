@@ -31,13 +31,17 @@ class Node(object):
             return 1
         return sum(child.count_tree_size() for child in self.children) + 1
 
+    def recalculate(self):
+        """Update value and rsqrt_visits from changed wins and visits."""
+        self.value = self.wins / self.visits
+        self.rsqrt_visits = sqrt(1/self.visits)
+
     def __getstate__(self):
         return (self.children, self.wins, self.visits)
 
     def __setstate__(self, state):
         self.children, self.wins, self.visits = state
-        self.value = self.wins / self.visits
-        self.rsqrt_visits = sqrt(1/self.visits)
+        self.recalculate()
 
     __slots__ = (
         'children',
@@ -86,6 +90,7 @@ class Tree(object):
         self.exploration_coefficient = exploration_coefficient
         self.initial_visits = initial_visits
         self.initial_wins = initial_wins
+        self._initial_value = initial_wins / initial_visits
         self._initial_rsqrt_visits = 1/sqrt(initial_visits)
         self.format_parameters = parameter_formatter
 
@@ -119,7 +124,7 @@ class Tree(object):
             child.children = None
             child.wins = self.initial_wins
             child.visits = self.initial_visits
-            child.value = self.initial_wins / self.initial_visits
+            child.value = self._initial_value
             child.rsqrt_visits = self._initial_rsqrt_visits
             node.children.append(child)
         self.node_count += child_count
@@ -286,14 +291,13 @@ class Simulation(object):
         self.candidate_won = candidate_won
         for node in self.node_path:
             node.visits += 1
-            node.rsqrt_visits = sqrt(1/node.visits)
             if candidate_won:
                 node.wins += 1
-            node.value = node.wins / node.visits
+            node.recalculate()
         self.tree.root.visits += 1
         if candidate_won:
             self.tree.root.wins += 1 # For description only
-        self.tree.root.rsqrt_visits = sqrt(1/self.tree.root.visits)
+        self.tree.root.recalculate()
 
     def describe_steps(self):
         """Return a text description of the simulation's node sequence."""
