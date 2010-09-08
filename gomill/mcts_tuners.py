@@ -66,14 +66,17 @@ class Tree(object):
       initial_wins     -- win count for newly-created nodes
       exploration_coefficient -- constant for UCT formula (float)
 
-    References to 'optimiser_parameters' below mean a sequence of length
-    'dimensions', whose values are floats in the range 0.0..1.0, representing a
-    point in this space.
-
     Public attributes:
       root             -- Node
-    All changing state is in the tree of Node objects started at 'root'. Each
-    expanded node in this tree has subdivisions**dimension children.
+
+    All changing state is in the tree of Node objects started at 'root'.
+
+    References to 'optimiser_parameters' below mean a sequence of length
+    'dimensions', whose values are floats in the range 0.0..1.0 representing
+    a point in this space.
+
+    Each node in the tree represents an N-cube of parameter space. Each
+    expanded node has subdivisions**dimension children, tiling its cube.
 
     Instantiate with:
       all parameters listed above
@@ -281,7 +284,7 @@ class Simulation(object):
             self.choice_path.append(choice)
 
     def get_parameters(self):
-        """Retrieve the point in parameter space given by the node sequence.
+        """Retrieve the parameters corresponding to the simulation's leaf node.
 
         Returns optimiser_parameters
 
