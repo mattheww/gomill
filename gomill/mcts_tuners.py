@@ -56,7 +56,7 @@ class Tree(object):
 
     Parameters (available as read-only attributes):
       dimensions       -- number of dimensions in the parameter space
-      branching_factor -- subdivisions of each dimension at each generation
+      subdivisions     -- subdivisions of each dimension at each generation
       max_depth        -- number of generations below the root
       initial_visits   -- visit count for newly-created nodes
       initial_wins     -- win count for newly-created nodes
@@ -69,19 +69,19 @@ class Tree(object):
     Public attributes:
       root             -- Node
     All changing state is in the tree of Node objects started at 'root'. Each
-    expanded node in this tree has branching_factor**dimension children.
+    expanded node in this tree has subdivisions**dimension children.
 
     Instantiate with:
       all parameters listed above
       parameter_formatter -- function optimiser_parameters -> string
 
     """
-    def __init__(self, dimensions, branching_factor, max_depth,
+    def __init__(self, dimensions, subdivisions, max_depth,
                  exploration_coefficient,
                  initial_visits, initial_wins,
                  parameter_formatter):
         self.dimensions = dimensions
-        self.branching_factor = branching_factor
+        self.subdivisions = subdivisions
         self.max_depth = max_depth
         self.exploration_coefficient = exploration_coefficient
         self.initial_visits = initial_visits
@@ -113,7 +113,7 @@ class Tree(object):
         """Add children to the specified node."""
         assert node.children is None
         node.children = []
-        child_count = self.branching_factor ** self.dimensions
+        child_count = self.subdivisions ** self.dimensions
         for _ in xrange(child_count):
             child = Node()
             child.children = None
@@ -132,13 +132,13 @@ class Tree(object):
         """Work out the position of a given child in a child cube.
 
         Returns a list of length 'dimensions' with values in
-        range('branching_factor').
+        range('subdivisions').
 
         """
         result = []
         i = child_number
         for d in range(self.dimensions):
-            i, r = divmod(i, self.branching_factor)
+            i, r = divmod(i, self.subdivisions)
             result.append(r)
         return result
 
@@ -157,7 +157,7 @@ class Tree(object):
         breadth = 1.0
         for child_index in choice_path:
             cube_pos = self.cube_pos_from_child_number(child_index)
-            breadth /= self.branching_factor
+            breadth /= self.subdivisions
             for d in range(self.dimensions):
                 lo[d] += breadth * cube_pos[d]
         return [f + .5*breadth for f in lo]
@@ -361,7 +361,7 @@ class Mcts_tuner(Competition):
     # attributes.
     tree_settings = [
         Setting('dimensions', interpret_positive_int),
-        Setting('branching_factor', interpret_positive_int),
+        Setting('subdivisions', interpret_positive_int),
         Setting('max_depth', interpret_positive_int),
         Setting('exploration_coefficient', interpret_float),
         Setting('initial_visits', interpret_positive_int),
