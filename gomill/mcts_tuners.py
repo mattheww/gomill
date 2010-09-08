@@ -99,6 +99,8 @@ class Tree(object):
         self.format_parameters = parameter_formatter
 
         # map child index -> coordinate vector
+        # coordinate vector -- tuple length 'dimensions' with values in
+        #                      range(subdivisions)
         self._cube_coordinates = []
         for child_index in xrange(self.branching_factor):
             v = []
@@ -148,15 +150,6 @@ class Tree(object):
         """Say whether a node has been visted enough times to be expanded."""
         return node.visits != self.initial_visits
 
-    def _cube_pos_from_child_number(self, child_number):
-        """Work out the coordinates of a given child in its parent cube.
-
-        Returns a list of length 'dimensions' with values in
-        range('subdivisions').
-
-        """
-        return self._cube_coordinates[child_number]
-
     def parameters_for_path(self, choice_path):
         """Retrieve the point in parameter space given by a node.
 
@@ -171,7 +164,7 @@ class Tree(object):
         lo = [0.0] * self.dimensions
         breadth = 1.0
         for child_index in choice_path:
-            cube_pos = self._cube_pos_from_child_number(child_index)
+            cube_pos = self._cube_coordinates[child_index]
             breadth /= self.subdivisions
             for d in range(self.dimensions):
                 lo[d] += breadth * cube_pos[d]
@@ -195,8 +188,8 @@ class Tree(object):
         return [.5] * self.dimensions
 
     def describe_choice(self, choice):
-        """Return a text description of a child's coordinates in its parent."""
-        return str(self._cube_pos_from_child_number(choice))
+        """Return a string describing a child's coordinates in its parent."""
+        return str(self._cube_coordinates[choice])
 
     def describe(self):
         """Return a text description of the current state of the tree."""
