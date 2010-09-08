@@ -109,20 +109,6 @@ class Tree(object):
         self.root = node
         self.node_count = node.count_tree_size()
 
-    def cube_pos_from_child_number(self, child_number):
-        """Work out the position of a given child in a child cube.
-
-        Returns a list of length 'dimensions' with values in
-        range('branching_factor').
-
-        """
-        result = []
-        i = child_number
-        for d in range(self.dimensions):
-            i, r = divmod(i, self.branching_factor)
-            result.append(r)
-        return result
-
     def expand(self, node):
         """Add children to the specified node."""
         assert node.children is None
@@ -137,6 +123,40 @@ class Tree(object):
             child.rsqrt_visits = self._initial_rsqrt_visits
             node.children.append(child)
         self.node_count += child_count
+
+    def cube_pos_from_child_number(self, child_number):
+        """Work out the position of a given child in a child cube.
+
+        Returns a list of length 'dimensions' with values in
+        range('branching_factor').
+
+        """
+        result = []
+        i = child_number
+        for d in range(self.dimensions):
+            i, r = divmod(i, self.branching_factor)
+            result.append(r)
+        return result
+
+    def parameters_for_path(self, choice_path):
+        """Retrieve the point in parameter space given by a node.
+
+        choice_path -- sequence of child indices
+
+        Returns optimiser_parameters representing the centre of the region
+        of parameter space represented by the node of interest.
+
+        choice_path must represent a path from the root to the node of interest.
+
+        """
+        lo = [0.0] * self.dimensions
+        breadth = 1.0
+        for child_index in choice_path:
+            cube_pos = self.cube_pos_from_child_number(child_index)
+            breadth /= self.branching_factor
+            for d in range(self.dimensions):
+                lo[d] += breadth * cube_pos[d]
+        return [f + .5*breadth for f in lo]
 
     def retrieve_best_parameters(self):
         """Find the parameters with the most promising simulation results.
@@ -205,9 +225,7 @@ class Simulation(object):
     def __init__(self, tree):
         self.tree = tree
         self.node_path = []
-        self.choice_path = [] # For description only
-        self.parameter_min = [0.0] * tree.dimensions
-        self.parameter_breadth = 1.0
+        self.choice_path = []
         self.candidate_won = None
 
     def _choose_action(self, node):
@@ -231,10 +249,6 @@ class Simulation(object):
         node   -- corresponding Node
 
         """
-        cube_pos = self.tree.cube_pos_from_child_number(choice)
-        self.parameter_breadth /= self.tree.branching_factor
-        for d in range(self.tree.dimensions):
-            self.parameter_min[d] += self.parameter_breadth * cube_pos[d]
         self.node_path.append(node)
         self.choice_path.append(choice)
 
@@ -267,8 +281,7 @@ class Simulation(object):
         Returns optimiser_parameters
 
         """
-        return [self.parameter_min[d] + .5*self.parameter_breadth
-                for d in range(self.tree.dimensions)]
+        return self.tree.parameters_for_path(self.choice_path)
 
     def update_stats(self, candidate_won):
         """Update the tree's node statistics with the simulation's results.
