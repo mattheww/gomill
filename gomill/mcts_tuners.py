@@ -222,6 +222,44 @@ class Tree(object):
                 result.append("    " + describe_node(node2, [choice, choice2]))
         return "\n".join(result)
 
+    def summarise(self):
+        """Return a text summary of the most-visited parts of the tree."""
+
+        # FIXME: Very bodgy implementation
+        def describe_steps(choice_path):
+            return " ".join(map(self.describe_choice, choice_path))
+        def describe_node(node, choice_path):
+            parameters = self.format_parameters(
+                self.parameters_for_path(choice_path))
+            choice_s = describe_steps(choice_path)
+            return "%s %-40s %.3f %3d" % (
+                choice_s, parameters, node.value,
+                node.visits - self.initial_visits)
+
+        from heapq import nlargest
+        def nodes_for_generation(g):
+            if g == 0:
+                return [([], self.root)]
+            result = []
+            for path, node in nodes_for_generation(g-1):
+                if node.children is not None:
+                    result += [(path + [i], child)
+                               for (i, child) in enumerate(node.children)]
+            return result
+
+        number_to_describe_for_generation = [4, 2, 2]
+        l = []
+        def key((child_index, node)):
+            return node.visits
+        for g, n in enumerate(number_to_describe_for_generation):
+            l.append("most visited at depth %s" % (g+1))
+            for path, node in sorted(
+                nlargest(n, nodes_for_generation(g+1), key=key)):
+                l.append(describe_node(node, path))
+            l.append("")
+
+        return "\n".join(l)
+
 
 class Simulation(object):
     """A single monte-carlo simulation.
@@ -564,7 +602,7 @@ class Mcts_tuner(Competition):
         if self.last_simulation is not None:
             print >>out, "Last simulation: %s" % (
                 self.last_simulation.describe())
-        print >>out, self.tree.describe()
+        print >>out, self.tree.summarise()
         print >>out, "Best parameter vector: %s" % (
             self.format_parameters(self.tree.retrieve_best_parameters()))
         #waitforkey = raw_input()
