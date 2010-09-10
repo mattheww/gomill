@@ -189,7 +189,7 @@ class Tree(object):
 
     def describe_choice(self, choice):
         """Return a string describing a child's coordinates in its parent."""
-        return str(self._cube_coordinates[choice])
+        return str(self._cube_coordinates[choice]).replace(" ", "")
 
     def describe(self):
         """Return a text description of the current state of the tree."""
