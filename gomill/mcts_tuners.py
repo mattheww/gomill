@@ -222,8 +222,15 @@ class Tree(object):
                 result.append("    " + describe_node(node2, [choice, choice2]))
         return "\n".join(result)
 
-    def summarise(self):
-        """Return a text summary of the most-visited parts of the tree."""
+    def summarise(self, summary_spec):
+        """Return a text summary of the most-visited parts of the tree.
+
+        summary_spec -- list of ints
+
+        summary_spec says how many nodes to describe at each depth of the tree
+        (so to show only direct children of the root, pass a list of length 1).
+
+        """
 
         # FIXME: Very bodgy implementation
         def describe_steps(choice_path):
@@ -247,11 +254,10 @@ class Tree(object):
                                for (i, child) in enumerate(node.children)]
             return result
 
-        number_to_describe_for_generation = [4, 2, 2]
         l = []
         def key((child_index, node)):
             return node.visits
-        for g, n in enumerate(number_to_describe_for_generation):
+        for g, n in enumerate(summary_spec):
             l.append("most visited at depth %s" % (g+1))
             for path, node in sorted(
                 nlargest(n, nodes_for_generation(g+1), key=key)):
@@ -401,6 +407,8 @@ class Mcts_tuner(Competition):
         Setting('number_of_games', allow_none(interpret_int), default=None),
         Setting('candidate_colour', interpret_colour),
         Setting('log_after_games', interpret_positive_int, default=8),
+        # FIXME: Something should validate it's a sequence of ints
+        Setting('summary_spec', interpret_sequence, default=(4, 2, 2))
         ]
 
     special_settings = [
@@ -602,7 +610,7 @@ class Mcts_tuner(Competition):
         if self.last_simulation is not None:
             print >>out, "Last simulation: %s" % (
                 self.last_simulation.describe())
-        print >>out, self.tree.summarise()
+        print >>out, self.tree.summarise(self.summary_spec)
         print >>out, "Best parameter vector: %s" % (
             self.format_parameters(self.tree.retrieve_best_parameters()))
         #waitforkey = raw_input()
