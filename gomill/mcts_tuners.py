@@ -3,6 +3,7 @@
 from __future__ import division
 
 import random
+from heapq import nlargest
 from math import log, sqrt
 
 from gomill import compact_tracebacks
@@ -222,49 +223,47 @@ class Tree(object):
                 result.append("    " + describe_node(node2, [choice, choice2]))
         return "\n".join(result)
 
-    def summarise(self, summary_spec):
+    def summarise(self, out, summary_spec):
         """Return a text summary of the most-visited parts of the tree.
 
+        out          -- writeable file-like object
         summary_spec -- list of ints
 
         summary_spec says how many nodes to describe at each depth of the tree
         (so to show only direct children of the root, pass a list of length 1).
 
         """
+        def p(s):
+            print >>out, s
 
-        # FIXME: Very bodgy implementation
-        def describe_steps(choice_path):
-            return " ".join(map(self.describe_choice, choice_path))
         def describe_node(node, choice_path):
             parameters = self.format_parameters(
                 self.parameters_for_path(choice_path))
-            choice_s = describe_steps(choice_path)
+            choice_s = " ".join(map(self.describe_choice, choice_path))
             return "%s %-40s %.3f %3d" % (
                 choice_s, parameters, node.value,
                 node.visits - self.initial_visits)
 
-        from heapq import nlargest
-        def nodes_for_generation(g):
-            if g == 0:
-                return [([], self.root)]
-            result = []
-            for path, node in nodes_for_generation(g-1):
-                if node.children is not None:
-                    result += [(path + [i], child)
-                               for (i, child) in enumerate(node.children)]
-            return result
-
-        l = []
-        def key((child_index, node)):
+        def most_visits((child_index, node)):
             return node.visits
-        for g, n in enumerate(summary_spec):
-            l.append("most visited at depth %s" % (g+1))
-            for path, node in sorted(
-                nlargest(n, nodes_for_generation(g+1), key=key)):
-                l.append(describe_node(node, path))
-            l.append("")
 
-        return "\n".join(l)
+        last_generation = [([], self.root)]
+        for i, n in enumerate(summary_spec):
+            depth = i + 1
+            p("most visited at depth %s" % (depth))
+
+            this_generation = []
+            for path, node in last_generation:
+                if node.children is not None:
+                    this_generation += [
+                        (path + [child_index], child)
+                        for (child_index, child) in enumerate(node.children)]
+
+            for path, node in sorted(
+                nlargest(n, this_generation, key=most_visits)):
+                p(describe_node(node, path))
+            last_generation = this_generation
+            p("")
 
 
 class Simulation(object):
@@ -612,7 +611,7 @@ class Mcts_tuner(Competition):
         if self.last_simulation is not None:
             print >>out, "Last simulation: %s" % (
                 self.last_simulation.describe())
-        print >>out, self.tree.summarise(self.summary_spec)
+        self.tree.summarise(out, self.summary_spec)
         print >>out, "Best parameter vector: %s" % (
             self.format_parameters(self.tree.retrieve_best_parameters()))
         #waitforkey = raw_input()
