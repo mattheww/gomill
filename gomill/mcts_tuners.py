@@ -407,8 +407,8 @@ class Mcts_tuner(Competition):
         Setting('number_of_games', allow_none(interpret_int), default=None),
         Setting('candidate_colour', interpret_colour),
         Setting('log_after_games', interpret_positive_int, default=8),
-        # FIXME: Something should validate it's a sequence of ints
-        Setting('summary_spec', interpret_sequence, default=(4, 2, 2))
+        Setting('summary_spec', interpret_sequence_of(interpret_int),
+                default=(4, 2, 2))
         ]
 
     special_settings = [

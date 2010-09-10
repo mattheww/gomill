@@ -8,7 +8,7 @@ __all__ = ['Setting', 'allow_none', 'load_settings',
            'interpret_8bit_string', 'interpret_identifier',
            'interpret_as_utf8', 'interpret_as_utf8_stripped',
            'interpret_colour', 'interpret_enum', 'interpret_callable',
-           'interpret_sequence', 'interpret_map',
+           'interpret_sequence', 'interpret_sequence_of', 'interpret_map',
            ]
 
 def interpret_any(v):
@@ -114,6 +114,14 @@ def interpret_sequence(l):
     except StandardError:
         raise ValueError("not a sequence")
     return l
+
+def interpret_sequence_of(item_interpreter):
+    def interpreter(value):
+        l = interpret_sequence(value)
+        for i, v in enumerate(l):
+            l[i] = item_interpreter(v)
+        return l
+    return interpreter
 
 def interpret_map(m):
     try:
