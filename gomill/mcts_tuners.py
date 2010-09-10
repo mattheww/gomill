@@ -193,7 +193,11 @@ class Tree(object):
         return str(self._cube_coordinates[choice]).replace(" ", "")
 
     def describe(self):
-        """Return a text description of the current state of the tree."""
+        """Return a text description of the current state of the tree.
+
+        This currently dumps the full tree to depth 2.
+
+        """
 
         def describe_node(node, choice_path):
             parameters = self.format_parameters(
@@ -224,7 +228,7 @@ class Tree(object):
         return "\n".join(result)
 
     def summarise(self, out, summary_spec):
-        """Return a text summary of the most-visited parts of the tree.
+        """Write a summary of the most-visited parts of the tree.
 
         out          -- writeable file-like object
         summary_spec -- list of ints
