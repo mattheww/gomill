@@ -406,9 +406,10 @@ class Mcts_tuner(Competition):
                 default='players'),
         Setting('number_of_games', allow_none(interpret_int), default=None),
         Setting('candidate_colour', interpret_colour),
-        Setting('log_after_games', interpret_positive_int, default=8),
+        Setting('log_tree_to_history_period',
+                allow_none(interpret_positive_int), default=None),
         Setting('summary_spec', interpret_sequence_of(interpret_int),
-                default=(4, 2, 2))
+                default=(30,))
         ]
 
     special_settings = [
@@ -571,7 +572,8 @@ class Mcts_tuner(Competition):
         simulation.update_stats(candidate_won)
         self.log_history(simulation.describe())
         self.last_simulation = simulation
-        if self.scheduler.fixed % self.log_after_games == 0:
+        if (self.log_tree_to_history_period is not None and
+            self.scheduler.fixed % self.log_tree_to_history_period == 0):
             self.log_history(self.tree.describe())
         return "%s %s" % (simulation.describe_briefly(),
                           response.game_result.sgf_result)
