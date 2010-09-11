@@ -18,11 +18,12 @@ from gomill.settings import *
 from gomill.competitions import (
     NoGameAvailable, CompetitionError, ControlFileError, LOG, DISCARD)
 
-def interpret_python(source, provided_globals):
+def interpret_python(source, provided_globals, display_filename):
     """Interpret Python code from a unicode string.
 
     source           -- unicode object
     provided_globals -- dict
+    display_filename -- filename to use in exceptions
 
     The string is executed with a copy of provided_globals as the global and
     local namespace. Returns that namespace.
@@ -34,7 +35,7 @@ def interpret_python(source, provided_globals):
 
     """
     result = provided_globals.copy()
-    code = compile(source, "<control file>", 'exec',
+    code = compile(source, display_filename, 'exec',
                    division.compiler_flag, True)
     exec code in result
     return result
@@ -129,7 +130,8 @@ class Ringmaster(object):
 
         try:
             config = interpret_python(
-                control_u, self.competition.control_file_globals())
+                control_u, self.competition.control_file_globals(),
+                display_filename=self.control_pathname)
         except:
             raise ControlFileError(compact_tracebacks.format_error_and_line())
 
