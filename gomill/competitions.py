@@ -48,6 +48,7 @@ DISCARD = Control_file_token('DISCARD')
 
 _player_settings = [
     Setting('command_string', interpret_8bit_string),
+    Setting('cwd', interpret_8bit_string, default=None),
     Setting('is_reliable_scorer', interpret_bool, default=True),
     Setting('gtp_translations', interpret_map, default=dict),
     Setting('startup_gtp_commands', interpret_sequence, default=list),
@@ -221,6 +222,15 @@ class Competition(object):
             player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
         except StandardError, e:
             raise ControlFileError("'command_string': %s" % e)
+
+        cwd = config['cwd']
+        if cwd is None:
+            player.cwd = None
+        else:
+            try:
+                player.cwd = os.path.expanduser(cwd)
+            except StandardError, e:
+                raise ControlFileError("'cwd': %s" % e)
 
         player.is_reliable_scorer = config['is_reliable_scorer']
 
