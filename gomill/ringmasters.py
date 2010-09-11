@@ -84,10 +84,10 @@ class Ringmaster(object):
         self.game_error_counts = {}
         self.write_gtp_logs = False
 
-        control_dirname, control_filename = os.path.split(control_pathname)
-        self.competition_code = os.path.splitext(control_filename)[0]
-        stem = os.path.join(control_dirname, self.competition_code)
         self.control_pathname = control_pathname
+        self.base_directory, control_filename = os.path.split(control_pathname)
+        self.competition_code = os.path.splitext(control_filename)[0]
+        stem = os.path.join(self.base_directory, self.competition_code)
         self.log_pathname = stem + ".log"
         self.status_pathname = stem + ".status"
         self.command_pathname = stem + ".cmd"
@@ -122,6 +122,7 @@ class Ringmaster(object):
             raise ControlFileError(
                 "unknown competition type: %s" % self.competition_type)
         self.competition = competition_class(self.competition_code)
+        self.competition.set_base_directory(self.base_directory)
 
         try:
             control_u = control_s.decode("utf-8")

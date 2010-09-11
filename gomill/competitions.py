@@ -64,6 +64,7 @@ class Competition(object):
 
     def __init__(self, competition_code):
         self.competition_code = competition_code
+        self.base_directory = None
         self.event_logger = log_discard
         self.history_logger = log_discard
 
@@ -79,6 +80,39 @@ class Competition(object):
             'LOG' : LOG,
             'DISCARD' : DISCARD,
             }
+
+    def set_base_directory(self, pathname):
+        """Set the competition's base directory.
+
+        Relative paths in the control file are interpreted relative to this
+        directory.
+
+        """
+        self.base_directory = pathname
+
+    def resolve_pathname(self, pathname):
+        """Resolve a pathname relative to the competition's base directory.
+
+        Accepts None, returning it.
+
+        Applies os.expanduser to the pathname.
+
+        Doesn't absolutise or normalise the resulting pathname.
+
+        Raises ValueError if it can't handle the pathname.
+
+        """
+        if pathname is None:
+            return None
+        try:
+            pathname = os.path.expanduser(pathname)
+        except StandardError:
+            raise ValueError("bad pathname")
+        try:
+            return os.path.join(self.base_directory, pathname)
+        except StandardError:
+            raise ValueError(
+                "relative path supplied but base directory isn't set")
 
     def set_event_logger(self, logger):
         """Set a callback for the event log.
@@ -223,16 +257,10 @@ class Competition(object):
         except StandardError, e:
             raise ControlFileError("'command_string': %s" % e)
 
-        cwd = config['cwd']
-        if cwd is None:
-            player.cwd = None
-        else:
-            try:
-                player.cwd = os.path.expanduser(cwd)
-            except StandardError, e:
-                raise ControlFileError("'cwd': %s" % e)
-
-        player.is_reliable_scorer = config['is_reliable_scorer']
+        try:
+            player.cwd = self.resolve_pathname(config['cwd'])
+        except StandardError, e:
+            raise ControlFileError("'cwd': %s" % e)
 
         player.startup_gtp_commands = []
         try:
