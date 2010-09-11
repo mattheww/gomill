@@ -13,8 +13,8 @@ a :dfn:`tuning event`
   parameters to find a good configuration.
 
 
-Tournament files
-----------------
+Control files
+-------------
 
 Commands are strings. They're not run via a shell, but they're split into
 arguments in a shell-like way (see :func:`shlex.split`). '~' (home directory)
@@ -87,12 +87,12 @@ Command-line options:
    log all GTP traffic
 
 :option:`!--max-games` is independent of any :confval:`number_of_games`
-settings in the tournament file; the run will halt if either limit is reached.
+settings in the control file; the run will halt if either limit is reached.
 
 If :option:`!--log-gtp` is set, the ringmaster logs all GTP commands and
 responses. It writes a separate log file for each game, in the
 `<code>.sgflogs` directory.
 
-It's ok to stop a tournament with :kbd:`Ctrl-C`; incomplete games will be
+It's ok to stop a competition with :kbd:`Ctrl-C`; incomplete games will be
 rerun from scratch on the next run.
 
