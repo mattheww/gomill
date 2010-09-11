@@ -104,6 +104,7 @@ class Game(object):
         game.set_move_callback...()
         game.set_gtp_log(...)
         game.set_stderr(...)
+        game.set_cwd(...)
       game.start_players()
       game.request_engine_descriptions() [optional]
       game.set_handicap(...) [optional]
@@ -151,6 +152,7 @@ class Game(object):
         self.sgf_setup_stones = None
         self.gtp_log_dest = None
         self.engine_stderr_dest = {'b' : None, 'w' : None}
+        self.engine_cwd = {'b' : None, 'w' : None}
         self.after_move_callback = None
 
 
@@ -220,6 +222,14 @@ class Game(object):
 
         """
         self.engine_stderr_dest[colour] = stderr_dest
+
+    def set_cwd(self, colour, cwd):
+        """Set the engine's working directory.
+
+        By default, the engine's working directory is left unchanged.
+
+        """
+        self.engine_cwd[colour] = cwd
 
 
     ## Main methods
@@ -299,7 +309,8 @@ class Game(object):
             try:
                 channel = gtp_controller.Subprocess_gtp_channel(
                     self.commands[colour],
-                    stderr=self.engine_stderr_dest[colour])
+                    stderr=self.engine_stderr_dest[colour],
+                    cwd=self.engine_cwd[colour])
             except GtpTransportError, e:
                 raise GtpTransportError("error creating player %s:\n%s" %
                                         (self.players[colour], e))

@@ -20,6 +20,7 @@ class Player(object):
       gtp_translations     -- map command string -> command string
       startup_gtp_commands -- list of pairs (command_name, arguments)
       stderr_pathname      -- pathname or None (default None)
+      cwd                  -- working directory to change to (default None)
 
     See gtp_games for an explanation of gtp_translations.
 
@@ -39,6 +40,7 @@ class Player(object):
         self.gtp_translations = {}
         self.startup_gtp_commands = []
         self.stderr_pathname = None
+        self.cwd = None
 
 class Game_job_result(object):
     """Information returned after a worker process plays a game.
@@ -148,6 +150,8 @@ class Game_job(object):
             stderr_w = open(self.player_w.stderr_pathname, "a")
             files_to_close.append(stderr_w)
             game.set_stderr('w', stderr_w)
+        game.set_cwd('b', self.player_b.cwd)
+        game.set_cwd('w', self.player_w.cwd)
         try:
             game.start_players()
             for command, arguments in self.player_b.startup_gtp_commands:
