@@ -1,6 +1,7 @@
 """Connection between GTP games and the job manager."""
 
 import datetime
+import os
 
 from gomill import gtp_controller
 from gomill import gtp_games
@@ -243,6 +244,9 @@ def check_player(player, discard_stderr=False):
             raise CheckFailed(
                 "GTP protocol error sending command '%s': %s" % (command, e))
 
+    if player.cwd is not None and not os.path.isdir(player.cwd):
+        raise CheckFailed("bad working directory: %s" % player.cwd)
+
     if discard_stderr:
         stderr = open("/dev/null", "w")
     else:
@@ -250,7 +254,7 @@ def check_player(player, discard_stderr=False):
     controller = gtp_controller.Gtp_controller_protocol()
     try:
         channel = gtp_controller.Subprocess_gtp_channel(
-            player.cmd_args, stderr=stderr)
+            player.cmd_args, stderr=stderr, cwd=player.cwd)
         controller.add_channel(player.code, channel)
         send("known_command", "boardsize")
         for command, arguments in player.startup_gtp_commands:
