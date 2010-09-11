@@ -37,31 +37,31 @@ Usage
 
 For example::
 
-  $ ringmaster <code>.tourn
+  $ ringmaster <code>.ctl
 
 runs a competition; continues from where it left off if interrupted.
 
 ::
 
-  $ ringmaster <code>.tourn stop
+  $ ringmaster <code>.ctl stop
 
 tells a running competition to stop after the current game(s).
 
 ::
 
-  $ ringmaster <code>.tourn show
+  $ ringmaster <code>.ctl show
 
 prints a report from a competition's current status.
 
 ::
 
-  $ ringmaster <code>.tourn reset
+  $ ringmaster <code>.ctl reset
 
 deletes all state and output for the competition.
 
 ::
 
-  $ ringmaster <code>.tourn check
+  $ ringmaster <code>.ctl check
 
 runs a test invocation of the competition's players.
 

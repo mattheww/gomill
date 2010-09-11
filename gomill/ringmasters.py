@@ -81,7 +81,7 @@ class Ringmaster(object):
         self.game_error_counts = {}
         self.write_gtp_logs = False
 
-        stem = tourn_pathname.rpartition(".tourn")[0]
+        stem = tourn_pathname.rpartition(".ctl")[0]
         self.competition_code = os.path.basename(stem)
         self.log_pathname = stem + ".log"
         self.status_pathname = stem + ".status"

@@ -94,8 +94,8 @@ def run(argv, ringmaster_class):
     except KeyError:
         parser.error("no such command: %s" % command)
     tourn_pathname = args[0]
-    if not tourn_pathname.endswith(".tourn"):
-        parser.error("not a .tourn file")
+    if not tourn_pathname.endswith(".ctl"):
+        parser.error("not a .ctl file")
     try:
         if not os.path.exists(tourn_pathname):
             raise RingmasterError("control file %s not found" % tourn_pathname)
