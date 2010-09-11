@@ -2,6 +2,8 @@
 
 Makes no attempt to compress point lists.
 
+Methods taking string values expect 8-bit utf-8 strings.
+
 """
 
 import datetime
@@ -45,6 +47,7 @@ class Sgf_game(object):
             'GM' : '1',
             'FF' : '4',
             'SZ' : str(size),
+            'CA' : 'utf-8',
             }
 
     def sgf_point(self, move):
@@ -133,6 +136,14 @@ class Sgf_game(object):
                 self.set_root_property('PL', first_player)
 
     def as_string(self):
+        """Return the SGF data as a string.
+
+        Returns an 8-bit utf-8 string.
+
+        (By default there will be a CA[utf-8] root property; if you change
+        that, it's up to you to recode the returned result to match.)
+
+        """
         self._finalise()
         l = []
         l.append("(;")
