@@ -62,7 +62,7 @@ class Ringmaster(object):
     # Class attribute so that subclasses can modify
     control_file_globals = control_file_globals
 
-    def __init__(self, tourn_pathname):
+    def __init__(self, control_pathname):
         """Instantiate and initialise a Ringmaster.
 
         Reads the control file.
@@ -81,8 +81,10 @@ class Ringmaster(object):
         self.game_error_counts = {}
         self.write_gtp_logs = False
 
-        stem = tourn_pathname.rpartition(".ctl")[0]
-        self.competition_code = os.path.basename(stem)
+        control_dirname, control_filename = os.path.split(control_pathname)
+        self.competition_code = os.path.splitext(control_filename)[0]
+        stem = os.path.join(control_dirname, self.competition_code)
+        self.control_pathname = control_pathname
         self.log_pathname = stem + ".log"
         self.status_pathname = stem + ".status"
         self.command_pathname = stem + ".cmd"
@@ -92,7 +94,8 @@ class Ringmaster(object):
         self.gtplog_dir_pathname = stem + ".gtplogs"
 
         try:
-            config = read_python_file(tourn_pathname, self.control_file_globals)
+            config = read_python_file(
+                control_pathname, self.control_file_globals)
         except EnvironmentError, e:
             raise RingmasterError("failed to read control file:\n%s" % e)
         except:
