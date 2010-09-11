@@ -29,13 +29,13 @@ class ControlFileError(StandardError):
     """Error interpreting the control file."""
 
 class Player_config(object):
-    """Player description for use in tournament files."""
+    """Player description for use in control files."""
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
 
 class Matchup_config(object):
-    """Matchup description for use in tournament files."""
+    """Matchup description for use in control files."""
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
@@ -51,7 +51,7 @@ LOG = Control_file_token('LOG')
 DISCARD = Control_file_token('DISCARD')
 
 
-# We provide the same globals to all tournament files, because until we've
+# We provide the same globals to all control files, because until we've
 # exec'd it we don't know what type of competition we've got.
 control_file_globals = {
     'Player' : Player_config,
