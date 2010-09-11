@@ -618,7 +618,6 @@ class Mcts_tuner(Competition):
         self.tree.summarise(out, self.summary_spec)
         print >>out, "Best parameter vector: %s" % (
             self.format_parameters(self.tree.retrieve_best_parameters()))
-        #waitforkey = raw_input()
 
     def write_short_report(self, out):
         self.write_static_description(out)
