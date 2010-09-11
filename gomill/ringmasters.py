@@ -1,10 +1,11 @@
 """Run competitions using GTP."""
 
-from __future__ import division
+from __future__ import division, with_statement
 
 import cPickle as pickle
 import datetime
 import os
+import re
 import shutil
 import sys
 
@@ -18,20 +19,18 @@ from gomill.competitions import (
     NoGameAvailable, CompetitionError, ControlFileError, control_file_globals,
     LOG, DISCARD)
 
-def read_python_file(pathname, provided_globals):
-    """Load Python code from the specified file.
+def interpret_python(source, provided_globals):
+    """Interpret Python code from a string.
 
-    pathname         -- string
+    source           -- string
     provided_globals -- dict
 
-    The file contents are executed, with a copy of provided_globals as the
-    global and local namespace. Returns that namespace.
+    The string is executed with a copy of provided_globals as the global and
+    local namespace. Returns that namespace.
 
     """
     result = provided_globals.copy()
-    f = open(pathname)
-    exec f in result
-    f.close()
+    exec source in result
     return result
 
 class RingmasterError(StandardError):
@@ -94,13 +93,34 @@ class Ringmaster(object):
         self.gtplog_dir_pathname = stem + ".gtplogs"
 
         try:
-            config = read_python_file(
-                control_pathname, self.control_file_globals)
+            with open(control_pathname) as f:
+                control_s = f.read()
         except EnvironmentError, e:
             raise RingmasterError("failed to read control file:\n%s" % e)
+
+        try:
+            self.competition_type = self._parse_competition_type(control_s)
+        except ValueError, e:
+            raise RingmasterError(
+                "error in control file:\ncan't find competition_type")
+
+        try:
+            competition_class = self._get_competition_class(
+                self.competition_type)
+        except ValueError:
+            raise RingmasterError(
+                "unknown competition type: %s" % self.competition_type)
+
+        try:
+            config = interpret_python(control_s, self.control_file_globals)
         except:
             raise RingmasterError("error in control file:\n%s" %
                                   compact_tracebacks.format_error_and_line())
+
+        if config.get("competition_type") != self.competition_type:
+            raise RingmasterError(
+                "error in control file:\ncompetition_type improperly specified")
+
         try:
             self._initialise_from_control_file(config)
         except ControlFileError, e:
@@ -109,11 +129,6 @@ class Ringmaster(object):
             raise RingmasterError("unhandled error in control file:\n%s" %
                                   compact_tracebacks.format_traceback(skip=1))
 
-        try:
-            competition_class = self._get_competition_class(
-                self.competition_type)
-        except ValueError:
-            raise RingmasterError("'competition_type': unknown value")
         self.competition = competition_class(self.competition_code)
         try:
             self.competition.initialise_from_control_file(config)
@@ -122,6 +137,36 @@ class Ringmaster(object):
         except StandardError, e:
             raise RingmasterError("unhandled error in control file:\n%s" %
                                   compact_tracebacks.format_traceback(skip=1))
+
+    @staticmethod
+    def _parse_competition_type(source):
+        """Find the compitition_type definition in the control file.
+
+        source -- string
+
+        Requires the competition_type line to be the first non-comment line, and
+        to be a simple assignment of a string literal.
+
+        Raises ValueError if it can't find the competition_type line, or if the
+        value isn't 'identifier-like'.
+
+        """
+        for line in source.split("\n"):
+            s = line.lstrip()
+            if not s or s.startswith("#"):
+                continue
+            break
+        else:
+            raise ValueError
+        # May propagate ValueError
+        m = re.match(r"competition_type\s*=\s*(['\"])([_a-zA-Z0-9]+)(['\"])$",
+                     line)
+        if not m:
+            raise ValueError
+        if m.group(1) != m.group(3):
+            raise ValueError
+        return m.group(2)
+
 
     @staticmethod
     def _get_competition_class(competition_type):
@@ -195,7 +240,6 @@ class Ringmaster(object):
             raise RingmasterError("error closing history file:\n%s" % e)
 
     ringmaster_settings = [
-        Setting('competition_type', interpret_identifier),
         Setting('record_games', interpret_bool, False),
         ]
 
