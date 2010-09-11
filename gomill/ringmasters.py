@@ -1,4 +1,4 @@
-"""Organise tournaments using GTP."""
+"""Run competitions using GTP."""
 
 from __future__ import division
 
@@ -108,9 +108,9 @@ class Ringmaster(object):
 
         try:
             competition_class = self._get_competition_class(
-                config.get("competition_type"))
+                self.competition_type)
         except ValueError:
-            raise RingmasterError("competition_type: unknown value")
+            raise RingmasterError("'competition_type': unknown value")
         self.competition = competition_class(self.competition_code)
         try:
             self.competition.initialise_from_control_file(config)
@@ -131,8 +131,6 @@ class Ringmaster(object):
         Raises ValueError if the competition type is unknown.
 
         """
-        if competition_type is None:
-            competition_type = "tournament"
         if competition_type == "tournament":
             from gomill import tournaments
             return tournaments.Tournament
@@ -194,6 +192,7 @@ class Ringmaster(object):
             raise RingmasterError("error closing history file:\n%s" % e)
 
     ringmaster_settings = [
+        Setting('competition_type', interpret_identifier),
         Setting('record_games', interpret_bool, False),
         ]
 
