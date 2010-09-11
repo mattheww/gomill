@@ -593,11 +593,13 @@ class Ringmaster(object):
         self._initialise_presenter()
         self._initialise_terminal_reader()
 
+        allow_mp = (self.worker_count is not None)
         self.log("run started at %s with max_games %s" % (now(), max_games))
+        if allow_mp:
+            self.log("using %d worker processes" % self.worker_count)
         self.max_games_this_run = max_games
         self._update_display()
         try:
-            allow_mp = (self.worker_count is not None)
             job_manager.run_jobs(
                 job_source=self,
                 allow_mp=allow_mp, max_workers=self.worker_count,
