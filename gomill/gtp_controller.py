@@ -280,6 +280,8 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
     Instantiate with
       command -- list of strings (as for subprocess.Popen)
       stderr  -- destination for standard error output (optional)
+      cwd     -- working directory to change to (optional)
+      env     -- new environment (optional)
 
     This starts the subprocess and speaks GTP over its standard input and
     output.
@@ -288,14 +290,17 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
     the calling process. The 'stderr' parameter is interpreted as for
     subprocess.Popen (but don't set it to STDOUT or PIPE).
 
+    The 'cwd' and 'env' parameters are interpreted as for subnprocess.Popen.
+
     """
-    def __init__(self, command, stderr=None):
+    def __init__(self, command, stderr=None, cwd=None, env=None):
         Linebased_gtp_channel.__init__(self)
         try:
-            p = subprocess.Popen(command,
-                                 preexec_fn=permit_sigpipe, close_fds=True,
-                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                 stderr=stderr)
+            p = subprocess.Popen(
+                command,
+                preexec_fn=permit_sigpipe, close_fds=True,
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                stderr=stderr, cwd=cwd, env=env)
         except EnvironmentError, e:
             raise GtpTransportError(str(e))
         self.subprocess = p
