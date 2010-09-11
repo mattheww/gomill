@@ -229,6 +229,7 @@ def check_player(player, discard_stderr=False):
      - any explicitly specified cwd exists and is a directory
      - the engine subprocess starts, and can reply to a GTP command
      - the engine supports 'known_command'
+     - the engine reports protocol version 2 (if it supports protocol_version)
      - the engine accepts any startup_gtp_commands
 
     """
@@ -257,7 +258,12 @@ def check_player(player, discard_stderr=False):
         channel = gtp_controller.Subprocess_gtp_channel(
             player.cmd_args, stderr=stderr, cwd=player.cwd)
         controller.add_channel(player.code, channel)
-        send("known_command", "boardsize")
+        pv_known = send("known_command", "protocol_version")
+        if pv_known == "true":
+            protocol_version = send("protocol_version")
+            if protocol_version != "2":
+                raise CheckFailed(
+                    "reports GTP protocol version %s" % protocol_version)
         for command, arguments in player.startup_gtp_commands:
             send(command, *arguments)
         send("quit")
