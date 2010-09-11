@@ -134,15 +134,17 @@ class Move_generator_result(object):
         self.cookie = None
 
 
-class Gtp_board(object):
-    """Implement a stateful GTP board for use with a stateless engine.
+class Gtp_state(object):
+    """Manage the stateful part of the GTP engine protocol.
+
+    This supports implementing a GTP engine using a stateless move generator.
 
     Sample use:
-      gtp_board = Gtp_board(...)
+      gtp_state = Gtp_state(...)
       engine = Gtp_engine_protocol()
-      engine.add_commands(gtp_board.get_handlers())
+      engine.add_commands(gtp_state.get_handlers())
 
-    A Gtp_board maintains the following state:
+    A Gtp_state maintains the following state:
       board configuration
       move history
       komi
@@ -158,8 +160,8 @@ class Gtp_board(object):
     arguments (game_state, colour to play). It should return a
     Move_generator_result. It must not modify data passed in the game_state.
 
-    If the move generator returns an occupied point, Gtp_board will report a GTP
-    error. Gtp_board does not enforce any ko rule. It permits self-captures.
+    If the move generator returns an occupied point, Gtp_state will report a GTP
+    error. Gtp_state does not enforce any ko rule. It permits self-captures.
 
     """
 

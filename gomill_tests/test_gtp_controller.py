@@ -3,8 +3,8 @@ import os
 
 from gomill import gtp_controller
 
-from gomill_tests import test_gtp_board
-from gomill import gtp_boards
+from gomill_tests import test_gtp_state
+from gomill import gtp_states
 
 
 def test():
@@ -20,8 +20,8 @@ def test():
 
     controller.enable_logging(sys.stdout)
 
-    gtp_board = gtp_boards.Gtp_board(test_gtp_board.dummy_move_generator, [9])
-    engine = test_gtp_board.kiai_dummy_engine(gtp_board)
+    gtp_state = gtp_states.Gtp_state(test_gtp_state.dummy_move_generator, [9])
+    engine = test_gtp_state.kiai_dummy_engine(gtp_state)
     c2 = gtp_controller.Internal_gtp_channel(engine)
 
     #c2 = gtp_controller.Subprocess_gtp_channel(
