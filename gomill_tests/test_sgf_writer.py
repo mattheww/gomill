@@ -36,9 +36,9 @@ test_setup_stones = [
     ]
 
 expected_sgf = """\
-(;AP[test-sgf-writer]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]PL[B]
-PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc];B[cg];W[df]C[cmt];B[tt]
-C[Final comment])
+(;AP[test-sgf-writer]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
+PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc];B[cg];W[df]C[cmt]
+;B[tt]C[Final comment])
 """
 
 def main():
