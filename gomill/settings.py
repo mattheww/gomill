@@ -40,13 +40,17 @@ def interpret_float(f):
 
 def interpret_8bit_string(s):
     if isinstance(s, str):
-        return s
-    if isinstance(s, unicode):
+        result = s
+    elif isinstance(s, unicode):
         try:
-            return s.encode("ascii")
+            result = s.encode("ascii")
         except UnicodeEncodeError:
             raise ValueError("non-ascii character in unicode string")
-    raise ValueError("not a string")
+    else:
+        raise ValueError("not a string")
+    if '\0' in s:
+        raise ValueError("contains NUL")
+    return result
 
 def interpret_as_utf8(s):
     if isinstance(s, str):
