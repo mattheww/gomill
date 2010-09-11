@@ -90,7 +90,7 @@ class Competition(object):
         self.event_logger = logger
 
     def set_history_logger(self, logger):
-        """Set a callback for the history log.
+        """Set a callback for the history file.
 
         logger -- function taking a string argument
 
@@ -111,9 +111,9 @@ class Competition(object):
         self.event_logger(s)
 
     def log_history(self, s):
-        """Write a message to the history log.
+        """Write a message to the history file.
 
-        The history log is used to show things like game results and tuning
+        The history file is used to show things like game results and tuning
         event intermediate status.
 
         A newline is added to the message.
@@ -309,6 +309,8 @@ class Competition(object):
 
         This may return a text description of the game result, to override the
         default (it should normally include response.game_result.sgf_result).
+
+        It's common for this method to write to the history file.
 
         """
         raise NotImplementedError
