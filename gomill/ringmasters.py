@@ -79,7 +79,13 @@ class Ringmaster(object):
         # Map game_id -> int
         self.game_error_counts = {}
         self.write_gtp_logs = False
+        try:
+            self._load_control_file(control_pathname)
+        except ControlFileError, e:
+            raise RingmasterError("error in control file:\n%s" % e)
 
+    def _load_control_file(self, control_pathname):
+        """Main implementation for __init__."""
         control_dirname, control_filename = os.path.split(control_pathname)
         self.competition_code = os.path.splitext(control_filename)[0]
         stem = os.path.join(control_dirname, self.competition_code)
@@ -101,30 +107,27 @@ class Ringmaster(object):
         try:
             self.competition_type = self._parse_competition_type(control_s)
         except ValueError, e:
-            raise RingmasterError(
-                "error in control file:\ncan't find competition_type")
+            raise ControlFileError("can't find competition_type")
 
         try:
             competition_class = self._get_competition_class(
                 self.competition_type)
         except ValueError:
-            raise RingmasterError(
+            raise ControlFileError(
                 "unknown competition type: %s" % self.competition_type)
 
         try:
             config = interpret_python(control_s, self.control_file_globals)
         except:
-            raise RingmasterError("error in control file:\n%s" %
-                                  compact_tracebacks.format_error_and_line())
+            raise ControlFileError(compact_tracebacks.format_error_and_line())
 
         if config.get("competition_type") != self.competition_type:
-            raise RingmasterError(
-                "error in control file:\ncompetition_type improperly specified")
+            raise ControlFileError("competition_type improperly specified")
 
         try:
             self._initialise_from_control_file(config)
-        except ControlFileError, e:
-            raise RingmasterError("error in control file:\n%s" % e)
+        except ControlFileError:
+            raise
         except StandardError, e:
             raise RingmasterError("unhandled error in control file:\n%s" %
                                   compact_tracebacks.format_traceback(skip=1))
@@ -132,8 +135,8 @@ class Ringmaster(object):
         self.competition = competition_class(self.competition_code)
         try:
             self.competition.initialise_from_control_file(config)
-        except ControlFileError, e:
-            raise RingmasterError("error in control file:\n%s" % e)
+        except ControlFileError:
+            raise
         except StandardError, e:
             raise RingmasterError("unhandled error in control file:\n%s" %
                                   compact_tracebacks.format_traceback(skip=1))
