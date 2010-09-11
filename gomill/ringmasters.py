@@ -19,17 +19,24 @@ from gomill.competitions import (
     NoGameAvailable, CompetitionError, ControlFileError, LOG, DISCARD)
 
 def interpret_python(source, provided_globals):
-    """Interpret Python code from a string.
+    """Interpret Python code from a unicode string.
 
-    source           -- string
+    source           -- unicode object
     provided_globals -- dict
 
     The string is executed with a copy of provided_globals as the global and
     local namespace. Returns that namespace.
 
+    The source string must not have an encoding declaration (SyntaxError will be
+    raised if it does).
+
+    Propagates exceptions.
+
     """
     result = provided_globals.copy()
-    exec source in result
+    code = compile(source, "<control file>", 'exec',
+                   division.compiler_flag, True)
+    exec code in result
     return result
 
 class RingmasterError(StandardError):
@@ -116,8 +123,13 @@ class Ringmaster(object):
         self.competition = competition_class(self.competition_code)
 
         try:
+            control_u = control_s.decode("utf-8")
+        except UnicodeDecodeError:
+            raise ControlFileError("file is not encoded in utf-8")
+
+        try:
             config = interpret_python(
-                control_s, self.competition.control_file_globals())
+                control_u, self.competition.control_file_globals())
         except:
             raise ControlFileError(compact_tracebacks.format_error_and_line())
 
