@@ -381,8 +381,10 @@ class Gtp_controller_protocol(object):
         Arguments may be unicode objects, in which case they will be sent as
         utf-8.
 
-        Returns the result text from the engine as a string with no leading or
-        trailing whitespace. (This doesn't include the leading =[id] bit.)
+        Returns the result text from the engine as a string with no trailing
+        whitespace. It may contain newlines, but there are no empty lines
+        except perhaps the first. There is no leading whitespace on the first
+        line. (It doesn't include the leading =[id] bit.)
 
         If the engine returns an error response, raises GtpEngineError with the
         error message as exception parameter.
