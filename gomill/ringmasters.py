@@ -16,8 +16,7 @@ from gomill import ringmaster_presenters
 from gomill import terminal_input
 from gomill.settings import *
 from gomill.competitions import (
-    NoGameAvailable, CompetitionError, ControlFileError, control_file_globals,
-    LOG, DISCARD)
+    NoGameAvailable, CompetitionError, ControlFileError, LOG, DISCARD)
 
 def interpret_python(source, provided_globals):
     """Interpret Python code from a string.
@@ -58,9 +57,6 @@ class Ringmaster(object):
     # For --version command
     public_version = "gomill ringmaster v0.5"
 
-    # Class attribute so that subclasses can modify
-    control_file_globals = control_file_globals
-
     def __init__(self, control_pathname):
         """Instantiate and initialise a Ringmaster.
 
@@ -79,13 +75,7 @@ class Ringmaster(object):
         # Map game_id -> int
         self.game_error_counts = {}
         self.write_gtp_logs = False
-        try:
-            self._load_control_file(control_pathname)
-        except ControlFileError, e:
-            raise RingmasterError("error in control file:\n%s" % e)
 
-    def _load_control_file(self, control_pathname):
-        """Main implementation for __init__."""
         control_dirname, control_filename = os.path.split(control_pathname)
         self.competition_code = os.path.splitext(control_filename)[0]
         stem = os.path.join(control_dirname, self.competition_code)
@@ -99,7 +89,15 @@ class Ringmaster(object):
         self.gtplog_dir_pathname = stem + ".gtplogs"
 
         try:
-            with open(control_pathname) as f:
+            self._load_control_file()
+        except ControlFileError, e:
+            raise RingmasterError("error in control file:\n%s" % e)
+
+    def _load_control_file(self):
+        """Main implementation for __init__."""
+
+        try:
+            with open(self.control_pathname) as f:
                 control_s = f.read()
         except EnvironmentError, e:
             raise RingmasterError("failed to read control file:\n%s" % e)
@@ -115,9 +113,11 @@ class Ringmaster(object):
         except ValueError:
             raise ControlFileError(
                 "unknown competition type: %s" % self.competition_type)
+        self.competition = competition_class(self.competition_code)
 
         try:
-            config = interpret_python(control_s, self.control_file_globals)
+            config = interpret_python(
+                control_s, self.competition.control_file_globals())
         except:
             raise ControlFileError(compact_tracebacks.format_error_and_line())
 
@@ -132,7 +132,6 @@ class Ringmaster(object):
             raise RingmasterError("unhandled error in control file:\n%s" %
                                   compact_tracebacks.format_traceback(skip=1))
 
-        self.competition = competition_class(self.competition_code)
         try:
             self.competition.initialise_from_control_file(config)
         except ControlFileError:

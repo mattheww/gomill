@@ -28,14 +28,9 @@ class CompetitionError(StandardError):
 class ControlFileError(StandardError):
     """Error interpreting the control file."""
 
+
 class Player_config(object):
     """Player description for use in control files."""
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-
-class Matchup_config(object):
-    """Matchup description for use in control files."""
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
@@ -49,17 +44,6 @@ class Control_file_token(object):
 STDERR = Control_file_token('STDERR')
 LOG = Control_file_token('LOG')
 DISCARD = Control_file_token('DISCARD')
-
-
-# We provide the same globals to all control files, because until we've
-# exec'd it we don't know what type of competition we've got.
-control_file_globals = {
-    'Player' : Player_config,
-    'Matchup' : Matchup_config,
-    'STDERR' : STDERR,
-    'LOG' : LOG,
-    'DISCARD' : DISCARD,
-    }
 
 
 _player_settings = [
@@ -81,6 +65,19 @@ class Competition(object):
         self.competition_code = competition_code
         self.event_logger = log_discard
         self.history_logger = log_discard
+
+    def control_file_globals(self):
+        """Specify names and values to make available to the control file.
+
+        Returns a dict suitable for use as the control file's namespace.
+
+        """
+        return {
+            'Player' : Player_config,
+            'STDERR' : STDERR,
+            'LOG' : LOG,
+            'DISCARD' : DISCARD,
+            }
 
     def set_event_logger(self, logger):
         """Set a callback for the event log.

@@ -7,9 +7,15 @@ from collections import defaultdict
 from gomill import game_jobs
 from gomill import competitions
 from gomill import competition_schedulers
-from gomill.competitions import (
-    Competition, NoGameAvailable, Matchup_config, ControlFileError)
+from gomill.competitions import (Competition, NoGameAvailable, ControlFileError)
 from gomill.settings import *
+
+
+class Matchup_config(object):
+    """Matchup description for use in control files."""
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
 
 
 class Matchup(object):
@@ -60,6 +66,13 @@ class Playoff(Competition):
         Competition.__init__(self, competition_code, **kwargs)
         self.working_matchups = set()
         self.probationary_matchups = set()
+
+    def control_file_globals(self):
+        result = Competition.control_file_globals(self)
+        result.update({
+            'Matchup' : Matchup_config,
+            })
+        return result
 
 
     # These settings can be specified both globally and in matchups.
