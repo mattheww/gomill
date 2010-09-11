@@ -4,8 +4,8 @@ The ringmaster
 The ringmaster can run different kinds of competition. A competition is a
 resumable processing job based on playing many GTP games. It could be:
 
-a :dfn:`tournament`
-  In a tournament, the ringmaster plays many games between a fixed set of
+a :dfn:`playoff`
+  In a playoff, the ringmaster plays many games between a fixed set of
   players, to compare their strength.
 
 a :dfn:`tuning event`
@@ -28,7 +28,7 @@ Matchup parameters
 .. confval:: number_of_games
 
   number of games to be played in the matchup. If you omit this setting or set
-  it to :const:`None`, the tournament will continue until explicitly stopped.
+  it to :const:`None`, there will be no limit.
 
 
 
