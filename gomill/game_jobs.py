@@ -226,6 +226,7 @@ def check_player(player, discard_stderr=False):
     Raises CheckFailed if the player doesn't pass.
 
     Currently checks:
+     - any explicitly specified cwd exists and is a directory
      - the engine subprocess starts, and can reply to a GTP command
      - the engine supports 'known_command'
      - the engine accepts any startup_gtp_commands

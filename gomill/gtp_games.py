@@ -300,8 +300,13 @@ class Game(object):
         command = self._translate_gtp_command(colour, command)
         return self.controller.known_command(colour, command)
 
-    def start_players(self):
-        """Start the engine subprocesses."""
+    def start_players(self, check_protocol_version=True):
+        """Start the engine subprocesses.
+
+        If check_protocol_version is true (which it is by default), rejects an
+        engine that declares a GTP protocol version <> 2.
+
+        """
         self.controller = gtp_controller.Gtp_controller_protocol()
         if self.gtp_log_dest is not None:
             self.controller.enable_logging(self.gtp_log_dest)
@@ -315,6 +320,13 @@ class Game(object):
                 raise GtpTransportError("error creating player %s:\n%s" %
                                         (self.players[colour], e))
             self.controller.add_channel(colour, channel)
+            if check_protocol_version:
+                protocol_version = self.maybe_send_command(
+                    colour, "protocol_version")
+                if protocol_version not in (None, "2"):
+                    raise GtpProtocolError(
+                        "player %s reports GTP protocol version %s" %
+                        (self.players[colour], protocol_version))
             self.send_command(colour, "boardsize", str(self.board_size))
             self.send_command(colour, "clear_board")
             self.send_command(colour, "komi", str(self.komi))
