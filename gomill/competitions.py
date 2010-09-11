@@ -104,6 +104,8 @@ class Competition(object):
         """
         if pathname is None:
             return None
+        if pathname == "":
+            raise ValueError("empty pathname")
         try:
             pathname = os.path.expanduser(pathname)
         except StandardError:
