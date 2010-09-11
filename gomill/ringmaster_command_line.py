@@ -98,7 +98,7 @@ def run(argv, ringmaster_class):
         parser.error("not a .ctl file")
     try:
         if not os.path.exists(ctl_pathname):
-            raise RingmasterError("ctl file %s not found" % ctl_pathname)
+            raise RingmasterError("control file %s not found" % ctl_pathname)
         ringmaster = ringmaster_class(ctl_pathname)
         exit_status = action(ringmaster, options)
     except RingmasterError, e:
