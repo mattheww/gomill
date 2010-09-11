@@ -20,7 +20,7 @@ class Matchup(object):
       p2             -- player code
       name           -- shortish string to show in reports
 
-    All Tournament matchup_settings are also available as attributes.
+    All Playoff matchup_settings are also available as attributes.
 
     If alternating is False, p1 plays black and p2 plays white; otherwise they
     alternate.
@@ -49,7 +49,7 @@ class Matchup_setting(Setting):
         Setting.__init__(self, *args, **kwargs)
 
 
-class Tournament(Competition):
+class Playoff(Competition):
     """A Competition made up of repeated matchups between specified players.
 
     The game ids are like '0_2', where 0 is the matchup id and 2 is the game
@@ -63,7 +63,7 @@ class Tournament(Competition):
 
 
     # These settings can be specified both globally and in matchups.
-    # The global values (stored as Tournament attributes) are defaults for the
+    # The global values (stored as Playoff attributes) are defaults for the
     # matchup values (stored as Matchup attributes).
     matchup_settings = [
         Matchup_setting('board_size', competitions.interpret_board_size),
@@ -381,7 +381,7 @@ class Tournament(Competition):
     def write_short_report(self, out):
         def p(s):
             print >>out, s
-        p("tournament: %s" % self.competition_code)
+        p("playoff: %s" % self.competition_code)
         p(self.description)
         p('')
         self.write_screen_report(out)

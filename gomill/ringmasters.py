@@ -131,9 +131,9 @@ class Ringmaster(object):
         Raises ValueError if the competition type is unknown.
 
         """
-        if competition_type == "tournament":
-            from gomill import tournaments
-            return tournaments.Tournament
+        if competition_type == "playoff":
+            from gomill import playoffs
+            return playoffs.Playoff
         elif competition_type == "cem_tuner":
             from gomill import cem_tuners
             return cem_tuners.Cem_tuner
