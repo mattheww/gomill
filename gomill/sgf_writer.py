@@ -1,8 +1,8 @@
 """Write SGF files.
 
-Makes no attempt to compress point lists.
+Methods taking 'sgf value string' parameters expect 8-bit utf-8 strings.
 
-Methods taking string values expect 8-bit utf-8 strings.
+Makes no attempt to compress point lists.
 
 """
 
@@ -37,6 +37,12 @@ def block_format(l, width=79):
     return "\n".join(lines)
 
 class Sgf_game(object):
+    """Data to write to an SGF file
+
+    Instantiate with the board size.
+
+    """
+
     def __init__(self, size):
         if not 1 <= size <= 25:
             raise ValueError("Sgf_game: size must be in 1..25")
@@ -59,22 +65,46 @@ class Sgf_game(object):
         return col_s + row_s
 
     def set_root_property(self, identifier, value):
+        """Specify a property for the root node.
+
+        identifier -- string (eg 'KM')
+        value      -- sgf value string
+
+        """
         self.root_properties[identifier] = str(value)
 
+    def set(self, name, value):
+        """Specify a property using a more verbose naming scheme.
+
+        name  -- key from 'friendly_idents' above
+        value -- sgf value string
+
+        """
+        self.set_root_property(friendly_idents[name], value)
+
     def add_date(self, date=None):
+        """Set the DT property.
+
+        date -- datetime.date (defaults to today)
+
+        """
         if date is None:
             date = datetime.date.today()
         self.set_root_property('DT', date.strftime("%Y-%m-%d"))
 
-    def set(self, name, value):
-        self.set_root_property(friendly_idents[name], value)
-
     def add_move(self, colour, move, comment=None):
+        """Add a single move, with an optional comment.
+
+        colour  -- 'b' or 'w'
+        move    -- (row, col), or None for pass
+        comment -- sgf value string (optional)
+
+        """
         colour = colour.upper()
         if colour not in ('B', 'W'):
             raise ValueError
         if move is None:
-            # Prefer 'tt' (FF[3] and older); '' is FF[4]
+            # Prefer 'tt' where possible (FF[3] and older); '' is FF[4]
             if self.size <= 19:
                 move_s = "tt"
             else:
@@ -101,20 +131,25 @@ class Sgf_game(object):
                 raise ValueError
             st.add(self.sgf_point(move))
 
-    def add_final_comment(self, s):
+    def add_final_comment(self, comment):
+        """Add a comment to the last node.
+
+        comment -- sgf value string
+
+        """
         if self.moves:
-            move, comment = self.moves[-1]
-            if not comment:
-                comment = s
+            move, existing = self.moves[-1]
+            if not existing:
+                new = comment
             else:
-                comment += "\n\n" + s
-            self.moves[-1] = (move, comment)
+                new = existing + "\n\n" + comment
+            self.moves[-1] = (move, new)
         else:
-            comment = self.root_properties.get('C')
-            if comment is not None:
-                self.set_root_property('C', comment + "\n\n" + s)
+            existing = self.root_properties.get('C')
+            if existing is None:
+                self.set_root_property('C', comment)
             else:
-                self.set_root_property('C', s)
+                self.set_root_property('C', existing + "\n\n" + comment)
 
     def _finalise(self):
         # Add next-player when known and appropriate
