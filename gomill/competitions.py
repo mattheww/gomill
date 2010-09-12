@@ -49,6 +49,7 @@ DISCARD = Control_file_token('DISCARD')
 _player_settings = [
     Setting('command_string', interpret_8bit_string),
     Setting('cwd', interpret_8bit_string, default=None),
+    Setting('environ', interpret_map, default=None),
     Setting('is_reliable_scorer', interpret_bool, default=True),
     Setting('gtp_translations', interpret_map, default=dict),
     Setting('startup_gtp_commands', interpret_sequence, default=list),
@@ -263,6 +264,9 @@ class Competition(object):
             player.cwd = self.resolve_pathname(config['cwd'])
         except StandardError, e:
             raise ControlFileError("'cwd': %s" % e)
+
+        # FIXME: Validate harder!
+        player.environ = config['environ']
 
         player.startup_gtp_commands = []
         try:

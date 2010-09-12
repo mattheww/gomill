@@ -1,5 +1,7 @@
 """Run a game between two GTP engines."""
 
+import os
+
 from gomill.gomill_common import *
 from gomill import compact_tracebacks
 from gomill import gtp_controller
@@ -105,6 +107,7 @@ class Game(object):
         game.set_gtp_log(...)
         game.set_stderr(...)
         game.set_cwd(...)
+        game.set_environ(...)
       game.start_players()
       game.request_engine_descriptions() [optional]
       game.set_handicap(...) [optional]
@@ -153,6 +156,7 @@ class Game(object):
         self.gtp_log_dest = None
         self.engine_stderr_dest = {'b' : None, 'w' : None}
         self.engine_cwd = {'b' : None, 'w' : None}
+        self.engine_environ = {'b' : None, 'w' : None}
         self.after_move_callback = None
 
 
@@ -230,6 +234,17 @@ class Game(object):
 
         """
         self.engine_cwd[colour] = cwd
+
+    def set_environ(self, colour, environ):
+        """Set replacement environment variables for the engine.
+
+        environ -- dict
+
+        The engine will be given a copy of os.environ, updated with these
+        variables.
+
+        """
+        self.engine_environ[colour] = environ
 
 
     ## Main methods
@@ -311,11 +326,16 @@ class Game(object):
         if self.gtp_log_dest is not None:
             self.controller.enable_logging(self.gtp_log_dest)
         for colour in ("b", "w"):
+            if self.engine_environ[colour] is not None:
+                env = os.environ.copy()
+                env.update(self.engine_environ[colour])
+            else:
+                env = None
             try:
                 channel = gtp_controller.Subprocess_gtp_channel(
                     self.commands[colour],
                     stderr=self.engine_stderr_dest[colour],
-                    cwd=self.engine_cwd[colour])
+                    cwd=self.engine_cwd[colour], env=env)
             except GtpTransportError, e:
                 raise GtpTransportError("error creating player %s:\n%s" %
                                         (self.players[colour], e))

@@ -22,6 +22,7 @@ class Player(object):
       startup_gtp_commands -- list of pairs (command_name, arguments)
       stderr_pathname      -- pathname or None (default None)
       cwd                  -- working directory to change to (default None)
+      environ              -- dict of environment variables (default None)
 
     See gtp_games for an explanation of gtp_translations.
 
@@ -33,6 +34,10 @@ class Player(object):
     and the player's standard error will be sent there. Otherwise the player's
     standard error will be left as the standard error of the calling process.
 
+    By default, the player will be given a copy of the parent process's
+    environment variables; use 'environ' to add variables or replace particular
+    values.
+
     Players are suitable for pickling.
 
     """
@@ -42,6 +47,7 @@ class Player(object):
         self.startup_gtp_commands = []
         self.stderr_pathname = None
         self.cwd = None
+        self.environ = None
 
 class Game_job_result(object):
     """Information returned after a worker process plays a game.
@@ -159,6 +165,8 @@ class Game_job(object):
             game.set_stderr('w', stderr_w)
         game.set_cwd('b', self.player_b.cwd)
         game.set_cwd('w', self.player_w.cwd)
+        game.set_environ('b', self.player_b.environ)
+        game.set_environ('w', self.player_w.environ)
         try:
             game.start_players()
             for command, arguments in self.player_b.startup_gtp_commands:
