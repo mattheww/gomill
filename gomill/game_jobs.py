@@ -22,7 +22,7 @@ class Player(object):
       startup_gtp_commands -- list of pairs (command_name, arguments)
       stderr_pathname      -- pathname or None (default None)
       cwd                  -- working directory to change to (default None)
-      environ              -- dict of environment variables (default None)
+      environ              -- maplike of environment variables (default None)
 
     See gtp_games for an explanation of gtp_translations.
 

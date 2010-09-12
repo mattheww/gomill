@@ -238,7 +238,7 @@ class Game(object):
     def set_environ(self, colour, environ):
         """Set replacement environment variables for the engine.
 
-        environ -- dict
+        environ -- maplike
 
         The engine will be given a copy of os.environ, updated with these
         variables.
