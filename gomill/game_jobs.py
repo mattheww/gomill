@@ -250,61 +250,53 @@ class Game_job(object):
 class CheckFailed(StandardError):
     """Error reported by check_player()"""
 
-def check_player(player, discard_stderr=False):
+def check_player(player, boardsize, discard_stderr=False):
     """Do a test run of a GTP engine.
 
-    player -- Player object
+    player    -- Player object
+    boardsize -- int
 
-    This starts a subprocess for each engine, sends it a GTP command, and ends
-    the process again.
+    This starts an engine subprocess, sends it some GTP commands, and ends the
+    process again.
 
-    Raises CheckFailed if the player doesn't pass.
+    Raises CheckFailed if the player doesn't pass the checks.
 
     Currently checks:
      - any explicitly specified cwd exists and is a directory
-     - the engine subprocess starts, and can reply to a GTP command
-     - the engine supports 'known_command'
+     - the engine subprocess starts, and can reply to GTP commands
      - the engine reports protocol version 2 (if it supports protocol_version)
+     - the engine accepts the specified boardsize
+     - the engine accepts 'clear_board' and 'komi' commands
      - the engine accepts any startup_gtp_commands
 
     """
-    def send(command, *arguments):
-        try:
-            return controller.do_command(player.code, command, *arguments)
-        except GtpEngineError, e:
-            raise CheckFailed(
-                "error from command '%s': %s" % (command, e))
-        except GtpTransportError, e:
-            raise CheckFailed(
-                "transport error sending command '%s': %s" % (command, e))
-        except GtpProtocolError, e:
-            raise CheckFailed(
-                "GTP protocol error sending command '%s': %s" % (command, e))
-
     if player.cwd is not None and not os.path.isdir(player.cwd):
         raise CheckFailed("bad working directory: %s" % player.cwd)
 
+    game = gtp_games.Game(
+        {'b' : player.code, 'w' : 'dummy'},
+        {'b' : player.cmd_args, 'w' : []},
+        board_size=9, komi=0, move_limit=256)
+
+    game.set_gtp_translations({'b' : player.gtp_translations, 'w' : {}})
     if discard_stderr:
         stderr = open("/dev/null", "w")
+        game.set_stderr('b', stderr)
     else:
         stderr = None
-    controller = gtp_controller.Gtp_controller_protocol()
     try:
-        channel = gtp_controller.Subprocess_gtp_channel(
-            player.cmd_args, stderr=stderr, cwd=player.cwd)
-        controller.add_channel(player.code, channel)
-        pv_known = send("known_command", "protocol_version")
-        if pv_known == "true":
-            protocol_version = send("protocol_version")
-            if protocol_version != "2":
-                raise CheckFailed(
-                    "reports GTP protocol version %s" % protocol_version)
-        for command, arguments in player.startup_gtp_commands:
-            send(command, *arguments)
-        send("quit")
-        controller.close_channel(player.code)
-    except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
-        raise CheckFailed(str(e))
+        game.set_cwd('b', player.cwd)
+        game.set_environ('b', player.environ)
+        try:
+            game.start_player('b', check_protocol_version=True)
+            for command, arguments in player.startup_gtp_commands:
+                game.send_command('b', command, *arguments)
+        except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
+            raise CheckFailed(str(e))
+        try:
+            game.close_players()
+        except StandardError, e:
+            raise CheckFailed("error shutting down player:\n%s" % e)
     finally:
         try:
             if stderr is not None:
