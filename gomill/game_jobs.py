@@ -78,6 +78,7 @@ class Game_job(object):
       handicap_is_free    -- bool (default False)
       use_internal_scorer -- bool (default True)
       sgf_pathname        -- pathname to use for the SGF file
+      void_sgf_pathname   -- pathname to use for the SGF file for void games
       sgf_event           -- string to show as SGF EVent
       gtp_log_pathname    -- pathname to use for the GTP log
 
@@ -93,6 +94,9 @@ class Game_job(object):
 
     If sgf_pathname is set, an SGF file will be written after the game is over.
 
+    If void_sgf_pathname is set, an SGF file will be written for void games
+    (games which were aborted due to unhandled errors).
+
     If gtp_log_pathname is set, all GTP messages to and from both players will
     be logged (this doesn't append; any existing file will be overwritten).
 
@@ -104,6 +108,7 @@ class Game_job(object):
         self.handicap = None
         self.handicap_is_free = False
         self.sgf_pathname = None
+        self.void_sgf_pathname = None
         self.sgf_event = None
         self.use_internal_scorer = True
         self.game_data = None
@@ -168,13 +173,15 @@ class Game_job(object):
                         "aborting game: invalid handicap")
             game.run()
         except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
+            self.record_void_game(game)
             raise job_manager.JobFailed("aborting game due to error:\n%s" % e)
         try:
             game.close_players()
         except StandardError, e:
+            self.record_void_game(game)
             raise job_manager.JobFailed("error shutting down players:\n%s" % e)
         if self.sgf_pathname is not None:
-            self.record_game(game)
+            self.record_game(self.sgf_pathname, game)
         response = Game_job_result()
         response.game_id = self.game_id
         response.game_result = game.result
@@ -183,7 +190,7 @@ class Game_job(object):
         response.game_data = self.game_data
         return response
 
-    def record_game(self, game):
+    def record_game(self, pathname, game):
         b_player = game.players['b']
         w_player = game.players['w']
 
@@ -196,20 +203,29 @@ class Game_job(object):
         notes += [
             "Game id %s" % self.game_id,
             "Date %s" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "Result %s" % game.result.describe(),
             ]
-        for player in [b_player, w_player]:
-            cpu_time = game.result.cpu_times[player]
-            if cpu_time is not None and cpu_time != "?":
-                notes.append("%s cpu time: %ss" % (player, "%.2f" % cpu_time))
+        if game.result is not None:
+            notes.append("Result %s" % game.result.describe(),)
+            for player in [b_player, w_player]:
+                cpu_time = game.result.cpu_times[player]
+                if cpu_time is not None and cpu_time != "?":
+                    notes.append("%s cpu time: %ss" %
+                                 (player, "%.2f" % cpu_time))
         notes += [
             "Black %s %s" % (b_player, game.engine_descriptions[b_player]),
             "White %s %s" % (w_player, game.engine_descriptions[w_player]),
             ]
         sgf_game.set('root-comment', "\n".join(notes))
-        f = open(self.sgf_pathname, "w")
+        f = open(pathname, "w")
         f.write(sgf_game.as_string())
         f.close()
+
+    def record_void_game(self, game):
+        """Record the game to void_sgf_pathname if it had any moves."""
+        if not game.moves:
+            return
+        if self.void_sgf_pathname is not None:
+            self.record_game(self.void_sgf_pathname, game)
 
 
 class CheckFailed(StandardError):

@@ -119,7 +119,7 @@ class Game(object):
 
     Public attributes for reading:
       players               -- map colour -> player code (as passed in)
-      result                -- Game_result
+      result                -- Game_result (None before the game is complete)
       moves                 -- list of tuples (colour, move, comment)
       engine_names          -- map player code -> string
       engine_descriptions   -- map player code -> string

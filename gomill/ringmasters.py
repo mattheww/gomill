@@ -94,6 +94,7 @@ class Ringmaster(object):
         self.history_pathname = stem + ".hist"
         self.report_pathname = stem + ".report"
         self.sgf_dir_pathname = stem + ".games"
+        self.void_dir_pathname = stem + ".void"
         self.gtplog_dir_pathname = stem + ".gtplogs"
 
         try:
@@ -236,6 +237,13 @@ class Ringmaster(object):
                     os.mkdir(self.sgf_dir_pathname)
             except EnvironmentError:
                 raise RingmasterError("failed to create SGF directory:\n%s" % e)
+            # FIXME: Should create this when first needed
+            try:
+                if not os.path.exists(self.void_dir_pathname):
+                    os.mkdir(self.void_dir_pathname)
+            except EnvironmentError:
+                raise RingmasterError(
+                    "failed to create void-games directory:\n%s" % e)
 
         if self.write_gtp_logs:
             try:
@@ -469,6 +477,8 @@ class Ringmaster(object):
         if self.record_games:
             job.sgf_pathname = os.path.join(
                 self.sgf_dir_pathname, "%s.sgf" % job.game_id)
+            job.void_sgf_pathname = os.path.join(
+                self.void_dir_pathname, "%s.sgf" % job.game_id)
         if self.write_gtp_logs:
             job.gtp_log_pathname = os.path.join(
                     self.gtplog_dir_pathname, "%s.log" % job.game_id)
@@ -646,6 +656,7 @@ class Ringmaster(object):
                     print >>sys.stderr, e
         for pathname in [
             self.sgf_dir_pathname,
+            self.void_dir_pathname,
             self.gtplog_dir_pathname,
             ]:
             if os.path.exists(pathname):
