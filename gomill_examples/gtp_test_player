@@ -3,12 +3,22 @@
 
 This provides an example of a GTP engine using the gtp_states module.
 
+It supports a gomill-force_error GTP command, which takes the following
+arguments:
+  error    -- return a GTP error response (this is the default)
+  exit     -- return a GTP error response and end the GTP session
+  internal -- propagate a Python exception to the GTP engine code
+  kill     -- abruptly terminate the engine process
+  protocol -- send an ill-formed GTP response
+
 """
 
+import os
 import sys
 
 from gomill import gtp_engine
 from gomill import gtp_states
+from gomill.gtp_engine import GtpError, GtpFatalError
 
 
 class Test_player(object):
@@ -20,10 +30,32 @@ class Test_player(object):
         game_state -- gtp_states.Game_state
         player     -- 'b' or 'w'
 
+        This always passes.
+
         """
         result = gtp_states.Move_generator_result()
         result.pass_move = True
         return result
+
+    def handle_force_error(self, args):
+        """Handler for the gomill-force_error command."""
+        try:
+            arg = args[0]
+        except IndexError:
+            arg = "error"
+        if arg == "error":
+            raise GtpError("forced GTP error")
+        if arg == "exit":
+            raise GtpFatalError("forced GTP error; exiting")
+        if arg == "internal":
+            3 / 0
+        if arg == "kill":
+            os.kill(os.getpid(), 15)
+        if arg == "protocol":
+            sys.stdout.write("!! forced ill-formed GTP response\n")
+            sys.stdout.flush()
+            return
+        raise GtpError("unknown force_error argument")
 
     def handle_name(self, args):
         return "GTP test player"
@@ -33,8 +65,9 @@ class Test_player(object):
 
     def get_handlers(self):
         return {
-            'name'    : self.handle_name,
-            'version' : self.handle_version,
+            'name'               : self.handle_name,
+            'version'            : self.handle_version,
+            'gomill-force_error' : self.handle_force_error,
             }
 
 
