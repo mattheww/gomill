@@ -161,8 +161,19 @@ def interpret_map_of(key_interpreter, value_interpreter):
 
     """
     def interpreter(m):
-        return [(key_interpreter(k), value_interpreter(v))
-                for k, v in interpret_map(m)]
+        result = []
+        for key, value in interpret_map(m):
+            try:
+                new_key = key_interpreter(key)
+            except ValueError, e:
+                raise ValueError("bad key: %s" % e)
+            try:
+                new_value = value_interpreter(value)
+            except ValueError, e:
+                # we assume validated keys are fit to print
+                raise ValueError("bad value for '%s': %s" % (new_key, e))
+            result.append((key, value))
+        return result
     return interpreter
 
 def allow_none(fn):
