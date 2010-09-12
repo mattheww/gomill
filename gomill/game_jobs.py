@@ -174,13 +174,15 @@ class Game_job(object):
                         "aborting game: invalid handicap")
             game.run()
         except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
-            self.record_void_game(game)
-            raise job_manager.JobFailed("aborting game due to error:\n%s" % e)
+            msg = "aborting game due to error:\n%s" % e
+            self.record_void_game(game, msg)
+            raise job_manager.JobFailed(msg)
         try:
             game.close_players()
         except StandardError, e:
-            self.record_void_game(game)
-            raise job_manager.JobFailed("error shutting down players:\n%s" % e)
+            msg = "error shutting down players:\n%s" % e
+            self.record_void_game(game, msg)
+            raise job_manager.JobFailed(msg)
         if self.sgf_pathname is not None:
             self.record_game(self.sgf_pathname, game)
         response = Game_job_result()
@@ -191,7 +193,7 @@ class Game_job(object):
         response.game_data = self.game_data
         return response
 
-    def record_game(self, pathname, game):
+    def record_game(self, pathname, game, void_description=None):
         b_player = game.players['b']
         w_player = game.players['w']
 
@@ -212,6 +214,9 @@ class Game_job(object):
                 if cpu_time is not None and cpu_time != "?":
                     notes.append("%s cpu time: %ss" %
                                  (player, "%.2f" % cpu_time))
+        elif void_description:
+            sgf_game.set('result', 'Void')
+            sgf_game.add_final_comment(void_description)
         notes += [
             "Black %s %s" % (b_player, game.engine_descriptions[b_player]),
             "White %s %s" % (w_player, game.engine_descriptions[w_player]),
@@ -221,7 +226,7 @@ class Game_job(object):
         f.write(sgf_game.as_string())
         f.close()
 
-    def record_void_game(self, game):
+    def record_void_game(self, game, msg):
         """Record the game to void_sgf_pathname if it had any moves."""
         if not game.moves:
             return
@@ -230,7 +235,7 @@ class Game_job(object):
         dirname = os.path.dirname(self.void_sgf_pathname)
         if not os.path.exists(dirname):
             os.mkdir(dirname)
-        self.record_game(self.void_sgf_pathname, game)
+        self.record_game(self.void_sgf_pathname, game, void_description=msg)
 
 
 class CheckFailed(StandardError):
