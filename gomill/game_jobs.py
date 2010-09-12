@@ -272,10 +272,10 @@ def check_player(player_check, discard_stderr=False):
 
     Currently checks:
      - any explicitly specified cwd exists and is a directory
-     - the engine subprocess starts, and can reply to GTP commands
+     - the engine subprocess starts, and replies to GTP commands
      - the engine reports protocol version 2 (if it supports protocol_version)
-     - the engine accepts the specified board size
-     - the engine accepts 'clear_board' and 'komi' commands
+     - the engine accepts the specified board size and komi
+     - the engine accepts the 'clear_board' command
      - the engine accepts any startup_gtp_commands
 
     """

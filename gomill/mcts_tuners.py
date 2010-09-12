@@ -529,10 +529,17 @@ class Mcts_tuner(Competition):
                 (self.format_parameters(optimiser_parameters), e))
         return candidate
 
-    def get_players_to_check(self):
+    def get_player_checks(self):
         test_parameters = self.tree.get_test_parameters()
         candidate = self.make_candidate('candidate', test_parameters)
-        return [candidate, self.opponent]
+        result = []
+        for player in [candidate, self.opponent]:
+            check = game_jobs.Player_check()
+            check.player = player
+            check.board_size = self.board_size
+            check.komi = self.komi
+            result.append(check)
+        return result
 
     def get_game(self):
         if (self.number_of_games is not None and

@@ -280,10 +280,17 @@ class Cem_tuner(Competition):
         self.distribution = update_distribution(
             self.distribution, elite_samples, self.step_size)
 
-    def get_players_to_check(self):
+    def get_player_checks(self):
         candidate = self._make_candidate(
             'candidate', self.initial_distribution.get_sample())
-        return [candidate, self.opponent]
+        result = []
+        for player in [candidate, self.opponent]:
+            check = game_jobs.Player_check()
+            check.player = player
+            check.board_size = self.board_size
+            check.komi = self.komi
+            result.append(check)
+        return result
 
     def get_game(self):
         if self.scheduler.nothing_issued_yet():

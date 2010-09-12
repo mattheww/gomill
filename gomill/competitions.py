@@ -309,11 +309,11 @@ class Competition(object):
         # This is called for the 'show' command, so it mustn't log anything.
         raise NotImplementedError
 
-    def get_players_to_check(self):
-        """List the Players for check_players() to check.
+    def get_player_checks(self):
+        """List the Player_checks for check_players() to check.
 
-        Returns a list of game_jobs.Player objects. Their stderr_pathname
-        attribute will be ignored.
+        Returns a list of game_jobs.Player_check objects. The players'
+        stderr_pathname attribute will be ignored.
 
         This is called without the competition status being set.
 

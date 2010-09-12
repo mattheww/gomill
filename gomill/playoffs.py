@@ -222,12 +222,21 @@ class Playoff(Competition):
         self.engine_names = status['engine_names']
         self.engine_descriptions = status['engine_descriptions']
 
-    def get_players_to_check(self):
-        used_players = set()
-        for m in self.matchups:
-            used_players.add(m.p1)
-            used_players.add(m.p2)
-        return [self.players[code] for code in sorted(used_players)]
+    def get_player_checks(self):
+        # For board size and komi, we check the values from the first matchup
+        # the player appears in.
+        used_players = {}
+        for m in reversed(self.matchups):
+            used_players[m.p1] = m
+            used_players[m.p2] = m
+        result = []
+        for code, matchup in sorted(used_players.iteritems()):
+            check = game_jobs.Player_check()
+            check.player = self.players[code]
+            check.board_size = matchup.board_size
+            check.komi = matchup.komi
+            result.append(check)
+        return result
 
     def get_game(self):
         matchup_id, game_number = self.scheduler.issue()
