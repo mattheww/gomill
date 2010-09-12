@@ -199,39 +199,26 @@ class Competition(object):
         for name, value in to_set.items():
             setattr(self, name, value)
 
+        def interpret_pc(v):
+            if not isinstance(v, Player_config):
+                raise ValueError("not a Player")
+            return v
+        settings = [
+            Setting('players',
+                    interpret_map_of(interpret_identifier, interpret_pc))
+            ]
         try:
-            specials = load_settings(
-                [Setting('players', interpret_map)], config)
+            specials = load_settings(settings, config)
         except ValueError, e:
             raise ControlFileError(str(e))
-
         self.players = {}
-        try:
-            # pre-check player codes before trying to sort them, just in case.
-            for player_code, _ in specials['players']:
-                if not isinstance(player_code, basestring):
-                    raise ControlFileError("bad player code (not a string)")
-            for player_code, player_config in sorted(specials['players']):
-                try:
-                    player_code = interpret_identifier(player_code)
-                except ValueError, e:
-                    if isinstance(player_code, unicode):
-                        player_code = player_code.encode("ascii", "replace")
-                    raise ControlFileError(
-                        "bad code (%s): %s" % (e, player_code))
-                if not isinstance(player_config, Player_config):
-                    raise ControlFileError(
-                        "player %s is not a Player" % player_code)
-                try:
-                    player = self.game_jobs_player_from_config(
-                        player_code, player_config)
-                except StandardError, e:
-                    raise ControlFileError("player %s: %s" % (player_code, e))
-                self.players[player_code] = player
-        except ControlFileError, e:
-            raise ControlFileError("'players' : %s" % e)
-        except StandardError, e:
-            raise ControlFileError("'players': unexpected error: %s" % e)
+        for player_code, player_config in specials['players']:
+            try:
+                player = self.game_jobs_player_from_config(
+                    player_code, player_config)
+            except StandardError, e:
+                raise ControlFileError("player %s: %s" % (player_code, e))
+            self.players[player_code] = player
 
     def game_jobs_player_from_config(self, code, player_config):
         """Make a game_jobs.Player from a Player_config.

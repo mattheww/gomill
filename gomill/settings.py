@@ -10,6 +10,7 @@ __all__ = ['Setting', 'allow_none', 'load_settings',
            'interpret_colour', 'interpret_enum', 'interpret_callable',
            'interpret_sequence', 'interpret_sequence_of',
            'interpret_map', 'interpret_map_of',
+           'clean_string'
            ]
 
 def interpret_any(v):
@@ -69,6 +70,10 @@ def interpret_as_utf8(s):
 def interpret_as_utf8_stripped(s):
     return interpret_as_utf8(s).strip()
 
+
+def clean_string(s):
+    return re.sub(r"[\x00-\x1f\x7f-\x9f]", "?", s)
+
 # NB, tuners use '#' in player codes
 _identifier_re = re.compile(r"\A[-!$%&*+-./:;<=>?^_~a-zA-Z0-9]*\Z")
 
@@ -77,13 +82,15 @@ def interpret_identifier(s):
         try:
             s = s.encode("ascii")
         except UnicodeEncodeError:
-            raise ValueError("contains forbidden character")
+            raise ValueError(
+                "contains forbidden character: %s" %
+                clean_string(s.encode("ascii", "replace")))
     elif not isinstance(s, str):
         raise ValueError("not a string")
     if not s:
         raise ValueError("empty string")
     if not _identifier_re.search(s):
-        raise ValueError("contains forbidden character")
+        raise ValueError("contains forbidden character: %s" % clean_string(s))
     return s
 
 _colour_dict = {
@@ -159,6 +166,8 @@ def interpret_map_of(key_interpreter, value_interpreter):
     The interpreter behaves like interpret_map, and additionally calls
     key_interpreter for each key and value_interpreter for each value.
 
+    Sorts the result by key.
+
     """
     def interpreter(m):
         result = []
@@ -173,7 +182,8 @@ def interpret_map_of(key_interpreter, value_interpreter):
                 # we assume validated keys are fit to print
                 raise ValueError("bad value for '%s': %s" % (new_key, e))
             result.append((key, value))
-        return result
+        # We assume validated items are suitable for sorting
+        return sorted(result)
     return interpreter
 
 def allow_none(fn):
