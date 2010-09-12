@@ -3,13 +3,21 @@
 
 This provides an example of a GTP engine using the gtp_states module.
 
-It supports a gomill-force_error GTP command, which takes the following
-arguments:
+It supports the following GTP extension commands:
+  gomill-force_error [error_type]
+  gomill-delayed_error <move_number> [error_type]
+
+gomill-force_error immediately causes an error. error_type can be any of the
+following:
   error    -- return a GTP error response (this is the default)
   exit     -- return a GTP error response and end the GTP session
   internal -- propagate a Python exception to the GTP engine code
   kill     -- abruptly terminate the engine process
   protocol -- send an ill-formed GTP response
+
+gomill-delayed_error causes a later genmove command to produce an error. This
+will happen the first time genmove is called for the move 'move_number' or
+later, counting from the start of the game.
 
 """
 
@@ -23,6 +31,9 @@ from gomill.gtp_engine import GtpError, GtpFatalError
 
 class Test_player(object):
     """GTP test player used with gtp_state."""
+    def __init__(self):
+        self.delayed_error_move = None
+        self.delayed_error_args = None
 
     def genmove(self, game_state, player):
         """Move generator function.
@@ -30,9 +41,13 @@ class Test_player(object):
         game_state -- gtp_states.Game_state
         player     -- 'b' or 'w'
 
-        This always passes.
+        This honours gomill-delayed_error, and otherwise passes.
 
         """
+        if (self.delayed_error_move and
+            len(game_state.move_history) >= self.delayed_error_move-1):
+            self.delayed_error_move = None
+            self.handle_force_error(self.delayed_error_args)
         result = gtp_states.Move_generator_result()
         result.pass_move = True
         return result
@@ -57,6 +72,15 @@ class Test_player(object):
             return
         raise GtpError("unknown force_error argument")
 
+    def handle_delayed_error(self, args):
+        """Handler for the gomill-delayed_error command."""
+        try:
+            move_number = gtp_engine.interpret_int(args[0])
+        except IndexError:
+            gtp_engine.report_bad_arguments()
+        self.delayed_error_move = move_number
+        self.delayed_error_args = args[1:]
+
     def handle_name(self, args):
         return "GTP test player"
 
@@ -65,9 +89,10 @@ class Test_player(object):
 
     def get_handlers(self):
         return {
-            'name'               : self.handle_name,
-            'version'            : self.handle_version,
-            'gomill-force_error' : self.handle_force_error,
+            'name'                 : self.handle_name,
+            'version'              : self.handle_version,
+            'gomill-force_error'   : self.handle_force_error,
+            'gomill-delayed_error' : self.handle_delayed_error,
             }
 
 
