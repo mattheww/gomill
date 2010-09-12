@@ -58,7 +58,8 @@ def main():
     game.allow_scorer('w')
 
     try:
-        game.start_players()
+        game.start_player('b')
+        game.start_player('w')
         game.run()
     except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
         sys.exit("aborting game due to error:\n%s\n" % e)

@@ -168,9 +168,10 @@ class Game_job(object):
         game.set_environ('b', self.player_b.environ)
         game.set_environ('w', self.player_w.environ)
         try:
-            game.start_players()
+            game.start_player('b')
             for command, arguments in self.player_b.startup_gtp_commands:
                 game.send_command('b', command, *arguments)
+            game.start_player('w')
             for command, arguments in self.player_w.startup_gtp_commands:
                 game.send_command('w', command, *arguments)
             game.request_engine_descriptions()
