@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+"""GTP engine intended for testing GTP controllers.
+
+This provides an example of a GTP engine using the gtp_states module.
+
+"""
+
+import sys
+
+from gomill import gtp_engine
+from gomill import gtp_states
+
+
+class Test_player(object):
+    """GTP test player used with gtp_state."""
+
+    def genmove(self, game_state, player):
+        """Move generator function.
+
+        game_state -- gtp_states.Game_state
+        player     -- 'b' or 'w'
+
+        """
+        result = gtp_states.Move_generator_result()
+        result.pass_move = True
+        return result
+
+    def handle_name(self, args):
+        return "GTP test player"
+
+    def handle_version(self, args):
+        return ""
+
+    def get_handlers(self):
+        return {
+            'name'    : self.handle_name,
+            'version' : self.handle_version,
+            }
+
+
+def make_engine(test_player):
+    """Return a Gtp_engine_protocol which runs the specified Test_player."""
+    gtp_state = gtp_states.Gtp_state(
+        move_generator=test_player.genmove,
+        acceptable_sizes=(9, 13, 19))
+    engine = gtp_engine.Gtp_engine_protocol()
+    engine.add_protocol_commands()
+    engine.add_commands(gtp_state.get_handlers())
+    engine.add_commands(test_player.get_handlers())
+    return engine
+
+def main():
+    try:
+        test_player = Test_player()
+        engine = make_engine(test_player)
+        gtp_engine.run_interactive_gtp_session(engine)
+    except (KeyboardInterrupt, gtp_engine.ControllerDisconnected):
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
