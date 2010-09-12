@@ -672,10 +672,12 @@ class Ringmaster(object):
         except CompetitionError, e:
             raise RingmasterError(e)
         for player in to_check:
-            # FIXME
-            boardsize = 9
+            ck = game_jobs.Player_check
+            ck.player = player
+            ck.board_size = 9
+            ck.komi = 0.0
             try:
-                game_jobs.check_player(player, boardsize, discard_stderr)
+                game_jobs.check_player(ck, discard_stderr)
             except game_jobs.CheckFailed, e:
                 print "player %s failed startup check:\n%s" % (player.code, e)
                 return False

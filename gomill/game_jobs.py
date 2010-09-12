@@ -250,11 +250,20 @@ class Game_job(object):
 class CheckFailed(StandardError):
     """Error reported by check_player()"""
 
-def check_player(player, boardsize, discard_stderr=False):
+class Player_check(object):
+    """Information required to check a player.
+
+    required attributes:
+      player            -- Player
+      board_size        -- int
+      komi              -- float
+
+    """
+
+def check_player(player_check, discard_stderr=False):
     """Do a test run of a GTP engine.
 
-    player    -- Player object
-    boardsize -- int
+    player_check -- Player_check object
 
     This starts an engine subprocess, sends it some GTP commands, and ends the
     process again.
@@ -265,18 +274,19 @@ def check_player(player, boardsize, discard_stderr=False):
      - any explicitly specified cwd exists and is a directory
      - the engine subprocess starts, and can reply to GTP commands
      - the engine reports protocol version 2 (if it supports protocol_version)
-     - the engine accepts the specified boardsize
+     - the engine accepts the specified board size
      - the engine accepts 'clear_board' and 'komi' commands
      - the engine accepts any startup_gtp_commands
 
     """
+    player = player_check.player
     if player.cwd is not None and not os.path.isdir(player.cwd):
         raise CheckFailed("bad working directory: %s" % player.cwd)
 
     game = gtp_games.Game(
         {'b' : player.code, 'w' : 'dummy'},
         {'b' : player.cmd_args, 'w' : []},
-        board_size=9, komi=0, move_limit=256)
+        player_check.board_size, player_check.komi, move_limit=256)
 
     game.set_gtp_translations({'b' : player.gtp_translations, 'w' : {}})
     if discard_stderr:
