@@ -255,10 +255,11 @@ class Game(object):
 
     def _send_command(self, colour, command, arguments):
         def format_command():
+            desc = "'%s %s'" % (command, " ".join(arguments))
             if self.controller.channel_ever_worked(colour):
-                return "command '%s'" % command
+                return "command %s" % desc
             else:
-                return "first command ('%s')" % command
+                return "first command (%s)" % desc
 
         try:
             response = self.controller.do_command(colour, command, *arguments)
