@@ -266,8 +266,6 @@ class Competition(object):
             player.cwd = self.resolve_pathname(config['cwd'])
         except StandardError, e:
             raise ControlFileError("'cwd': %s" % e)
-
-        # FIXME: Validate harder!
         player.environ = config['environ']
 
         player.startup_gtp_commands = []
