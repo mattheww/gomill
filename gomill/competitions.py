@@ -49,7 +49,9 @@ DISCARD = Control_file_token('DISCARD')
 _player_settings = [
     Setting('command_string', interpret_8bit_string),
     Setting('cwd', interpret_8bit_string, default=None),
-    Setting('environ', interpret_map, default=None),
+    Setting('environ',
+            interpret_map_of(interpret_8bit_string, interpret_8bit_string),
+            default=None),
     Setting('is_reliable_scorer', interpret_bool, default=True),
     Setting('gtp_translations', interpret_map, default=dict),
     Setting('startup_gtp_commands', interpret_sequence, default=list),

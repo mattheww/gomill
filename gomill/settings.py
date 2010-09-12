@@ -8,7 +8,8 @@ __all__ = ['Setting', 'allow_none', 'load_settings',
            'interpret_8bit_string', 'interpret_identifier',
            'interpret_as_utf8', 'interpret_as_utf8_stripped',
            'interpret_colour', 'interpret_enum', 'interpret_callable',
-           'interpret_sequence', 'interpret_sequence_of', 'interpret_map',
+           'interpret_sequence', 'interpret_sequence_of',
+           'interpret_map', 'interpret_map_of',
            ]
 
 def interpret_any(v):
@@ -141,17 +142,28 @@ def interpret_sequence_of(item_interpreter):
 def interpret_map(m):
     """Interpret a map-like object.
 
-    Accepts anything that dict.update() accepts.
+    Accepts anything that dict() accepts for its first argument.
 
     Returns a list of pairs (key, value).
 
     """
-    d = {}
     try:
-        d.update(m)
+        d = dict(m)
     except StandardError:
         raise ValueError("not a map")
     return d.items()
+
+def interpret_map_of(key_interpreter, value_interpreter):
+    """Make an interpreter for map-like objects.
+
+    The interpreter behaves like interpret_map, and additionally calls
+    key_interpreter for each key and value_interpreter for each value.
+
+    """
+    def interpreter(m):
+        return [(key_interpreter(k), value_interpreter(v))
+                for k, v in interpret_map(m)]
+    return interpreter
 
 def allow_none(fn):
     """Make a new interpreter from an existing one, which maps None to None."""
