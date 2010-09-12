@@ -290,10 +290,10 @@ def check_player(player_check, discard_stderr=False):
     game.set_gtp_translations({'b' : player.gtp_translations, 'w' : {}})
     if discard_stderr:
         stderr = open("/dev/null", "w")
-        game.set_stderr('b', stderr)
     else:
         stderr = None
     try:
+        game.set_stderr('b', stderr)
         game.set_cwd('b', player.cwd)
         game.set_environ('b', player.environ)
         try:
