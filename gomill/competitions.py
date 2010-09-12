@@ -53,7 +53,9 @@ _player_settings = [
             interpret_map_of(interpret_8bit_string, interpret_8bit_string),
             default=None),
     Setting('is_reliable_scorer', interpret_bool, default=True),
-    Setting('gtp_translations', interpret_map, default=dict),
+    Setting('gtp_translations',
+            interpret_map_of(interpret_8bit_string, interpret_8bit_string),
+            default=dict),
     Setting('startup_gtp_commands', interpret_sequence, default=list),
     Setting('stderr', interpret_enum(STDERR, LOG, DISCARD), default=LOG),
     ]
@@ -273,9 +275,9 @@ class Competition(object):
         try:
             for cmd1, cmd2 in config['gtp_translations']:
                 if not gtp_controller.is_well_formed_gtp_word(cmd1):
-                    raise ValueError("invalid command %s" % cmd1)
+                    raise ValueError("invalid command %s" % clean_string(cmd1))
                 if not gtp_controller.is_well_formed_gtp_word(cmd2):
-                    raise ValueError("invalid command %s" % cmd2)
+                    raise ValueError("invalid command %s" % clean_string(cmd2))
                 player.gtp_translations[cmd1] = cmd2
         except ValueError, e:
             raise ControlFileError("'gtp_translations': %s" % e)
