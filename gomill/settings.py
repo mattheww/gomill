@@ -113,6 +113,11 @@ def interpret_callable(c):
     return c
 
 def interpret_sequence(l):
+    """Interpret a list-like object.
+
+    Accepts any iterable and returns a list.
+
+    """
     try:
         l = list(l)
     except StandardError:
@@ -120,6 +125,12 @@ def interpret_sequence(l):
     return l
 
 def interpret_sequence_of(item_interpreter):
+    """Make an interpreter for list-like objects.
+
+    The interpreter behaves like interpret_list, and additionally calls
+    item_interpreter for each list item.
+
+    """
     def interpreter(value):
         l = interpret_sequence(value)
         for i, v in enumerate(l):
@@ -128,13 +139,22 @@ def interpret_sequence_of(item_interpreter):
     return interpreter
 
 def interpret_map(m):
+    """Interpret a map-like object.
+
+    Accepts anything that dict.update() accepts.
+
+    Returns a list of pairs (key, value).
+
+    """
+    d = {}
     try:
-        result = m.items()
+        d.update(m)
     except StandardError:
         raise ValueError("not a map")
-    return result
+    return d.items()
 
 def allow_none(fn):
+    """Make a new interpreter from an existing one, which maps None to None."""
     def sub(v):
         if v is None:
             return None
