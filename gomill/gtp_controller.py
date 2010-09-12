@@ -12,13 +12,21 @@ import subprocess
 from gomill.gomill_common import *
 
 
-class GtpProtocolError(StandardError):
+class GtpControllerError(StandardError):
+    """Error trying to talk to a GTP engine.
+
+    This is the base class for GtpProtocolError, GtpTransportError, and
+    GtpEngineError.
+
+    """
+
+class GtpProtocolError(GtpControllerError):
     """Engine returned an ill-formed response."""
 
-class GtpTransportError(StandardError):
+class GtpTransportError(GtpControllerError):
     """Error communicating with the engine."""
 
-class GtpEngineError(StandardError):
+class GtpEngineError(GtpControllerError):
     """Error response from the engine."""
 
 

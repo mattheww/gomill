@@ -6,8 +6,7 @@ import os
 from gomill import gtp_controller
 from gomill import gtp_games
 from gomill import job_manager
-from gomill.gtp_controller import (
-    GtpProtocolError, GtpTransportError, GtpEngineError)
+from gomill.gtp_controller import GtpControllerError
 
 class Player(object):
     """Player description for Game_jobs.
@@ -182,7 +181,7 @@ class Game_job(object):
                     raise job_manager.JobFailed(
                         "aborting game: invalid handicap")
             game.run()
-        except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
+        except GtpControllerError, e:
             msg = "aborting game due to error:\n%s" % e
             self.record_void_game(game, msg)
             raise job_manager.JobFailed(msg)
@@ -301,7 +300,7 @@ def check_player(player_check, discard_stderr=False):
             game.start_player('b', check_protocol_version=True)
             for command, arguments in player.startup_gtp_commands:
                 game.send_command('b', command, *arguments)
-        except (GtpProtocolError, GtpTransportError, GtpEngineError), e:
+        except GtpControllerError, e:
             raise CheckFailed(str(e))
         try:
             game.close_players()
