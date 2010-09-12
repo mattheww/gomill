@@ -95,7 +95,8 @@ class Game_job(object):
     If sgf_pathname is set, an SGF file will be written after the game is over.
 
     If void_sgf_pathname is set, an SGF file will be written for void games
-    (games which were aborted due to unhandled errors).
+    (games which were aborted due to unhandled errors). The
+    immediately-containing directory will be created if necessary.
 
     If gtp_log_pathname is set, all GTP messages to and from both players will
     be logged (this doesn't append; any existing file will be overwritten).
@@ -224,8 +225,12 @@ class Game_job(object):
         """Record the game to void_sgf_pathname if it had any moves."""
         if not game.moves:
             return
-        if self.void_sgf_pathname is not None:
-            self.record_game(self.void_sgf_pathname, game)
+        if self.void_sgf_pathname is None:
+            return
+        dirname = os.path.dirname(self.void_sgf_pathname)
+        if not os.path.exists(dirname):
+            os.mkdir(dirname)
+        self.record_game(self.void_sgf_pathname, game)
 
 
 class CheckFailed(StandardError):

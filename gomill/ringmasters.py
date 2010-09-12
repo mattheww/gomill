@@ -237,13 +237,6 @@ class Ringmaster(object):
                     os.mkdir(self.sgf_dir_pathname)
             except EnvironmentError:
                 raise RingmasterError("failed to create SGF directory:\n%s" % e)
-            # FIXME: Should create this when first needed
-            try:
-                if not os.path.exists(self.void_dir_pathname):
-                    os.mkdir(self.void_dir_pathname)
-            except EnvironmentError:
-                raise RingmasterError(
-                    "failed to create void-games directory:\n%s" % e)
 
         if self.write_gtp_logs:
             try:
