@@ -199,6 +199,10 @@ class Internal_gtp_channel(Gtp_channel):
 class Linebased_gtp_channel(Gtp_channel):
     """Generic Gtp_channel based on line-by-line communication."""
 
+    def __init__(self):
+        Gtp_channel.__init__(self)
+        self.is_first_response = True
+
     # Not using command ids; I don't see the need unless we see problems in
     # practice with engines getting out of sync.
 
@@ -214,11 +218,41 @@ class Linebased_gtp_channel(Gtp_channel):
 
         Otherwise if we receive EOF, we use the data received anyway.
 
+        The first time this is called, if we receive a non-whitespace control
+        character as the first byte we raise GtpProtocolError (though strictly
+        we should just discard it).
+
         """
         lines = []
         seen_data = False
+        peeked_byte = None
+        if self.is_first_response:
+            self.is_first_response = False
+            # We read one byte first so that we don't hang if the engine never
+            # sends a newline (eg, it's speaking GMP).
+            try:
+                peeked_byte = self.get_response_byte()
+            except NotImplementedError:
+                pass
+            else:
+                if peeked_byte == "\x01":
+                    raise GtpProtocolError(
+                        "engine appears to be speaking GMP, not GTP!")
+                # These are the characters which could legitimately start a GTP
+                # response. In principle, we should be discarding other controls
+                # rather than treating them as errors, but it's more useful to
+                # report a protocol error.
+                if peeked_byte not in (' ', '\t', '\r', '\n', '#', '=', '?'):
+                    raise GtpProtocolError(
+                        "engine isn't speaking GTP: "
+                        "first byte is %s" % repr(peeked_byte))
+                if peeked_byte == "\n":
+                    peeked_byte = None
         while True:
             s = self.get_response_line()
+            if peeked_byte:
+                s = peeked_byte + s
+                peeked_byte = None
             # << Empty lines and lines with only whitespace sent by the engine
             #    and occuring outside a response must be ignored by the
             #    controller >>
@@ -275,6 +309,18 @@ class Linebased_gtp_channel(Gtp_channel):
         The result ends in a newline unless end-of-file was seen (ie, the same
         protocol to indicate end-of-file as Python's readline()).
 
+        This blocks until a line is available, or end-of-file is reached.
+
+        """
+        raise NotImplementedError
+
+    def get_response_byte(self):
+        """Read a single byte from the channel.
+
+        This blocks until a byte is available, or end-of-file is reached.
+
+        Subclasses don't have to implement this.
+
         """
         raise NotImplementedError
 
@@ -327,6 +373,12 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
     def get_response_line(self):
         try:
             return self.response_pipe.readline()
+        except EnvironmentError, e:
+            raise GtpTransportError(str(e))
+
+    def get_response_byte(self):
+        try:
+            return self.response_pipe.read(1)
         except EnvironmentError, e:
             raise GtpTransportError(str(e))
 
