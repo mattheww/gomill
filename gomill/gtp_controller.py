@@ -426,16 +426,16 @@ class Gtp_controller_protocol(object):
                 return argument.encode("utf-8")
             else:
                 return argument
+        fixed_command = fix_argument(command)
+        fixed_arguments = map(fix_argument, arguments)
         def format_command():
-            desc = "'%s %s'" % (command, " ".join(arguments))
+            desc = "'%s'" % (" ".join([command] + fixed_arguments))
             if channel_id in self.working_channels:
                 return "command %s" % desc
             else:
                 return "first command (%s)" % desc
-
         try:
-            channel.send_command(fix_argument(command),
-                                 map(fix_argument, arguments))
+            channel.send_command(fixed_command, fixed_arguments)
             is_error, response = channel.get_response()
         except GtpTransportError, e:
             raise GtpTransportError(
