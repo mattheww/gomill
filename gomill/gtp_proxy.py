@@ -94,13 +94,10 @@ class Gtp_proxy(object):
             raise StandardError("back end already set")
         try:
             response = controller.do_command(channel_id, 'list_commands')
-        except GtpEngineError, e:
-            raise BackEndError("list_commands failed on back end\n%s" % e)
         except GtpProtocolError, e:
             raise BackEndError("back end command isn't speaking GTP\n%s" % e)
-        except GtpTransportError, e:
-            raise BackEndError(
-                "can't communicate with back end command:\n%s" % e)
+        except (GtpEngineError, GtpTransportError), e:
+            raise BackEndError(str(e))
         self.channel_id = channel_id
         self.controller = controller
         self.back_end_commands = [s for s in
@@ -175,11 +172,8 @@ class Gtp_proxy(object):
             raise StandardError("back end isn't set")
         try:
             return self.controller.do_command(self.channel_id, command, *args)
-        except GtpProtocolError, e:
-            raise BackEndError(
-                "protocol error communicating with back end:\n%s" % e)
-        except GtpTransportError, e:
-            raise BackEndError("error communicating with back end:\n%s" % e)
+        except (GtpProtocolError, GtpTransportError), e:
+            raise BackEndError(str(e))
 
     def handle_command(self, command, args):
         """Run a command on the back end, from inside a GTP handler.
@@ -211,11 +205,8 @@ class Gtp_proxy(object):
             raise StandardError("back end isn't set")
         try:
             return self.controller.known_command(self.channel_id, command)
-        except GtpProtocolError, e:
-            raise BackEndError(
-                "protocol error communicating with back end:\n%s" % e)
-        except GtpTransportError, e:
-            raise BackEndError("error communicating with back end:\n%s" % e)
+        except (GtpProtocolError, GtpTransportError), e:
+            raise BackEndError(str(e))
 
     def handle_quit(self, args):
         result = self.handle_command("quit", [])
