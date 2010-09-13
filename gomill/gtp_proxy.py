@@ -8,7 +8,7 @@ on to another engine (the _back end_).
 from gomill import gtp_controller
 from gomill import gtp_engine
 from gomill.gtp_controller import (
-    GtpProtocolError, GtpTransportError, GtpEngineError)
+    GtpControllerError, GtpProtocolError, GtpTransportError, GtpEngineError)
 from gomill.gtp_engine import GtpError, GtpQuit, GtpFatalError
 
 
@@ -94,9 +94,7 @@ class Gtp_proxy(object):
             raise StandardError("back end already set")
         try:
             response = controller.do_command(channel_id, 'list_commands')
-        except GtpProtocolError, e:
-            raise BackEndError("back end command isn't speaking GTP\n%s" % e)
-        except (GtpEngineError, GtpTransportError), e:
+        except GtpControllerError, e:
             raise BackEndError(str(e))
         self.channel_id = channel_id
         self.controller = controller
