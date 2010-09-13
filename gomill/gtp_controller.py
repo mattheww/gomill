@@ -379,7 +379,6 @@ class Gtp_controller_protocol(object):
         The name is used in error messages.
 
         """
-        # FIXME: Validate name
         if channel_id in self.channels:
             raise ValueError("channel %s already registered" % channel_id)
         if self.log_dest is not None:
@@ -387,7 +386,7 @@ class Gtp_controller_protocol(object):
         self.channels[channel_id] = channel
         if name is None:
             name = "channel %s" % channel_id
-        self.channel_names[channel_id] = name
+        self.channel_names[channel_id] = str(name)
 
     def do_command(self, channel_id, command, *arguments):
         """Send a command over a channel and return the response.
