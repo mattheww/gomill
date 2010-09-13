@@ -235,6 +235,8 @@ class Linebased_gtp_channel(Gtp_channel):
             except NotImplementedError:
                 pass
             else:
+                if peeked_byte == "":
+                    raise GtpTransportError("engine has closed the channel")
                 if peeked_byte == "\x01":
                     raise GtpProtocolError(
                         "engine appears to be speaking GMP, not GTP!")
