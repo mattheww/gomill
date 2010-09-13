@@ -290,6 +290,7 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
       stderr  -- destination for standard error output (optional)
       cwd     -- working directory to change to (optional)
       env     -- new environment (optional)
+    Instantiation will raise GtpTransportError if the process can't be started.
 
     This starts the subprocess and speaks GTP over its standard input and
     output.
@@ -298,7 +299,7 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
     the calling process. The 'stderr' parameter is interpreted as for
     subprocess.Popen (but don't set it to STDOUT or PIPE).
 
-    The 'cwd' and 'env' parameters are interpreted as for subnprocess.Popen.
+    The 'cwd' and 'env' parameters are interpreted as for subprocess.Popen.
 
     """
     def __init__(self, command, stderr=None, cwd=None, env=None):
@@ -352,6 +353,7 @@ class Gtp_controller_protocol(object):
     """
     def __init__(self):
         self.channels = {}
+        self.channel_names = {}
         self.known_commands = {}
         self.log_dest = None
         # channels which have ever managed to send a GTP response
@@ -367,18 +369,25 @@ class Gtp_controller_protocol(object):
         for channel_id, channel in self.channels.iteritems():
             channel.enable_logging(self.log_dest, prefix=" %s: " % channel_id)
 
-    def add_channel(self, channel_id, channel):
+    def add_channel(self, channel_id, channel, name=None):
         """Register a communication channel.
 
         channel_id -- string
         channel    -- Gtp_channel
+        name       -- string [optional]
+
+        The name is used in error messages.
 
         """
+        # FIXME: Validate name
         if channel_id in self.channels:
             raise ValueError("channel %s already registered" % channel_id)
         if self.log_dest is not None:
             channel.enable_logging(self.log_dest, prefix=" %s: " % channel_id)
         self.channels[channel_id] = channel
+        if name is None:
+            name = "channel %s" % channel_id
+        self.channel_names[channel_id] = name
 
     def do_command(self, channel_id, command, *arguments):
         """Send a command over a channel and return the response.
@@ -418,12 +427,30 @@ class Gtp_controller_protocol(object):
                 return argument.encode("utf-8")
             else:
                 return argument
-        channel.send_command(fix_argument(command),
-                             map(fix_argument, arguments))
-        is_error, response = channel.get_response()
+        def format_command():
+            desc = "'%s %s'" % (command, " ".join(arguments))
+            if channel_id in self.working_channels:
+                return "command %s" % desc
+            else:
+                return "first command (%s)" % desc
+
+        try:
+            channel.send_command(fix_argument(command),
+                                 map(fix_argument, arguments))
+            is_error, response = channel.get_response()
+        except GtpTransportError, e:
+            raise GtpTransportError(
+                "transport error sending %s to %s:\n%s" %
+                (format_command(), self.channel_names[channel_id], e))
+        except GtpProtocolError, e:
+            raise GtpProtocolError(
+                "GTP protocol error sending %s to %s:\n%s" %
+                (format_command(), self.channel_names[channel_id], e))
         self.working_channels.add(channel_id)
         if is_error:
-            raise GtpEngineError(response)
+            raise GtpEngineError(
+                "error from %s to %s:\n%s" %
+                (format_command(), self.channel_names[channel_id], response))
         return response
 
     def known_command(self, channel_id, command):
@@ -471,8 +498,4 @@ class Gtp_controller_protocol(object):
 
         """
         return channel_id in self.channels
-
-    def channel_ever_worked(self, channel_id):
-        """Say whether the channel has had a successful GTP command-response."""
-        return channel_id in self.working_channels
 

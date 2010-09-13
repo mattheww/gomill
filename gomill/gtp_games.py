@@ -253,52 +253,6 @@ class Game(object):
     def _translate_gtp_command(self, colour, command):
         return self.gtp_translations[colour].get(command, command)
 
-    def _send_command(self, colour, command, arguments):
-        def format_command():
-            desc = "'%s %s'" % (command, " ".join(arguments))
-            if self.controller.channel_ever_worked(colour):
-                return "command %s" % desc
-            else:
-                return "first command (%s)" % desc
-
-        try:
-            return self.controller.do_command(colour, command, *arguments)
-        except GtpEngineError, e:
-            raise GtpEngineError(
-                "error from %s to player %s:\n%s" %
-                (format_command(), self.players[colour], e))
-        except GtpTransportError, e:
-            raise GtpTransportError(
-                "transport error sending %s to player %s:\n%s" %
-                (format_command(), self.players[colour], e))
-        except GtpProtocolError, e:
-            raise GtpProtocolError(
-                "GTP protocol error sending %s to player %s:\n%s" %
-                (format_command(), self.players[colour], e))
-
-    def _known_command(self, colour, command):
-        def format_command():
-            desc = "'known_command %s'" % command
-            if self.controller.channel_ever_worked(colour):
-                return "command '%s'" % desc
-            else:
-                return "first command (%s)" % desc
-        try:
-            return self.controller.known_command(colour, command)
-        except GtpEngineError, e:
-            raise GtpEngineError(
-                "error from %s to player %s:\n%s" %
-                (format_command(), self.players[colour], e))
-        except GtpTransportError, e:
-            raise GtpTransportError(
-                "transport error sending %s to player %s:\n%s" %
-                (format_command(), self.players[colour], e))
-        except GtpProtocolError, e:
-            raise GtpProtocolError(
-                "GTP protocol error sending %s to player %s:\n%s" %
-                (format_command(), self.players[colour], e))
-
-
     def send_command(self, colour, command, *arguments):
         """Send the specified GTP command to one of the players.
 
@@ -315,7 +269,7 @@ class Game(object):
 
         """
         command = self._translate_gtp_command(colour, command)
-        return self._send_command(colour, command, arguments)
+        return self.controller.do_command(colour, command, *arguments)
 
     def maybe_send_command(self, colour, command, *arguments):
         """Send the specified GTP command, if supported.
@@ -325,9 +279,9 @@ class Game(object):
 
         """
         command = self._translate_gtp_command(colour, command)
-        if self._known_command(colour, command):
+        if self.controller.known_command(colour, command):
             try:
-                result = self._send_command(colour, command, arguments)
+                result = self.controller.do_command(colour, command, *arguments)
             except GtpEngineError:
                 result = None
         else:
@@ -337,7 +291,7 @@ class Game(object):
     def known_command(self, colour, command):
         """Check whether the specified GTP command is supported."""
         command = self._translate_gtp_command(colour, command)
-        return self._known_command(colour, command)
+        return self.controller.known_command(colour, command)
 
     def start_player(self, colour, check_protocol_version=True):
         """Start the engine subprocesses.
@@ -359,7 +313,8 @@ class Game(object):
         except GtpTransportError, e:
             raise GtpTransportError("error creating player %s:\n%s" %
                                     (self.players[colour], e))
-        self.controller.add_channel(colour, channel)
+        self.controller.add_channel(colour, channel,
+                                    "player %s" % self.players[colour])
         if check_protocol_version:
             protocol_version = self.maybe_send_command(
                 colour, "protocol_version")
