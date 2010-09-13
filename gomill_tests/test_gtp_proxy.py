@@ -6,6 +6,28 @@ from gomill.gtp_proxy import BackEndError
 def handle_mytest(args):
     return "mytest: %s" % ",".join(args)
 
+def test_nongtp_backend():
+    print "==="
+    proxy = gtp_proxy.Gtp_proxy()
+    try:
+        proxy.set_back_end_subprocess("echo I'm not a gtp engine".split())
+    except BackEndError, e:
+        print e
+    else:
+        raise AssertionError("no error starting non-gtp subprocess")
+
+def test_bad_list_commands():
+    print "==="
+    proxy = gtp_proxy.Gtp_proxy()
+    try:
+        proxy.set_back_end_subprocess(
+            "gomill_tests/gtp_test_player --fail-command list_commands"
+            .split())
+    except BackEndError, e:
+        print e
+    else:
+        raise AssertionError("no error from list_commands")
+
 def test_communication_failure():
     proxy = gtp_proxy.Gtp_proxy()
     proxy.set_back_end_subprocess(
@@ -74,6 +96,8 @@ def test_interatctive():
 
 
 def test():
+    test_nongtp_backend()
+    test_bad_list_commands()
     test_communication_failure()
     test_general()
     #test_interactive()
