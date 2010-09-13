@@ -316,12 +316,7 @@ class Game(object):
         self.controller.add_channel(colour, channel,
                                     "player %s" % self.players[colour])
         if check_protocol_version:
-            protocol_version = self.maybe_send_command(
-                colour, "protocol_version")
-            if protocol_version not in (None, "2"):
-                raise GtpProtocolError(
-                    "player %s reports GTP protocol version %s" %
-                    (self.players[colour], protocol_version))
+            self.controller.check_protocol_version(colour)
         self.send_command(colour, "boardsize", str(self.board_size))
         self.send_command(colour, "clear_board")
         self.send_command(colour, "komi", str(self.komi))

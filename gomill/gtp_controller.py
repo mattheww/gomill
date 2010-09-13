@@ -475,6 +475,25 @@ class Gtp_controller_protocol(object):
         self.known_commands[channel_id, command] = known
         return known
 
+    def check_protocol_version(self, channel_id):
+        """Check the engine's declared protocol version.
+
+        Raises GtpProtocolError if the engine declares a version other than 2.
+        Otherwise does nothing.
+
+        If the engine returns a GTP error response (in particular, if
+        protocol_version isn't implemented), this does nothing.
+
+        """
+        try:
+            protocol_version = self.do_command(channel_id, "protocol_version")
+        except GtpEngineError:
+            return
+        if protocol_version != "2":
+            raise GtpProtocolError(
+                "%s reports GTP protocol version %s" %
+                (self.channel_names[channel_id], protocol_version))
+
     def close_channel(self, channel_id):
         """Close and deregister the specified channel.
 
