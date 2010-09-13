@@ -334,7 +334,7 @@ class Cem_tuner(Competition):
                 self.reset_for_new_generation()
 
     def process_game_error(self, job, previous_error_count):
-        ## If the very first game gives an error, halt.
+        ## If the very first game to return a response gives an error, halt.
         ## Otherwise, retry once and halt on a second failure.
         stop_competition = False
         retry_game = False

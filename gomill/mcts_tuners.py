@@ -589,7 +589,7 @@ class Mcts_tuner(Competition):
                           response.game_result.sgf_result)
 
     def process_game_error(self, job, previous_error_count):
-        ## If the very first game gives an error, halt.
+        ## If the very first game to return a response gives an error, halt.
         ## If two games in a row give an error, halt.
         ## Otherwise, forget about the failed game
         stop_competition = False
