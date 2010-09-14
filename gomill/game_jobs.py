@@ -187,8 +187,8 @@ class Game_job(object):
             raise job_manager.JobFailed(msg)
         try:
             game.close_players()
-        except StandardError, e:
-            msg = "error shutting down players:\n%s" % e
+        except GtpControllerError, e:
+            msg = str(e)
             self.record_void_game(game, msg)
             raise job_manager.JobFailed(msg)
         if self.sgf_pathname is not None:
@@ -304,8 +304,8 @@ def check_player(player_check, discard_stderr=False):
             raise CheckFailed(str(e))
         try:
             game.close_players()
-        except StandardError, e:
-            raise CheckFailed("error shutting down player:\n%s" % e)
+        except GtpControllerError, e:
+            raise CheckFailed(str(e))
     finally:
         try:
             if stderr is not None:

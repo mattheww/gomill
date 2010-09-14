@@ -80,6 +80,7 @@ def test_general():
     assert (proxy.engine.handle_line(
             "gomill-passthrough known_command gomill-passthrough") ==
             ('= false\n\n', False))
+    proxy.close()
 
 def test_interatctive():
     def handle_mygenmove(args):

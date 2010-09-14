@@ -3,13 +3,12 @@
 import os
 
 from gomill.gomill_common import *
-from gomill import compact_tracebacks
 from gomill import gtp_controller
 from gomill import handicap_layout
 from gomill import boards
 from gomill import sgf_writer
 from gomill.gtp_controller import (
-    GtpProtocolError, GtpTransportError, GtpEngineError)
+    GtpControllerError, GtpProtocolError, GtpTransportError, GtpEngineError)
 
 def format_float(f):
     """Format a Python float in a friendly way."""
@@ -608,8 +607,7 @@ class Game(object):
     def close_players(self):
         """Close both channels (if they're open).
 
-        Catches arbitrary exceptions and reraises as StandardError with a
-        description.
+        May propagate GtpControllerError.
 
         If cpu times are not already set in the game result, sets them from the
         CPU usage of the engine subprocesses.
@@ -619,14 +617,8 @@ class Game(object):
         for colour in ("b", "w"):
             if self.controller.has_channel(colour):
                 try:
-                    # Mogo doesn't behave well if we just close its input,
-                    # so try to quit first.
-                    self.controller.do_command(colour, "quit")
-                except StandardError:
-                    pass
-                try:
                     ru = self.controller.close_channel(colour)
-                except StandardError, e:
+                except GtpControllerError, e:
                     errors.append(str(e))
                 else:
                     if (ru is not None and self.result is not None and
@@ -634,7 +626,8 @@ class Game(object):
                         self.result.cpu_times[self.players[colour]] = \
                             ru.ru_utime + ru.ru_stime
         if errors:
-            raise StandardError("\n".join(errors))
+            # Might have been GtpProtocolError or GtpTransportError
+            raise GtpControllerError("\n".join(errors))
 
     def make_sgf(self):
         """Return an SGF description of the game.

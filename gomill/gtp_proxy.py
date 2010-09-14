@@ -120,17 +120,21 @@ class Gtp_proxy(object):
         controller.add_channel("back-end", channel, "back end")
         self.set_back_end_controller('back-end', controller)
 
-    def close(self):
+    def close(self, send_quit=True):
         """Close the channel to the back end.
+
+        send_quit -- bool (see Gtp_controller_protocol.close_channel)
 
         Transport errors are reported by raising BackEndError.
 
-        There's no great need to call this if you're going to exit from the
-        parent process anyway.
+        It's not strictly necessary to call this if you're going to exit from
+        the parent process anyway, as that will naturally close the command
+        channel. But some engines don't behave well if you don't send 'quit',
+        so it's safest to close the channel explicitly.
 
         """
         try:
-            self.controller.close_channel(self.channel_id)
+            self.controller.close_channel(self.channel_id, send_quit)
         except GtpTransportError, e:
             raise BackEndError(str(e))
 

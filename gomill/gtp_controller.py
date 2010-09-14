@@ -561,17 +561,27 @@ class Gtp_controller_protocol(object):
                 "%s reports GTP protocol version %s" %
                 (self.channel_names[channel_id], protocol_version))
 
-    def close_channel(self, channel_id):
+    def close_channel(self, channel_id, send_quit=True):
         """Close and deregister the specified channel.
 
         channel_id -- string
+        send_quit  -- bool (default True)
 
-        May raise GtpTransportError
+        May raise GtpTransportError or GtpProtocolError
 
         Returns the channel's resource usage (see resource.getrusage() for the
         format), or None if not available.
 
+        If send_quit is true, sends the 'quit' command and waits for a response
+        before closing the channel. Some engines (eg Mogo) don't behave well if
+        we just close their input, so it's usually best to do this.
+
         """
+        if send_quit:
+            try:
+                self.do_command(channel_id, "quit")
+            except GtpEngineError:
+                pass
         channel = self.channels.pop(channel_id)
         try:
             channel.close()
