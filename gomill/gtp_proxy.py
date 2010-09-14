@@ -49,8 +49,8 @@ class Gtp_proxy(object):
     The default 'quit' handler passes 'quit' on the back end and raises
     GtpQuit.
 
-    If you add handlers which are expected to cause the back end to exit
-    (eg, by sending it 'quit'), you should have them raise GtpQuit.
+    If you add a handler which you expect to cause the back end to exit (eg, by
+    sending it 'quit'), you should have it set self.quit_sent and raise GtpQuit.
 
     If you want to hide one of the underlying commands, or don't want one of the
     additional commands, just use engine.remove_command().
@@ -60,6 +60,7 @@ class Gtp_proxy(object):
         self.controller = None
         self.channel_id = None
         self.engine = None
+        self.quit_sent = False
 
     def _back_end_is_set(self):
         return self.controller is not None
@@ -120,22 +121,23 @@ class Gtp_proxy(object):
         controller.add_channel("back-end", channel, "back end")
         self.set_back_end_controller('back-end', controller)
 
-    def close(self, send_quit=True):
+    def close(self):
         """Close the channel to the back end.
 
-        send_quit -- bool (see Gtp_controller_protocol.close_channel)
+        Sends 'quit' first, if it has not already been sent.
 
-        Transport errors are reported by raising BackEndError.
+        Transport and protocol errors are reported by raising BackEndError.
 
         It's not strictly necessary to call this if you're going to exit from
         the parent process anyway, as that will naturally close the command
         channel. But some engines don't behave well if you don't send 'quit',
-        so it's safest to close the channel explicitly.
+        so it's safest to close the proxy explicitly.
 
         """
+        send_quit = not self.quit_sent
         try:
             self.controller.close_channel(self.channel_id, send_quit)
-        except GtpTransportError, e:
+        except GtpControllerError, e:
             raise BackEndError(str(e))
 
     def run(self):
@@ -212,6 +214,7 @@ class Gtp_proxy(object):
 
     def handle_quit(self, args):
         result = self.handle_command("quit", [])
+        self.quit_sent = True
         raise GtpQuit(result)
 
     def handle_passthrough(self, args):
