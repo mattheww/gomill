@@ -483,9 +483,9 @@ class Gtp_controller_protocol(object):
         fixed_command = fix_argument(command)
         fixed_arguments = map(fix_argument, arguments)
         def format_command():
-            desc = "'%s'" % (" ".join([command] + fixed_arguments))
+            desc = "%s" % (" ".join([command] + fixed_arguments))
             if channel_id in self.working_channels:
-                return "command %s" % desc
+                return "'%s'" % desc
             else:
                 return "first command (%s)" % desc
         try:
