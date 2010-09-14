@@ -405,6 +405,9 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
 class Gtp_controller_protocol(object):
     """Implementation of the controller side of the GTP protocol.
 
+    This is a higher level interface than Gtp_channel, including helper
+    functions for the protocol-level GTP commands.
+
     One controller can be in communication with an arbitrary number of engines,
     each with its own communication channel.
 
