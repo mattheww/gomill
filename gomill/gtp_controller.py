@@ -4,6 +4,7 @@ Based on GTP 'draft version 2' (see <http://www.lysator.liu.se/~gunnar/gtp/>).
 
 """
 
+import errno
 import os
 import re
 import signal
@@ -370,7 +371,10 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             self.command_pipe.write(command)
             self.command_pipe.flush()
         except EnvironmentError, e:
-            raise GtpTransportError(str(e))
+            if e.errno == errno.EPIPE:
+                raise GtpTransportError("engine has closed the command channel")
+            else:
+                raise GtpTransportError(str(e))
 
     def get_response_line(self):
         try:
