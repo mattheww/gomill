@@ -627,7 +627,7 @@ class Game(object):
                 try:
                     ru = self.controller.close_channel(colour)
                 except StandardError, e:
-                    errors.append("error closing player %s:\n%s" % (colour, e))
+                    errors.append(str(e))
                 else:
                     if (ru is not None and self.result is not None and
                         self.result.cpu_times[self.players[colour]] is None):

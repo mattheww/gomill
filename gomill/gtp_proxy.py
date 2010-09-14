@@ -131,8 +131,8 @@ class Gtp_proxy(object):
         """
         try:
             self.controller.close_channel(self.channel_id)
-        except GtpTransportError:
-            raise BackEndError("error closing channel to back end:\n%s" % e)
+        except GtpTransportError, e:
+            raise BackEndError(str(e))
 
     def run(self):
         """Run a GTP session on stdin and stdout, using the proxy engine.

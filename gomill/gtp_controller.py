@@ -573,7 +573,11 @@ class Gtp_controller_protocol(object):
 
         """
         channel = self.channels.pop(channel_id)
-        channel.close()
+        try:
+            channel.close()
+        except GtpTransportError, e:
+            raise GtpTransportError(
+                "error closing %s:\n%s" % (self.channel_names[channel_id], e))
         return channel.resource_usage
 
     def has_channel(self, channel_id):
