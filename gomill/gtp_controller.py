@@ -490,7 +490,6 @@ class Gtp_controller_protocol(object):
                 return "first command (%s)" % desc
         try:
             channel.send_command(fixed_command, fixed_arguments)
-            is_error, response = channel.get_response()
         except GtpTransportError, e:
             raise GtpTransportError(
                 "transport error sending %s to %s:\n%s" %
@@ -498,6 +497,16 @@ class Gtp_controller_protocol(object):
         except GtpProtocolError, e:
             raise GtpProtocolError(
                 "GTP protocol error sending %s to %s:\n%s" %
+                (format_command(), self.channel_names[channel_id], e))
+        try:
+            is_error, response = channel.get_response()
+        except GtpTransportError, e:
+            raise GtpTransportError(
+                "transport error reading response to %s from %s:\n%s" %
+                (format_command(), self.channel_names[channel_id], e))
+        except GtpProtocolError, e:
+            raise GtpProtocolError(
+                "GTP protocol error reading response to %s from %s:\n%s" %
                 (format_command(), self.channel_names[channel_id], e))
         self.working_channels.add(channel_id)
         if is_error:
