@@ -410,54 +410,38 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
 class Gtp_controller_protocol(object):
     """Implementation of the controller side of the GTP protocol.
 
-    This is a higher level interface than Gtp_channel, including helper
-    functions for the protocol-level GTP commands.
+    This communicates with a single engine. It's a higher level interface than
+    Gtp_channel, including helper functions for the protocol-level GTP commands.
 
-    One controller can be in communication with an arbitrary number of engines,
-    each with its own communication channel.
+    Public attributes:
+      channel -- the underlying Gtp_channel (None if it's closed).
+      name    -- the channel name (used in error messages)
+
+    It's ok to access the underlying channel directly (eg, to enable logging).
 
     """
     def __init__(self):
-        self.channels = {}
-        self.channel_names = {}
+        self.channel = None
+        self.name = None
         self.known_commands = {}
         self.log_dest = None
-        # channels which have ever managed to send a GTP response
-        self.working_channels = set()
+        self.is_first_command = True
 
-    def enable_logging(self, log_dest):
-        """Log all messages sent and received by the controller.
+    def set_channel(self, channel, name):
+        """FIXME Register a communication channel.
 
-        log_dest -- writable file-like object (eg an open file)
-
-        """
-        self.log_dest = log_dest
-        for channel_id, channel in self.channels.iteritems():
-            channel.enable_logging(self.log_dest, prefix=" %s: " % channel_id)
-
-    def add_channel(self, channel_id, channel, name=None):
-        """Register a communication channel.
-
-        channel_id -- string
         channel    -- Gtp_channel
-        name       -- string [optional]
+        name       -- string
 
         The name is used in error messages.
 
         """
-        if channel_id in self.channels:
-            raise ValueError("channel %s already registered" % channel_id)
-        if self.log_dest is not None:
-            channel.enable_logging(self.log_dest, prefix=" %s: " % channel_id)
-        self.channels[channel_id] = channel
-        if name is None:
-            name = "channel %s" % channel_id
-        self.channel_names[channel_id] = str(name)
+        self.channel = channel
+        self.name = str(name)
 
-    def do_command(self, channel_id, command, *arguments):
-        """Send a command over a channel and return the response.
+    def do_command(self, command, *arguments):
+        """Send a command to the engine and return the response.
 
-        channel_id -- string
         command    -- string (command name)
         arguments  -- strings or unicode objects
 
@@ -476,7 +460,7 @@ class Gtp_controller_protocol(object):
         If the engine returns an error response, raises GtpEngineError with the
         error message as exception parameter.
 
-        This will wait indefinitely for the channel to produce the response.
+        This will wait indefinitely for the engine to produce the response.
 
         Raises GtpChannelClosed if the engine has apparently closed its
         connection.
@@ -489,7 +473,8 @@ class Gtp_controller_protocol(object):
         the engine has gone away).
 
         """
-        channel = self.channels[channel_id]
+        if self.channel is None:
+            raise StandardError("channel is closed")
         def fix_argument(argument):
             if isinstance(argument, unicode):
                 return argument.encode("utf-8")
@@ -499,47 +484,47 @@ class Gtp_controller_protocol(object):
         fixed_arguments = map(fix_argument, arguments)
         def format_command():
             desc = "%s" % (" ".join([command] + fixed_arguments))
-            if channel_id in self.working_channels:
-                return "'%s'" % desc
-            else:
+            if self.is_first_command:
                 return "first command (%s)" % desc
+            else:
+                return "'%s'" % desc
         try:
-            channel.send_command(fixed_command, fixed_arguments)
+            self.channel.send_command(fixed_command, fixed_arguments)
         except GtpChannelClosed, e:
             raise GtpChannelClosed(
                 "error sending %s to %s:\n%s" %
-                (format_command(), self.channel_names[channel_id], e))
+                (format_command(), self.name, e))
         except GtpTransportError, e:
             raise GtpTransportError(
                 "transport error sending %s to %s:\n%s" %
-                (format_command(), self.channel_names[channel_id], e))
+                (format_command(), self.name, e))
         except GtpProtocolError, e:
             raise GtpProtocolError(
                 "GTP protocol error sending %s to %s:\n%s" %
-                (format_command(), self.channel_names[channel_id], e))
+                (format_command(), self.name, e))
         try:
-            is_error, response = channel.get_response()
+            is_error, response = self.channel.get_response()
         except GtpChannelClosed, e:
             raise GtpChannelClosed(
                 "error reading response to %s from %s:\n%s" %
-                (format_command(), self.channel_names[channel_id], e))
+                (format_command(), self.name, e))
         except GtpTransportError, e:
             raise GtpTransportError(
                 "transport error reading response to %s from %s:\n%s" %
-                (format_command(), self.channel_names[channel_id], e))
+                (format_command(), self.name, e))
         except GtpProtocolError, e:
             raise GtpProtocolError(
                 "GTP protocol error reading response to %s from %s:\n%s" %
-                (format_command(), self.channel_names[channel_id], e))
-        self.working_channels.add(channel_id)
+                (format_command(), self.name, e))
+        self.is_first_command = False
         if is_error:
             raise GtpEngineError(
                 "error from %s to %s:\n%s" %
-                (format_command(), self.channel_names[channel_id], response))
+                (format_command(), self.name, response))
         return response
 
-    def known_command(self, channel_id, command):
-        """Check whether 'command' is known for a channel.
+    def known_command(self, command):
+        """Check whether 'command' is known by the engine.
 
         This sends 'known_command' the first time it's asked, then caches the
         result.
@@ -550,19 +535,19 @@ class Gtp_controller_protocol(object):
         (see do_command).
 
         """
-        result = self.known_commands.get((channel_id, command))
+        result = self.known_commands.get(command)
         if result is not None:
             return result
         try:
-            response = self.do_command(channel_id, "known_command", command)
+            response = self.do_command("known_command", command)
         except GtpEngineError:
             known = False
         else:
             known = (response == 'true')
-        self.known_commands[channel_id, command] = known
+        self.known_commands[command] = known
         return known
 
-    def check_protocol_version(self, channel_id):
+    def check_protocol_version(self):
         """Check the engine's declared protocol version.
 
         Raises GtpProtocolError if the engine declares a version other than 2.
@@ -576,18 +561,17 @@ class Gtp_controller_protocol(object):
 
         """
         try:
-            protocol_version = self.do_command(channel_id, "protocol_version")
+            protocol_version = self.do_command("protocol_version")
         except GtpEngineError:
             return
         if protocol_version != "2":
             raise GtpProtocolError(
                 "%s reports GTP protocol version %s" %
-                (self.channel_names[channel_id], protocol_version))
+                (self.name, protocol_version))
 
-    def close_channel(self, channel_id, send_quit=True):
-        """Close and deregister the specified channel.
+    def close_channel(self, send_quit=True):
+        """Close the communication channel to the engine.
 
-        channel_id -- string
         send_quit  -- bool (default True)
 
         May raise GtpTransportError or GtpProtocolError
@@ -603,22 +587,15 @@ class Gtp_controller_protocol(object):
         """
         if send_quit:
             try:
-                self.do_command(channel_id, "quit")
+                self.do_command("quit")
             except (GtpEngineError, GtpChannelClosed):
                 pass
-        channel = self.channels.pop(channel_id)
         try:
-            channel.close()
+            self.channel.close()
         except GtpTransportError, e:
             raise GtpTransportError(
-                "error closing %s:\n%s" % (self.channel_names[channel_id], e))
-        return channel.resource_usage
-
-    def has_channel(self, channel_id):
-        """Check whether a channel id is currently registered.
-
-        channel_id -- string
-
-        """
-        return channel_id in self.channels
+                "error closing %s:\n%s" % (self.name, e))
+        result = self.channel.resource_usage
+        self.channel = None
+        return result
 

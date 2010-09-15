@@ -157,7 +157,8 @@ class Game(object):
         self.engine_cwd = {'b' : None, 'w' : None}
         self.engine_environ = {'b' : None, 'w' : None}
         self.after_move_callback = None
-        self.controller = gtp_controller.Gtp_controller_protocol()
+        self.controllers = {'b' : gtp_controller.Gtp_controller_protocol(),
+                            'w' : gtp_controller.Gtp_controller_protocol()}
 
 
     ## Configuration methods (callable before start_player)
@@ -211,7 +212,8 @@ class Game(object):
         log_dest -- writable file-like object (eg an open file)
 
         """
-        self.controller.enable_logging(log_dest)
+        # FIXME
+        #self.controller.enable_logging(log_dest)
 
     def set_stderr(self, colour, stderr_dest):
         """Set the destination of an engine's standard error stream.
@@ -268,7 +270,7 @@ class Game(object):
 
         """
         command = self._translate_gtp_command(colour, command)
-        return self.controller.do_command(colour, command, *arguments)
+        return self.controllers[colour].do_command(command, *arguments)
 
     def maybe_send_command(self, colour, command, *arguments):
         """Send the specified GTP command, if supported.
@@ -278,9 +280,10 @@ class Game(object):
 
         """
         command = self._translate_gtp_command(colour, command)
-        if self.controller.known_command(colour, command):
+        controller = self.controllers[colour]
+        if controller.known_command(command):
             try:
-                result = self.controller.do_command(colour, command, *arguments)
+                result = controller.do_command(command, *arguments)
             except GtpEngineError:
                 result = None
         else:
@@ -290,10 +293,10 @@ class Game(object):
     def known_command(self, colour, command):
         """Check whether the specified GTP command is supported."""
         command = self._translate_gtp_command(colour, command)
-        return self.controller.known_command(colour, command)
+        return self.controllers[colour].known_command(command)
 
     def start_player(self, colour, check_protocol_version=True):
-        """Start the engine subprocesses.
+        """Start the engine subprocess.
 
         If check_protocol_version is true (which it is by default), rejects an
         engine that declares a GTP protocol version <> 2.
@@ -312,13 +315,13 @@ class Game(object):
         except GtpTransportError, e:
             raise GtpTransportError("error creating player %s:\n%s" %
                                     (self.players[colour], e))
-        self.controller.add_channel(colour, channel,
-                                    "player %s" % self.players[colour])
+        controller = self.controllers[colour]
+        controller.set_channel(channel, "player %s" % self.players[colour])
         if check_protocol_version:
-            self.controller.check_protocol_version(colour)
-        self.send_command(colour, "boardsize", str(self.board_size))
-        self.send_command(colour, "clear_board")
-        self.send_command(colour, "komi", str(self.komi))
+            controller.check_protocol_version()
+        controller.do_command("boardsize", str(self.board_size))
+        controller.do_command("clear_board")
+        controller.do_command("komi", str(self.komi))
 
     def request_engine_descriptions(self):
         """Obtain the engines' name, version, and description by GTP.
@@ -615,9 +618,10 @@ class Game(object):
         """
         errors = []
         for colour in ("b", "w"):
-            if self.controller.has_channel(colour):
+            controller = self.controllers[colour]
+            if controller.channel is not None:
                 try:
-                    ru = self.controller.close_channel(colour)
+                    ru = controller.close_channel()
                 except GtpControllerError, e:
                     errors.append(str(e))
                 else:

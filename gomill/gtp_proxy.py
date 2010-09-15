@@ -22,7 +22,6 @@ class Gtp_proxy(object):
     Public attributes:
       engine             -- Gtp_engine_protocol
       controller         -- Gtp_controller_protocol
-      channel_id         -- string
       send_quit_on_close -- bool
 
     The 'engine' attribute is the proxy engine. Initially it supports all the
@@ -61,7 +60,6 @@ class Gtp_proxy(object):
     """
     def __init__(self):
         self.controller = None
-        self.channel_id = None
         self.engine = None
         self.send_quit_on_close = True
 
@@ -85,10 +83,9 @@ class Gtp_proxy(object):
             'gomill-passthrough' : self.handle_passthrough,
             })
 
-    def set_back_end_controller(self, channel_id, controller):
+    def set_back_end_controller(self, controller):
         """Specify the back end using a Gtp_controller_protocol.
 
-        channel_id -- string
         controller -- Gtp_controller_protocol
 
         Raises BackEndError if it can't communicate with the back end.
@@ -97,10 +94,9 @@ class Gtp_proxy(object):
         if self._back_end_is_set():
             raise StandardError("back end already set")
         try:
-            response = controller.do_command(channel_id, 'list_commands')
+            response = controller.do_command('list_commands')
         except GtpControllerError, e:
             raise BackEndError(str(e))
-        self.channel_id = channel_id
         self.controller = controller
         self.back_end_commands = [s for s in
                                   (t.strip() for t in response.split("\n"))
@@ -124,8 +120,8 @@ class Gtp_proxy(object):
             # Probably means exec failure
             raise BackEndError("can't launch back end command\n%s" % e)
         controller = gtp_controller.Gtp_controller_protocol()
-        controller.add_channel("back-end", channel, "back end")
-        self.set_back_end_controller('back-end', controller)
+        controller.set_channel(channel, "back end")
+        self.set_back_end_controller(controller)
 
     def close(self):
         """Close the channel to the back end.
@@ -142,8 +138,7 @@ class Gtp_proxy(object):
 
         """
         try:
-            self.controller.close_channel(
-                self.channel_id, self.send_quit_on_close)
+            self.controller.close_channel(self.send_quit_on_close)
         except GtpControllerError, e:
             raise BackEndError(str(e))
 
@@ -182,7 +177,7 @@ class Gtp_proxy(object):
         if not self._back_end_is_set():
             raise StandardError("back end isn't set")
         try:
-            return self.controller.do_command(self.channel_id, command, *args)
+            return self.controller.do_command(command, *args)
         except (GtpProtocolError, GtpChannelClosed, GtpTransportError), e:
             raise BackEndError(str(e))
 
@@ -215,7 +210,7 @@ class Gtp_proxy(object):
         if not self._back_end_is_set():
             raise StandardError("back end isn't set")
         try:
-            return self.controller.known_command(self.channel_id, command)
+            return self.controller.known_command(command)
         except (GtpProtocolError, GtpChannelClosed, GtpTransportError), e:
             raise BackEndError(str(e))
 

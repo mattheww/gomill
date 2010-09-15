@@ -13,9 +13,9 @@ def test_gmp():
     gnugo = gtp_controller.Subprocess_gtp_channel(
         ["gnugo"], stderr=devnull)
     devnull.close()
-    controller.add_channel("gg", gnugo, "gnugo")
+    controller.set_channel(gnugo, "gnugo")
     try:
-        controller.check_protocol_version('gg')
+        controller.check_protocol_version()
     except gtp_controller.GtpProtocolError, e:
         print e
     else:
@@ -23,17 +23,16 @@ def test_gmp():
 
 
 def test_misc():
-    controller = gtp_controller.Gtp_controller_protocol()
-
     # Enable diagnostics to stderr, but send them to /dev/null
     devnull = open(os.devnull, "w")
     c1 = gtp_controller.Subprocess_gtp_channel(
         "./player -m kiai.simple_montecarlo_player --diag=t".split(),
         stderr=devnull.fileno())
     devnull.close()
-    controller.add_channel("first", c1)
+    controller1 = gtp_controller.Gtp_controller_protocol()
+    controller1.set_channel(c1, "first")
 
-    #controller.enable_logging(sys.stdout)
+    #controller1.channel.enable_logging(sys.stdout, ' first: ')
 
     gtp_state = gtp_states.Gtp_state(test_gtp_state.dummy_move_generator, [9])
     engine = test_gtp_state.kiai_dummy_engine(gtp_state)
@@ -42,35 +41,37 @@ def test_misc():
     #c2 = gtp_controller.Subprocess_gtp_channel(
     #    "gnugo --mode=gtp --boardsize=9".split())
 
-    controller.add_channel("second", c2)
+    controller2 = gtp_controller.Gtp_controller_protocol()
+    controller2.set_channel(c2, "second")
+    #controller2.channel.enable_logging(sys.stdout, ' second: ')
 
 
-    def send_command(channel_id, command, *arguments):
+    def send_command(controller, command, *arguments):
         try:
-            response = controller.do_command(channel_id, command, *arguments)
+            response = controller.do_command(command, *arguments)
         except gtp_controller.GtpEngineError, e:
             response = None
         return response
 
     i = 0
     while i < 3:
-        move = send_command("first", "genmove", "b").strip()
-        send_command("first", "showboard")
-        send_command("second", "play", "b", move)
-        move = send_command("second", "genmove", "w").strip()
-        send_command("second", "showboard")
-        send_command("first", "play", "w", move)
+        move = send_command(controller1, "genmove", "b").strip()
+        send_command(controller1, "showboard")
+        send_command(controller2, "play", "b", move)
+        move = send_command(controller2, "genmove", "w").strip()
+        send_command(controller2, "showboard")
+        send_command(controller1, "play", "w", move)
         i += 1
 
-    send_command("first", "play", "w", "resign")
-    send_command("second", "asdasd", "w", move)
-    #send_command("first", "quit")
-    #send_command("second", "quit")
+    send_command(controller1, "play", "w", "resign")
+    send_command(controller2, "asdasd", "w", move)
+    #send_command(controller1, "quit")
+    #send_command(controller2, "quit")
 
     print "Shutting down first"
-    rusage = controller.close_channel("first")
+    rusage = controller1.close_channel()
     print "Shutting down second"
-    controller.close_channel("second")
+    controller2.close_channel()
 
     print "Resource usage:"
     print rusage.ru_utime
