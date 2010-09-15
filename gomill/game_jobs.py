@@ -123,23 +123,43 @@ class Game_job(object):
     # The code here has to be happy to run in a separate process.
 
     def run(self):
-        files_to_close = []
+        self._files_to_close = []
         try:
-            return self._run(files_to_close)
+            return self._run()
         finally:
             # These files are all either flushed after every write, or not
             # written to at all from this process, so there shouldn't be any
             # errors from close().
-            for f in files_to_close:
+            for f in self._files_to_close:
                 try:
                     f.close()
                 except EnvironmentError:
                     pass
 
-    def _run(self, files_to_close):
+    def _start_player(self, game, colour, player, gtp_log_file):
+        if player.stderr_pathname is not None:
+            stderr = open(player.stderr_pathname, "a")
+            self._files_to_close.append(stderr)
+        else:
+            stderr = None
+        if player.environ is not None:
+            environ = os.environ.copy()
+            environ.update(player.environ)
+        else:
+            environ = None
+        game.set_player_subprocess(
+            colour, player.cmd_args,
+            env=environ, cwd=player.cwd, stderr=stderr)
+        if gtp_log_file is not None:
+            game.get_channel(colour).enable_logging(
+                gtp_log_file, prefix=" %s: " % colour)
+        game.ready(colour)
+        for command, arguments in player.startup_gtp_commands:
+            game.send_command(colour, command, *arguments)
+
+    def _run(self):
         game = gtp_games.Game(
             {'b' : self.player_b.code, 'w' : self.player_w.code},
-            {'b' : self.player_b.cmd_args, 'w' : self.player_w.cmd_args},
             self.board_size, self.komi, self.move_limit)
         if self.use_internal_scorer:
             game.use_internal_scorer()
@@ -150,29 +170,16 @@ class Game_job(object):
                 game.allow_scorer('w')
         game.set_gtp_translations({'b' : self.player_b.gtp_translations,
                                    'w' : self.player_w.gtp_translations})
+
         if self.gtp_log_pathname is not None:
             gtp_log_file = open(self.gtp_log_pathname, "w")
-            files_to_close.append(gtp_log_file)
-            game.set_gtp_log(gtp_log_file)
-        if self.player_b.stderr_pathname is not None:
-            stderr_b = open(self.player_b.stderr_pathname, "a")
-            files_to_close.append(stderr_b)
-            game.set_stderr('b', stderr_b)
-        if self.player_w.stderr_pathname is not None:
-            stderr_w = open(self.player_w.stderr_pathname, "a")
-            files_to_close.append(stderr_w)
-            game.set_stderr('w', stderr_w)
-        game.set_cwd('b', self.player_b.cwd)
-        game.set_cwd('w', self.player_w.cwd)
-        game.set_environ('b', self.player_b.environ)
-        game.set_environ('w', self.player_w.environ)
+            self._files_to_close.append(gtp_log_file)
+        else:
+            gtp_log_file = None
+
         try:
-            game.start_player('b')
-            for command, arguments in self.player_b.startup_gtp_commands:
-                game.send_command('b', command, *arguments)
-            game.start_player('w')
-            for command, arguments in self.player_w.startup_gtp_commands:
-                game.send_command('w', command, *arguments)
+            self._start_player(game, 'b', self.player_b, gtp_log_file)
+            self._start_player(game, 'w', self.player_w, gtp_log_file)
             game.request_engine_descriptions()
             if self.handicap:
                 try:
@@ -278,6 +285,9 @@ def check_player(player_check, discard_stderr=False):
      - the engine accepts any startup_gtp_commands
 
     """
+    # FIXME [[
+    return True
+    # ]]
     player = player_check.player
     if player.cwd is not None and not os.path.isdir(player.cwd):
         raise CheckFailed("bad working directory: %s" % player.cwd)

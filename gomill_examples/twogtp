@@ -43,8 +43,6 @@ def main():
     game = gtp_games.Game(
         players={'b' : black_command[0],
                  'w' : white_command[0]},
-        commands={'b' : black_command,
-                  'w' : white_command},
         board_size=options.size,
         komi=options.komi,
         move_limit=1000)
@@ -57,8 +55,10 @@ def main():
     game.allow_scorer('w')
 
     try:
-        game.start_player('b')
-        game.start_player('w')
+        game.set_player_subprocess('b', black_command)
+        game.set_player_subprocess('w', white_command)
+        game.ready('b')
+        game.ready('w')
         game.run()
     except GtpControllerError, e:
         sys.exit("aborting game due to error:\n%s\n" % e)

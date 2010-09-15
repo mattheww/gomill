@@ -99,16 +99,13 @@ class Game(object):
     Normal use:
 
       game = Game(...)
-      call configuration methods [all are optional]:
-        game.use_internal_scorer() or game.allow_scorer(...)
-        game.set_gtp_translations(...)
-        game.set_move_callback...()
-        game.set_gtp_log(...)
-        game.set_stderr(...)
-        game.set_cwd(...)
-        game.set_environ(...)
-      game.start_player('b')
-      game.start_player('w')
+      game.use_internal_scorer() or game.allow_scorer(...) [optional]
+      game.set_gtp_translations(...) [optional]
+      game.set_move_callback...() [optional]
+      game.set_player_subprocess('b', ...) or set_player_controller('b', ...)
+      game.set_player_subprocess('w', ...) or set_player_controller('w', ...)
+      game.ready('b')
+      game.ready('w')
       game.request_engine_descriptions() [optional]
       game.set_handicap(...) [optional]
       game.run()
@@ -117,7 +114,7 @@ class Game(object):
 
     then retrieve the Game_result and moves.
 
-    If neither use_internal_scorer() nor game.allow_scorer() is called, the game
+    If neither use_internal_scorer() nor allow_scorer() is called, the game
     won't be scored.
 
     Public attributes for reading:
@@ -136,9 +133,8 @@ class Game(object):
 
    """
 
-    def __init__(self, players, commands, board_size, komi, move_limit):
+    def __init__(self, players, board_size, komi, move_limit):
         self.players = players
-        self.commands = commands
         self.board_size = board_size
         self.komi = komi
         self.move_limit = move_limit
@@ -153,14 +149,11 @@ class Game(object):
         self.gtp_translations = {'b' : {}, 'w' : {}}
         self.additional_sgf_props = []
         self.sgf_setup_stones = None
-        self.engine_stderr_dest = {'b' : None, 'w' : None}
-        self.engine_cwd = {'b' : None, 'w' : None}
-        self.engine_environ = {'b' : None, 'w' : None}
         self.after_move_callback = None
         self.controllers = {}
 
 
-    ## Configuration methods (callable before start_player)
+    ## Configuration methods (callable before set_player_...)
 
     def use_internal_scorer(self):
         """Set the scoring method to internal.
@@ -205,48 +198,6 @@ class Game(object):
         """
         self.after_move_callback = fn
 
-    def set_gtp_log(self, log_dest):
-        """Enable logging by the GTP controller.
-
-        log_dest -- writable file-like object (eg an open file)
-
-        """
-        # FIXME
-        #self.controller.enable_logging(log_dest)
-
-    def set_stderr(self, colour, stderr_dest):
-        """Set the destination of an engine's standard error stream.
-
-        stderr_dest -- open file
-
-        By default, the engine's standard error is left as the standard error of
-        the calling process.
-
-        stderr_dest is just a way of indicating an open file descriptor, so it
-        has to be a true file (or at least implement fileno().
-
-        """
-        self.engine_stderr_dest[colour] = stderr_dest
-
-    def set_cwd(self, colour, cwd):
-        """Set the engine's working directory.
-
-        By default, the engine's working directory is left unchanged.
-
-        """
-        self.engine_cwd[colour] = cwd
-
-    def set_environ(self, colour, environ):
-        """Set replacement environment variables for the engine.
-
-        environ -- maplike
-
-        The engine will be given a copy of os.environ, updated with these
-        variables.
-
-        """
-        self.engine_environ[colour] = environ
-
 
     ## Main methods
 
@@ -264,7 +215,7 @@ class Game(object):
 
         Raises GtpEngineError if the engine returns an error response.
 
-        You can use this at any time between start_player() and
+        You can use this at any time between set_player_...() and
         close_players().
 
         """
@@ -294,29 +245,47 @@ class Game(object):
         command = self._translate_gtp_command(colour, command)
         return self.controllers[colour].known_command(command)
 
-    def start_player(self, colour, check_protocol_version=True):
-        """Start the engine subprocess.
+    def set_player_controller(self, colour, controller):
+        """Specify a player using a Gtp_controller_protocol.
 
-        If check_protocol_version is true (which it is by default), rejects an
-        engine that declares a GTP protocol version <> 2.
+        controller -- Gtp_controller_protocol
 
         """
-        if self.engine_environ[colour] is not None:
-            env = os.environ.copy()
-            env.update(self.engine_environ[colour])
-        else:
-            env = None
+        self.controllers[colour] = controller
+
+    def set_player_subprocess(self, colour, command, **kwargs):
+        """Specify the a player as a subprocess.
+
+        command -- list of strings (as for subprocess.Popen)
+
+        Additional keyword arguments are passed to the Subprocess_gtp_channel
+        constructor.
+
+        Propagates GtpTransportError if there's an error creating the
+        subprocess.
+
+        """
         try:
-            channel = gtp_controller.Subprocess_gtp_channel(
-                self.commands[colour],
-                stderr=self.engine_stderr_dest[colour],
-                cwd=self.engine_cwd[colour], env=env)
+            channel = gtp_controller.Subprocess_gtp_channel(command, **kwargs)
         except GtpTransportError, e:
             raise GtpTransportError("error creating player %s:\n%s" %
                                     (self.players[colour], e))
         controller = gtp_controller.Gtp_controller_protocol(
             channel, "player %s" % self.players[colour])
-        self.controllers[colour] = controller
+        self.set_player_controller(colour, controller)
+
+    def get_channel(self, colour):
+        """Return the underlying Gtp_channel for the specified engine."""
+        return self.controllers[colour].channel
+
+    def ready(self, colour, check_protocol_version=True):
+        """Reset GTP game state for the player (board size, contents, komi).
+
+        If check_protocol_version is true (which it is by default), rejects an
+        engine that declares a GTP protocol version <> 2.
+
+        """
+        controller = self.controllers[colour]
         if check_protocol_version:
             controller.check_protocol_version()
         controller.do_command("boardsize", str(self.board_size))
@@ -535,7 +504,7 @@ class Game(object):
     def fake_run(self, winner):
         """Set state variables as if the game had been run (for testing).
 
-        You don't need to use start_player to call this.
+        You don't need to use set_player_... to call this.
 
         winner -- 'b' or 'w'
 
