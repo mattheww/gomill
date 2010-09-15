@@ -16,8 +16,8 @@ from gomill.gomill_common import *
 class GtpControllerError(StandardError):
     """Error trying to talk to a GTP engine.
 
-    This is the base class for GtpProtocolError, GtpTransportError, and
-    GtpEngineError.
+    This is the base class for GtpProtocolError, GtpTransportError,
+    GtpChannelClosed, and GtpEngineError.
 
     """
 
@@ -26,6 +26,9 @@ class GtpProtocolError(GtpControllerError):
 
 class GtpTransportError(GtpControllerError):
     """Error communicating with the engine."""
+
+class GtpChannelClosed(GtpControllerError):
+    """The (command or response) channel to the engine has been closed."""
 
 class GtpEngineError(GtpControllerError):
     """Error response from the engine."""
@@ -93,7 +96,7 @@ class Gtp_channel(object):
         command   -- string
         arguments -- list of strings
 
-        May raise GtpTransportError
+        May raise GtpChannelClosed or GtpTransportError.
 
         Raises ValueError if the command or an argument contains a character
         forbidden in GTP.
@@ -125,7 +128,7 @@ class Gtp_channel(object):
         newlines, but there are no empty lines except perhaps the first. There
         is no leading whitespace on the first line.
 
-        May raise GtpTransportError
+        May raise GtpChannelClosed or GtpTransportError.
 
         May raise GtpProtocolError (eg if the error status can't be read from
         the engine's response).
@@ -180,12 +183,12 @@ class Internal_gtp_channel(Gtp_channel):
 
     def send_command_impl(self, command, arguments):
         if self.session_is_ended:
-            raise GtpTransportError("engine has ended the session")
+            raise GtpChannelClosed("engine has ended the session")
         self.outstanding_commands.append((command, arguments))
 
     def get_response_impl(self):
         if self.session_is_ended:
-            raise GtpTransportError("engine has ended the session")
+            raise GtpChannelClosed("engine has ended the session")
         try:
             command, arguments = self.outstanding_commands.pop(0)
         except IndexError:
@@ -214,14 +217,14 @@ class Linebased_gtp_channel(Gtp_channel):
     def get_response_impl(self):
         """Obtain response according to GTP protocol.
 
-        If we receive EOF before any data, we raise GtpTransportError (the
-        engine has probably gone away).
+        If we receive EOF before any data, we raise GtpChannelClosed.
 
         Otherwise if we receive EOF, we use the data received anyway.
 
-        The first time this is called, if we receive a non-whitespace control
-        character as the first byte we raise GtpProtocolError (though strictly
-        we should just discard it).
+        The first time this is called, we check the first byte without reading
+        the whole line, and raise GtpProtocolError if it isn't plausibly the
+        start of a GTP response (strictly, if it's a control character we should
+        just discard it, but I think it's more useful to reject them here).
 
         """
         lines = []
@@ -237,7 +240,8 @@ class Linebased_gtp_channel(Gtp_channel):
                 pass
             else:
                 if peeked_byte == "":
-                    raise GtpTransportError("engine has closed the channel")
+                    raise GtpChannelClosed(
+                        "engine has closed the response channel")
                 if peeked_byte == "\x01":
                     raise GtpProtocolError(
                         "engine appears to be speaking GMP, not GTP!")
@@ -274,7 +278,7 @@ class Linebased_gtp_channel(Gtp_channel):
                 break
         if not lines:
             # Means 'EOF and empty response'
-            raise GtpTransportError("engine has closed the channel")
+            raise GtpChannelClosed("engine has closed the response channel")
         first_line = lines[0]
         # It's certain that first line isn't empty
         if first_line[0] == "?":
@@ -299,7 +303,7 @@ class Linebased_gtp_channel(Gtp_channel):
 
         command -- string terminated by a newline.
 
-        May raise GtpTransportError
+        May raise GtpChannelClosed or GtpTransportError
 
         """
         raise NotImplementedError
@@ -319,6 +323,8 @@ class Linebased_gtp_channel(Gtp_channel):
 
     def get_response_byte(self):
         """Read a single byte from the channel.
+
+        May raise GtpTransportError
 
         This blocks until a byte is available, or end-of-file is reached.
 
@@ -372,7 +378,7 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             self.command_pipe.flush()
         except EnvironmentError, e:
             if e.errno == errno.EPIPE:
-                raise GtpTransportError("engine has closed the command channel")
+                raise GtpChannelClosed("engine has closed the command channel")
             else:
                 raise GtpTransportError(str(e))
 
@@ -473,6 +479,9 @@ class Gtp_controller_protocol(object):
 
         This will wait indefinitely for the channel to produce the response.
 
+        Raises GtpChannelClosed if the engine has apparently closed its
+        connection.
+
         Raises GtpProtocolError if the engine's response is too mangled to be
         returned.
 
@@ -497,6 +506,10 @@ class Gtp_controller_protocol(object):
                 return "first command (%s)" % desc
         try:
             channel.send_command(fixed_command, fixed_arguments)
+        except GtpChannelClosed, e:
+            raise GtpChannelClosed(
+                "error sending %s to %s:\n%s" %
+                (format_command(), self.channel_names[channel_id], e))
         except GtpTransportError, e:
             raise GtpTransportError(
                 "transport error sending %s to %s:\n%s" %
@@ -507,6 +520,10 @@ class Gtp_controller_protocol(object):
                 (format_command(), self.channel_names[channel_id], e))
         try:
             is_error, response = channel.get_response()
+        except GtpChannelClosed, e:
+            raise GtpChannelClosed(
+                "error reading response to %s from %s:\n%s" %
+                (format_command(), self.channel_names[channel_id], e))
         except GtpTransportError, e:
             raise GtpTransportError(
                 "transport error reading response to %s from %s:\n%s" %
@@ -530,7 +547,8 @@ class Gtp_controller_protocol(object):
 
         If known_command fails, returns False.
 
-        May propagate GtpProtocolError or GtpTransportError (see do_command).
+        May propagate GtpProtocolError, GtpChannelClosed, or GtpTransportError
+        (see do_command).
 
         """
         result = self.known_commands.get((channel_id, command))
@@ -554,6 +572,9 @@ class Gtp_controller_protocol(object):
         If the engine returns a GTP error response (in particular, if
         protocol_version isn't implemented), this does nothing.
 
+        May propagate GtpProtocolError, GtpChannelClosed, or GtpTransportError
+        (see do_command).
+
         """
         try:
             protocol_version = self.do_command(channel_id, "protocol_version")
@@ -576,14 +597,15 @@ class Gtp_controller_protocol(object):
         format), or None if not available.
 
         If send_quit is true, sends the 'quit' command and waits for a response
-        before closing the channel. Some engines (eg Mogo) don't behave well if
-        we just close their input, so it's usually best to do this.
+        (ignoring GtpChannelClosed) before closing the channel. Some engines (eg
+        Mogo) don't behave well if we just close their input, so it's usually
+        best to do this.
 
         """
         if send_quit:
             try:
                 self.do_command(channel_id, "quit")
-            except GtpEngineError:
+            except (GtpEngineError, GtpChannelClosed):
                 pass
         channel = self.channels.pop(channel_id)
         try:

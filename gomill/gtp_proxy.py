@@ -8,7 +8,8 @@ on to another engine (the _back end_).
 from gomill import gtp_controller
 from gomill import gtp_engine
 from gomill.gtp_controller import (
-    GtpControllerError, GtpProtocolError, GtpTransportError, GtpEngineError)
+    GtpControllerError, GtpProtocolError,
+    GtpChannelClosed, GtpTransportError, GtpEngineError)
 from gomill.gtp_engine import GtpError, GtpQuit, GtpFatalError
 
 
@@ -179,7 +180,7 @@ class Gtp_proxy(object):
             raise StandardError("back end isn't set")
         try:
             return self.controller.do_command(self.channel_id, command, *args)
-        except (GtpProtocolError, GtpTransportError), e:
+        except (GtpProtocolError, GtpChannelClosed, GtpTransportError), e:
             raise BackEndError(str(e))
 
     def handle_command(self, command, args):
@@ -212,7 +213,7 @@ class Gtp_proxy(object):
             raise StandardError("back end isn't set")
         try:
             return self.controller.known_command(self.channel_id, command)
-        except (GtpProtocolError, GtpTransportError), e:
+        except (GtpProtocolError, GtpChannelClosed, GtpTransportError), e:
             raise BackEndError(str(e))
 
     def handle_quit(self, args):

@@ -127,9 +127,9 @@ class Game(object):
       engine_names          -- map player code -> string
       engine_descriptions   -- map player code -> string
 
-   Methods which communicate with engines may raise GtpTransportError or
-   GtpProtocolError (eg if the engine has gone away), or GtpEngineError if the
-   engine returns an error response.
+   Methods which communicate with engines may raise GtpChannelClosed,
+   GtpTransportError or GtpProtocolError, if there is trouble communicating
+   with the engine, or GtpEngineError if the engine returns an error response.
 
 
    This doesn't enforce any ko rule.
