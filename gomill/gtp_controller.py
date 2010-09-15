@@ -62,6 +62,7 @@ class Gtp_channel(object):
 
     """
     def __init__(self):
+        self.resource_usage = None
         self.log_dest = None
         self.log_prefix = None
 
@@ -179,7 +180,6 @@ class Internal_gtp_channel(Gtp_channel):
         self.engine = engine
         self.outstanding_commands = []
         self.session_is_ended = False
-        self.resource_usage = None
 
     def send_command_impl(self, command, arguments):
         if self.session_is_ended:
@@ -370,7 +370,6 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
         self.subprocess = p
         self.command_pipe = p.stdin
         self.response_pipe = p.stdout
-        self.resource_usage = None
 
     def send_command_line(self, command):
         try:
