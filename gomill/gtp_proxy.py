@@ -107,16 +107,19 @@ class Gtp_proxy(object):
                                   if s]
         self._make_engine()
 
-    def set_back_end_subprocess(self, command):
+    def set_back_end_subprocess(self, command, **kwargs):
         """Specify the back end as a subprocess.
 
         command -- list of strings (as for subprocess.Popen)
+
+        Additional keyword arguments are passed to the Subprocess_gtp_channel
+        constructor.
 
         Raises BackEndError if it can't communicate with the back end.
 
         """
         try:
-            channel = gtp_controller.Subprocess_gtp_channel(command)
+            channel = gtp_controller.Subprocess_gtp_channel(command, **kwargs)
         except GtpTransportError, e:
             # Probably means exec failure
             raise BackEndError("can't launch back end command\n%s" % e)
