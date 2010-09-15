@@ -119,8 +119,7 @@ class Gtp_proxy(object):
         except GtpTransportError, e:
             # Probably means exec failure
             raise BackEndError("can't launch back end command\n%s" % e)
-        controller = gtp_controller.Gtp_controller_protocol()
-        controller.set_channel(channel, "back end")
+        controller = gtp_controller.Gtp_controller_protocol(channel, "back end")
         self.set_back_end_controller(controller)
 
     def close(self):

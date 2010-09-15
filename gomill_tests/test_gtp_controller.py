@@ -8,12 +8,11 @@ from gomill import gtp_states
 
 def test_gmp():
     devnull = open(os.devnull, "w")
-    controller = gtp_controller.Gtp_controller_protocol()
     # oops, we forgot --mode=gtp
     gnugo = gtp_controller.Subprocess_gtp_channel(
         ["gnugo"], stderr=devnull)
     devnull.close()
-    controller.set_channel(gnugo, "gnugo")
+    controller = gtp_controller.Gtp_controller_protocol(gnugo, "gnugo")
     try:
         controller.check_protocol_version()
     except gtp_controller.GtpProtocolError, e:
@@ -29,8 +28,7 @@ def test_misc():
         "./player -m kiai.simple_montecarlo_player --diag=t".split(),
         stderr=devnull.fileno())
     devnull.close()
-    controller1 = gtp_controller.Gtp_controller_protocol()
-    controller1.set_channel(c1, "first")
+    controller1 = gtp_controller.Gtp_controller_protocol(c1, "first")
 
     #controller1.channel.enable_logging(sys.stdout, ' first: ')
 
@@ -41,8 +39,7 @@ def test_misc():
     #c2 = gtp_controller.Subprocess_gtp_channel(
     #    "gnugo --mode=gtp --boardsize=9".split())
 
-    controller2 = gtp_controller.Gtp_controller_protocol()
-    controller2.set_channel(c2, "second")
+    controller2 = gtp_controller.Gtp_controller_protocol(c2, "second")
     #controller2.channel.enable_logging(sys.stdout, ' second: ')
 
 

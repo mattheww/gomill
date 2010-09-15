@@ -419,25 +419,15 @@ class Gtp_controller_protocol(object):
 
     It's ok to access the underlying channel directly (eg, to enable logging).
 
+    Instantiate with channel and name.
+
     """
-    def __init__(self):
-        self.channel = None
-        self.name = None
+    def __init__(self, channel, name):
+        self.channel = channel
+        self.name = str(name)
         self.known_commands = {}
         self.log_dest = None
         self.is_first_command = True
-
-    def set_channel(self, channel, name):
-        """FIXME Register a communication channel.
-
-        channel    -- Gtp_channel
-        name       -- string
-
-        The name is used in error messages.
-
-        """
-        self.channel = channel
-        self.name = str(name)
 
     def do_command(self, command, *arguments):
         """Send a command to the engine and return the response.

@@ -157,8 +157,7 @@ class Game(object):
         self.engine_cwd = {'b' : None, 'w' : None}
         self.engine_environ = {'b' : None, 'w' : None}
         self.after_move_callback = None
-        self.controllers = {'b' : gtp_controller.Gtp_controller_protocol(),
-                            'w' : gtp_controller.Gtp_controller_protocol()}
+        self.controllers = {}
 
 
     ## Configuration methods (callable before start_player)
@@ -315,8 +314,9 @@ class Game(object):
         except GtpTransportError, e:
             raise GtpTransportError("error creating player %s:\n%s" %
                                     (self.players[colour], e))
-        controller = self.controllers[colour]
-        controller.set_channel(channel, "player %s" % self.players[colour])
+        controller = gtp_controller.Gtp_controller_protocol(
+            channel, "player %s" % self.players[colour])
+        self.controllers[colour] = controller
         if check_protocol_version:
             controller.check_protocol_version()
         controller.do_command("boardsize", str(self.board_size))
@@ -618,8 +618,8 @@ class Game(object):
         """
         errors = []
         for colour in ("b", "w"):
-            controller = self.controllers[colour]
-            if controller.channel is not None:
+            controller = self.controllers.get(colour)
+            if controller is not None:
                 try:
                     ru = controller.close_channel()
                 except GtpControllerError, e:
