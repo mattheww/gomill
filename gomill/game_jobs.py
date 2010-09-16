@@ -285,16 +285,12 @@ def check_player(player_check, discard_stderr=False):
      - the engine accepts any startup_gtp_commands
 
     """
-    # FIXME [[
-    return True
-    # ]]
     player = player_check.player
     if player.cwd is not None and not os.path.isdir(player.cwd):
         raise CheckFailed("bad working directory: %s" % player.cwd)
 
     game = gtp_games.Game(
         {'b' : player.code, 'w' : 'dummy'},
-        {'b' : player.cmd_args, 'w' : []},
         player_check.board_size, player_check.komi, move_limit=256)
 
     game.set_gtp_translations({'b' : player.gtp_translations, 'w' : {}})
@@ -302,12 +298,17 @@ def check_player(player_check, discard_stderr=False):
         stderr = open("/dev/null", "w")
     else:
         stderr = None
+    if player.environ is not None:
+        environ = os.environ.copy()
+        environ.update(player.environ)
+    else:
+        environ = None
     try:
-        game.set_stderr('b', stderr)
-        game.set_cwd('b', player.cwd)
-        game.set_environ('b', player.environ)
+        game.set_player_subprocess(
+            'b', player.cmd_args,
+            env=environ, cwd=player.cwd, stderr=stderr)
         try:
-            game.start_player('b', check_protocol_version=True)
+            game.ready('b', check_protocol_version=True)
             for command, arguments in player.startup_gtp_commands:
                 game.send_command('b', command, *arguments)
         except GtpControllerError, e:
