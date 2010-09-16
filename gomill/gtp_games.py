@@ -85,13 +85,9 @@ class Game(object):
     """A single game between two GTP engines.
 
     Instantiate with:
-      players    -- map colour -> player code
       board_size -- int
       komi       -- float
       move_limit -- int
-
-    Player codes are short strings used to identify the players in error
-    messages and the game result.
 
     The 'commands' values are lists of strings, as for subprocess.Popen.
 
@@ -116,7 +112,7 @@ class Game(object):
     won't be scored.
 
     Public attributes for reading:
-      players               -- map colour -> player code (as passed in)
+      players               -- map colour -> player code
       result                -- Game_result (None before the game is complete)
       moves                 -- list of tuples (colour, move, comment)
       engine_names          -- map player code -> string
@@ -131,8 +127,8 @@ class Game(object):
 
    """
 
-    def __init__(self, players, board_size, komi, move_limit):
-        self.players = players
+    def __init__(self, board_size, komi, move_limit):
+        self.players = {'b' : 'b', 'w' : 'w'}
         self.controllers = {}
         self.after_move_callback = None
         self.board_size = board_size
@@ -151,6 +147,20 @@ class Game(object):
 
 
     ## Configuration methods (callable before set_player_...)
+
+    def set_player_code(self, colour, player_code):
+        """Specify a player code.
+
+        player_code -- short ascii string
+
+        The player codes are used to identify the players in game results, sgf
+        files, and the error messages.
+
+        Setting these is optional but strongly encouraged. If not explicitly
+        set, they will just be 'b' and 'w'.
+
+        """
+        self.players[colour] = str(player_code)
 
     def use_internal_scorer(self):
         """Set the scoring method to internal.

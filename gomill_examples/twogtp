@@ -41,11 +41,11 @@ def main():
     black_command = shlex.split(options.black)
     white_command = shlex.split(options.white)
     game = gtp_games.Game(
-        players={'b' : black_command[0],
-                 'w' : white_command[0]},
         board_size=options.size,
         komi=options.komi,
         move_limit=1000)
+    game.set_player_code('b', black_command[0])
+    game.set_player_code('w', white_command[0])
     if options.verbose == '1':
         game.set_move_callback(print_move)
     elif options.verbose == '2':
