@@ -100,7 +100,6 @@ class Game(object):
 
       game = Game(...)
       game.use_internal_scorer() or game.allow_scorer(...) [optional]
-      game.set_gtp_translations(...) [optional]
       game.set_move_callback...() [optional]
       game.set_player_subprocess('b', ...) or set_player_controller('b', ...)
       game.set_player_subprocess('w', ...) or set_player_controller('w', ...)
@@ -146,7 +145,6 @@ class Game(object):
         self.allowed_scorers = []
         self.engine_names = {}
         self.engine_descriptions = {}
-        self.gtp_translations = {'b' : {}, 'w' : {}}
         self.additional_sgf_props = []
         self.sgf_setup_stones = None
         self.after_move_callback = None
@@ -173,14 +171,6 @@ class Game(object):
         """
         self.allowed_scorers.append(colour)
 
-    def set_gtp_translations(self, translations):
-        """Set GTP command translations.
-
-        translations -- map colour -> (map command name -> command name)
-
-        """
-        self.gtp_translations = translations
-
     def set_move_callback(self, fn):
         """Specify a callback function to be called after every move.
 
@@ -201,9 +191,6 @@ class Game(object):
 
     ## Main methods
 
-    def _translate_gtp_command(self, colour, command):
-        return self.gtp_translations[colour].get(command, command)
-
     def send_command(self, colour, command, *arguments):
         """Send the specified GTP command to one of the players.
 
@@ -219,7 +206,6 @@ class Game(object):
         close_players().
 
         """
-        command = self._translate_gtp_command(colour, command)
         return self.controllers[colour].do_command(command, *arguments)
 
     def maybe_send_command(self, colour, command, *arguments):
@@ -229,7 +215,6 @@ class Game(object):
         or gives an error response, returns None.
 
         """
-        command = self._translate_gtp_command(colour, command)
         controller = self.controllers[colour]
         if controller.known_command(command):
             try:
@@ -242,7 +227,6 @@ class Game(object):
 
     def known_command(self, colour, command):
         """Check whether the specified GTP command is supported."""
-        command = self._translate_gtp_command(colour, command)
         return self.controllers[colour].known_command(command)
 
     def set_player_controller(self, colour, controller):

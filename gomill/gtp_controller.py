@@ -427,6 +427,7 @@ class Gtp_controller_protocol(object):
         self.name = str(name)
         self.known_commands = {}
         self.log_dest = None
+        self.gtp_translations = {}
         self.is_first_command = True
 
     def do_command(self, command, *arguments):
@@ -472,8 +473,9 @@ class Gtp_controller_protocol(object):
                 return argument
         fixed_command = fix_argument(command)
         fixed_arguments = map(fix_argument, arguments)
+        fixed_command = self.gtp_translations.get(fixed_command, fixed_command)
         def format_command():
-            desc = "%s" % (" ".join([command] + fixed_arguments))
+            desc = "%s" % (" ".join([fixed_command] + fixed_arguments))
             if self.is_first_command:
                 return "first command (%s)" % desc
             else:
@@ -509,7 +511,7 @@ class Gtp_controller_protocol(object):
         self.is_first_command = False
         if is_error:
             raise GtpEngineError(
-                "error from %s to %s:\n%s" %
+                "error response from %s to %s:\n%s" %
                 (format_command(), self.name, response))
         return response
 
@@ -589,3 +591,14 @@ class Gtp_controller_protocol(object):
         self.channel = None
         return result
 
+    def set_gtp_translations(self, translations):
+        """Set GTP command translations.
+
+        translations -- map public command name -> underlying command name
+
+        In future calls to do_command, a request to send 'public command name'
+        will be sent to the underlying channel as the corresponding 'underlying
+        command name'.
+
+        """
+        self.gtp_translations = translations

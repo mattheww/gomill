@@ -23,7 +23,8 @@ class Player(object):
       cwd                  -- working directory to change to (default None)
       environ              -- maplike of environment variables (default None)
 
-    See gtp_games for an explanation of gtp_translations.
+    See gtp_controlers.Gtp_controller_protocol for an explanation of
+    gtp_translations.
 
     The startup commands will be executed before starting the game. Their
     responses will be ignored, but the game will be aborted if any startup
@@ -150,6 +151,8 @@ class Game_job(object):
         game.set_player_subprocess(
             colour, player.cmd_args,
             env=environ, cwd=player.cwd, stderr=stderr)
+        # FIXME: need nicer API
+        game.controllers[colour].set_gtp_translations(player.gtp_translations)
         if gtp_log_file is not None:
             game.get_channel(colour).enable_logging(
                 gtp_log_file, prefix=" %s: " % colour)
@@ -168,8 +171,6 @@ class Game_job(object):
                 game.allow_scorer('b')
             if self.player_w.is_reliable_scorer:
                 game.allow_scorer('w')
-        game.set_gtp_translations({'b' : self.player_b.gtp_translations,
-                                   'w' : self.player_w.gtp_translations})
 
         if self.gtp_log_pathname is not None:
             gtp_log_file = open(self.gtp_log_pathname, "w")
@@ -308,6 +309,7 @@ def check_player(player_check, discard_stderr=False):
                 "error starting subprocess for %s:\n%s" % (player.code, e))
         controller = gtp_controller.Gtp_controller_protocol(
             channel, player.code)
+        controller.set_gtp_translations(player.gtp_translations)
         controller.check_protocol_version()
         controller.do_command("boardsize", str(player_check.board_size))
         controller.do_command("clear_board")
