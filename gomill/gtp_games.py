@@ -86,7 +86,6 @@ class Game(object):
 
     Instantiate with:
       players    -- map colour -> player code
-      commands   -- map colour -> command used to launch the program
       board_size -- int
       komi       -- float
       move_limit -- int
