@@ -94,6 +94,8 @@ class Game(object):
     Normal use:
 
       game = Game(...)
+      game.set_player_code('b', ...)
+      game.set_player_code('w', ...)
       game.use_internal_scorer() or game.allow_scorer(...) [optional]
       game.set_move_callback...() [optional]
       game.set_player_subprocess('b', ...) or set_player_controller('b', ...)
