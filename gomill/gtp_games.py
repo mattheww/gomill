@@ -134,21 +134,21 @@ class Game(object):
 
     def __init__(self, players, board_size, komi, move_limit):
         self.players = players
+        self.controllers = {}
+        self.after_move_callback = None
         self.board_size = board_size
         self.komi = komi
         self.move_limit = move_limit
-        self.moves = []
-        self.first_player = "b"
-        self.result = None
-        self.board = boards.Board(board_size)
-        self.internal_scorer = False
         self.allowed_scorers = []
+        self.internal_scorer = False
+        self.first_player = "b"
         self.engine_names = {}
         self.engine_descriptions = {}
+        self.moves = []
         self.additional_sgf_props = []
         self.sgf_setup_stones = None
-        self.after_move_callback = None
-        self.controllers = {}
+        self.result = None
+        self.board = boards.Board(board_size)
 
 
     ## Configuration methods (callable before set_player_...)
@@ -189,7 +189,41 @@ class Game(object):
         self.after_move_callback = fn
 
 
-    ## Main methods
+    ## Channel methods
+
+    def set_player_controller(self, colour, controller):
+        """Specify a player using a Gtp_controller_protocol.
+
+        controller -- Gtp_controller_protocol
+
+        """
+        self.controllers[colour] = controller
+
+    def set_player_subprocess(self, colour, command, **kwargs):
+        """Specify the a player as a subprocess.
+
+        command -- list of strings (as for subprocess.Popen)
+
+        Additional keyword arguments are passed to the Subprocess_gtp_channel
+        constructor.
+
+        Propagates GtpTransportError if there's an error creating the
+        subprocess.
+
+        """
+        try:
+            channel = gtp_controller.Subprocess_gtp_channel(command, **kwargs)
+        except GtpTransportError, e:
+            raise GtpTransportError(
+                "error starting subprocess for player %s:\n%s" %
+                (self.players[colour], e))
+        controller = gtp_controller.Gtp_controller_protocol(
+            channel, "player %s" % self.players[colour])
+        self.set_player_controller(colour, controller)
+
+    def get_channel(self, colour):
+        """Return the underlying Gtp_channel for the specified engine."""
+        return self.controllers[colour].channel
 
     def send_command(self, colour, command, *arguments):
         """Send the specified GTP command to one of the players.
@@ -229,53 +263,34 @@ class Game(object):
         """Check whether the specified GTP command is supported."""
         return self.controllers[colour].known_command(command)
 
-    def set_player_controller(self, colour, controller):
-        """Specify a player using a Gtp_controller_protocol.
+    def close_players(self):
+        """Close both channels (if they're open).
 
-        controller -- Gtp_controller_protocol
+        May propagate GtpControllerError.
 
-        """
-        self.controllers[colour] = controller
-
-    def set_player_subprocess(self, colour, command, **kwargs):
-        """Specify the a player as a subprocess.
-
-        command -- list of strings (as for subprocess.Popen)
-
-        Additional keyword arguments are passed to the Subprocess_gtp_channel
-        constructor.
-
-        Propagates GtpTransportError if there's an error creating the
-        subprocess.
+        If cpu times are not already set in the game result, sets them from the
+        CPU usage of the engine subprocesses.
 
         """
-        try:
-            channel = gtp_controller.Subprocess_gtp_channel(command, **kwargs)
-        except GtpTransportError, e:
-            raise GtpTransportError(
-                "error starting subprocess for player %s:\n%s" %
-                (self.players[colour], e))
-        controller = gtp_controller.Gtp_controller_protocol(
-            channel, "player %s" % self.players[colour])
-        self.set_player_controller(colour, controller)
+        errors = []
+        for colour in ("b", "w"):
+            controller = self.controllers.get(colour)
+            if controller is not None:
+                try:
+                    ru = controller.close_channel()
+                except GtpControllerError, e:
+                    errors.append(str(e))
+                else:
+                    if (ru is not None and self.result is not None and
+                        self.result.cpu_times[self.players[colour]] is None):
+                        self.result.cpu_times[self.players[colour]] = \
+                            ru.ru_utime + ru.ru_stime
+        if errors:
+            # Might have been GtpProtocolError or GtpTransportError
+            raise GtpControllerError("\n".join(errors))
 
-    def get_channel(self, colour):
-        """Return the underlying Gtp_channel for the specified engine."""
-        return self.controllers[colour].channel
 
-    def ready(self, colour, check_protocol_version=True):
-        """Reset GTP game state for the player (board size, contents, komi).
-
-        If check_protocol_version is true (which it is by default), rejects an
-        engine that declares a GTP protocol version <> 2.
-
-        """
-        controller = self.controllers[colour]
-        if check_protocol_version:
-            controller.check_protocol_version()
-        controller.do_command("boardsize", str(self.board_size))
-        controller.do_command("clear_board")
-        controller.do_command("komi", str(self.komi))
+    ## High-level methods
 
     def request_engine_descriptions(self):
         """Obtain the engines' name, version, and description by GTP.
@@ -319,6 +334,20 @@ class Game(object):
             if s is not None:
                 desc = s
             self.engine_descriptions[player] = desc
+
+    def ready(self, colour, check_protocol_version=True):
+        """Reset GTP game state for the player (board size, contents, komi).
+
+        If check_protocol_version is true (which it is by default), rejects an
+        engine that declares a GTP protocol version <> 2.
+
+        """
+        controller = self.controllers[colour]
+        if check_protocol_version:
+            controller.check_protocol_version()
+        controller.do_command("boardsize", str(self.board_size))
+        controller.do_command("clear_board")
+        controller.do_command("komi", str(self.komi))
 
     def set_handicap(self, handicap, is_free):
         """Initialise the board position for a handicap.
@@ -560,32 +589,6 @@ class Game(object):
             else:
                 cpu_time = None
             self.result.cpu_times[self.players[colour]] = cpu_time
-
-    def close_players(self):
-        """Close both channels (if they're open).
-
-        May propagate GtpControllerError.
-
-        If cpu times are not already set in the game result, sets them from the
-        CPU usage of the engine subprocesses.
-
-        """
-        errors = []
-        for colour in ("b", "w"):
-            controller = self.controllers.get(colour)
-            if controller is not None:
-                try:
-                    ru = controller.close_channel()
-                except GtpControllerError, e:
-                    errors.append(str(e))
-                else:
-                    if (ru is not None and self.result is not None and
-                        self.result.cpu_times[self.players[colour]] is None):
-                        self.result.cpu_times[self.players[colour]] = \
-                            ru.ru_utime + ru.ru_stime
-        if errors:
-            # Might have been GtpProtocolError or GtpTransportError
-            raise GtpControllerError("\n".join(errors))
 
     def make_sgf(self):
         """Return an SGF description of the game.
