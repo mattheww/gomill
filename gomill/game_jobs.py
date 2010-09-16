@@ -314,6 +314,8 @@ def check_player(player_check, discard_stderr=False):
         controller.do_command("boardsize", str(player_check.board_size))
         controller.do_command("clear_board")
         controller.do_command("komi", str(player_check.komi))
+        for command, arguments in player.startup_gtp_commands:
+            controller.do_command(command, *arguments)
     except GtpControllerError, e:
         raise CheckFailed(str(e))
     finally:
