@@ -268,8 +268,9 @@ class Game(object):
         try:
             channel = gtp_controller.Subprocess_gtp_channel(command, **kwargs)
         except GtpTransportError, e:
-            raise GtpTransportError("error creating player %s:\n%s" %
-                                    (self.players[colour], e))
+            raise GtpTransportError(
+                "error starting subprocess for player %s:\n%s" %
+                (self.players[colour], e))
         controller = gtp_controller.Gtp_controller_protocol(
             channel, "player %s" % self.players[colour])
         self.set_player_controller(colour, controller)

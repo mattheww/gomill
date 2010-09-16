@@ -6,7 +6,7 @@ import os
 from gomill import gtp_controller
 from gomill import gtp_games
 from gomill import job_manager
-from gomill.gtp_controller import GtpControllerError
+from gomill.gtp_controller import GtpControllerError, GtpTransportError
 
 class Player(object):
     """Player description for Game_jobs.
@@ -289,11 +289,6 @@ def check_player(player_check, discard_stderr=False):
     if player.cwd is not None and not os.path.isdir(player.cwd):
         raise CheckFailed("bad working directory: %s" % player.cwd)
 
-    game = gtp_games.Game(
-        {'b' : player.code, 'w' : 'dummy'},
-        player_check.board_size, player_check.komi, move_limit=256)
-
-    game.set_gtp_translations({'b' : player.gtp_translations, 'w' : {}})
     if discard_stderr:
         stderr = open("/dev/null", "w")
     else:
@@ -304,19 +299,21 @@ def check_player(player_check, discard_stderr=False):
     else:
         environ = None
     try:
-        game.set_player_subprocess(
-            'b', player.cmd_args,
-            env=environ, cwd=player.cwd, stderr=stderr)
         try:
-            game.ready('b', check_protocol_version=True)
-            for command, arguments in player.startup_gtp_commands:
-                game.send_command('b', command, *arguments)
-        except GtpControllerError, e:
-            raise CheckFailed(str(e))
-        try:
-            game.close_players()
-        except GtpControllerError, e:
-            raise CheckFailed(str(e))
+            channel = gtp_controller.Subprocess_gtp_channel(
+                player.cmd_args,
+                env=environ, cwd=player.cwd, stderr=stderr)
+        except GtpTransportError, e:
+            raise GtpTransportError(
+                "error starting subprocess for %s:\n%s" % (player.code, e))
+        controller = gtp_controller.Gtp_controller_protocol(
+            channel, player.code)
+        controller.check_protocol_version()
+        controller.do_command("boardsize", str(player_check.board_size))
+        controller.do_command("clear_board")
+        controller.do_command("komi", str(player_check.komi))
+    except GtpControllerError, e:
+        raise CheckFailed(str(e))
     finally:
         try:
             if stderr is not None:
