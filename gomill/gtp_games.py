@@ -86,8 +86,8 @@ class Game(object):
 
     Instantiate with:
       board_size -- int
-      komi       -- float
-      move_limit -- int
+      komi       -- float (default 0.0)
+      move_limit -- int   (default 1000)
 
     The 'commands' values are lists of strings, as for subprocess.Popen.
 
@@ -127,7 +127,7 @@ class Game(object):
 
    """
 
-    def __init__(self, board_size, komi, move_limit):
+    def __init__(self, board_size, komi=0.0, move_limit=1000):
         self.players = {'b' : 'b', 'w' : 'w'}
         self.controllers = {}
         self.after_move_callback = None
