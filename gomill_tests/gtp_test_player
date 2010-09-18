@@ -25,7 +25,9 @@ command-line stuff which I think is unenlightening in the example.]]
 """
 
 import os
+import random
 import sys
+import time
 from optparse import OptionParser
 
 from gomill import gtp_engine
@@ -41,6 +43,7 @@ class Test_player(object):
     def __init__(self):
         self.delayed_error_move = None
         self.delayed_error_args = None
+        self.seen_quit = False
 
     def genmove(self, game_state, player):
         """Move generator function.
@@ -48,15 +51,22 @@ class Test_player(object):
         game_state -- gtp_states.Game_state
         player     -- 'b' or 'w'
 
-        This honours gomill-delayed_error, and otherwise passes.
+        This honours gomill-delayed_error, and otherwise chooses a random empty
+        point (which may be an illegal move).
 
         """
         if (self.delayed_error_move and
             len(game_state.move_history) >= self.delayed_error_move-1):
             self.delayed_error_move = None
             self.handle_force_error(self.delayed_error_args)
+
+        board = game_state.board
+        empties = []
+        for row, col in board.board_coords:
+            if board.get(row, col) is None:
+                empties.append((row, col))
         result = gtp_states.Move_generator_result()
-        result.pass_move = True
+        result.move = random.choice(empties)
         return result
 
     def handle_force_error(self, args):
@@ -88,6 +98,10 @@ class Test_player(object):
         self.delayed_error_move = move_number
         self.delayed_error_args = args[1:]
 
+    def handle_quit(self, args):
+        self.seen_quit = True
+        raise GtpQuit
+
     def handle_name(self, args):
         return "GTP test player"
 
@@ -100,6 +114,7 @@ class Test_player(object):
             'version'              : self.handle_version,
             'gomill-force_error'   : self.handle_force_error,
             'gomill-delayed_error' : self.handle_delayed_error,
+            'quit'                 : self.handle_quit,
             }
 
 
@@ -122,6 +137,7 @@ def main():
     if args:
         parser.error("too many arguments")
 
+    #time.sleep(1)
     try:
         test_player = Test_player()
         engine = make_engine(test_player)
@@ -130,6 +146,9 @@ def main():
         gtp_engine.run_interactive_gtp_session(engine)
     except (KeyboardInterrupt, gtp_engine.ControllerDisconnected):
         sys.exit(1)
+    if not test_player.seen_quit:
+        sys.stderr.write("gtp_test_player terminated without quit command\n")
+        #time.sleep(5)
 
 if __name__ == "__main__":
     main()
