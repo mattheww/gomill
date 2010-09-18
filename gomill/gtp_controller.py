@@ -439,8 +439,6 @@ class Gtp_controller_protocol(object):
     Public attributes:
       channel           -- the underlying Gtp_channel
       name              -- the channel name (used in error messages)
-      FIXME: Explain somewhere
-      errors_seen       -- list of strings
       channel_is_closed -- bool
       channel_is_bad    -- bool
 
@@ -493,6 +491,10 @@ class Gtp_controller_protocol(object):
         Raises GtpTransportError if there was an error from the communication
         layer between the controller and the engine (which may well mean that
         the engine has gone away).
+
+
+        If GtpChannelClosed, GtpProtocolError, or GtpTransportError is raised,
+        this also marks the channel as 'bad'.
 
         """
         if self.channel_is_closed:
@@ -607,7 +609,7 @@ class Gtp_controller_protocol(object):
     def close_channel(self, send_quit=True):
         """Close the communication channel to the engine.
 
-        send_quit  -- bool (default True)
+        send_quit -- bool (default True)
 
         May raise GtpTransportError or GtpProtocolError
 
@@ -630,12 +632,17 @@ class Gtp_controller_protocol(object):
         self.channel_is_closed = True
 
     def safe_do_command(self, command, *arguments):
-        """Variant of do_command which hides channel-level exceptions.
+        """Variant of do_command which sets low-level exceptions aside.
 
-        FIXME:
-         - if channel_is_bad, or the channel is closed, returns None
-         - propagates GtpEngineError
-         - records other GtpControllerErrors in errors_seen and returns None
+        If the channel is closed or marked bad, this does not attempt to send
+        the command, and returns None.
+
+        If a GtpChannelClosed, GtpTransportError, or GtpProtocolError exception
+        is raised while running the command, it is not propagated, but the error
+        message is recorded; use retrieve_error_messages to retrieve these. In
+        this case the function returns None.
+
+        GtpEngineError is propagated as usual.
 
         """
         if self.channel_is_bad or self.channel_is_closed:
@@ -649,12 +656,14 @@ class Gtp_controller_protocol(object):
             return None
 
     def safe_known_command(self, command):
-        """Variant of known_command which hides channel-level exceptions.
+        """Variant of known_command which sets low-level exceptions aside.
 
-        FIXME:
-         - if the result is already cached, returns it.
-         - otherwise, if the channel is bad, returns False
-         - otherwise sends 'known_command' using safe_do_command.
+        If result is already cached, returns it.
+
+        Otherwise, if the channel is closed or marked bad, returns False.
+
+        Otherwise acts like known_command above, using safe_do_command to send
+        the command to the engine.
 
         """
         result = self.known_commands.get(command)
@@ -670,22 +679,17 @@ class Gtp_controller_protocol(object):
         return known
 
     def safe_close(self):
-        """Close the communication channel to the engine.
+        """Close the communication channel to the engine, avoiding exceptions.
 
         This is safe to call even if the channel is already closed, or has had
         protocol or transport errors.
 
-        FIXME This will not propagate any exceptions; it will record them in
-        seen_errors.
+        This will not propagate any exceptions; it will set them aside like
+        safe_do_command.
 
-        Normally this will send 'quit' to the engine, but it will not do so if
-        FIXME the controller has previously seen a GtpControllerError,
-        GtpTransportError, or GtpCnannelClosed exception from the channel.
 
-        You can control this behaviour explicitly by setting the quit_needed
-        attribute before calling safe_close().
-
-        FIXME: Doesn't return anything useful
+        This will send 'quit' to the engine if the channel is not marked as bad.
+        Any error response will be set aside.
 
         """
         if self.channel_is_closed:
