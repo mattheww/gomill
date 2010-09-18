@@ -243,9 +243,9 @@ class Game(object):
             channel, "player %s" % self.players[colour])
         self.set_player_controller(colour, controller)
 
-    def get_channel(self, colour):
-        """Return the underlying Gtp_channel for the specified engine."""
-        return self.controllers[colour].channel
+    def get_controller(self, colour):
+        """Return the underlying Gtp_controller_protocol for the specified engine."""
+        return self.controllers[colour]
 
     def send_command(self, colour, command, *arguments):
         """Send the specified GTP command to one of the players.

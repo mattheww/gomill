@@ -151,10 +151,10 @@ class Game_job(object):
         game.set_player_subprocess(
             colour, player.cmd_args,
             env=environ, cwd=player.cwd, stderr=stderr)
-        # FIXME: need nicer API
-        game.controllers[colour].set_gtp_translations(player.gtp_translations)
+        controller = game.get_controller(colour)
+        controller.set_gtp_translations(player.gtp_translations)
         if gtp_log_file is not None:
-            game.get_channel(colour).enable_logging(
+            controller.channel.enable_logging(
                 gtp_log_file, prefix=" %s: " % colour)
         game.ready(colour)
         for command, arguments in player.startup_gtp_commands:
