@@ -8,7 +8,8 @@ from gomill import handicap_layout
 from gomill import boards
 from gomill import sgf_writer
 from gomill.gtp_controller import (
-    GtpControllerError, GtpProtocolError, GtpTransportError, GtpEngineError)
+    GtpControllerError,
+    GtpProtocolError, GtpTransportError, GtpChannelClosed, GtpEngineError)
 
 def format_float(f):
     """Format a Python float in a friendly way."""
@@ -591,14 +592,18 @@ class Game(object):
         # by channel close() for engines which claim to support gomill-cpu_time
         # but give an error.
         for colour in ('b', 'w'):
-            if self.known_command(colour, 'gomill-cpu_time'):
-                try:
-                    s = self.send_command(colour, 'gomill-cpu_time')
-                    cpu_time = float(s)
-                except (GtpEngineError, ValueError):
-                    cpu_time = "?"
-            else:
-                cpu_time = None
+            cpu_time = None
+            try:
+                if self.known_command(colour, 'gomill-cpu_time'):
+                    try:
+                        s = self.send_command(colour, 'gomill-cpu_time')
+                        cpu_time = float(s)
+                    except (GtpEngineError, ValueError):
+                        cpu_time = "?"
+            except GtpControllerError:
+                # FIXME Will need to record errors somehow, but ignoring them is
+                # better than propagating them
+                pass
             self.result.cpu_times[self.players[colour]] = cpu_time
 
     def make_sgf(self):
