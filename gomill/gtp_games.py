@@ -600,7 +600,7 @@ class Game(object):
             controller = self.controllers[colour]
             if controller.safe_known_command('gomill-cpu_time'):
                 try:
-                    s = controller.safe_do_command(colour, 'gomill-cpu_time')
+                    s = controller.safe_do_command('gomill-cpu_time')
                     cpu_time = float(s)
                 except (GtpEngineError, ValueError, TypeError):
                     cpu_time = "?"
