@@ -696,7 +696,7 @@ class Gtp_controller_protocol(object):
         if not self.channel_is_bad:
             try:
                 self.safe_do_command("quit")
-            except GtpControllerError, e:
+            except GtpEngineError, e:
                 self.errors_seen.append(str(e))
         try:
             self.channel.close()
