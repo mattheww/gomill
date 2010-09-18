@@ -394,17 +394,31 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             raise GtpTransportError(str(e))
 
     def close(self):
+        # Errors from closing pipes or wait4() are unlikely, but possible.
+
         # Ideally would give up waiting after a while and forcibly terminate the
         # subprocess.
+        errors = []
         try:
             self.command_pipe.close()
+        except EnvironmentError, e:
+            errors.append("error closing command pipe:\n%s" % e)
+        try:
             self.response_pipe.close()
+        except EnvironmentError, e:
+            errors.append("error closing response pipe:\n%s" % e)
+            errors.append(str(e))
+        try:
             # We don't care about the exit status, but we do want to be sure it
             # isn't still running.
+            # Even if there were errors closing the pipes, it's most likely that
+            # the subprocesses has exited.
             pid, exit_status, rusage = os.wait4(self.subprocess.pid, 0)
+            self.resource_usage = rusage
         except EnvironmentError, e:
-            raise GtpTransportError(str(e))
-        self.resource_usage = rusage
+            errors.append(str(e))
+        if errors:
+            raise GtpTransportError("\n".join(errors))
 
 
 class Gtp_controller_protocol(object):
