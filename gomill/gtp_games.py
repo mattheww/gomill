@@ -121,9 +121,13 @@ class Game(object):
       engine_names          -- map player code -> string
       engine_descriptions   -- map player code -> string
 
-   Methods which communicate with engines may raise GtpChannelClosed,
-   GtpTransportError or GtpProtocolError, if there is trouble communicating
-   with the engine, or GtpEngineError if the engine returns an error response.
+   Methods which communicate with engines may raise GtpEngineError if the engine
+   returns an error response.
+
+   Methods which communicate with engines will normally raise GtpChannelClosed,
+   GtpTransportError or GtpProtocolError if there is trouble communicating with
+   the engine. But after the game result has been decided, they will set these
+   errors aside; use FIXME to retrieve them.
 
 
    This doesn't enforce any ko rule.
