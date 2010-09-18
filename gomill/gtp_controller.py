@@ -31,7 +31,14 @@ class GtpChannelClosed(GtpControllerError):
     """The (command or response) channel to the engine has been closed."""
 
 class GtpEngineError(GtpControllerError):
-    """Error response from the engine."""
+    """Error response from the engine.
+
+    This normally indicates a GTP '?' response with an error message.
+
+    Some higher-level functions use this exception to indicate a GTP response
+    which they couldn't interpret.
+
+    """
 
 
 _gtp_word_characters_re = re.compile(r"\A[\x21-\x7e\x80-\xff]+\Z")
@@ -566,7 +573,7 @@ class Gtp_controller_protocol(object):
     def check_protocol_version(self):
         """Check the engine's declared protocol version.
 
-        Raises GtpProtocolError if the engine declares a version other than 2.
+        Raises GtpEngineError if the engine declares a version other than 2.
         Otherwise does nothing.
 
         If the engine returns a GTP error response (in particular, if
@@ -581,7 +588,7 @@ class Gtp_controller_protocol(object):
         except GtpEngineError:
             return
         if protocol_version != "2":
-            raise GtpProtocolError(
+            raise GtpEngineError(
                 "%s reports GTP protocol version %s" %
                 (self.name, protocol_version))
 

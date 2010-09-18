@@ -366,7 +366,7 @@ class Game(object):
 
         Raises ValueError if the number of stones isn't valid (see GTP spec).
 
-        Raises GtpProtocolError if there's an invalid respone to
+        Raises GtpEngineError if there's an invalid respone to
         place_free_handicap (doesn't check the response to fixed_handicap).
 
         """
@@ -385,7 +385,7 @@ class Game(object):
                 if len(set(points)) < len(points):
                     raise ValueError("duplicate point")
             except ValueError, e:
-                raise GtpProtocolError(
+                raise GtpEngineError(
                     "invalid response from place_free_handicap command "
                     "to %s: %s" % (self.players["b"], e))
             vertices = [format_vertex(coords) for coords in points]
@@ -635,3 +635,4 @@ class Game(object):
         f = open(pathname, "w")
         f.write(sgf_game.as_string())
         f.close()
+        
