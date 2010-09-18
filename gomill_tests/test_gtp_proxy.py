@@ -1,3 +1,5 @@
+import sys
+
 from gomill import gtp_engine
 from gomill import gtp_controller
 from gomill import gtp_proxy
@@ -27,6 +29,7 @@ def test_bad_list_commands():
         print e
     else:
         raise AssertionError("no error from list_commands")
+    proxy.close()
 
 def test_communication_failure():
     proxy = gtp_proxy.Gtp_proxy()
@@ -48,6 +51,7 @@ def test_communication_failure():
     print "==="
     print response
     print "==="
+    proxy.close()
 
 
 def test_general():
@@ -61,6 +65,8 @@ def test_general():
         "./player -m kiai.simple_montecarlo_player".split())
     proxy.engine.add_command('mygenmove', handle_mygenmove)
     proxy.engine.add_command("mytest", handle_mytest)
+
+    #proxy.controller.channel.enable_logging(sys.stdout, " ")
 
     assert proxy.back_end_has_command("help")
     assert proxy.back_end_has_command("help")
