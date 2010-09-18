@@ -23,7 +23,7 @@ class Player(object):
       cwd                  -- working directory to change to (default None)
       environ              -- maplike of environment variables (default None)
 
-    See gtp_controlers.Gtp_controller_protocol for an explanation of
+    See gtp_controllers.Gtp_controller_protocol for an explanation of
     gtp_translations.
 
     The startup commands will be executed before starting the game. Their
