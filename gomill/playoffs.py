@@ -336,13 +336,13 @@ class Playoff(Competition):
         if x_known_times:
             x_avg_time_s = "%7.2f" % (sum(x_known_times) / len(x_known_times))
         else:
-            x_avg_time_s = "----"
+            x_avg_time_s = "   ----"
         y_times = [r.cpu_times[player_y] for r in results]
         y_known_times = [t for t in y_times if t is not None and t != '?']
         if y_known_times:
             y_avg_time_s = "%7.2f" % (sum(y_known_times) / len(y_known_times))
         else:
-            y_avg_time_s = "----"
+            y_avg_time_s = "   ----"
 
         if matchup.number_of_games is None:
             played_s = "%d" % total
