@@ -543,7 +543,6 @@ class Game(object):
         self.margin = 2
         self.forfeit_reason = None
         self.calculate_result()
-        self.result.cpu_times = {'b' : None, 'w' : None}
 
     def calculate_result(self):
         """Set self.result.
