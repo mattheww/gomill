@@ -135,7 +135,7 @@ class Game(object):
    command).
 
 
-   This doesn't enforce any ko rule.
+   This doesn't enforce any ko rule. It accepts self-capture moves.
 
    """
 
