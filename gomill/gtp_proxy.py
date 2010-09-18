@@ -20,9 +20,8 @@ class Gtp_proxy(object):
     """Manager for a GTP proxy engine.
 
     Public attributes:
-      engine             -- Gtp_engine_protocol
-      controller         -- Gtp_controller_protocol
-      send_quit_on_close -- bool
+      engine     -- Gtp_engine_protocol
+      controller -- Gtp_controller_protocol
 
     The 'engine' attribute is the proxy engine. Initially it supports all the
     commands reported by the back end's 'list_commands'. You can add commands to
@@ -51,8 +50,7 @@ class Gtp_proxy(object):
     GtpQuit.
 
     If you add a handler which you expect to cause the back end to exit (eg, by
-    sending it 'quit'), you should have it clear self.send_quit_on_close and
-    raise GtpQuit.
+    sending it 'quit'), you should have call expect_back_end_exit().
 
     If you want to hide one of the underlying commands, or don't want one of the
     additional commands, just use engine.remove_command().
@@ -61,7 +59,6 @@ class Gtp_proxy(object):
     def __init__(self):
         self.controller = None
         self.engine = None
-        self.send_quit_on_close = True
 
     def _back_end_is_set(self):
         return self.controller is not None
@@ -125,10 +122,10 @@ class Gtp_proxy(object):
     def close(self):
         """Close the channel to the back end.
 
-        Normally sends 'quit' first. To disable this, set the
-        send_quit_on_close attribute false.
+        Errors are not reported directly. You can retrieve them using
+        controller.retrieve_error_messages().
 
-        Transport and protocol errors are reported by raising BackEndError.
+        It's safe to call this after receiving a BackEndError.
 
         It's not strictly necessary to call this if you're going to exit from
         the parent process anyway, as that will naturally close the command
@@ -136,10 +133,7 @@ class Gtp_proxy(object):
         so it's safest to close the proxy explicitly.
 
         """
-        try:
-            self.controller.close_channel(self.send_quit_on_close)
-        except GtpControllerError, e:
-            raise BackEndError(str(e))
+        self.controller.safe_close()
 
     def run(self):
         """Run a GTP session on stdin and stdout, using the proxy engine.
@@ -213,10 +207,19 @@ class Gtp_proxy(object):
         except (GtpProtocolError, GtpChannelClosed, GtpTransportError), e:
             raise BackEndError(str(e))
 
+    def expect_back_end_exit(self, result):
+        """Mark that the back end is expected to have exited.
+
+        Call this from any handler which you expect to cause the back end to
+        exit (eg, by sending it 'quit').
+
+        """
+        self.controller.channel_is_bad = True
+        raise GtpQuit(result)
+
     def handle_quit(self, args):
         result = self.handle_command("quit", [])
-        self.send_quit_on_close = False
-        raise GtpQuit(result)
+        self.expect_back_end_exit(result)
 
     def handle_passthrough(self, args):
         try:

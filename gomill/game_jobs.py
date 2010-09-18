@@ -281,6 +281,7 @@ def check_player(player_check, discard_stderr=False):
      - the engine accepts the specified board size and komi
      - the engine accepts the 'clear_board' command
      - the engine accepts any startup_gtp_commands
+     - the engine accepts 'quit' and closes down cleanly
 
     """
     player = player_check.player
@@ -313,6 +314,8 @@ def check_player(player_check, discard_stderr=False):
         controller.do_command("komi", str(player_check.komi))
         for command, arguments in player.startup_gtp_commands:
             controller.do_command(command, *arguments)
+        controller.do_command("quit")
+        controller.close()
     except GtpControllerError, e:
         raise CheckFailed(str(e))
     finally:

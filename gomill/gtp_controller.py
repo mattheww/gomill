@@ -606,24 +606,16 @@ class Gtp_controller_protocol(object):
                 "%s reports GTP protocol version %s" %
                 (self.name, protocol_version))
 
-    def close_channel(self, send_quit=True):
+    def close(self):
         """Close the communication channel to the engine.
 
-        send_quit -- bool (default True)
+        May raise GtpTransportError
 
-        May raise GtpTransportError or GtpProtocolError
-
-        If send_quit is true, sends the 'quit' command and waits for a response
-        (ignoring GtpChannelClosed) before closing the channel. Some engines (eg
-        Mogo) don't behave well if we just close their input, so it's usually
-        best to do this.
+        Some engines (eg Mogo) don't behave well if we just close their input
+        without sending 'quit', so it's usually best to send 'quit' first (eg,
+        by using safe_close()).
 
         """
-        if send_quit:
-            try:
-                self.do_command("quit")
-            except (GtpEngineError, GtpChannelClosed):
-                pass
         try:
             self.channel.close()
         except GtpTransportError, e:
