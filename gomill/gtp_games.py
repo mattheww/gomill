@@ -288,20 +288,20 @@ class Game(object):
         CPU usage of the engine subprocesses.
 
         """
-        errors = []
+        late_errors = []
         for colour in ("b", "w"):
             controller = self.controllers.get(colour)
-            if controller is not None:
-                try:
-                    ru = controller.close_channel()
-                except GtpControllerError, e:
-                    errors.append(str(e))
-                else:
-                    if (ru is not None and self.result is not None and
-                        self.result.cpu_times[self.players[colour]] is None):
-                        self.result.cpu_times[self.players[colour]] = \
-                            ru.ru_utime + ru.ru_stime
-        return errors
+            if controller is None:
+                continue
+            controller.safe_close()
+            # FIXME: Need to get 'ru' working again
+            ru = None
+            if (ru is not None and self.result is not None and
+                self.result.cpu_times[self.players[colour]] is None):
+                self.result.cpu_times[self.players[colour]] = \
+                    ru.ru_utime + ru.ru_stime
+            late_errors += controller.retrieve_error_messages()
+        return late_errors
 
 
     ## High-level methods
