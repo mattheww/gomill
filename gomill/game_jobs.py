@@ -191,14 +191,13 @@ class Game_job(object):
         except GtpControllerError, e:
             late_error_messages = game.close_players()
             msg = "aborting game due to error:\n%s" % e
+            self.record_void_game(game, msg)
             if late_error_messages:
                 msg += "\nalso:\n" + "\n".join(late_error_messages)
-            self.record_void_game(game, msg)
             raise job_manager.JobFailed(msg)
-        late_error_messages = game.close_players()
+        game.close_players()
         if self.sgf_pathname is not None:
-            self.record_game(self.sgf_pathname, game,
-                             final_text="\n".join(late_error_messages))
+            self.record_game(self.sgf_pathname, game)
         response = Game_job_result()
         response.game_id = self.game_id
         response.game_result = game.result
@@ -207,11 +206,11 @@ class Game_job(object):
         response.game_data = self.game_data
         return response
 
-    def record_game(self, pathname, game, final_text=None, result=None):
+    def record_game(self, pathname, game, game_end_message=None, result=None):
         b_player = game.players['b']
         w_player = game.players['w']
 
-        sgf_game = game.make_sgf()
+        sgf_game = game.make_sgf(game_end_message)
         if self.sgf_event is not None:
             sgf_game.set('event', self.sgf_event)
             notes = ["Event '%s'" % self.sgf_event]
@@ -230,8 +229,6 @@ class Game_job(object):
                                  (player, "%.2f" % cpu_time))
         elif result is not None:
             sgf_game.set('result', result)
-        if final_text:
-            sgf_game.add_final_comment(final_text)
         notes += [
             "Black %s %s" % (b_player, game.engine_descriptions[b_player]),
             "White %s %s" % (w_player, game.engine_descriptions[w_player]),
@@ -241,7 +238,7 @@ class Game_job(object):
         f.write(sgf_game.as_string())
         f.close()
 
-    def record_void_game(self, game, msg):
+    def record_void_game(self, game, game_end_message):
         """Record the game to void_sgf_pathname if it had any moves."""
         if not game.moves:
             return
@@ -250,7 +247,7 @@ class Game_job(object):
         dirname = os.path.dirname(self.void_sgf_pathname)
         if not os.path.exists(dirname):
             os.mkdir(dirname)
-        self.record_game(self.void_sgf_pathname, game, final_text=msg,
+        self.record_game(self.void_sgf_pathname, game, game_end_message,
                          result='Void')
 
 

@@ -148,6 +148,7 @@ class Game(object):
         self.engine_descriptions = {}
         self.moves = []
         self.additional_sgf_props = []
+        self.late_errors = []
         self.sgf_setup_stones = None
         self.result = None
         self.board = boards.Board(board_size)
@@ -282,13 +283,13 @@ class Game(object):
     def close_players(self):
         """Close both channels (if they're open).
 
-        FIXME: Returns error messages.
+        FIXME [does it? also it sets self.late_errors]
+        Returns error messages.
 
         If cpu times are not already set in the game result, sets them from the
         CPU usage of the engine subprocesses.
 
         """
-        late_errors = []
         for colour in ("b", "w"):
             controller = self.controllers.get(colour)
             if controller is None:
@@ -300,8 +301,8 @@ class Game(object):
                 self.result.cpu_times[self.players[colour]] is None):
                 self.result.cpu_times[self.players[colour]] = \
                     ru.ru_utime + ru.ru_stime
-            late_errors += controller.retrieve_error_messages()
-        return late_errors
+            self.late_errors += controller.retrieve_error_messages()
+        return self.late_errors
 
 
     ## High-level methods
@@ -603,10 +604,15 @@ class Game(object):
                     cpu_time = "?"
             self.result.cpu_times[self.players[colour]] = cpu_time
 
-    def make_sgf(self):
+    def make_sgf(self, game_end_message=None):
         """Return an SGF description of the game.
 
         Returns an Sgf_game object.
+
+        game_end_message -- optional string to put in the final comment.
+
+        If game_end_message is specified, it appears before the text describing
+        'late errors'.
 
         """
         sgf_game = sgf_writer.Sgf_game(self.board_size)
@@ -625,11 +631,15 @@ class Game(object):
         if self.result is not None:
             sgf_game.set('result', self.result.sgf_result)
             sgf_game.add_final_comment(self.result.describe())
+        if game_end_message is not None:
+            sgf_game.add_final_comment(game_end_message)
+        if self.late_errors:
+            sgf_game.add_final_comment("\n".join(self.late_errors))
         return sgf_game
 
-    def write_sgf(self, pathname):
+    def write_sgf(self, pathname, game_end_message=None):
         """Write an SGF description of the game to the specified pathname."""
-        sgf_game = self.make_sgf()
+        sgf_game = self.make_sgf(game_end_message)
         f = open(pathname, "w")
         f.write(sgf_game.as_string())
         f.close()
