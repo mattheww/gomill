@@ -154,7 +154,7 @@ class Gtp_channel(object):
         with the engine (eg, to terminate a subprocess).
 
         May raise GtpTransportError if a serious error is detected while doing
-        this.
+        this (this is unlikely in practice).
 
         """
         pass
