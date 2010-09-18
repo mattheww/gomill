@@ -556,6 +556,7 @@ class Game(object):
         result.winning_colour = self.winner
         result.winning_player = self.players.get(self.winner)
         result.detail = None
+        result.cpu_times = {result.player_b : None, result.player_w : None}
         if self.hit_move_limit:
             result.sgf_result = "Void"
             result.detail = "hit move limit"
@@ -589,7 +590,6 @@ class Game(object):
         # The ugliness with cpu_time '?' is to avoid using the cpu time reported
         # by channel close() for engines which claim to support gomill-cpu_time
         # but give an error.
-        self.result.cpu_times = {}
         for colour in ('b', 'w'):
             if self.known_command(colour, 'gomill-cpu_time'):
                 try:
