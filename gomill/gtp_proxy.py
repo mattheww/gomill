@@ -91,11 +91,11 @@ class Gtp_proxy(object):
         """
         if self._back_end_is_set():
             raise StandardError("back end already set")
+        self.controller = controller
         try:
             response = controller.do_command('list_commands')
         except GtpControllerError, e:
             raise BackEndError(str(e))
-        self.controller = controller
         self.back_end_commands = [s for s in
                                   (t.strip() for t in response.split("\n"))
                                   if s]
@@ -123,7 +123,8 @@ class Gtp_proxy(object):
     def close(self):
         """Close the channel to the back end.
 
-        It's safe to call this after receiving a BackEndError.
+        It's safe to call this at any time after set_back_end_... (including
+        after receiving a BackEndError).
 
         It's not strictly necessary to call this if you're going to exit from
         the parent process anyway, as that will naturally close the command
@@ -137,6 +138,8 @@ class Gtp_proxy(object):
         BackEndError.
 
         """
+        if self.controller is None:
+            return
         self.controller.safe_close()
         late_errors = self.controller.retrieve_error_messages()
         if late_errors:
