@@ -186,14 +186,13 @@ class Game_job(object):
                 try:
                     game.set_handicap(self.handicap, self.handicap_is_free)
                 except ValueError:
-                    raise job_manager.JobFailed(
-                        "aborting game: invalid handicap")
+                    raise GtpControllerError("invalid handicap")
             game.run()
         except GtpControllerError, e:
             late_error_messages = game.close_players()
             msg = "aborting game due to error:\n%s" % e
             if late_error_messages:
-                msg += "\n" + "\n".join(late_error_messages)
+                msg += "\nalso:\n" + "\n".join(late_error_messages)
             self.record_void_game(game, msg)
             raise job_manager.JobFailed(msg)
         late_error_messages = game.close_players()
