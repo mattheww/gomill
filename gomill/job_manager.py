@@ -46,9 +46,12 @@ def worker_run_jobs(job_queue, response_queue):
                 response = job.run()
             except JobFailed, e:
                 response = JobError(job, str(e))
-            except StandardError, e:
+                sys.exc_clear()
+                del e
+            except StandardError:
                 response = JobError(
                     job, compact_tracebacks.format_traceback(skip=1))
+                sys.exc_clear()
             response_queue.put(response)
         #sys.stderr.write("worker %d finishing\n" % pid)
         response_queue.cancel_join_thread()
