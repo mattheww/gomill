@@ -32,7 +32,7 @@ from optparse import OptionParser
 
 from gomill import gtp_engine
 from gomill import gtp_states
-from gomill.gtp_engine import GtpError, GtpFatalError
+from gomill.gtp_engine import GtpError, GtpFatalError, GtpQuit
 
 
 def fail_handler(args):
@@ -78,12 +78,14 @@ class Test_player(object):
         if arg == "error":
             raise GtpError("forced GTP error")
         if arg == "exit":
+            self.seen_quit = True
             raise GtpFatalError("forced GTP error; exiting")
         if arg == "internal":
             3 / 0
         if arg == "kill":
             os.kill(os.getpid(), 15)
         if arg == "protocol":
+            self.seen_quit = True
             sys.stdout.write("!! forced ill-formed GTP response\n")
             sys.stdout.flush()
             return
