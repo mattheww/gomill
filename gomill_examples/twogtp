@@ -62,12 +62,10 @@ def main():
         game.run()
     except GtpControllerError, e:
         sys.exit("aborting game due to error:\n%s\n" % e)
-    try:
-        game.close_players()
-    except StandardError, e:
-        sys.exit("error shutting down players:\n%s\n" % e)
-
+    game.close_players()
     print game.result.describe()
+    if game.late_errors:
+        sys.exit("\n".join(game.late_errors))
 
 if __name__ == "__main__":
     main()
