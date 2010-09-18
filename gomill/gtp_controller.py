@@ -437,11 +437,12 @@ class Gtp_controller_protocol(object):
     Gtp_channel, including helper functions for the protocol-level GTP commands.
 
     Public attributes:
-      channel        -- the underlying Gtp_channel (None if it's closed).
-      name           -- the channel name (used in error messages)
+      channel           -- the underlying Gtp_channel
+      name              -- the channel name (used in error messages)
       FIXME: Explain somewhere
-      errors_seen    -- list of strings
-      channel_is_bad -- bool
+      errors_seen       -- list of strings
+      channel_is_closed -- bool
+      channel_is_bad    -- bool
 
     It's ok to access the underlying channel directly (eg, to enable logging).
 
@@ -457,6 +458,7 @@ class Gtp_controller_protocol(object):
         self.is_first_command = True
         self.quit_needed = True
         self.errors_seen = []
+        self.channel_is_closed = False
         self.channel_is_bad = False
 
     def do_command(self, command, *arguments):
@@ -493,7 +495,7 @@ class Gtp_controller_protocol(object):
         the engine has gone away).
 
         """
-        if self.channel is None:
+        if self.channel_is_closed:
             raise StandardError("channel is closed")
         def fix_argument(argument):
             if isinstance(argument, unicode):
@@ -609,9 +611,6 @@ class Gtp_controller_protocol(object):
 
         May raise GtpTransportError or GtpProtocolError
 
-        Returns the channel's resource usage (see resource.getrusage() for the
-        format), or None if not available.
-
         If send_quit is true, sends the 'quit' command and waits for a response
         (ignoring GtpChannelClosed) before closing the channel. Some engines (eg
         Mogo) don't behave well if we just close their input, so it's usually
@@ -628,9 +627,7 @@ class Gtp_controller_protocol(object):
         except GtpTransportError, e:
             raise GtpTransportError(
                 "error closing %s:\n%s" % (self.name, e))
-        result = self.channel.resource_usage
-        self.channel = None
-        return result
+        self.channel_is_closed = True
 
     def safe_do_command(self, command, *arguments):
         """Variant of do_command which hides channel-level exceptions.
@@ -641,7 +638,7 @@ class Gtp_controller_protocol(object):
          - records other GtpControllerErrors in errors_seen and returns None
 
         """
-        if self.channel_is_bad or self.channel is None:
+        if self.channel_is_bad or self.channel_is_closed:
             return None
         try:
             return self.do_command(command, *arguments)
@@ -691,7 +688,7 @@ class Gtp_controller_protocol(object):
         FIXME: Doesn't return anything useful
 
         """
-        if self.channel is None:
+        if self.channel_is_closed:
             return
         if not self.channel_is_bad:
             try:
@@ -702,7 +699,7 @@ class Gtp_controller_protocol(object):
             self.channel.close()
         except GtpTransportError, e:
             self.errors_seen.append("error closing %s:\n%s" % (self.name, e))
-        self.channel = None
+        self.channel_is_closed = True
 
     def retrieve_error_messages(self):
         """Return error messages which have been set aside by 'safe' commands.

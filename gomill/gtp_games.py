@@ -120,6 +120,7 @@ class Game(object):
       moves                 -- list of tuples (colour, move, comment)
       engine_names          -- map player code -> string
       engine_descriptions   -- map player code -> string
+      late_errors           -- list of strings
 
    Methods which communicate with engines may raise GtpEngineError if the engine
    returns an error response.
@@ -127,7 +128,11 @@ class Game(object):
    Methods which communicate with engines will normally raise GtpChannelClosed,
    GtpTransportError or GtpProtocolError if there is trouble communicating with
    the engine. But after the game result has been decided, they will set these
-   errors aside; use FIXME to retrieve them.
+   errors aside; use the late_errors attribute to retrieve them.
+
+   The late_errors attribute is set by close_players(); it includes errors set
+   aside as above and also errors from closing (including the final 'quit'
+   command).
 
 
    This doesn't enforce any ko rule.
@@ -281,10 +286,9 @@ class Game(object):
         return self.controllers[colour].known_command(command)
 
     def close_players(self):
-        """Close both channels (if they're open).
+        """Close both controllers (if they're open).
 
-        FIXME [does it? also it sets self.late_errors]
-        Returns error messages.
+        Sets the late_errors attribute.
 
         If cpu times are not already set in the game result, sets them from the
         CPU usage of the engine subprocesses.
@@ -295,14 +299,12 @@ class Game(object):
             if controller is None:
                 continue
             controller.safe_close()
-            # FIXME: Need to get 'ru' working again
-            ru = None
+            ru = controller.channel.resource_usage
             if (ru is not None and self.result is not None and
                 self.result.cpu_times[self.players[colour]] is None):
                 self.result.cpu_times[self.players[colour]] = \
                     ru.ru_utime + ru.ru_stime
             self.late_errors += controller.retrieve_error_messages()
-        return self.late_errors
 
 
     ## High-level methods

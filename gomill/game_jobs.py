@@ -189,11 +189,11 @@ class Game_job(object):
                     raise GtpControllerError("invalid handicap")
             game.run()
         except GtpControllerError, e:
-            late_error_messages = game.close_players()
+            game.close_players()
             msg = "aborting game due to error:\n%s" % e
             self.record_void_game(game, msg)
-            if late_error_messages:
-                msg += "\nalso:\n" + "\n".join(late_error_messages)
+            if game.late_errors:
+                msg += "\nalso:\n" + "\n".join(game.late_errors)
             raise job_manager.JobFailed(msg)
         game.close_players()
         if self.sgf_pathname is not None:
