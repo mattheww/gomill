@@ -437,9 +437,11 @@ class Gtp_controller_protocol(object):
     Gtp_channel, including helper functions for the protocol-level GTP commands.
 
     Public attributes:
-      channel     -- the underlying Gtp_channel (None if it's closed).
-      name        -- the channel name (used in error messages)
-      quit_needed -- bool controlling safe_close() behaviour
+      channel        -- the underlying Gtp_channel (None if it's closed).
+      name           -- the channel name (used in error messages)
+      FIXME: Explain somewhere
+      errors_seen    -- list of strings
+      channel_is_bad -- bool
 
     It's ok to access the underlying channel directly (eg, to enable logging).
 
@@ -454,6 +456,8 @@ class Gtp_controller_protocol(object):
         self.gtp_translations = {}
         self.is_first_command = True
         self.quit_needed = True
+        self.errors_seen = []
+        self.channel_is_bad = False
 
     def do_command(self, command, *arguments):
         """Send a command to the engine and return the response.
@@ -509,16 +513,19 @@ class Gtp_controller_protocol(object):
             self.channel.send_command(fixed_command, fixed_arguments)
         except GtpChannelClosed, e:
             self.quit_needed = False
+            self.channel_is_bad = True
             raise GtpChannelClosed(
                 "error sending %s to %s:\n%s" %
                 (format_command(), self.name, e))
         except GtpTransportError, e:
             self.quit_needed = False
+            self.channel_is_bad = True
             raise GtpTransportError(
                 "transport error sending %s to %s:\n%s" %
                 (format_command(), self.name, e))
         except GtpProtocolError, e:
             self.quit_needed = False
+            self.channel_is_bad = True
             raise GtpProtocolError(
                 "GTP protocol error sending %s to %s:\n%s" %
                 (format_command(), self.name, e))
@@ -526,16 +533,19 @@ class Gtp_controller_protocol(object):
             is_error, response = self.channel.get_response()
         except GtpChannelClosed, e:
             self.quit_needed = False
+            self.channel_is_bad = True
             raise GtpChannelClosed(
                 "error reading response to %s from %s:\n%s" %
                 (format_command(), self.name, e))
         except GtpTransportError, e:
             self.quit_needed = False
+            self.channel_is_bad = True
             raise GtpTransportError(
                 "transport error reading response to %s from %s:\n%s" %
                 (format_command(), self.name, e))
         except GtpProtocolError, e:
             self.quit_needed = False
+            self.channel_is_bad = True
             raise GtpProtocolError(
                 "GTP protocol error reading response to %s from %s:\n%s" %
                 (format_command(), self.name, e))
@@ -622,39 +632,85 @@ class Gtp_controller_protocol(object):
         self.channel = None
         return result
 
+    def safe_do_command(self, command, *arguments):
+        """Variant of do_command which hides channel-level exceptions.
+
+        FIXME:
+         - if channel_is_bad, or the channel is closed, returns None
+         - propagates GtpEngineError
+         - records other GtpControllerErrors in errors_seen and returns None
+
+        """
+        if self.channel_is_bad or self.channel is None:
+            return None
+        try:
+            return self.do_command(command, *arguments)
+        except GtpEngineError, e:
+            raise
+        except GtpControllerError, e:
+            self.errors_seen.append(str(e))
+            return None
+
+    def safe_known_command(self, command):
+        """Variant of known_command which hides channel-level exceptions.
+
+        FIXME:
+         - if the result is already cached, returns it.
+         - otherwise, if the channel is bad, returns False
+         - otherwise sends 'known_command' using safe_do_command.
+
+        """
+        result = self.known_commands.get(command)
+        if result is not None:
+            return result
+        try:
+            response = self.safe_do_command("known_command", command)
+        except GtpEngineError:
+            known = False
+        else:
+            known = (response == 'true')
+        self.known_commands[command] = known
+        return known
+
     def safe_close(self):
         """Close the communication channel to the engine.
 
         This is safe to call even if the channel is already closed, or has had
         protocol or transport errors.
 
-        This will not propagate any exceptions.
-
-        Returns a string containing any error messages.
-
+        FIXME This will not propagate any exceptions; it will record them in
+        seen_errors.
 
         Normally this will send 'quit' to the engine, but it will not do so if
-        the controller has previously seen a GtpControllerError,
+        FIXME the controller has previously seen a GtpControllerError,
         GtpTransportError, or GtpCnannelClosed exception from the channel.
 
         You can control this behaviour explicitly by setting the quit_needed
         attribute before calling safe_close().
 
+        FIXME: Doesn't return anything useful
+
         """
-        errors = []
         if self.channel is None:
-            return errors
-        if self.quit_needed:
+            return
+        if not self.channel_is_bad:
             try:
-                self.do_command("quit")
+                self.safe_do_command("quit")
             except GtpControllerError, e:
-                errors.append(str(e))
+                self.errors_seen.append(str(e))
         try:
             self.channel.close()
         except GtpTransportError, e:
-            errors.append("error closing %s:\n%s" % (self.name, e))
+            self.errors_seen.append("error closing %s:\n%s" % (self.name, e))
         self.channel = None
-        return "\n".join(errors)
+
+    def retrieve_error_messages(self):
+        """Return error messages which have been set aside by 'safe' commands.
+
+        Returns a list of strings (empty if there are no such messages).
+
+        """
+        return self.errors_seen[:]
 
 
     def set_gtp_translations(self, translations):

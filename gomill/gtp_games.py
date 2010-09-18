@@ -592,17 +592,13 @@ class Game(object):
         # but give an error.
         for colour in ('b', 'w'):
             cpu_time = None
-            try:
-                if self.known_command(colour, 'gomill-cpu_time'):
-                    try:
-                        s = self.send_command(colour, 'gomill-cpu_time')
-                        cpu_time = float(s)
-                    except (GtpEngineError, ValueError):
-                        cpu_time = "?"
-            except GtpControllerError:
-                # FIXME Will need to record errors somehow, but ignoring them is
-                # better than propagating them
-                pass
+            controller = self.controllers[colour]
+            if controller.safe_known_command('gomill-cpu_time'):
+                try:
+                    s = controller.safe_do_command(colour, 'gomill-cpu_time')
+                    cpu_time = float(s)
+                except (GtpEngineError, ValueError, TypeError):
+                    cpu_time = "?"
             self.result.cpu_times[self.players[colour]] = cpu_time
 
     def make_sgf(self):
@@ -635,4 +631,4 @@ class Game(object):
         f = open(pathname, "w")
         f.write(sgf_game.as_string())
         f.close()
-        
+
