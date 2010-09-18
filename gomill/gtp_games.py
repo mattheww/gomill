@@ -282,7 +282,7 @@ class Game(object):
     def close_players(self):
         """Close both channels (if they're open).
 
-        May propagate GtpControllerError.
+        FIXME: Returns error messages.
 
         If cpu times are not already set in the game result, sets them from the
         CPU usage of the engine subprocesses.
@@ -301,9 +301,7 @@ class Game(object):
                         self.result.cpu_times[self.players[colour]] is None):
                         self.result.cpu_times[self.players[colour]] = \
                             ru.ru_utime + ru.ru_stime
-        if errors:
-            # Might have been GtpProtocolError or GtpTransportError
-            raise GtpControllerError("\n".join(errors))
+        return errors
 
 
     ## High-level methods

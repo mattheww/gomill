@@ -190,15 +190,16 @@ class Game_job(object):
                         "aborting game: invalid handicap")
             game.run()
         except GtpControllerError, e:
+            late_error_messages = game.close_players()
             msg = "aborting game due to error:\n%s" % e
+            if late_error_messages:
+                msg += "\n" + "\n".join(late_error_messages)
             self.record_void_game(game, msg)
             raise job_manager.JobFailed(msg)
-        try:
-            game.close_players()
-        except GtpControllerError, e:
-            msg = str(e)
-            self.record_void_game(game, msg)
-            raise job_manager.JobFailed(msg)
+        late_error_messages = game.close_players()
+        # FIXME: At the moment, these late error messages are lost.
+        # Put them into the SGF?
+        # Return them to the ringmaster to become warnings?
         if self.sgf_pathname is not None:
             self.record_game(self.sgf_pathname, game)
         response = Game_job_result()
