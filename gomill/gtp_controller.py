@@ -414,8 +414,9 @@ class Gtp_controller_protocol(object):
     Gtp_channel, including helper functions for the protocol-level GTP commands.
 
     Public attributes:
-      channel -- the underlying Gtp_channel (None if it's closed).
-      name    -- the channel name (used in error messages)
+      channel     -- the underlying Gtp_channel (None if it's closed).
+      name        -- the channel name (used in error messages)
+      quit_needed -- bool controlling safe_close() behaviour
 
     It's ok to access the underlying channel directly (eg, to enable logging).
 
@@ -429,6 +430,7 @@ class Gtp_controller_protocol(object):
         self.log_dest = None
         self.gtp_translations = {}
         self.is_first_command = True
+        self.quit_needed = True
 
     def do_command(self, command, *arguments):
         """Send a command to the engine and return the response.
@@ -483,28 +485,34 @@ class Gtp_controller_protocol(object):
         try:
             self.channel.send_command(fixed_command, fixed_arguments)
         except GtpChannelClosed, e:
+            self.quit_needed = False
             raise GtpChannelClosed(
                 "error sending %s to %s:\n%s" %
                 (format_command(), self.name, e))
         except GtpTransportError, e:
+            self.quit_needed = False
             raise GtpTransportError(
                 "transport error sending %s to %s:\n%s" %
                 (format_command(), self.name, e))
         except GtpProtocolError, e:
+            self.quit_needed = False
             raise GtpProtocolError(
                 "GTP protocol error sending %s to %s:\n%s" %
                 (format_command(), self.name, e))
         try:
             is_error, response = self.channel.get_response()
         except GtpChannelClosed, e:
+            self.quit_needed = False
             raise GtpChannelClosed(
                 "error reading response to %s from %s:\n%s" %
                 (format_command(), self.name, e))
         except GtpTransportError, e:
+            self.quit_needed = False
             raise GtpTransportError(
                 "transport error reading response to %s from %s:\n%s" %
                 (format_command(), self.name, e))
         except GtpProtocolError, e:
+            self.quit_needed = False
             raise GtpProtocolError(
                 "GTP protocol error reading response to %s from %s:\n%s" %
                 (format_command(), self.name, e))
@@ -590,6 +598,41 @@ class Gtp_controller_protocol(object):
         result = self.channel.resource_usage
         self.channel = None
         return result
+
+    def safe_close(self):
+        """Close the communication channel to the engine.
+
+        This is safe to call even if the channel is already closed, or has had
+        protocol or transport errors.
+
+        This will not propagate any exceptions.
+
+        Returns a string containing any error messages.
+
+
+        Normally this will send 'quit' to the engine, but it will not do so if
+        the controller has previously seen a GtpControllerError,
+        GtpTransportError, or GtpCnannelClosed exception from the channel.
+
+        You can control this behaviour explicitly by setting the quit_needed
+        attribute before calling safe_close().
+
+        """
+        errors = []
+        if self.channel is None:
+            return errors
+        if self.quit_needed:
+            try:
+                self.do_command("quit")
+            except GtpControllerError, e:
+                errors.append(str(e))
+        try:
+            self.channel.close()
+        except GtpTransportError, e:
+            errors.append("error closing %s:\n%s" % (self.name, e))
+        self.channel = None
+        return "\n".join(errors)
+
 
     def set_gtp_translations(self, translations):
         """Set GTP command translations.
