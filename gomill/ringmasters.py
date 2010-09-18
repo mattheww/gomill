@@ -419,7 +419,7 @@ class Ringmaster(object):
         """
         self.stopping = True
         self.stopping_reason = reason
-        self.log("halting competiton: %s" % reason)
+        self.log("halting competition: %s" % reason)
 
     def _update_display(self):
         """Redisplay the 'live' competition description.
