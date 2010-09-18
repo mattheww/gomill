@@ -356,6 +356,8 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
 
     The 'cwd' and 'env' parameters are interpreted as for subprocess.Popen.
 
+    Closing the channel waits for the subprocess to exit.
+
     """
     def __init__(self, command, stderr=None, cwd=None, env=None):
         Linebased_gtp_channel.__init__(self)
