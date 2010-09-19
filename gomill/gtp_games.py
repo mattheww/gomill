@@ -438,10 +438,16 @@ class Game(object):
         try:
             self.send_command(opponent, "play", colour, move_s)
         except BadGtpResponse, e:
-            # we assume the move was illegal, so 'colour' should lose
-            self.winner = opponent
-            self.forfeited = True
-            self.forfeit_reason = str(e)
+            if e.gtp_error_message == "illegal move":
+                # we assume the move really was illegal, so 'colour' should lose
+                self.winner = opponent
+                self.forfeited = True
+                self.forfeit_reason = "%s claims move %s is illegal" % (
+                    self.players[opponent], move_s)
+            else:
+                self.winner = colour
+                self.forfeited = True
+                self.forfeit_reason = str(e)
 
     def _handle_pass_pass(self):
         def ask(colour):
