@@ -78,8 +78,10 @@ class Game_job_result(object):
 class Game_job(object):
     """A game to be played in a worker process.
 
-    A Game_job is designed to be used a job object for the job manager. When the
-    job is run, it plays a GTP game as described by its attributes, and
+    A Game_job is designed to be used a job object for the job manager. That is,
+    its public interface is the run() method.
+
+    When the job is run, it plays a GTP game as described by its attributes, and
     optionally writes an SGF file. The job result is a Game_job_result object.
 
     required attributes:
@@ -136,6 +138,13 @@ class Game_job(object):
     # The code here has to be happy to run in a separate process.
 
     def run(self):
+        """Run the job.
+
+        This method is called by the job manager.
+
+        Returns a Game_job_result, or raises JobFailed.
+
+        """
         self._files_to_close = []
         try:
             return self._run()
