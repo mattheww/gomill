@@ -352,7 +352,7 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
       stderr  -- destination for standard error output (optional)
       cwd     -- working directory to change to (optional)
       env     -- new environment (optional)
-    Instantiation will raise GtpTransportError if the process can't be started.
+    Instantiation will raise GtpChannelError if the process can't be started.
 
     This starts the subprocess and speaks GTP over its standard input and
     output.
@@ -375,7 +375,7 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                 stderr=stderr, cwd=cwd, env=env)
         except EnvironmentError, e:
-            raise GtpTransportError(str(e))
+            raise GtpChannelError(str(e))
         self.subprocess = p
         self.command_pipe = p.stdin
         self.response_pipe = p.stdout

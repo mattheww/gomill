@@ -7,9 +7,7 @@ on to another engine (the _back end_).
 
 from gomill import gtp_controller
 from gomill import gtp_engine
-from gomill.gtp_controller import (
-    BadGtpResponse, GtpChannelError,
-    GtpProtocolError, GtpChannelClosed, GtpTransportError)
+from gomill.gtp_controller import BadGtpResponse, GtpChannelError
 from gomill.gtp_engine import GtpError, GtpQuit, GtpFatalError
 
 
@@ -114,7 +112,7 @@ class Gtp_proxy(object):
         """
         try:
             channel = gtp_controller.Subprocess_gtp_channel(command, **kwargs)
-        except GtpTransportError, e:
+        except GtpChannelError, e:
             # Probably means exec failure
             raise BackEndError("can't launch back end command\n%s" % e)
         controller = gtp_controller.Gtp_controller(channel, "back end")

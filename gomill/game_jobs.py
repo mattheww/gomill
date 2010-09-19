@@ -6,8 +6,7 @@ import os
 from gomill import gtp_controller
 from gomill import gtp_games
 from gomill import job_manager
-from gomill.gtp_controller import (
-    BadGtpResponse, GtpChannelError, GtpTransportError)
+from gomill.gtp_controller import BadGtpResponse, GtpChannelError
 
 class Player(object):
     """Player description for Game_jobs.
@@ -302,8 +301,8 @@ def check_player(player_check, discard_stderr=False):
             channel = gtp_controller.Subprocess_gtp_channel(
                 player.cmd_args,
                 env=environ, cwd=player.cwd, stderr=stderr)
-        except GtpTransportError, e:
-            raise GtpTransportError(
+        except GtpChannelError, e:
+            raise GtpChannelError(
                 "error starting subprocess for %s:\n%s" % (player.code, e))
         controller = gtp_controller.Gtp_controller(channel, player.code)
         controller.set_gtp_translations(player.gtp_translations)

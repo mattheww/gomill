@@ -7,9 +7,7 @@ from gomill import gtp_controller
 from gomill import handicap_layout
 from gomill import boards
 from gomill import sgf_writer
-from gomill.gtp_controller import (
-    BadGtpResponse, GtpChannelError,
-    GtpProtocolError, GtpChannelClosed, GtpTransportError)
+from gomill.gtp_controller import BadGtpResponse, GtpChannelError
 
 def format_float(f):
     """Format a Python float in a friendly way."""
@@ -229,14 +227,14 @@ class Game(object):
         Additional keyword arguments are passed to the Subprocess_gtp_channel
         constructor.
 
-        Propagates GtpTransportError if there's an error creating the
+        Propagates GtpChannelError if there's an error creating the
         subprocess.
 
         """
         try:
             channel = gtp_controller.Subprocess_gtp_channel(command, **kwargs)
-        except GtpTransportError, e:
-            raise GtpTransportError(
+        except GtpChannelError, e:
+            raise GtpChannelError(
                 "error starting subprocess for player %s:\n%s" %
                 (self.players[colour], e))
         controller = gtp_controller.Gtp_controller(
