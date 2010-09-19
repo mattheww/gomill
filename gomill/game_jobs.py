@@ -208,8 +208,9 @@ class Game_job(object):
             game.close_players()
             msg = "aborting game due to error:\n%s" % e
             self._record_void_game(game, msg)
-            if game.late_errors:
-                msg += "\nalso:\n" + "\n".join(game.late_errors)
+            late_error_messages = game.describe_late_errors()
+            if late_error_messages is not None:
+                msg += "\nalso:\n" + late_error_messages
             raise job_manager.JobFailed(msg)
         game.close_players()
         if self.sgf_pathname is not None:

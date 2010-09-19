@@ -117,19 +117,14 @@ class Game(object):
       moves                 -- list of tuples (colour, move, comment)
       engine_names          -- map player code -> string
       engine_descriptions   -- map player code -> string
-      late_errors           -- list of strings
 
    Methods which communicate with engines may raise BadGtpResponse if the
    engine returns a failure response.
 
    Methods which communicate with engines will normally raise GtpChannelError
    if there is trouble communicating with the engine. But after the game result
-   has been decided, they will set these errors aside; use the late_errors
-   attribute to retrieve them.
-
-   The late_errors attribute is set by close_players(); it includes errors set
-   aside as above and also errors from closing (including failure responses
-   from the final 'quit' command).
+   has been decided, they will set these errors aside; retrieve them with
+   describe_late_errors().
 
 
    This doesn't enforce any ko rule. It accepts self-capture moves.
@@ -300,7 +295,7 @@ class Game(object):
     def close_players(self):
         """Close both controllers (if they're open).
 
-        Sets the late_errors attribute.
+        Retrieves the late errors for describe_late_errors().
 
         If cpu times are not already set in the game result, sets them from the
         CPU usage of the engine subprocesses.
@@ -609,6 +604,23 @@ class Game(object):
                 self.result.cpu_times[self.players[colour]] = \
                     ru.ru_utime + ru.ru_stime
 
+    def describe_late_errors(self):
+        """Retrieve the late error messages.
+
+        Returns a string, or None if there were no late errors.
+
+        This is only available after close_players() has been called.
+
+        The late errors are low-level errors which occurred after the game
+        result was decided and so were set asied. In particular, they include
+        any errors from closing (including failure responses from the final
+        'quit' command)
+
+        """
+        if not self.late_errors:
+            return None
+        return "\n".join(self.late_errors)
+
     def make_sgf(self, game_end_message=None):
         """Return an SGF description of the game.
 
@@ -638,8 +650,9 @@ class Game(object):
             sgf_game.add_final_comment(self.result.describe())
         if game_end_message is not None:
             sgf_game.add_final_comment(game_end_message)
-        if self.late_errors:
-            sgf_game.add_final_comment("\n".join(self.late_errors))
+        late_error_messages = self.describe_late_errors()
+        if late_error_messages is not None:
+            sgf_game.add_final_comment(late_error_messages)
         return sgf_game
 
     def write_sgf(self, pathname, game_end_message=None):
