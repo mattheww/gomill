@@ -66,9 +66,10 @@ def test_misc():
     #send_command(controller2, "quit")
 
     print "Shutting down first"
-    rusage = controller1.close_channel()
+    controller1.close()
+    rusage = controller1.channel.resource_usage
     print "Shutting down second"
-    controller2.close_channel()
+    controller2.close()
 
     print "Resource usage:"
     print rusage.ru_utime
