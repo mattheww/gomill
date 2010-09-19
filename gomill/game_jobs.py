@@ -207,13 +207,13 @@ class Game_job(object):
         except (GtpChannelError, BadGtpResponse), e:
             game.close_players()
             msg = "aborting game due to error:\n%s" % e
-            self.record_void_game(game, msg)
+            self._record_void_game(game, msg)
             if game.late_errors:
                 msg += "\nalso:\n" + "\n".join(game.late_errors)
             raise job_manager.JobFailed(msg)
         game.close_players()
         if self.sgf_pathname is not None:
-            self.record_game(self.sgf_pathname, game)
+            self._record_game(self.sgf_pathname, game)
         response = Game_job_result()
         response.game_id = self.game_id
         response.game_result = game.result
@@ -222,7 +222,7 @@ class Game_job(object):
         response.game_data = self.game_data
         return response
 
-    def record_game(self, pathname, game, game_end_message=None, result=None):
+    def _record_game(self, pathname, game, game_end_message=None, result=None):
         b_player = game.players['b']
         w_player = game.players['w']
 
@@ -254,7 +254,7 @@ class Game_job(object):
         f.write(sgf_game.as_string())
         f.close()
 
-    def record_void_game(self, game, game_end_message):
+    def _record_void_game(self, game, game_end_message):
         """Record the game to void_sgf_pathname if it had any moves."""
         if not game.moves:
             return
@@ -263,8 +263,8 @@ class Game_job(object):
         dirname = os.path.dirname(self.void_sgf_pathname)
         if not os.path.exists(dirname):
             os.mkdir(dirname)
-        self.record_game(self.void_sgf_pathname, game, game_end_message,
-                         result='Void')
+        self._record_game(self.void_sgf_pathname, game, game_end_message,
+                          result='Void')
 
 
 class CheckFailed(StandardError):
