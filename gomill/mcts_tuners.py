@@ -367,10 +367,12 @@ class Simulation(object):
 
     def describe(self):
         """Return a one-line-ish text description of the simulation."""
-        return "%s [%s] %s" % (
+        result = "%s [%s]" % (
             self.tree.format_parameters(self.get_parameters()),
-            self.describe_steps(),
-            ("lost", "won")[self.candidate_won])
+            self.describe_steps())
+        if self.candidate_won is not None:
+            result += (" lost", " won")[self.candidate_won]
+        return result
 
     def describe_briefly(self):
         """Return a shorter description of the simulation."""
@@ -384,12 +386,6 @@ class Greedy_simulation(Simulation):
     tree.
 
     """
-    def describe(self):
-        """Return a one-line-ish text description of the simulation."""
-        return "%s [%s]" % (
-            self.tree.format_parameters(self.get_parameters()),
-            self.describe_steps())
-
     def _choose_action(self, node):
         def wins((i, node)):
             return node.wins
@@ -633,6 +629,13 @@ class Mcts_tuner(Competition):
         if self.last_simulation is not None:
             print >>out, "Last simulation: %s" % (
                 self.last_simulation.describe())
+        if self.outstanding_simulations:
+            print >>out, "In progress:"
+            for game_id, simulation in sorted(
+                self.outstanding_simulations.iteritems()):
+                print >>out, "game %s: %s" % (game_id, simulation.describe())
+            print >>out
+
         self.tree.summarise(out, self.summary_spec)
         best_simulation = self.tree.retrieve_best_parameter_simulation()
         print >>out, "Best parameter vector: %s" % best_simulation.describe()
