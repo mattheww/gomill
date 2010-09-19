@@ -66,7 +66,7 @@ def test_general():
     proxy.engine.add_command('mygenmove', handle_mygenmove)
     proxy.engine.add_command("mytest", handle_mytest)
 
-    #proxy.controller.channel.enable_logging(sys.stdout, " ")
+    #proxy.controller.channel.enable_logging(sys.stdout)
 
     assert proxy.back_end_has_command("help")
     assert proxy.back_end_has_command("help")

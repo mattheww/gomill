@@ -171,7 +171,7 @@ class Game_job(object):
         controller.set_gtp_translations(player.gtp_translations)
         if gtp_log_file is not None:
             controller.channel.enable_logging(
-                gtp_log_file, prefix=" %s: " % colour)
+                gtp_log_file, prefix="%s: " % colour)
         game.ready(colour)
         for command, arguments in player.startup_gtp_commands:
             game.send_command(colour, command, *arguments)

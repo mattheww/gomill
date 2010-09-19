@@ -30,7 +30,7 @@ def test_misc():
     devnull.close()
     controller1 = gtp_controller.Gtp_controller(c1, "first")
 
-    #controller1.channel.enable_logging(sys.stdout, ' first: ')
+    #controller1.channel.enable_logging(sys.stdout, 'first: ')
 
     gtp_state = gtp_states.Gtp_state(test_gtp_state.dummy_move_generator, [9])
     engine = test_gtp_state.kiai_dummy_engine(gtp_state)
@@ -40,7 +40,7 @@ def test_misc():
     #    "gnugo --mode=gtp --boardsize=9".split())
 
     controller2 = gtp_controller.Gtp_controller(c2, "second")
-    #controller2.channel.enable_logging(sys.stdout, ' second: ')
+    #controller2.channel.enable_logging(sys.stdout, 'second: ')
 
 
     def send_command(controller, command, *arguments):
