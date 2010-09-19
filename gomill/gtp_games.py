@@ -311,12 +311,8 @@ class Game(object):
             if controller is None:
                 continue
             controller.safe_close()
-            ru = controller.channel.resource_usage
-            if (ru is not None and self.result is not None and
-                self.result.cpu_times[self.players[colour]] is None):
-                self.result.cpu_times[self.players[colour]] = \
-                    ru.ru_utime + ru.ru_stime
             self.late_errors += controller.retrieve_error_messages()
+        self.update_cpu_times_from_channels()
 
 
     ## High-level methods
@@ -587,6 +583,25 @@ class Game(object):
                 except (BadGtpResponse, ValueError, TypeError):
                     cpu_time = "?"
             self.result.cpu_times[self.players[colour]] = cpu_time
+
+    def update_cpu_times_from_channels(self):
+        """Set CPU times in self.result from the channel resource usage.
+
+        There's normally no need to call this directly: close_players() will do
+        it.
+
+        Has no effect if CPU times have already been set.
+
+        """
+        for colour in ('b', 'w'):
+            controller = self.controllers.get(colour)
+            if controller is None:
+                continue
+            ru = controller.channel.resource_usage
+            if (ru is not None and self.result is not None and
+                self.result.cpu_times[self.players[colour]] is None):
+                self.result.cpu_times[self.players[colour]] = \
+                    ru.ru_utime + ru.ru_stime
 
     def make_sgf(self, game_end_message=None):
         """Return an SGF description of the game.
