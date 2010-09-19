@@ -155,7 +155,11 @@ def _clean_response(response):
     """Clean up a proposed response."""
     if response is None:
         return ""
-    s = str(response).rstrip()
+    if isinstance(response, unicode):
+        s = response.encode("utf-8")
+    else:
+        s = str(response)
+    s = s.rstrip()
     s = s.replace("\n\n", "\n.\n")
     s = _remove_response_controls_re.sub("", s)
     s = s.replace("\t", " ")
@@ -219,7 +223,7 @@ class Gtp_engine_protocol(object):
     The handler should return the response to sent to the controller. You can
     use either None or the empty string for an empty response. If the returned
     value isn't suitable to be used directly as a GTP response, it will be
-    'cleaned up' so that it can be.
+    'cleaned up' so that it can be. Unicode objects will be encoded as utf-8.
 
     To report an error, they should raise GtpError with an appropriate message.
 
