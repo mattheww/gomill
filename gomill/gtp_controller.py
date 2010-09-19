@@ -607,6 +607,20 @@ class Gtp_controller(object):
                 "%s reports GTP protocol version %s" %
                 (self.name, protocol_version))
 
+    def list_commands(self):
+        """Return the engine's declared command list.
+
+        Returns a list of nonempty strings without leading or trailing
+        whitespace.
+
+        May propagate GtpChannelError or BadGtpResponse
+
+        """
+        response = self.do_command('list_commands')
+        return [s for s in
+                (t.strip() for t in response.split("\n"))
+                if s]
+
     def close(self):
         """Close the communication channel to the engine.
 

@@ -100,12 +100,9 @@ class Gtp_proxy(object):
             raise StandardError("back end already set")
         self.controller = controller
         try:
-            response = controller.do_command('list_commands')
+            self.back_end_commands = controller.list_commands()
         except (GtpChannelError, BadGtpResponse), e:
             raise BackEndError(str(e), cause=e)
-        self.back_end_commands = [s for s in
-                                  (t.strip() for t in response.split("\n"))
-                                  if s]
         self._make_engine()
 
     def set_back_end_subprocess(self, command, **kwargs):
