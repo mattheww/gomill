@@ -518,44 +518,30 @@ class Gtp_controller(object):
                 return "'%s'" % desc
         try:
             self.channel.send_command(fixed_command, fixed_arguments)
-        except GtpChannelClosed, e:
-            self.quit_needed = False
-            self.channel_is_bad = True
-            raise GtpChannelClosed(
-                "error sending %s to %s:\n%s" %
-                (format_command(), self.name, e))
-        except GtpTransportError, e:
-            self.quit_needed = False
-            self.channel_is_bad = True
-            raise GtpTransportError(
-                "transport error sending %s to %s:\n%s" %
-                (format_command(), self.name, e))
-        except GtpProtocolError, e:
-            self.quit_needed = False
-            self.channel_is_bad = True
-            raise GtpProtocolError(
-                "GTP protocol error sending %s to %s:\n%s" %
-                (format_command(), self.name, e))
+        except GtpChannelError, e:
+            if isinstance(e, GtpTransportError):
+                label = "transport error"
+            elif isinstance(e, GtpProtocolError):
+                label = "GTP protocol error"
+            else:
+                label = "error"
+            msg = ("%s sending %s to %s:\n%s" %
+                   (label, format_command(), self.name, e))
+            e.args = (msg,)
+            raise
         try:
             is_failure, response = self.channel.get_response()
-        except GtpChannelClosed, e:
-            self.quit_needed = False
-            self.channel_is_bad = True
-            raise GtpChannelClosed(
-                "error reading response to %s from %s:\n%s" %
-                (format_command(), self.name, e))
-        except GtpTransportError, e:
-            self.quit_needed = False
-            self.channel_is_bad = True
-            raise GtpTransportError(
-                "transport error reading response to %s from %s:\n%s" %
-                (format_command(), self.name, e))
-        except GtpProtocolError, e:
-            self.quit_needed = False
-            self.channel_is_bad = True
-            raise GtpProtocolError(
-                "GTP protocol error reading response to %s from %s:\n%s" %
-                (format_command(), self.name, e))
+        except GtpChannelError, e:
+            if isinstance(e, GtpTransportError):
+                label = "transport error"
+            elif isinstance(e, GtpProtocolError):
+                label = "GTP protocol error"
+            else:
+                label = "error"
+            msg = ("%s reading response to %s from %s:\n%s" %
+                   (label, format_command(), self.name, e))
+            e.args = (msg,)
+            raise
         self.is_first_command = False
         if is_failure:
             raise BadGtpResponse(
