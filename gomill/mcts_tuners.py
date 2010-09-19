@@ -418,7 +418,9 @@ class Mcts_tuner(Competition):
         Setting('log_tree_to_history_period',
                 allow_none(interpret_positive_int), default=None),
         Setting('summary_spec', interpret_sequence_of(interpret_int),
-                default=(30,))
+                default=(30,)),
+        Setting('number_of_running_simulations_to_show', interpret_int,
+                default=12),
         ]
 
     special_settings = [
@@ -613,7 +615,7 @@ class Mcts_tuner(Competition):
         p("board size: %s" % self.board_size)
         p("komi: %s" % self.komi)
 
-    def write_screen_report(self, out):
+    def _write_main_report(self, out):
         games_played = self.scheduler.fixed
         if self.number_of_games is None:
             print >>out, "%d games played" % games_played
@@ -626,16 +628,19 @@ class Mcts_tuner(Competition):
         best_simulation = self.tree.retrieve_best_parameter_simulation()
         print >>out, "Best parameter vector: %s" % best_simulation.describe()
 
+    def write_screen_report(self, out):
+        self._write_main_report(out)
         if self.outstanding_simulations:
             print >>out
             print >>out, "In progress:"
-            for game_id, simulation in sorted(
-                self.outstanding_simulations.iteritems()):
+            to_show = sorted(self.outstanding_simulations.iteritems())\
+                      [:self.number_of_running_simulations_to_show]
+            for game_id, simulation in to_show:
                 print >>out, "game %s: %s" % (game_id, simulation.describe())
 
     def write_short_report(self, out):
         self.write_static_description(out)
-        self.write_screen_report(out)
+        self._write_main_report(out)
 
     write_full_report = write_short_report
 
