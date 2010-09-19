@@ -727,7 +727,7 @@ class Gtp_controller(object):
 
 
 def describe_engine(controller, default="unknown"):
-    """Retrieve a description of the engine via GTP.
+    """Retrieve a description of a controller's engine via GTP.
 
     default -- text to use for the description if all GTP commands fail.
 
@@ -758,8 +758,11 @@ def describe_engine(controller, default="unknown"):
         name = default
     try:
         version = shorten_version(name, controller.do_command("version"))
-        short_s = name + ":" + version[:32].rstrip()
-        long_s = name + ":" + version
+        if version:
+            short_s = name + ":" + version[:32].rstrip()
+            long_s = name + ":" + version
+        else:
+            long_s = short_s = name
     except BadGtpResponse:
         long_s = short_s = name
 

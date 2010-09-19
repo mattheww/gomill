@@ -67,7 +67,7 @@ def test_misc():
 
 
     short_s, long_s = gtp_controller.describe_engine(controller1)
-    assert short_s == "Kiai-simple-montecarlo:"
+    assert short_s == "Kiai-simple-montecarlo"
     assert long_s == "Kiai-simple-montecarlo:\n  playouts_per_move=10k"
     short_s, long_s = gtp_controller.describe_engine(controller2)
     assert short_s == "Gomill-dummy:321.3"
