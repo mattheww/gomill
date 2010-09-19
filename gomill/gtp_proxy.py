@@ -222,7 +222,7 @@ class Gtp_proxy(object):
         except GtpChannelError, e:
             raise BackEndError(str(e))
 
-    def expect_back_end_exit(self, result):
+    def expect_back_end_exit(self):
         """Mark that the back end is expected to have exited.
 
         Call this from any handler which you expect to cause the back end to
@@ -233,7 +233,7 @@ class Gtp_proxy(object):
 
     def handle_quit(self, args):
         result = self.handle_command("quit", [])
-        self.expect_back_end_exit(result)
+        self.expect_back_end_exit()
         raise GtpQuit(result)
 
     def handle_passthrough(self, args):
