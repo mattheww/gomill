@@ -544,7 +544,7 @@ class Ringmaster(object):
         self.write_status()
         if result_description is None:
             result_description = response.game_result.describe()
-        self.say('results', "game %s completed: %s" % (
+        self.say('results', "game %s: %s" % (
             response.game_id, result_description))
 
     def process_error_response(self, job, message):
