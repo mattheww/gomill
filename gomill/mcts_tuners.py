@@ -401,7 +401,6 @@ class Mcts_tuner(Competition):
     def __init__(self, competition_code, **kwargs):
         Competition.__init__(self, competition_code, **kwargs)
         self.outstanding_simulations = {}
-        self.last_simulation = None
         self.halt_on_next_failure = True
 
     global_settings = [
@@ -476,9 +475,6 @@ class Mcts_tuner(Competition):
     #  *tree                    -- Tree (root node is persisted)
     #   outstanding_simulations -- map game_number -> Simulation
     #   halt_on_next_failure    -- bool
-
-    # This is used only for the screen report:
-    #   last_simulation         -- Simulation or None
 
 
     def set_clean_status(self):
@@ -588,7 +584,6 @@ class Mcts_tuner(Competition):
         simulation = self.outstanding_simulations.pop(game_number)
         simulation.update_stats(candidate_won)
         self.log_history(simulation.describe())
-        self.last_simulation = simulation
         if (self.log_tree_to_history_period is not None and
             self.scheduler.fixed % self.log_tree_to_history_period == 0):
             self.log_history(self.tree.describe())
@@ -626,19 +621,17 @@ class Mcts_tuner(Competition):
             print >>out, "%d/%d games played" % (
                 games_played, self.number_of_games)
         print >>out
-        if self.last_simulation is not None:
-            print >>out, "Last simulation: %s" % (
-                self.last_simulation.describe())
-        if self.outstanding_simulations:
-            print >>out, "In progress:"
-            for game_id, simulation in sorted(
-                self.outstanding_simulations.iteritems()):
-                print >>out, "game %s: %s" % (game_id, simulation.describe())
-            print >>out
 
         self.tree.summarise(out, self.summary_spec)
         best_simulation = self.tree.retrieve_best_parameter_simulation()
         print >>out, "Best parameter vector: %s" % best_simulation.describe()
+
+        if self.outstanding_simulations:
+            print >>out
+            print >>out, "In progress:"
+            for game_id, simulation in sorted(
+                self.outstanding_simulations.iteritems()):
+                print >>out, "game %s: %s" % (game_id, simulation.describe())
 
     def write_short_report(self, out):
         self.write_static_description(out)
