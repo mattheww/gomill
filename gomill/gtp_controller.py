@@ -527,6 +527,8 @@ class Gtp_controller(object):
             is_sending = False
             is_failure, response = self.channel.get_response()
         except GtpChannelError, e:
+            self.quit_needed = False
+            self.channel_is_bad = True
             if isinstance(e, GtpTransportError):
                 error_label = "transport error"
             elif isinstance(e, GtpProtocolError):
