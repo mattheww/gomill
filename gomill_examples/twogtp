@@ -11,7 +11,7 @@ from optparse import OptionParser, SUPPRESS_HELP
 
 from gomill import ascii_boards
 from gomill import gtp_games
-from gomill.gtp_controller import GtpControllerError
+from gomill.gtp_controller import GtpChannelError, BadGtpResponse
 from gomill.gomill_common import format_vertex
 
 def print_move(colour, move, board):
@@ -60,7 +60,7 @@ def main():
         game.ready('b')
         game.ready('w')
         game.run()
-    except GtpControllerError, e:
+    except (GtpChannelError, BadGtpResponse), e:
         sys.exit("aborting game due to error:\n%s\n" % e)
     finally:
         game.close_players()

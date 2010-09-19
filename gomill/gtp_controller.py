@@ -13,30 +13,31 @@ import subprocess
 from gomill.gomill_common import *
 
 
-class GtpControllerError(StandardError):
-    """Error trying to talk to a GTP engine.
+class GtpChannelError(StandardError):
+    """Low-level error trying to talk to a GTP engine.
 
     This is the base class for GtpProtocolError, GtpTransportError,
-    GtpChannelClosed, and GtpEngineError.
+    and GtpChannelClosed. It may also be raised directly.
 
     """
 
-class GtpProtocolError(GtpControllerError):
-    """Engine returned an ill-formed response."""
+class GtpProtocolError(GtpChannelError):
+    """A GTP engine returned an ill-formed response."""
 
-class GtpTransportError(GtpControllerError):
-    """Error communicating with the engine."""
+class GtpTransportError(GtpChannelError):
+    """An error from the transport underlying the GTP channel."""
 
-class GtpChannelClosed(GtpControllerError):
-    """The (command or response) channel to the engine has been closed."""
+class GtpChannelClosed(GtpChannelError):
+    """The (command or response) channel to a GTP engine has been closed."""
 
-class GtpEngineError(GtpControllerError):
-    """Error response from the engine.
 
-    This normally indicates a GTP '?' response with an error message.
+class BadGtpResponse(StandardError):
+    """Unacceptable response from a GTP engine.
 
-    Some higher-level functions use this exception to indicate a GTP response
-    which they couldn't interpret.
+    This is usually used to indicate a GTP failure ('?') response.
+
+    Some higher-level functions use this exception to indicate a GTP success
+    ('=') response which they couldn't interpret.
 
     """
 
@@ -104,7 +105,7 @@ class Gtp_channel(object):
         command   -- string
         arguments -- list of strings
 
-        May raise GtpChannelClosed or GtpTransportError.
+        May raise GtpChannelError.
 
         Raises ValueError if the command or an argument contains a character
         forbidden in GTP.
@@ -124,22 +125,20 @@ class Gtp_channel(object):
 
         Waits indefinitely for the response.
 
-        Returns a pair (is_error_response, response)
+        Returns a pair (is_failure, response)
 
-        'is_error_response' is a bool indicating whether the engine returned a
-        success or an error response.
+        'is_failure' is a bool indicating whether the engine returned a success
+        or a failure response.
 
-        For a success response, 'response' is the result from the engine; for an
-        error response it's the error message from the engine.
+        For a success response, 'response' is the result from the engine; for a
+        failure response it's the error message from the engine.
 
         'response' is a string with no trailing whitespace. It may contain
         newlines, but there are no empty lines except perhaps the first. There
         is no leading whitespace on the first line.
 
-        May raise GtpChannelClosed or GtpTransportError.
-
-        May raise GtpProtocolError (eg if the error status can't be read from
-        the engine's response).
+        May raise GtpChannelError. In particular, raises GtpProtocolError if the
+        success/failure indicator can't be read from the engine's response.
 
         """
         result = self.get_response_impl()
@@ -155,13 +154,13 @@ class Gtp_channel(object):
     # For subclasses to override:
 
     def close(self):
-        """Close the channel.
+        """Close the command and response channels.
 
         Channel implementations may use this to clean up resources associated
         with the engine (eg, to terminate a subprocess).
 
-        May raise GtpTransportError if a serious error is detected while doing
-        this (this is unlikely in practice).
+        Raises GtpTransportError if a serious error is detected while doing this
+        (this is unlikely in practice).
 
         """
         pass
@@ -199,7 +198,7 @@ class Internal_gtp_channel(Gtp_channel):
         try:
             command, arguments = self.outstanding_commands.pop(0)
         except IndexError:
-            raise GtpTransportError("no outstanding commands")
+            raise GtpChannelError("no outstanding commands")
         is_error, response, end_session = \
             self.engine.run_command(command, arguments)
         if end_session:
@@ -226,12 +225,13 @@ class Linebased_gtp_channel(Gtp_channel):
 
         If we receive EOF before any data, we raise GtpChannelClosed.
 
-        Otherwise if we receive EOF, we use the data received anyway.
+        If we receive EOF otherwise, we use the data received anyway.
 
         The first time this is called, we check the first byte without reading
         the whole line, and raise GtpProtocolError if it isn't plausibly the
         start of a GTP response (strictly, if it's a control character we should
-        just discard it, but I think it's more useful to reject them here).
+        just discard it, but I think it's more useful to reject them here; in
+        particular, this lets us detect GMP).
 
         """
         lines = []
@@ -475,12 +475,13 @@ class Gtp_controller(object):
         Returns the result text from the engine as a string with no trailing
         whitespace. It may contain newlines, but there are no empty lines
         except perhaps the first. There is no leading whitespace on the first
-        line. (It doesn't include the leading =[id] bit.)
+        line. (The result text doesn't include the leading =[id] bit.)
 
-        If the engine returns an error response, raises GtpEngineError with the
+        If the engine returns a failure response, raises BadGtpResponse with the
         error message as exception parameter.
 
         This will wait indefinitely for the engine to produce the response.
+
 
         Raises GtpChannelClosed if the engine has apparently closed its
         connection.
@@ -492,9 +493,8 @@ class Gtp_controller(object):
         layer between the controller and the engine (which may well mean that
         the engine has gone away).
 
-
-        If GtpChannelClosed, GtpProtocolError, or GtpTransportError is raised,
-        this also marks the channel as 'bad'.
+        If any of these GtpChannelError variants is raised, this also marks the
+        channel as 'bad'.
 
         """
         if self.channel_is_closed:
@@ -534,7 +534,7 @@ class Gtp_controller(object):
                 "GTP protocol error sending %s to %s:\n%s" %
                 (format_command(), self.name, e))
         try:
-            is_error, response = self.channel.get_response()
+            is_failure, response = self.channel.get_response()
         except GtpChannelClosed, e:
             self.quit_needed = False
             self.channel_is_bad = True
@@ -554,9 +554,9 @@ class Gtp_controller(object):
                 "GTP protocol error reading response to %s from %s:\n%s" %
                 (format_command(), self.name, e))
         self.is_first_command = False
-        if is_error:
-            raise GtpEngineError(
-                "error response from %s to %s:\n%s" %
+        if is_failure:
+            raise BadGtpResponse(
+                "failure response from %s to %s:\n%s" %
                 (format_command(), self.name, response))
         return response
 
@@ -568,8 +568,7 @@ class Gtp_controller(object):
 
         If known_command fails, returns False.
 
-        May propagate GtpProtocolError, GtpChannelClosed, or GtpTransportError
-        (see do_command).
+        May propagate GtpChannelError (see do_command).
 
         """
         result = self.known_commands.get(command)
@@ -577,7 +576,7 @@ class Gtp_controller(object):
             return result
         try:
             response = self.do_command("known_command", command)
-        except GtpEngineError:
+        except BadGtpResponse:
             known = False
         else:
             known = (response == 'true')
@@ -587,33 +586,32 @@ class Gtp_controller(object):
     def check_protocol_version(self):
         """Check the engine's declared protocol version.
 
-        Raises GtpEngineError if the engine declares a version other than 2.
+        Raises BadGtpResponse if the engine declares a version other than 2.
         Otherwise does nothing.
 
-        If the engine returns a GTP error response (in particular, if
+        If the engine returns a GTP failure response (in particular, if
         protocol_version isn't implemented), this does nothing.
 
-        May propagate GtpProtocolError, GtpChannelClosed, or GtpTransportError
-        (see do_command).
+        May propagate GtpChannelError (see do_command).
 
         """
         try:
             protocol_version = self.do_command("protocol_version")
-        except GtpEngineError:
+        except BadGtpResponse:
             return
         if protocol_version != "2":
-            raise GtpEngineError(
+            raise BadGtpResponse(
                 "%s reports GTP protocol version %s" %
                 (self.name, protocol_version))
 
     def close(self):
         """Close the communication channel to the engine.
 
-        May raise GtpTransportError
+        May propagate GtpTransportError.
 
         Some engines (eg Mogo) don't behave well if we just close their input
         without sending 'quit', so it's usually best to send 'quit' first (eg,
-        by using safe_close()).
+        by using safe_close() instead of close()).
 
         """
         try:
@@ -629,21 +627,21 @@ class Gtp_controller(object):
         If the channel is closed or marked bad, this does not attempt to send
         the command, and returns None.
 
-        If a GtpChannelClosed, GtpTransportError, or GtpProtocolError exception
-        is raised while running the command, it is not propagated, but the error
-        message is recorded; use retrieve_error_messages to retrieve these. In
-        this case the function returns None.
+        If GtpChannelError is raised while running the command, it is not
+        propagated, but the error message is recorded; use
+        retrieve_error_messages to retrieve these. In this case the function
+        returns None.
 
-        GtpEngineError is propagated as usual.
+        BadGtpResponse is raised in the same way as for do_command.
 
         """
         if self.channel_is_bad or self.channel_is_closed:
             return None
         try:
             return self.do_command(command, *arguments)
-        except GtpEngineError, e:
+        except BadGtpResponse, e:
             raise
-        except GtpControllerError, e:
+        except GtpChannelError, e:
             self.errors_seen.append(str(e))
             return None
 
@@ -663,7 +661,7 @@ class Gtp_controller(object):
             return result
         try:
             response = self.safe_do_command("known_command", command)
-        except GtpEngineError:
+        except BadGtpResponse:
             known = False
         else:
             known = (response == 'true')
@@ -681,7 +679,7 @@ class Gtp_controller(object):
 
 
         This will send 'quit' to the engine if the channel is not marked as bad.
-        Any error response will be set aside.
+        Any failure response will be set aside.
 
         """
         if self.channel_is_closed:
@@ -689,7 +687,7 @@ class Gtp_controller(object):
         if not self.channel_is_bad:
             try:
                 self.safe_do_command("quit")
-            except GtpEngineError, e:
+            except BadGtpResponse, e:
                 self.errors_seen.append(str(e))
         try:
             self.channel.close()

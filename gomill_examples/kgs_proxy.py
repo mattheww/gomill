@@ -11,7 +11,7 @@ from optparse import OptionParser
 from gomill import gtp_engine
 from gomill import gtp_proxy
 from gomill.gtp_engine import GtpError
-from gomill.gtp_controller import GtpEngineError
+from gomill.gtp_controller import BadGtpResponse
 
 class Kgs_proxy(object):
     """GTP proxy for use with kgsGtp.
@@ -91,7 +91,7 @@ class Kgs_proxy(object):
             version = self.proxy.pass_command("version", [])
             version = shorten_version(self.my_name, version)
             self.my_name += ":" + version
-        except GtpEngineError:
+        except BadGtpResponse:
             pass
 
     def handle_genmove(self, args):

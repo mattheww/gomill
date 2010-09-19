@@ -46,7 +46,7 @@ def test_misc():
     def send_command(controller, command, *arguments):
         try:
             response = controller.do_command(command, *arguments)
-        except gtp_controller.GtpEngineError, e:
+        except gtp_controller.BadGtpResponse, e:
             response = None
         return response
 

@@ -8,8 +8,8 @@ from gomill import handicap_layout
 from gomill import boards
 from gomill import sgf_writer
 from gomill.gtp_controller import (
-    GtpControllerError,
-    GtpProtocolError, GtpTransportError, GtpChannelClosed, GtpEngineError)
+    BadGtpResponse, GtpChannelError,
+    GtpProtocolError, GtpChannelClosed, GtpTransportError)
 
 def format_float(f):
     """Format a Python float in a friendly way."""
@@ -122,17 +122,17 @@ class Game(object):
       engine_descriptions   -- map player code -> string
       late_errors           -- list of strings
 
-   Methods which communicate with engines may raise GtpEngineError if the engine
-   returns an error response.
+   Methods which communicate with engines may raise BadGtpResponse if the
+   engine returns a failure response.
 
-   Methods which communicate with engines will normally raise GtpChannelClosed,
-   GtpTransportError or GtpProtocolError if there is trouble communicating with
-   the engine. But after the game result has been decided, they will set these
-   errors aside; use the late_errors attribute to retrieve them.
+   Methods which communicate with engines will normally raise GtpChannelError
+   if there is trouble communicating with the engine. But after the game result
+   has been decided, they will set these errors aside; use the late_errors
+   attribute to retrieve them.
 
    The late_errors attribute is set by close_players(); it includes errors set
-   aside as above and also errors from closing (including the final 'quit'
-   command).
+   aside as above and also errors from closing (including failure responses
+   from the final 'quit' command).
 
 
    This doesn't enforce any ko rule. It accepts self-capture moves.
@@ -256,7 +256,7 @@ class Game(object):
 
         Returns the response as a string.
 
-        Raises GtpEngineError if the engine returns an error response.
+        Raises BadGtpResponse if the engine returns a failure response.
 
         You can use this at any time between set_player_...() and
         close_players().
@@ -267,15 +267,15 @@ class Game(object):
     def maybe_send_command(self, colour, command, *arguments):
         """Send the specified GTP command, if supported.
 
-        Variant of send_command(): if the command isn't supported by the engine,
-        or gives an error response, returns None.
+        Variant of send_command(): if the command isn't supported by the
+        engine, or gives a failure response, returns None.
 
         """
         controller = self.controllers[colour]
         if controller.known_command(command):
             try:
                 result = controller.do_command(command, *arguments)
-            except GtpEngineError:
+            except BadGtpResponse:
                 result = None
         else:
             result = None
@@ -337,14 +337,14 @@ class Game(object):
             name = player
             try:
                 desc = name = self.send_command(colour, "name")
-            except GtpEngineError:
+            except BadGtpResponse:
                 pass
             try:
                 version = self.send_command(colour, "version")
                 version = shorten_version(name, version)
                 desc = name + ":" + version
                 name = name + ":" + version[:32].rstrip()
-            except GtpEngineError:
+            except BadGtpResponse:
                 pass
             self.engine_names[player] = name
             s = self.maybe_send_command(colour, "gomill-describe_engine")
@@ -371,7 +371,7 @@ class Game(object):
 
         Raises ValueError if the number of stones isn't valid (see GTP spec).
 
-        Raises GtpEngineError if there's an invalid respone to
+        Raises BadGtpResponse if there's an invalid respone to
         place_free_handicap (doesn't check the response to fixed_handicap).
 
         """
@@ -390,7 +390,7 @@ class Game(object):
                 if len(set(points)) < len(points):
                     raise ValueError("duplicate point")
             except ValueError, e:
-                raise GtpEngineError(
+                raise BadGtpResponse(
                     "invalid response from place_free_handicap command "
                     "to %s: %s" % (self.players["b"], e))
             vertices = [format_vertex(coords) for coords in points]
@@ -415,7 +415,7 @@ class Game(object):
             may_claim = False
         try:
             move_s = self.send_command(colour, genmove_command, colour).lower()
-        except GtpEngineError, e:
+        except BadGtpResponse, e:
             self.winner = opponent
             self.forfeited = True
             self.forfeit_reason = str(e)
@@ -459,7 +459,7 @@ class Game(object):
             self.after_move_callback(colour, move, self.board)
         try:
             self.send_command(opponent, "play", colour, move_s)
-        except GtpEngineError, e:
+        except BadGtpResponse, e:
             # we assume the move was illegal, so 'colour' should lose
             self.winner = opponent
             self.forfeited = True
@@ -602,7 +602,7 @@ class Game(object):
                 try:
                     s = controller.safe_do_command('gomill-cpu_time')
                     cpu_time = float(s)
-                except (GtpEngineError, ValueError, TypeError):
+                except (BadGtpResponse, ValueError, TypeError):
                     cpu_time = "?"
             self.result.cpu_times[self.players[colour]] = cpu_time
 

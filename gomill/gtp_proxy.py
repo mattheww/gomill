@@ -8,8 +8,8 @@ on to another engine (the _back end_).
 from gomill import gtp_controller
 from gomill import gtp_engine
 from gomill.gtp_controller import (
-    GtpControllerError, GtpProtocolError,
-    GtpChannelClosed, GtpTransportError, GtpEngineError)
+    BadGtpResponse, GtpChannelError,
+    GtpProtocolError, GtpChannelClosed, GtpTransportError)
 from gomill.gtp_engine import GtpError, GtpQuit, GtpFatalError
 
 
@@ -94,7 +94,7 @@ class Gtp_proxy(object):
         self.controller = controller
         try:
             response = controller.do_command('list_commands')
-        except GtpControllerError, e:
+        except (GtpChannelError, BadGtpResponse), e:
             raise BackEndError(str(e))
         self.back_end_commands = [s for s in
                                   (t.strip() for t in response.split("\n"))
@@ -134,7 +134,7 @@ class Gtp_proxy(object):
         This will send 'quit' if low-level errors have not previously been seen
         on the channel, unless expect_back_end_exit() has been called.
 
-        Errors (including error responses to 'quit') are reported by raising
+        Errors (including failure responses to 'quit') are reported by raising
         BackEndError.
 
         """
@@ -164,24 +164,25 @@ class Gtp_proxy(object):
     def pass_command(self, command, args):
         """Pass a command to the back end, and return its response.
 
-        The response (or error response) is unchanged, except for whitespace
+        The response (or failure response) is unchanged, except for whitespace
         normalisation.
 
         This passes the command to the back end even if it isn't included in the
         back end's list_commands output; the back end will presumably return an
         'unknown command' error.
 
-        Error responses from the back end are reported by raising
-        GtpEngineError.
+        Failure responses from the back end are reported by raising
+        BadGtpResponse.
 
-        Transport or protocol errors are reported by raising BackEndError.
+        Low-level (ie, transport or protocol) errors are reported by raising
+        BackEndError.
 
         """
         if not self._back_end_is_set():
             raise StandardError("back end isn't set")
         try:
             return self.controller.do_command(command, *args)
-        except (GtpProtocolError, GtpChannelClosed, GtpTransportError), e:
+        except GtpChannelError, e:
             raise BackEndError(str(e))
 
     def handle_command(self, command, args):
@@ -190,14 +191,15 @@ class Gtp_proxy(object):
         This is a variant of pass_command, intended to be used directly in a
         command handler.
 
-        Error responses from the back end are reported by raising GtpError.
+        Failure responses from the back end are reported by raising GtpError.
 
-        Transport or protocol errors are reported by raising GtpFatalError.
+        Low-level (ie, transport or protocol) errors are reported by raising
+        GtpFatalError.
 
         """
         try:
             return self.pass_command(command, args)
-        except GtpEngineError, e:
+        except BadGtpResponse, e:
             raise GtpError(str(e))
         except BackEndError, e:
             raise GtpFatalError(str(e))
@@ -207,14 +209,15 @@ class Gtp_proxy(object):
 
         This uses known_command, not list_commands. It caches the results.
 
-        Transport or protocol errors are reported by raising BackEndError.
+        Low-level (ie, transport or protocol) errors are reported by raising
+        BackEndError.
 
         """
         if not self._back_end_is_set():
             raise StandardError("back end isn't set")
         try:
             return self.controller.known_command(command)
-        except (GtpProtocolError, GtpChannelClosed, GtpTransportError), e:
+        except GtpChannelError, e:
             raise BackEndError(str(e))
 
     def expect_back_end_exit(self, result):
