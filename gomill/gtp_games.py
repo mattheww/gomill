@@ -211,24 +211,39 @@ class Game(object):
 
     ## Channel methods
 
-    def set_player_controller(self, colour, controller):
+    def set_player_controller(self, colour, controller,
+                              check_protocol_version=True):
         """Specify a player using a Gtp_controller.
 
         controller -- Gtp_controller
+        check_protocol_version -- bool (default True)
+
+        If check_protocol_version is true, rejects an engine that declares a
+        GTP protocol version <> 2.
+
+        Propagates GtpChannelError if there's an error checking the protocol
+        version.
 
         """
         self.controllers[colour] = controller
+        if check_protocol_version:
+            controller.check_protocol_version()
 
-    def set_player_subprocess(self, colour, command, **kwargs):
+    def set_player_subprocess(self, colour, command,
+                              check_protocol_version=True, **kwargs):
         """Specify the a player as a subprocess.
 
-        command -- list of strings (as for subprocess.Popen)
+        command                -- list of strings (as for subprocess.Popen)
+        check_protocol_version -- bool (default True)
 
         Additional keyword arguments are passed to the Subprocess_gtp_channel
         constructor.
 
+        If check_protocol_version is true, rejects an engine that declares a
+        GTP protocol version <> 2.
+
         Propagates GtpChannelError if there's an error creating the
-        subprocess.
+        subprocess or checking the protocol version.
 
         """
         try:
@@ -239,7 +254,7 @@ class Game(object):
                 (self.players[colour], e))
         controller = gtp_controller.Gtp_controller(
             channel, "player %s" % self.players[colour])
-        self.set_player_controller(colour, controller)
+        self.set_player_controller(colour, controller, check_protocol_version)
 
     def get_controller(self, colour):
         """Return the underlying Gtp_controller for the specified engine."""
@@ -325,16 +340,9 @@ class Game(object):
             self.engine_names[player] = short_s
             self.engine_descriptions[player] = long_s
 
-    def ready(self, colour, check_protocol_version=True):
-        """Reset GTP game state for the player (board size, contents, komi).
-
-        If check_protocol_version is true (which it is by default), rejects an
-        engine that declares a GTP protocol version <> 2.
-
-        """
+    def ready(self, colour):
+        """Reset GTP game state for the player (board size, contents, komi)."""
         controller = self.controllers[colour]
-        if check_protocol_version:
-            controller.check_protocol_version()
         controller.do_command("boardsize", str(self.board_size))
         controller.do_command("clear_board")
         controller.do_command("komi", str(self.komi))

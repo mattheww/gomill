@@ -172,9 +172,9 @@ class Game_job(object):
         if gtp_log_file is not None:
             controller.channel.enable_logging(
                 gtp_log_file, prefix="%s: " % colour)
-        game.ready(colour)
         for command, arguments in player.startup_gtp_commands:
             game.send_command(colour, command, *arguments)
+        game.ready(colour)
 
     def _run(self):
         game = gtp_games.Game(self.board_size, self.komi, self.move_limit)
@@ -294,9 +294,9 @@ def check_player(player_check, discard_stderr=False):
      - any explicitly specified cwd exists and is a directory
      - the engine subprocess starts, and replies to GTP commands
      - the engine reports protocol version 2 (if it supports protocol_version)
+     - the engine accepts any startup_gtp_commands
      - the engine accepts the specified board size and komi
      - the engine accepts the 'clear_board' command
-     - the engine accepts any startup_gtp_commands
      - the engine accepts 'quit' and closes down cleanly
 
     """
@@ -319,11 +319,11 @@ def check_player(player_check, discard_stderr=False):
         controller = gtp_controller.Gtp_controller(channel, player.code)
         controller.set_gtp_translations(player.gtp_translations)
         controller.check_protocol_version()
+        for command, arguments in player.startup_gtp_commands:
+            controller.do_command(command, *arguments)
         controller.do_command("boardsize", str(player_check.board_size))
         controller.do_command("clear_board")
         controller.do_command("komi", str(player_check.komi))
-        for command, arguments in player.startup_gtp_commands:
-            controller.do_command(command, *arguments)
         controller.do_command("quit")
         controller.close()
     except (GtpChannelError, BadGtpResponse), e:
