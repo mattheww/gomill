@@ -502,45 +502,39 @@ class Gtp_controller(object):
         """
         if self.channel_is_closed:
             raise StandardError("channel is closed")
+
         def fix_argument(argument):
             if isinstance(argument, unicode):
                 return argument.encode("utf-8")
             else:
                 return argument
-        fixed_command = fix_argument(command)
-        fixed_arguments = map(fix_argument, arguments)
-        fixed_command = self.gtp_translations.get(fixed_command, fixed_command)
         def format_command():
             desc = "%s" % (" ".join([fixed_command] + fixed_arguments))
             if self.is_first_command:
                 return "first command (%s)" % desc
             else:
                 return "'%s'" % desc
+
+        fixed_command = fix_argument(command)
+        fixed_arguments = map(fix_argument, arguments)
+        fixed_command = self.gtp_translations.get(fixed_command, fixed_command)
         try:
+            is_sending = True
             self.channel.send_command(fixed_command, fixed_arguments)
-        except GtpChannelError, e:
-            if isinstance(e, GtpTransportError):
-                label = "transport error"
-            elif isinstance(e, GtpProtocolError):
-                label = "GTP protocol error"
-            else:
-                label = "error"
-            msg = ("%s sending %s to %s:\n%s" %
-                   (label, format_command(), self.name, e))
-            e.args = (msg,)
-            raise
-        try:
+            is_sending = False
             is_failure, response = self.channel.get_response()
         except GtpChannelError, e:
             if isinstance(e, GtpTransportError):
-                label = "transport error"
+                error_label = "transport error"
             elif isinstance(e, GtpProtocolError):
-                label = "GTP protocol error"
+                error_label = "GTP protocol error"
             else:
-                label = "error"
-            msg = ("%s reading response to %s from %s:\n%s" %
-                   (label, format_command(), self.name, e))
-            e.args = (msg,)
+                error_label = "error"
+            if is_sending:
+                msg = "%s sending %s to %s:\n%s"
+            else:
+                msg = "%s reading response to %s from %s:\n%s"
+            e.args = (msg % (error_label, format_command(), self.name, e),)
             raise
         self.is_first_command = False
         if is_failure:
