@@ -475,10 +475,10 @@ class Gtp_controller(object):
         Arguments may be unicode objects, in which case they will be sent as
         utf-8.
 
-        Returns the result text from the engine as a string with no trailing
-        whitespace. It may contain newlines, but there are no empty lines
-        except perhaps the first. There is no leading whitespace on the first
-        line. (The result text doesn't include the leading =[id] bit.)
+        Returns the result text from the engine as an 8-bit string with no
+        trailing whitespace. It may contain newlines, but there are no empty
+        lines except perhaps the first. There is no leading whitespace on the
+        first line. (The result text doesn't include the leading =[id] bit.)
 
         If the engine returns a failure response, raises BadGtpResponse with the
         error message as exception parameter.
@@ -724,3 +724,48 @@ class Gtp_controller(object):
 
         """
         self.gtp_translations = translations
+
+
+def describe_engine(controller, default="unknown"):
+    """Retrieve a description of the engine via GTP.
+
+    default -- text to use for the description if all GTP commands fail.
+
+    This uses the 'name', 'version', and 'gomill-describe_engine' commands.
+
+    Returns a pair of utf-8 strings (short, long):
+      short -- single-line form (engine name and version)
+      long  -- multi-line form (engine name, version, description)
+
+    Truncates long version strings.
+
+    May propagate GtpChannelError.
+
+    """
+    def shorten_version(name, version):
+        """Clean up redundant version strings."""
+        if version.lower().startswith(name.lower()):
+            version = version[len(name):].lstrip()
+        # For MoGo's stupidly long version string
+        a, b, c = version.partition(". Please read http:")
+        if b:
+            return a
+        return version
+
+    try:
+        name = controller.do_command("name")
+    except BadGtpResponse:
+        name = default
+    try:
+        version = shorten_version(name, controller.do_command("version"))
+        short_s = name + ":" + version[:32].rstrip()
+        long_s = name + ":" + version
+    except BadGtpResponse:
+        long_s = short_s = name
+
+    if controller.known_command("gomill-describe_engine"):
+        try:
+            long_s = controller.do_command("gomill-describe_engine")
+        except BadGtpResponse:
+            pass
+    return short_s, long_s

@@ -318,37 +318,12 @@ class Game(object):
         names to appear in the SGF file).
 
         """
-
-        def shorten_version(name, version):
-            """Clean up redundant version strings."""
-            if version.lower().startswith(name.lower()):
-                version = version[len(name):].lstrip()
-            # For MoGo's stupidly long version string
-            a, b, c = version.partition(". Please read http:")
-            if b:
-                return a
-            return version
-
         for colour in "b", "w":
+            controller = self.controllers[colour]
             player = self.players[colour]
-            desc = player
-            name = player
-            try:
-                desc = name = self.send_command(colour, "name")
-            except BadGtpResponse:
-                pass
-            try:
-                version = self.send_command(colour, "version")
-                version = shorten_version(name, version)
-                desc = name + ":" + version
-                name = name + ":" + version[:32].rstrip()
-            except BadGtpResponse:
-                pass
-            self.engine_names[player] = name
-            s = self.maybe_send_command(colour, "gomill-describe_engine")
-            if s is not None:
-                desc = s
-            self.engine_descriptions[player] = desc
+            short_s, long_s = gtp_controller.describe_engine(controller, player)
+            self.engine_names[player] = short_s
+            self.engine_descriptions[player] = long_s
 
     def ready(self, colour, check_protocol_version=True):
         """Reset GTP game state for the player (board size, contents, komi).
