@@ -150,10 +150,11 @@ class Gtp_proxy(object):
         directly.
 
         Returns either when EOF is seen on stdin, or when a handler (such as the
-        default 'quit' handler) raises GtpQuit. It doesn't wait for the back end
-        to exit.
+        default 'quit' handler) raises GtpQuit.
 
-        Closes the channel to the back end before it returns.
+        Closes the channel to the back end before it returns. When it is
+        meaningful (eg, for subprocess channels) this waits for the back end to
+        exit.
 
         """
         gtp_engine.run_interactive_gtp_session(self.engine)

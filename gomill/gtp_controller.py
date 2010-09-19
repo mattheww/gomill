@@ -162,6 +162,9 @@ class Gtp_channel(object):
         Raises GtpTransportError if a serious error is detected while doing this
         (this is unlikely in practice).
 
+        When it is meaningful (eg, for subprocess channels) this waits for the
+        engine to exit.
+
         """
         pass
 
@@ -613,6 +616,9 @@ class Gtp_controller(object):
         without sending 'quit', so it's usually best to send 'quit' first (eg,
         by using safe_close() instead of close()).
 
+        When it is meaningful (eg, for subprocess channels) this waits for the
+        engine to exit.
+
         """
         try:
             self.channel.close()
@@ -676,6 +682,9 @@ class Gtp_controller(object):
 
         This will not propagate any exceptions; it will set them aside like
         safe_do_command.
+
+        When it is meaningful (eg, for subprocess channels) this waits for the
+        engine to exit.
 
 
         This will send 'quit' to the engine if the channel is not marked as bad.
