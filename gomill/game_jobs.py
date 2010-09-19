@@ -174,7 +174,6 @@ class Game_job(object):
                 gtp_log_file, prefix="%s: " % colour)
         for command, arguments in player.startup_gtp_commands:
             game.send_command(colour, command, *arguments)
-        game.ready(colour)
 
     def _run(self):
         game = gtp_games.Game(self.board_size, self.komi, self.move_limit)
@@ -198,6 +197,7 @@ class Game_job(object):
             self._start_player(game, 'b', self.player_b, gtp_log_file)
             self._start_player(game, 'w', self.player_w, gtp_log_file)
             game.request_engine_descriptions()
+            game.ready()
             if self.handicap:
                 try:
                     game.set_handicap(self.handicap, self.handicap_is_free)

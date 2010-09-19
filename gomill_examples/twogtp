@@ -57,8 +57,7 @@ def main():
     try:
         game.set_player_subprocess('b', black_command)
         game.set_player_subprocess('w', white_command)
-        game.ready('b')
-        game.ready('w')
+        game.ready()
         game.run()
     except (GtpChannelError, BadGtpResponse), e:
         sys.exit("aborting game due to error:\n%s\n" % e)

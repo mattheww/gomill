@@ -99,9 +99,8 @@ class Game(object):
       game.set_move_callback...() [optional]
       game.set_player_subprocess('b', ...) or set_player_controller('b', ...)
       game.set_player_subprocess('w', ...) or set_player_controller('w', ...)
-      game.ready('b')
-      game.ready('w')
       game.request_engine_descriptions() [optional]
+      game.ready()
       game.set_handicap(...) [optional]
       game.run()
       game.close_players()
@@ -340,12 +339,13 @@ class Game(object):
             self.engine_names[player] = short_s
             self.engine_descriptions[player] = long_s
 
-    def ready(self, colour):
-        """Reset GTP game state for the player (board size, contents, komi)."""
-        controller = self.controllers[colour]
-        controller.do_command("boardsize", str(self.board_size))
-        controller.do_command("clear_board")
-        controller.do_command("komi", str(self.komi))
+    def ready(self):
+        """Reset the engines' GTP game state (board size, contents, komi)."""
+        for colour in "b", "w":
+            controller = self.controllers[colour]
+            controller.do_command("boardsize", str(self.board_size))
+            controller.do_command("clear_board")
+            controller.do_command("komi", str(self.komi))
 
     def set_handicap(self, handicap, is_free):
         """Initialise the board position for a handicap.
