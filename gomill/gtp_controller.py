@@ -508,19 +508,22 @@ class Gtp_controller(object):
                 return argument.encode("utf-8")
             else:
                 return argument
+
+        fixed_command = fix_argument(command)
+        fixed_arguments = map(fix_argument, arguments)
+        translated_command = self.gtp_translations.get(
+            fixed_command, fixed_command)
+
         def format_command():
-            desc = "%s" % (" ".join([fixed_command] + fixed_arguments))
+            desc = "%s" % (" ".join([translated_command] + fixed_arguments))
             if self.is_first_command:
                 return "first command (%s)" % desc
             else:
                 return "'%s'" % desc
 
-        fixed_command = fix_argument(command)
-        fixed_arguments = map(fix_argument, arguments)
-        fixed_command = self.gtp_translations.get(fixed_command, fixed_command)
         try:
             is_sending = True
-            self.channel.send_command(fixed_command, fixed_arguments)
+            self.channel.send_command(translated_command, fixed_arguments)
             is_sending = False
             is_failure, response = self.channel.get_response()
         except GtpChannelError, e:
