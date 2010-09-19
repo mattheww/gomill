@@ -513,10 +513,12 @@ class Gtp_controller(object):
         fixed_arguments = map(fix_argument, arguments)
         translated_command = self.gtp_translations.get(
             fixed_command, fixed_command)
+        is_first_command = self.is_first_command
+        self.is_first_command = False
 
         def format_command():
             desc = "%s" % (" ".join([translated_command] + fixed_arguments))
-            if self.is_first_command:
+            if is_first_command:
                 return "first command (%s)" % desc
             else:
                 return "'%s'" % desc
@@ -541,7 +543,6 @@ class Gtp_controller(object):
                 msg = "%s reading response to %s from %s:\n%s"
             e.args = (msg % (error_label, format_command(), self.name, e),)
             raise
-        self.is_first_command = False
         if is_failure:
             raise BadGtpResponse(
                 "failure response from %s to %s:\n%s" %
