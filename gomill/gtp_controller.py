@@ -39,7 +39,18 @@ class BadGtpResponse(StandardError):
     Some higher-level functions use this exception to indicate a GTP success
     ('=') response which they couldn't interpret.
 
+    Additional attributes:
+      gtp_command       -- string (or None)
+      gtp_arguments     -- sequence of strings (or None)
+      gtp_error_message -- string (or None)
+
     """
+    def __init__(self, args,
+                 gtp_command=None, gtp_arguments=None, gtp_error_message=None):
+        StandardError.__init__(self, args)
+        self.gtp_command = gtp_command
+        self.gtp_arguments = gtp_arguments
+        self.gtp_error_message = gtp_error_message
 
 
 _gtp_word_characters_re = re.compile(r"\A[\x21-\x7e\x80-\xff]+\Z")
@@ -480,8 +491,8 @@ class Gtp_controller(object):
         lines except perhaps the first. There is no leading whitespace on the
         first line. (The result text doesn't include the leading =[id] bit.)
 
-        If the engine returns a failure response, raises BadGtpResponse with the
-        error message as exception parameter.
+        If the engine returns a failure response, raises BadGtpResponse (use the
+        gtp_error_message attribute to retrieve the text of the response).
 
         This will wait indefinitely for the engine to produce the response.
 
@@ -546,7 +557,9 @@ class Gtp_controller(object):
         if is_failure:
             raise BadGtpResponse(
                 "failure response from %s to %s:\n%s" %
-                (format_command(), self.name, response))
+                (format_command(), self.name, response),
+                gtp_command=translated_command, gtp_arguments=fixed_arguments,
+                gtp_error_message=response)
         return response
 
     def known_command(self, command):
