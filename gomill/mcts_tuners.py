@@ -174,7 +174,7 @@ class Tree(object):
     def retrieve_best_parameters(self):
         """Find the parameters with the most promising simulation results.
 
-        Returns optimiser_parameters
+        Returns a pair (optimiser_parameters, path description)
 
         This walks the tree from the root, at each point choosing the node with
         most wins, and returns the parameters corresponding to the leaf node.
@@ -182,7 +182,7 @@ class Tree(object):
         """
         simulation = Greedy_simulation(self)
         simulation.walk()
-        return simulation.get_parameters()
+        return simulation.get_parameters(), simulation.describe_steps()
 
     def get_test_parameters(self):
         """Return a 'typical' optimiser_parameters."""
@@ -623,8 +623,9 @@ class Mcts_tuner(Competition):
             print >>out, "Last simulation: %s" % (
                 self.last_simulation.describe())
         self.tree.summarise(out, self.summary_spec)
-        print >>out, "Best parameter vector: %s" % (
-            self.format_parameters(self.tree.retrieve_best_parameters()))
+        params, path_description = self.tree.retrieve_best_parameters()
+        print >>out, "Best parameter vector: %s [%s]" % (
+            self.format_parameters(params), path_description)
 
     def write_short_report(self, out):
         self.write_static_description(out)
