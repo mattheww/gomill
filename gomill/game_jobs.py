@@ -48,6 +48,19 @@ class Player(object):
         self.cwd = None
         self.environ = None
 
+    def make_environ(self):
+        """Return environment variables to use with the player's subprocess.
+
+        Returns a dict suitable for use with a Subprocess_channel, or None.
+
+        """
+        if self.environ is not None:
+            environ = os.environ.copy()
+            environ.update(self.environ)
+        else:
+            environ = None
+        return environ
+
 class Game_job_result(object):
     """Information returned after a worker process plays a game.
 
@@ -142,14 +155,9 @@ class Game_job(object):
             self._files_to_close.append(stderr)
         else:
             stderr = None
-        if player.environ is not None:
-            environ = os.environ.copy()
-            environ.update(player.environ)
-        else:
-            environ = None
         game.set_player_subprocess(
             colour, player.cmd_args,
-            env=environ, cwd=player.cwd, stderr=stderr)
+            env=player.make_environ(), cwd=player.cwd, stderr=stderr)
         controller = game.get_controller(colour)
         controller.set_gtp_translations(player.gtp_translations)
         if gtp_log_file is not None:
@@ -291,16 +299,11 @@ def check_player(player_check, discard_stderr=False):
         stderr = open("/dev/null", "w")
     else:
         stderr = None
-    if player.environ is not None:
-        environ = os.environ.copy()
-        environ.update(player.environ)
-    else:
-        environ = None
     try:
         try:
             channel = gtp_controller.Subprocess_gtp_channel(
                 player.cmd_args,
-                env=environ, cwd=player.cwd, stderr=stderr)
+                env=player.make_environ(), cwd=player.cwd, stderr=stderr)
         except GtpChannelError, e:
             raise GtpChannelError(
                 "error starting subprocess for %s:\n%s" % (player.code, e))
