@@ -430,7 +430,7 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             raise GtpTransportError("\n".join(errors))
 
 
-class Gtp_controller_protocol(object):
+class Gtp_controller(object):
     """Implementation of the controller side of the GTP protocol.
 
     This communicates with a single engine. It's a higher level interface than

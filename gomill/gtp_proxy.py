@@ -21,7 +21,7 @@ class Gtp_proxy(object):
 
     Public attributes:
       engine     -- Gtp_engine_protocol
-      controller -- Gtp_controller_protocol
+      controller -- Gtp_controller
 
     The 'engine' attribute is the proxy engine. Initially it supports all the
     commands reported by the back end's 'list_commands'. You can add commands to
@@ -82,9 +82,9 @@ class Gtp_proxy(object):
             })
 
     def set_back_end_controller(self, controller):
-        """Specify the back end using a Gtp_controller_protocol.
+        """Specify the back end using a Gtp_controller.
 
-        controller -- Gtp_controller_protocol
+        controller -- Gtp_controller
 
         Raises BackEndError if it can't communicate with the back end.
 
@@ -117,7 +117,7 @@ class Gtp_proxy(object):
         except GtpTransportError, e:
             # Probably means exec failure
             raise BackEndError("can't launch back end command\n%s" % e)
-        controller = gtp_controller.Gtp_controller_protocol(channel, "back end")
+        controller = gtp_controller.Gtp_controller(channel, "back end")
         self.set_back_end_controller(controller)
 
     def close(self):

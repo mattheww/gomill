@@ -23,8 +23,7 @@ class Player(object):
       cwd                  -- working directory to change to (default None)
       environ              -- maplike of environment variables (default None)
 
-    See gtp_controllers.Gtp_controller_protocol for an explanation of
-    gtp_translations.
+    See gtp_controllers.Gtp_controller for an explanation of gtp_translations.
 
     The startup commands will be executed before starting the game. Their
     responses will be ignored, but the game will be aborted if any startup
@@ -305,8 +304,7 @@ def check_player(player_check, discard_stderr=False):
         except GtpTransportError, e:
             raise GtpTransportError(
                 "error starting subprocess for %s:\n%s" % (player.code, e))
-        controller = gtp_controller.Gtp_controller_protocol(
-            channel, player.code)
+        controller = gtp_controller.Gtp_controller(channel, player.code)
         controller.set_gtp_translations(player.gtp_translations)
         controller.check_protocol_version()
         controller.do_command("boardsize", str(player_check.board_size))

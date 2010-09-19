@@ -214,9 +214,9 @@ class Game(object):
     ## Channel methods
 
     def set_player_controller(self, colour, controller):
-        """Specify a player using a Gtp_controller_protocol.
+        """Specify a player using a Gtp_controller.
 
-        controller -- Gtp_controller_protocol
+        controller -- Gtp_controller
 
         """
         self.controllers[colour] = controller
@@ -239,12 +239,12 @@ class Game(object):
             raise GtpTransportError(
                 "error starting subprocess for player %s:\n%s" %
                 (self.players[colour], e))
-        controller = gtp_controller.Gtp_controller_protocol(
+        controller = gtp_controller.Gtp_controller(
             channel, "player %s" % self.players[colour])
         self.set_player_controller(colour, controller)
 
     def get_controller(self, colour):
-        """Return the underlying Gtp_controller_protocol for the specified engine."""
+        """Return the underlying Gtp_controller for the specified engine."""
         return self.controllers[colour]
 
     def send_command(self, colour, command, *arguments):

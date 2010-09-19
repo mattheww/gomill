@@ -12,7 +12,7 @@ def test_gmp():
     gnugo = gtp_controller.Subprocess_gtp_channel(
         ["gnugo"], stderr=devnull)
     devnull.close()
-    controller = gtp_controller.Gtp_controller_protocol(gnugo, "gnugo")
+    controller = gtp_controller.Gtp_controller(gnugo, "gnugo")
     try:
         controller.check_protocol_version()
     except gtp_controller.GtpProtocolError, e:
@@ -28,7 +28,7 @@ def test_misc():
         "./player -m kiai.simple_montecarlo_player --diag=t".split(),
         stderr=devnull.fileno())
     devnull.close()
-    controller1 = gtp_controller.Gtp_controller_protocol(c1, "first")
+    controller1 = gtp_controller.Gtp_controller(c1, "first")
 
     #controller1.channel.enable_logging(sys.stdout, ' first: ')
 
@@ -39,7 +39,7 @@ def test_misc():
     #c2 = gtp_controller.Subprocess_gtp_channel(
     #    "gnugo --mode=gtp --boardsize=9".split())
 
-    controller2 = gtp_controller.Gtp_controller_protocol(c2, "second")
+    controller2 = gtp_controller.Gtp_controller(c2, "second")
     #controller2.channel.enable_logging(sys.stdout, ' second: ')
 
 
