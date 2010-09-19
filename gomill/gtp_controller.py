@@ -742,8 +742,9 @@ def describe_engine(controller, default="unknown"):
     May propagate GtpChannelError.
 
     """
-    def shorten_version(name, version):
-        """Clean up redundant version strings."""
+    def fix_version(name, version):
+        """Clean up version strings."""
+        version = sanitise_utf8(version)
         if version.lower().startswith(name.lower()):
             version = version[len(name):].lstrip()
         # For MoGo's stupidly long version string
@@ -753,11 +754,11 @@ def describe_engine(controller, default="unknown"):
         return version
 
     try:
-        name = controller.do_command("name")
+        name = sanitise_utf8(controller.do_command("name"))
     except BadGtpResponse:
         name = default
     try:
-        version = shorten_version(name, controller.do_command("version"))
+        version = fix_version(name, controller.do_command("version"))
         if version:
             short_s = name + ":" + version[:32].rstrip()
             long_s = name + ":" + version
@@ -768,7 +769,8 @@ def describe_engine(controller, default="unknown"):
 
     if controller.known_command("gomill-describe_engine"):
         try:
-            long_s = controller.do_command("gomill-describe_engine")
+            long_s = sanitise_utf8(
+                controller.do_command("gomill-describe_engine"))
         except BadGtpResponse:
             pass
     return short_s, long_s
