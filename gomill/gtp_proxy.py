@@ -7,12 +7,21 @@ on to another engine (the _back end_).
 
 from gomill import gtp_controller
 from gomill import gtp_engine
-from gomill.gtp_controller import BadGtpResponse, GtpChannelError
+from gomill.gtp_controller import (
+    BadGtpResponse, GtpChannelError, GtpChannelClosed)
 from gomill.gtp_engine import GtpError, GtpQuit, GtpFatalError
 
 
 class BackEndError(StandardError):
-    """Difficulty communicating with the back end."""
+    """Difficulty communicating with the back end.
+
+    Public attributes:
+      cause -- Exception instance of an underlying exception (or None)
+
+    """
+    def __init__(self, args, cause=None):
+        StandardError.__init__(self, args)
+        self.cause = cause
 
 class Gtp_proxy(object):
     """Manager for a GTP proxy engine.
@@ -93,7 +102,7 @@ class Gtp_proxy(object):
         try:
             response = controller.do_command('list_commands')
         except (GtpChannelError, BadGtpResponse), e:
-            raise BackEndError(str(e))
+            raise BackEndError(str(e), cause=e)
         self.back_end_commands = [s for s in
                                   (t.strip() for t in response.split("\n"))
                                   if s]
@@ -185,7 +194,7 @@ class Gtp_proxy(object):
         try:
             return self.controller.do_command(command, *args)
         except GtpChannelError, e:
-            raise BackEndError(str(e))
+            raise BackEndError(str(e), cause=e)
 
     def handle_command(self, command, args):
         """Run a command on the back end, from inside a GTP handler.
@@ -220,7 +229,7 @@ class Gtp_proxy(object):
         try:
             return self.controller.known_command(command)
         except GtpChannelError, e:
-            raise BackEndError(str(e))
+            raise BackEndError(str(e), cause=e)
 
     def expect_back_end_exit(self):
         """Mark that the back end is expected to have exited.
@@ -232,7 +241,16 @@ class Gtp_proxy(object):
         self.controller.channel_is_bad = True
 
     def handle_quit(self, args):
-        result = self.handle_command("quit", [])
+        # Ignores GtpChannelClosed
+        try:
+            result = self.pass_command("quit", [])
+        except BadGtpResponse, e:
+            raise GtpError(str(e))
+        except BackEndError, e:
+            if isinstance(e.cause, GtpChannelClosed):
+                result = ""
+            else:
+                raise GtpFatalError(str(e))
         self.expect_back_end_exit()
         raise GtpQuit(result)
 
