@@ -75,6 +75,8 @@ def coords_from_vertex(vertex, board_size):
 def sanitise_utf8(s):
     """Ensure an 8-bit string is utf-8.
 
+    s -- 8-bit string (or None)
+
     Returns the sanitised string. If the string was already valid utf-8, returns
     the same object.
 
@@ -84,6 +86,8 @@ def sanitise_utf8(s):
     probably wouldn't be helpful).
 
     """
+    if s is None:
+        return None
     try:
         u = s.decode("utf-8")
     except UnicodeDecodeError:

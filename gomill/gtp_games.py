@@ -410,6 +410,7 @@ class Game(object):
                 self.players[colour], move_s)
             return
         comment = self.maybe_send_command(colour, "gomill-explain_last_move")
+        comment = sanitise_utf8(comment)
         if comment == "":
             comment = None
         if move is not None:
