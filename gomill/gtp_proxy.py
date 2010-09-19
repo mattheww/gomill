@@ -156,6 +156,9 @@ class Gtp_proxy(object):
         meaningful (eg, for subprocess channels) this waits for the back end to
         exit.
 
+        Propagates ControllerDisconnected if a pipe connected to stdout goes
+        away.
+
         """
         gtp_engine.run_interactive_gtp_session(self.engine)
         self.close()
