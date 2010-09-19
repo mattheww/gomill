@@ -8,7 +8,7 @@ def handle_name(args):
     return "Gomill-dummy"
 
 def handle_version(args):
-    return ""
+    return "321.3"
 
 def handle_help(args):
     return ("This is a GTP interface.\n"
