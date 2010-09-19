@@ -623,15 +623,14 @@ class Mcts_tuner(Competition):
             print >>out, "%d/%d games played" % (
                 games_played, self.number_of_games)
         print >>out
-
-        self.tree.summarise(out, self.summary_spec)
         best_simulation = self.tree.retrieve_best_parameter_simulation()
         print >>out, "Best parameter vector: %s" % best_simulation.describe()
+        print >>out
+        self.tree.summarise(out, self.summary_spec)
 
     def write_screen_report(self, out):
         self._write_main_report(out)
         if self.outstanding_simulations:
-            print >>out
             print >>out, "In progress:"
             to_show = sorted(self.outstanding_simulations.iteritems())\
                       [:self.number_of_running_simulations_to_show]
