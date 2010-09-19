@@ -361,14 +361,14 @@ class Simulation(object):
         return " ".join(map(self.tree.describe_choice, self.choice_path))
 
     def describe(self):
-        """Return a text description of the simulation."""
+        """Return a one-line-ish text description of the simulation."""
         return "%s [%s] %s" % (
             self.tree.format_parameters(self.get_parameters()),
             self.describe_steps(),
             ("lost", "won")[self.candidate_won])
 
     def describe_briefly(self):
-        """Return a (less-than-) one line descrition of the simulation."""
+        """Return a shorter description of the simulation."""
         return "%s %s" % (self.tree.format_parameters(self.get_parameters()),
                           ("lost", "won")[self.candidate_won])
 
@@ -585,7 +585,7 @@ class Mcts_tuner(Competition):
         if (self.log_tree_to_history_period is not None and
             self.scheduler.fixed % self.log_tree_to_history_period == 0):
             self.log_history(self.tree.describe())
-        return "%s %s" % (simulation.describe_briefly(),
+        return "%s %s" % (simulation.describe(),
                           response.game_result.sgf_result)
 
     def process_game_error(self, job, previous_error_count):
