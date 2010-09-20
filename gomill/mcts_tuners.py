@@ -499,7 +499,7 @@ class Mcts_tuner(Competition):
         try:
             return self.format_parameters_fn(optimiser_parameters)
         except StandardError:
-            return ("[error from user-defined parameter formatter]\n"
+            return ("[error from format_parameters()]\n"
                     "[optimiser parameters %s]" % optimiser_parameters)
 
     def make_candidate(self, player_code, optimiser_parameters):
@@ -513,13 +513,13 @@ class Mcts_tuner(Competition):
                 self.translate_parameters_fn(optimiser_parameters)
         except StandardError:
             raise CompetitionError(
-                "error from user-defined parameter converter\n%s" %
-                compact_tracebacks.format_traceback(skip=1))
+                "error from convert_optimiser_parameters_to_engine_parameters"
+                "\n%s" % compact_tracebacks.format_traceback(skip=1))
         try:
             candidate_config = self.candidate_maker_fn(engine_parameters)
         except StandardError:
             raise CompetitionError(
-                "error from user-defined candidate function\n%s" %
+                "error from make_candidate()\n%s" %
                 compact_tracebacks.format_traceback(skip=1))
         if not isinstance(candidate_config, Player_config):
             raise CompetitionError(
@@ -530,8 +530,9 @@ class Mcts_tuner(Competition):
                 player_code, candidate_config)
         except StandardError, e:
             raise CompetitionError(
-                "error making candidate player\nparameters: %s\nerror: %s" %
-                (self.format_parameters(optimiser_parameters), e))
+                "bad player spec from make_candidate():\n"
+                "%s\nparameters were: %s" %
+                (e, self.format_parameters(optimiser_parameters)))
         return candidate
 
     def get_player_checks(self):
