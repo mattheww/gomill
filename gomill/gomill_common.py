@@ -45,7 +45,7 @@ def coords_from_vertex(vertex, board_size):
 
     Returns a pair of coordinates (row, col) in range(0, board_size)
 
-    Raises ValueError with an appropriate message if 'arg' isn't a valid GTP
+    Raises ValueError with an appropriate message if 'vertex' isn't a valid GTP
     vertex specification for a board of size 'board_size'.
 
     """
