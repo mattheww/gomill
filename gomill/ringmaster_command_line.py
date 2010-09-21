@@ -80,7 +80,7 @@ def run(argv, ringmaster_class):
                       help="be silent except for warnings and errors")
     parser.add_option("--log-gtp", action="store_true",
                       help="write GTP logs")
-    (options, args) = parser.parse_args()
+    (options, args) = parser.parse_args(argv)
     if len(args) == 0:
         parser.error("no control file specified")
     if len(args) > 2:
@@ -117,7 +117,7 @@ def run(argv, ringmaster_class):
     sys.exit(exit_status)
 
 def main():
-    run(sys.argv, Ringmaster)
+    run(sys.argv[1:], Ringmaster)
 
 if __name__ == "__main__":
     main()
