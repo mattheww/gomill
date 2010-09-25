@@ -23,6 +23,11 @@ def get_test_modules():
     return result
 
 def main():
+    try:
+        # This gives 'catchbreak' behaviour
+        unittest2.signals.installHandler()
+    except Exception:
+        pass
     suite = unittest2.TestSuite()
     for mdl in get_test_modules():
         mdl.make_tests(suite)
