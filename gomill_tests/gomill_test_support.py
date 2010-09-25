@@ -6,11 +6,10 @@ from gomill.gomill_common import *
 from gomill import ascii_boards
 from gomill import boards
 
-def check_boards_equal(b1, b2):
-    """Check that two boards are equal.
+def compare_boards(b1, b2):
+    """Check whether two boards have the same position.
 
-    Does nothing if they are equal; raises ValueError with a message if they
-    are not.
+    returns a pair (position_is_the_same, message)
 
     """
     if b1.side != b2.side:
@@ -20,14 +19,14 @@ def check_boards_equal(b1, b2):
         if b1.get(row, col) != b2.get(row, col):
             differences.append((row, col))
     if not differences:
-        return
+        return True, None
     msg = "boards differ at %s" % " ".join(map(format_vertex, differences))
     try:
         msg += "\n%s\n%s" % (
             ascii_boards.render_board(b1), ascii_boards.render_board(b2))
     except Exception:
         pass
-    raise ValueError(msg)
+    return False, msg
 
 class Gomill_testcase_mixin(object):
     """TestCase mixin adding support for gomill-specific types.
@@ -54,16 +53,14 @@ class Gomill_testcase_mixin(object):
                                 unittest2.util.safe_str(msg))
 
     def assertBoardEqual(self, b1, b2, msg=None):
-        try:
-            check_boards_equal(b1, b2)
-        except ValueError, e:
-            self.fail(self._format_message(msg, str(e)+"\n"))
+        are_equal, desc = compare_boards(b1, b2)
+        if not are_equal:
+            self.fail(self._format_message(msg, desc+"\n"))
 
     def assertNotEqual(self, first, second, msg=None):
         if isinstance(first, boards.Board) and isinstance(second, boards.Board):
-            try:
-                check_boards_equal(first, second)
-            except ValueError:
+            are_equal, _ = compare_boards(first, second)
+            if not are_equal:
                 return
             msg = self._format_message(msg, 'boards have the same position')
             raise self.failureException(msg)
