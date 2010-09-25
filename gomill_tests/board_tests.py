@@ -48,8 +48,7 @@ def test_copy(tc):
     tc.assertEqual(b1, b2)
     b2.play(5, 5, 'b')
     b2.play(2, 1, 'b')
-    with tc.assertRaises(ValueError):
-        gomill_test_support.check_boards_equal(b1, b2)
+    tc.assertNotEqual(b1, b2)
     b1.play(5, 5, 'b')
     b1.play(2, 1, 'b')
     tc.assertEqual(b1, b2)

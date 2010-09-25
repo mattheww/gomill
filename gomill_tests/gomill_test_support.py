@@ -30,7 +30,13 @@ def check_boards_equal(b1, b2):
     raise ValueError(msg)
 
 class Gomill_testcase_mixin(object):
-    """TestCase mixin adding support for gomill-specific types."""
+    """TestCase mixin adding support for gomill-specific types.
+
+    This adds:
+     assertBoardEqual
+     assertEqual and assertNotEqual for Boards
+
+    """
     def init_gomill_testcase_mixin(self):
         self.addTypeEqualityFunc(boards.Board, self.assertBoardEqual)
 
@@ -53,8 +59,18 @@ class Gomill_testcase_mixin(object):
         except ValueError, e:
             self.fail(self._format_message(msg, str(e)+"\n"))
 
+    def assertNotEqual(self, first, second, msg=None):
+        if isinstance(first, boards.Board) and isinstance(second, boards.Board):
+            try:
+                check_boards_equal(first, second)
+            except ValueError:
+                return
+            msg = self._format_message(msg, 'boards have the same position')
+            raise self.failureException(msg)
+        super(Gomill_testcase_mixin, self).assertNotEqual(first, second, msg)
+
 class Gomill_SimpleTestCase(
-    test_framework.SimpleTestCase, Gomill_testcase_mixin):
+    Gomill_testcase_mixin, test_framework.SimpleTestCase):
     """SimpleTestCase with the Gomill mixin."""
     def __init__(self, *args, **kwargs):
         test_framework.SimpleTestCase.__init__(self, *args, **kwargs)
