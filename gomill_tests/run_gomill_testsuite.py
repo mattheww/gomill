@@ -1,5 +1,6 @@
 import sys
-import unittest2
+
+from test_framework import unittest2
 
 test_modules = [
     'board_tests',

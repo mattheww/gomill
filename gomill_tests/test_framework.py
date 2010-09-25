@@ -1,4 +1,9 @@
-import unittest2
+import sys
+
+if sys.version_info >= (2, 7):
+    import unittest as unittest2
+else:
+    import unittest2
 
 class FrameworkTestCase(unittest2.TestCase):
     """unittest2-style TestCase implementation with a few tweaks."""
