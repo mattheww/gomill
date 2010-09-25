@@ -26,7 +26,7 @@ def main():
     suite = unittest2.TestSuite()
     for mdl in get_test_modules():
         mdl.make_tests(suite)
-    runner = unittest2.TextTestRunner()
+    runner = unittest2.TextTestRunner(failfast=False, buffer=True)
     runner.run(suite)
 
 if __name__ == "__main__":
