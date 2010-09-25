@@ -56,6 +56,9 @@ class Gomill_testcase_mixin(object):
 class Gomill_SimpleTestCase(
     test_framework.SimpleTestCase, Gomill_testcase_mixin):
     """SimpleTestCase with the Gomill mixin."""
+    def __init__(self, *args, **kwargs):
+        test_framework.SimpleTestCase.__init__(self, *args, **kwargs)
+        self.init_gomill_testcase_mixin()
 
 
 def make_simple_tests(source, prefix="test_"):
@@ -66,8 +69,5 @@ def make_simple_tests(source, prefix="test_"):
     The test functions can use the Gomill_testcase_mixin enhancements.
 
     """
-    result = test_framework.make_simple_tests(
+    return test_framework.make_simple_tests(
         source, prefix, testcase_class=Gomill_SimpleTestCase)
-    for tc in result:
-        tc.init_gomill_testcase_mixin()
-    return result
