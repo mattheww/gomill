@@ -45,7 +45,7 @@ def run_testsuite(failfast, buffer):
 
 def run(argv):
     parser = OptionParser()
-    parser.add_option("--failfast", action="store_true",
+    parser.add_option("-f", "--failfast", action="store_true",
                       help="stop after first test")
     parser.add_option("--nobuffer", action="store_true",
                       help="show stderr/stdout for successful tests")
