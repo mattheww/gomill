@@ -77,11 +77,12 @@ def _function_sort_key(fn):
     except AttributeError:
         return str(fn)
 
-def make_simple_tests(source, prefix="test_"):
+def make_simple_tests(source, prefix="test_", testcase_class=SimpleTestCase):
     """Make test cases from a module's test_xxx functions.
 
-      source -- dict (usually a module's globals()).
-      prefix -- string (default "test_")
+      source         -- dict (usually a module's globals()).
+      prefix         -- string (default "test_")
+      testcase_class -- SimpleTestCase subclass to use
 
     Returns a list of TestCase objects.
 
@@ -95,4 +96,4 @@ def make_simple_tests(source, prefix="test_"):
     functions = [value for name, value in source.iteritems()
                  if name.startswith(prefix) and callable(value)]
     functions.sort(key=_function_sort_key)
-    return [SimpleTestCase(fn) for fn in functions]
+    return [testcase_class(fn) for fn in functions]

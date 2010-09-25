@@ -1,12 +1,11 @@
 from __future__ import with_statement
 
 from gomill_tests import gomill_test_support
-from gomill_tests import test_framework
 
 from gomill import boards
 
 def make_tests(suite):
-    suite.addTests(test_framework.make_simple_tests(globals()))
+    suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 def test_attributes(tc):
     b = boards.Board(5)
@@ -46,8 +45,11 @@ def test_copy(tc):
     b1.play(2, 3, 'b')
     b1.play(3, 4, 'w')
     b2 = b1.copy()
-    gomill_test_support.check_boards_equal(b1, b2)
+    tc.assertEqual(b1, b2)
     b2.play(5, 5, 'b')
     b2.play(2, 1, 'b')
     with tc.assertRaises(ValueError):
         gomill_test_support.check_boards_equal(b1, b2)
+    b1.play(5, 5, 'b')
+    b1.play(2, 1, 'b')
+    tc.assertEqual(b1, b2)
