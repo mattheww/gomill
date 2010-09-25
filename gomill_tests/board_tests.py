@@ -2,12 +2,13 @@ from __future__ import with_statement
 
 from gomill_tests import gomill_test_support
 from gomill_tests import test_framework
+from gomill_tests import board_test_data
 
 from gomill import boards
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
-    for code, moves, diagram, score in play_tests:
+    for code, moves, diagram, score in board_test_data.play_tests:
         suite.addTest(Play_test_TestCase(code, moves, diagram, score))
 
 def test_attributes(tc):
@@ -56,37 +57,6 @@ def test_copy(tc):
     b1.play(2, 1, 'b')
     tc.assertEqual(b1, b2)
 
-
-play_tests = [
-
-('multiple', [
-('w', 3, 3),
-('b', 2, 3),
-('w', 4, 2),
-('b', 3, 2),
-('w', 4, 4),
-('b', 3, 4),
-('b', 4, 1),
-('b', 4, 5),
-('b', 5, 2),
-('b', 5, 4),
-('b', 6, 3),
-('w', 5, 3),
-('b', 4, 3),
-], """\
-9  .  .  .  .  .  .  .  .  .
-8  .  .  .  .  .  .  .  .  .
-7  .  .  .  #  .  .  .  .  .
-6  .  .  #  .  #  .  .  .  .
-5  .  #  .  #  .  #  .  .  .
-4  .  .  #  .  #  .  .  .  .
-3  .  .  .  #  .  .  .  .  .
-2  .  .  .  .  .  .  .  .  .
-1  .  .  .  .  .  .  .  .  .
-   A  B  C  D  E  F  G  H  J
-""", 83),
-
-]
 
 class Play_test_TestCase(gomill_test_support.Gomill_testcase_mixin,
                          test_framework.FrameworkTestCase):
