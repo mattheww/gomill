@@ -192,7 +192,7 @@ class Board(object):
             self.board[row][col] = 'w'
         for (row, col) in empty_points:
             self.board[row][col] = None
-        captured = self._find_captured_groups()
+        captured = self._find_surrounded_groups()
         for group in captured:
             for row, col in group.points:
                 self.board[row][col] = None
