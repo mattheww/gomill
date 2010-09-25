@@ -1,8 +1,6 @@
 play_tests = [
 
 # code, list of moves to play, board representation, simple ko point
-# FIXME: Add score again
-
 
 ('blank', [
 ], """\
@@ -16,7 +14,7 @@ play_tests = [
 2  .  .  .  .  .  .  .  .  .
 1  .  .  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, 0),
 
 ('onestone', [
 ('b', 1, 1),
@@ -31,7 +29,7 @@ play_tests = [
 2  .  #  .  .  .  .  .  .  .
 1  .  .  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, 81),
 
 ('twostone', [
 ('b', 1, 1),
@@ -47,7 +45,7 @@ play_tests = [
 2  .  #  o  .  .  .  .  .  .
 1  .  .  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, 0),
 
 ('join', [
 ('b', 1, 1),
@@ -63,7 +61,7 @@ play_tests = [
 2  .  #  #  .  .  .  .  .  .
 1  .  .  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, 81),
 
 ('join2', [
 ('b', 1, 1),
@@ -81,7 +79,7 @@ play_tests = [
 2  .  #  #  .  .  .  .  .  .
 1  .  .  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, 81),
 
 ('join3', [
 ('b', 1, 1),
@@ -100,7 +98,7 @@ play_tests = [
 2  .  #  #  #  #  #  .  .  .
 1  .  .  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, 81),
 
 ('ring', [
 ('w', 5, 4),
@@ -122,7 +120,7 @@ play_tests = [
 2  .  .  .  .  .  .  .  .  .
 1  .  .  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, -81),
 
 ('many-groups-1-capture', [
 ('b', 2, 2),
@@ -162,7 +160,7 @@ play_tests = [
 2  .  .  .  .  .  .  o  o  o
 1  .  .  .  .  .  .  .  #  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, -8),
 
 ('corner-bl', [
 ('b', 0, 0),
@@ -179,7 +177,7 @@ play_tests = [
 2  o  .  .  .  .  .  .  .  .
 1  .  o  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, -81),
 
 ('corner-all', [
 ('b', 0, 0),
@@ -209,7 +207,7 @@ play_tests = [
 2  o  .  .  .  .  .  .  .  o
 1  .  o  .  .  .  .  .  o  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, -81),
 
 ('multiple', [
 ('w', 3, 3),
@@ -237,7 +235,7 @@ play_tests = [
 2  .  .  .  .  .  .  .  .  .
 1  .  .  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, 81),
 
 ('large', [
 ('w', 1, 3),
@@ -271,7 +269,7 @@ play_tests = [
 2  .  .  .  o  #  #  o  .  .
 1  .  .  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, 16),
 
 ('pre-recapture', [
 ('w', 0, 0),
@@ -306,7 +304,7 @@ play_tests = [
 2  #  o  o  #  #  .  .  .  .
 1  o  o  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, 6),
 
 ('recapture', [
 ('w', 0, 0),
@@ -342,7 +340,7 @@ play_tests = [
 2  .  o  o  #  #  .  .  .  .
 1  o  o  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, -6),
 
 ('self-capture-1', [
 ('b', 3, 3),
@@ -361,7 +359,7 @@ play_tests = [
 2  .  .  .  .  .  .  .  .  .
 1  .  .  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, 81),
 
 ('self-capture-2', [
 ('b', 3, 3),
@@ -383,7 +381,7 @@ play_tests = [
 2  .  .  .  .  .  .  .  .  .
 1  .  .  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, 81),
 
 ('self-capture-3', [
 ('b', 3, 3),
@@ -408,7 +406,7 @@ play_tests = [
 2  .  .  .  .  .  .  .  .  .
 1  .  .  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, 81),
 
 ('self-capture-many', [
 ('b', 1, 4),
@@ -443,7 +441,7 @@ play_tests = [
 2  .  .  .  .  #  .  .  .  .
 1  .  .  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", None),
+""", None, 81),
 
 ('ko-corner', [
 ('b', 0, 0),
@@ -462,7 +460,7 @@ play_tests = [
 2  o  #  .  .  .  .  .  .  .
 1  .  o  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J
-""", 'A1'),
+""", 'A1', -1),
 
 ]
 

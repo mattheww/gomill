@@ -9,10 +9,8 @@ from gomill import boards
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
-    for code, moves, diagram, ko_point in board_test_data.play_tests:
-        # FIXME
-        score = None
-        suite.addTest(Play_test_TestCase(code, moves, diagram, ko_point, score))
+    for t in board_test_data.play_tests:
+        suite.addTest(Play_test_TestCase(*t))
 
 def test_attributes(tc):
     b = boards.Board(5)
@@ -85,7 +83,8 @@ class Play_test_TestCase(gomill_test_support.Gomill_testcase_mixin,
         else:
             ko_vertex = format_vertex(ko_point)
         self.assertEqual(ko_vertex, self.ko_vertex, "wrong ko point")
-        #self.assertEqual(b.area_score(), self.score, "wrong score")
+        print self.code, b.area_score()
+        self.assertEqual(b.area_score(), self.score, "wrong score")
 
     def id(self):
         return self.name
