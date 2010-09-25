@@ -34,11 +34,24 @@ class Gomill_testcase_mixin(object):
     def init_gomill_testcase_mixin(self):
         self.addTypeEqualityFunc(boards.Board, self.assertBoardEqual)
 
+    def _format_message(self, msg, standardMsg):
+        # This is the same as _formatMessage from unittest2; copying it
+        # because it's not part of the public API.
+        if not self.longMessage:
+            return msg or standardMsg
+        if msg is None:
+            return standardMsg
+        try:
+            return '%s : %s' % (standardMsg, msg)
+        except UnicodeDecodeError:
+            return '%s : %s' % (unittest2.util.safe_str(standardMsg),
+                                unittest2.util.safe_str(msg))
+
     def assertBoardEqual(self, b1, b2, msg=None):
         try:
             check_boards_equal(b1, b2)
         except ValueError, e:
-            self.fail(self._formatMessage(msg, str(e)+"\n"))
+            self.fail(self._format_message(msg, str(e)+"\n"))
 
 class Gomill_SimpleTestCase(
     test_framework.SimpleTestCase, Gomill_testcase_mixin):
