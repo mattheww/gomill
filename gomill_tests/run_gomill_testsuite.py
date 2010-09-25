@@ -2,7 +2,7 @@
 
 import sys
 
-from test_framework import unittest2
+from gomill_tests.test_framework import unittest2
 
 test_modules = [
     'board_tests',
