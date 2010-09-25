@@ -9,6 +9,7 @@ test_modules = [
     'gomill_common_tests',
     'board_tests',
     'sgf_writer_tests',
+    'gtp_controller_tests',
     ]
 
 def get_test_modules():
