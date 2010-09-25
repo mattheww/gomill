@@ -63,12 +63,7 @@ def test_copy(tc):
 class Play_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
     """Check final position reached by playing a sequence of moves."""
     test_name = "play_test"
-
-    def set_parameters(self, moves, diagram, ko_vertex, score):
-        self.moves = moves
-        self.diagram = diagram
-        self.ko_vertex = ko_vertex
-        self.score = score
+    parameter_names = ('moves', 'diagram', 'ko_vertex', 'score')
 
     def runTest(self):
         b = boards.Board(9)
@@ -92,10 +87,7 @@ class Play_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
 class Score_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
     """Check score of a diagram."""
     test_name = "score_test"
-
-    def set_parameters(self, diagram, score):
-        self.diagram = diagram
-        self.score = score
+    parameter_names = ('diagram', 'score')
 
     def runTest(self):
         b = boards.Board(9)

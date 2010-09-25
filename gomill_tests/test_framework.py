@@ -78,8 +78,8 @@ class ParameterisedTestCase(FrameworkTestCase):
     """Parameterised testcase.
 
     Subclasses should define:
-      test_name      -- short string
-      set_parameters
+      test_name       -- short string
+      parameter_names -- list of identifiers
       runTest
 
     """
@@ -88,10 +88,8 @@ class ParameterisedTestCase(FrameworkTestCase):
         self.code = code
         self.name = "%s.%s:%s" % (self.__class__.__module__.split(".", 1)[-1],
                                   self.test_name, code)
-        self.set_parameters(*parameters)
-
-    def set_parameters(self, *parameters):
-        raise NotImplementedError
+        for name, value in zip(self.parameter_names, parameters):
+            setattr(self, name, value)
 
     def runTest(self):
         raise NotImplementedError
