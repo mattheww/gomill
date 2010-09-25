@@ -1,6 +1,14 @@
 import unittest2
 
 class SimpleTestCase(unittest2.TestCase):
+    """TestCase which runs a single function.
+
+    Instantiate with the test function, which takes a TestCase parameter, eg:
+        def test_xxx(tc):
+            tc.assertEqual(2+2, 4)
+
+    """
+
     longMessage = True
 
     def __init__(self, fn):
