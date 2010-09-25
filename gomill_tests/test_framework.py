@@ -1,3 +1,5 @@
+"""Generic (non-gomill-specific) test support code."""
+
 import sys
 
 if sys.version_info >= (2, 7):

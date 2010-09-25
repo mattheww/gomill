@@ -1,3 +1,5 @@
+"""Gomill-specific test support code."""
+
 from gomill.gomill_common import *
 from gomill import ascii_boards
 

@@ -1,3 +1,5 @@
+"""Construct and run the gomill testsuite."""
+
 import sys
 
 from test_framework import unittest2
