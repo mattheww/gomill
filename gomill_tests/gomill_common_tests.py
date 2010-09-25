@@ -13,3 +13,12 @@ def test_opponent_of(tc):
     tc.assertRaises(ValueError, oo, 'x')
     tc.assertRaises(ValueError, oo, None)
     tc.assertRaises(ValueError, oo, 'B')
+
+def test_sanitise_utf8(tc):
+    su = gomill_common.sanitise_utf8
+    tc.assertIsNone(su(None))
+    tc.assertEqual(su(""), "")
+    tc.assertEqual(su("hello world"), "hello world")
+    s = u"test \N{POUND SIGN}".encode("utf-8")
+    tc.assertIs(su(s), s)
+    tc.assertEqual(su(u"test \N{POUND SIGN}".encode("latin1")), "test ?")
