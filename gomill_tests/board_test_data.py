@@ -230,3 +230,21 @@ play_tests = [
 
 ]
 
+
+score_tests = [
+
+# code, board representation, score
+('busy', """\
+9  .  .  o  .  .  o  #  .  #
+8  .  o  o  o  o  o  #  .  #
+7  .  o  .  o  o  #  #  #  o
+6  o  .  o  #  o  #  o  o  o
+5  o  o  #  #  #  #  #  o  o
+4  .  o  o  #  .  o  #  o  .
+3  o  #  #  #  o  o  o  o  o
+2  .  o  o  #  #  #  o  o  .
+1  o  .  o  #  .  #  o  o  o
+   A  B  C  D  E  F  G  H  J
+""", -26)
+
+]

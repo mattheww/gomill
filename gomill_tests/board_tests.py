@@ -11,6 +11,8 @@ def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
     for t in board_test_data.play_tests:
         suite.addTest(Play_test_TestCase(*t))
+    for t in board_test_data.score_tests:
+        suite.addTest(Score_test_TestCase(*t))
 
 def test_attributes(tc):
     b = boards.Board(5)
@@ -88,6 +90,35 @@ class Play_test_TestCase(gomill_test_support.Gomill_testcase_mixin,
         else:
             ko_vertex = format_vertex(ko_point)
         self.assertEqual(ko_vertex, self.ko_vertex, "wrong ko point")
+        self.assertEqual(b.area_score(), self.score, "wrong score")
+
+    def id(self):
+        return self.name
+
+    def shortDescription(self):
+        return None
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return "<%s: %s>" % (self.__class__.__name__, self.name)
+
+
+class Score_test_TestCase(gomill_test_support.Gomill_testcase_mixin,
+                          test_framework.FrameworkTestCase):
+    """Check score of a diagram."""
+    def __init__(self, code, diagram, score):
+        test_framework.FrameworkTestCase.__init__(self)
+        self.code = code
+        self.name = (self.__class__.__module__.split(".", 1)[-1] + "." +
+                     "score_test:" + code)
+        self.diagram = diagram
+        self.score = score
+
+    def runTest(self):
+        b = boards.Board(9)
+        gomill_test_support.play_diagram(b, self.diagram)
         self.assertEqual(b.area_score(), self.score, "wrong score")
 
     def id(self):
