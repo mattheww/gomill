@@ -1,9 +1,9 @@
-from gomill_tests.test_framework import SimpleTestCase
+from gomill_tests import test_framework
 
 from gomill import boards
 
 def make_tests(suite):
-    suite.addTest(SimpleTestCase(test_basics))
+    suite.addTests(test_framework.make_simple_tests(globals()))
 
 def test_basics(tc):
     b = boards.Board(9)

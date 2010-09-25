@@ -1,11 +1,10 @@
-from gomill_tests.test_framework import SimpleTestCase
+from gomill_tests import test_framework
 
 from gomill import ascii_boards
 from gomill import boards
 
 def make_tests(suite):
-    suite.addTest(SimpleTestCase(test_9x9))
-    suite.addTest(SimpleTestCase(test_13x13))
+    suite.addTests(test_framework.make_simple_tests(globals()))
 
 _9x9_expected = """\
 9  .  .  .  .  .  .  .  .  .
