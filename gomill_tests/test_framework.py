@@ -48,7 +48,7 @@ class SimpleTestCase(FrameworkTestCase):
     """
 
     def __init__(self, fn):
-        unittest2.TestCase.__init__(self)
+        FrameworkTestCase.__init__(self)
         self.fn = fn
         try:
             self.name = fn.__module__.split(".", 1)[-1] + "." + fn.__name__
