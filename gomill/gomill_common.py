@@ -19,7 +19,7 @@ def opponent_of(colour):
     try:
         return _opponents[colour]
     except KeyError:
-        return ValueError
+        raise ValueError
 
 column_letters = "ABCDEFGHJKLMNOPQRSTUVWXZ"
 
