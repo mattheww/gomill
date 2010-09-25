@@ -1,3 +1,5 @@
+"""Tests for gomill_common.py."""
+
 from gomill_tests import gomill_test_support
 
 from gomill import gomill_common
