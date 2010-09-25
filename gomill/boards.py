@@ -162,8 +162,7 @@ class Board(object):
                 if len(to_capture) == 1 and len(to_capture[0].points) == 1:
                     self_capture = [group for group in surrounded
                                     if group.colour == colour]
-                    if (len(self_capture) == 1 and
-                        len(self_capture[0].points) == 1):
+                    if len(self_capture[0].points) == 1:
                         simple_ko_point = iter(to_capture[0].points).next()
             for group in to_capture:
                 for r, c in group.points:
