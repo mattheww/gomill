@@ -1,6 +1,6 @@
 play_tests = [
 
-# code, list of moves to play, board representation, simple ko point
+# code, list of moves to play, board representation, simple ko point, score
 
 ('blank', [
 ], """\
