@@ -20,6 +20,8 @@ def make_tests(suite):
         suite.addTest(Play_test_TestCase(*t))
     for t in board_test_data.score_tests:
         suite.addTest(Score_test_TestCase(*t))
+    for t in board_test_data.setup_tests:
+        suite.addTest(Setup_test_TestCase(*t))
 
 def test_attributes(tc):
     b = boards.Board(5)
@@ -81,13 +83,13 @@ _13x13_expected = """\
     A  B  C  D  E  F  G  H  J  K  L  M  N\
 """
 
-def test_ascii_9x9(tc):
+def test_render_board_9x9(tc):
     b = boards.Board(9)
     b.play(2, 3, 'b')
     b.play(3, 4, 'w')
     tc.assertDiagramEqual(ascii_boards.render_board(b), _9x9_expected)
 
-def test_ascii_13x13(tc):
+def test_render_board_13x13(tc):
     b = boards.Board(13)
     b.play(2, 3, 'b')
     b.play(3, 4, 'w')
@@ -140,3 +142,24 @@ class Score_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
         gomill_test_support.play_diagram(b, self.diagram)
         self.assertEqual(b.area_score(), self.score, "wrong score")
 
+
+class Setup_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
+    """Check apply_setup()."""
+    test_name = "setup_test"
+    parameter_names = ('black_points', 'white_points', 'empty_points',
+                       'diagram', 'is_legal')
+
+    def runTest(self):
+        def _interpret(moves):
+            return [coords_from_vertex(v, b.side) for v in moves]
+
+        b = boards.Board(9)
+        is_legal = b.apply_setup(_interpret(self.black_points),
+                                 _interpret(self.white_points),
+                                 _interpret(self.empty_points))
+        self.assertDiagramEqual(ascii_boards.render_board(b),
+                                self.diagram.rstrip())
+        if self.is_legal:
+            self.assertTrue(is_legal, "setup should be considered legal")
+        else:
+            self.assertFalse(is_legal, "setup should be considered illegal")
