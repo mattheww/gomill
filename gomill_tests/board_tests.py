@@ -1,11 +1,14 @@
 from __future__ import with_statement
 
 from gomill_tests import gomill_test_support
+from gomill_tests import test_framework
 
 from gomill import boards
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
+    for code, moves, diagram, score in play_tests:
+        suite.addTest(Play_test_TestCase(code, moves, diagram, score))
 
 def test_attributes(tc):
     b = boards.Board(5)
@@ -52,3 +55,67 @@ def test_copy(tc):
     b1.play(5, 5, 'b')
     b1.play(2, 1, 'b')
     tc.assertEqual(b1, b2)
+
+
+play_tests = [
+
+('multiple', [
+('w', 3, 3),
+('b', 2, 3),
+('w', 4, 2),
+('b', 3, 2),
+('w', 4, 4),
+('b', 3, 4),
+('b', 4, 1),
+('b', 4, 5),
+('b', 5, 2),
+('b', 5, 4),
+('b', 6, 3),
+('w', 5, 3),
+('b', 4, 3),
+], """\
+9  .  .  .  .  .  .  .  .  .
+8  .  .  .  .  .  .  .  .  .
+7  .  .  .  #  .  .  .  .  .
+6  .  .  #  .  #  .  .  .  .
+5  .  #  .  #  .  #  .  .  .
+4  .  .  #  .  #  .  .  .  .
+3  .  .  .  #  .  .  .  .  .
+2  .  .  .  .  .  .  .  .  .
+1  .  .  .  .  .  .  .  .  .
+   A  B  C  D  E  F  G  H  J
+""", 83),
+
+]
+
+class Play_test_TestCase(gomill_test_support.Gomill_testcase_mixin,
+                         test_framework.FrameworkTestCase):
+    """Check final position reached by playing a sequence of moves."""
+    def __init__(self, code, moves, diagram, score):
+        test_framework.FrameworkTestCase.__init__(self)
+        self.code = code
+        self.name = (self.__class__.__module__.split(".", 1)[-1] + "." +
+                     "play_test:" + code)
+        self.moves = moves
+        self.diagram = diagram
+        self.score = score
+
+    def runTest(self):
+        b = boards.Board(9)
+        for colour, row, col in self.moves:
+            b.play(row, col, colour)
+        # FIXME: Check the diagram
+        self.assertEqual(b.area_score(), self.score, "wrong score")
+
+    def id(self):
+        return self.name
+
+    def shortDescription(self):
+        return None
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return "<%s: %s>" % (self.__class__.__name__, self.name)
+
