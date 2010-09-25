@@ -4,7 +4,7 @@ from gomill_tests import gomill_test_support
 from gomill_tests import test_framework
 from gomill_tests import board_test_data
 
-from gomill.gomill_common import format_vertex
+from gomill.gomill_common import format_vertex, coords_from_vertex
 from gomill import boards
 
 def make_tests(suite):
@@ -75,10 +75,12 @@ class Play_test_TestCase(gomill_test_support.Gomill_testcase_mixin,
     def runTest(self):
         b = boards.Board(9)
         ko_point = None
-        for colour, row, col in self.moves:
+        for move in self.moves:
+            colour, vertex = move.split()
+            colour = colour.lower()
+            row, col = coords_from_vertex(vertex, b.side)
             ko_point = b.play(row, col, colour)
         from gomill import ascii_boards
-        print ascii_boards.render_board(b)
         self.assertMultiLineEqual(ascii_boards.render_board(b),
                                   self.diagram.rstrip())
         if ko_point is None:
@@ -86,7 +88,6 @@ class Play_test_TestCase(gomill_test_support.Gomill_testcase_mixin,
         else:
             ko_vertex = format_vertex(ko_point)
         self.assertEqual(ko_vertex, self.ko_vertex, "wrong ko point")
-        print self.code, b.area_score()
         self.assertEqual(b.area_score(), self.score, "wrong score")
 
     def id(self):
