@@ -15,7 +15,6 @@ def test_basics(tc):
     b.play(3, 4, 'w')
     tc.assertEqual(b.area_score(), 0)
 
-    tc.assertEqual(set(b.list_occupied_points()),
-                   set([('b', (2, 3)), ('w', (3, 4))])
-                   )
+    tc.assertItemsEqual(b.list_occupied_points(),
+                        [('b', (2, 3)), ('w', (3, 4))])
 
