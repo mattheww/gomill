@@ -31,6 +31,19 @@ def compare_boards(b1, b2):
         pass
     return False, msg
 
+def compare_diagrams(d1, d2):
+    """Compare two ascii board diagrams.
+
+    returns a pair (strings_are_equal, message)
+
+    (assertMultiLineEqual tends to look nasty for these, so we just show them
+    both in full)
+
+    """
+    if d1 == d2:
+        return True, None
+    return False, "diagrams differ:\n%s\n\n%s" % (d1, d2)
+
 def play_diagram(board, diagram):
     """Set up the position from a diagram.
 
@@ -76,6 +89,11 @@ class Gomill_testcase_mixin(object):
 
     def assertBoardEqual(self, b1, b2, msg=None):
         are_equal, desc = compare_boards(b1, b2)
+        if not are_equal:
+            self.fail(self._format_message(msg, desc+"\n"))
+
+    def assertDiagramEqual(self, d1, d2, msg=None):
+        are_equal, desc = compare_diagrams(d1, d2)
         if not are_equal:
             self.fail(self._format_message(msg, desc+"\n"))
 

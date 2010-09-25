@@ -85,13 +85,13 @@ def test_ascii_9x9(tc):
     b = boards.Board(9)
     b.play(2, 3, 'b')
     b.play(3, 4, 'w')
-    tc.assertMultiLineEqual(ascii_boards.render_board(b), _9x9_expected)
+    tc.assertDiagramEqual(ascii_boards.render_board(b), _9x9_expected)
 
 def test_ascii_13x13(tc):
     b = boards.Board(13)
     b.play(2, 3, 'b')
     b.play(3, 4, 'w')
-    tc.assertMultiLineEqual(ascii_boards.render_board(b), _13x13_expected)
+    tc.assertDiagramEqual(ascii_boards.render_board(b), _13x13_expected)
 
 def test_copy(tc):
     b1 = boards.Board(9)
@@ -120,9 +120,8 @@ class Play_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
             colour = colour.lower()
             row, col = coords_from_vertex(vertex, b.side)
             ko_point = b.play(row, col, colour)
-        from gomill import ascii_boards
-        self.assertMultiLineEqual(ascii_boards.render_board(b),
-                                  self.diagram.rstrip())
+        self.assertDiagramEqual(ascii_boards.render_board(b),
+                                self.diagram.rstrip())
         if ko_point is None:
             ko_vertex = None
         else:
