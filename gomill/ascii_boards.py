@@ -42,3 +42,25 @@ def render_board(board):
         return _point_strings.get(board.get(row, col), " ?")
     return "\n".join(render_grid(format_pt, board.side))
 
+def play_diagram(board, diagram):
+    """Set up the position from a diagram.
+
+    board   -- Board
+    diagram -- board representation as from render_board()
+
+    """
+    lines = diagram.split("\n")
+    colours = {'#' : 'b', 'o' : 'w', '.' : None}
+    if board.side > 9:
+        extra_offset = 1
+    else:
+        extra_offset = 0
+    result = []
+    try:
+        for (row, col) in board.board_coords:
+            colour = colours[lines[board.side-row-1][3*(col+1)+extra_offset]]
+            if colour is not None:
+                board.play(row, col, colour)
+    except Exception:
+        raise ValueError
+

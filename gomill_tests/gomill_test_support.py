@@ -44,25 +44,6 @@ def compare_diagrams(d1, d2):
         return True, None
     return False, "diagrams differ:\n%s\n\n%s" % (d1, d2)
 
-def play_diagram(board, diagram):
-    """Set up the position from a diagram.
-
-    board   -- Board
-    diagram -- board representation as from ascii_boards.render_board()
-
-    """
-    lines = diagram.split("\n")
-    colours = {'#' : 'b', 'o' : 'w', '.' : None}
-    if board.side > 9:
-        extra_offset = 1
-    else:
-        extra_offset = 0
-    result = []
-    for (row, col) in board.board_coords:
-        colour = colours[lines[board.side-row-1][3*(col+1)+extra_offset]]
-        if colour is not None:
-            board.play(row, col, colour)
-
 class Gomill_testcase_mixin(object):
     """TestCase mixin adding support for gomill-specific types.
 

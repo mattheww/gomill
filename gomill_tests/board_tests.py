@@ -139,7 +139,7 @@ class Score_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
 
     def runTest(self):
         b = boards.Board(9)
-        gomill_test_support.play_diagram(b, self.diagram)
+        ascii_boards.play_diagram(b, self.diagram)
         self.assertEqual(b.area_score(), self.score, "wrong score")
 
 

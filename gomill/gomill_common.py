@@ -51,7 +51,10 @@ def coords_from_vertex(vertex, board_size):
     """
     if not 0 < board_size <= 25:
         raise ValueError("board_size out of range")
-    s = vertex.lower()
+    try:
+        s = vertex.lower()
+    except Exception:
+        raise ValueError("invalid vertex")
     if s == "pass":
         return None
     try:
