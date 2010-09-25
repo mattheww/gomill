@@ -4,12 +4,15 @@ from gomill_tests import gomill_test_support
 from gomill_tests import test_framework
 from gomill_tests import board_test_data
 
+from gomill.gomill_common import format_vertex
 from gomill import boards
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
-    for code, moves, diagram, score in board_test_data.play_tests:
-        suite.addTest(Play_test_TestCase(code, moves, diagram, score))
+    for code, moves, diagram, ko_point in board_test_data.play_tests:
+        # FIXME
+        score = None
+        suite.addTest(Play_test_TestCase(code, moves, diagram, ko_point, score))
 
 def test_attributes(tc):
     b = boards.Board(5)
@@ -61,21 +64,28 @@ def test_copy(tc):
 class Play_test_TestCase(gomill_test_support.Gomill_testcase_mixin,
                          test_framework.FrameworkTestCase):
     """Check final position reached by playing a sequence of moves."""
-    def __init__(self, code, moves, diagram, score):
+    def __init__(self, code, moves, diagram, ko_vertex, score):
         test_framework.FrameworkTestCase.__init__(self)
         self.code = code
         self.name = (self.__class__.__module__.split(".", 1)[-1] + "." +
                      "play_test:" + code)
         self.moves = moves
         self.diagram = diagram
+        self.ko_vertex = ko_vertex
         self.score = score
 
     def runTest(self):
         b = boards.Board(9)
+        ko_point = None
         for colour, row, col in self.moves:
-            b.play(row, col, colour)
+            ko_point = b.play(row, col, colour)
         # FIXME: Check the diagram
-        self.assertEqual(b.area_score(), self.score, "wrong score")
+        if ko_point is None:
+            ko_vertex = None
+        else:
+            ko_vertex = format_vertex(ko_point)
+        self.assertEqual(ko_vertex, self.ko_vertex, "wrong ko point")
+        #self.assertEqual(b.area_score(), self.score, "wrong score")
 
     def id(self):
         return self.name
