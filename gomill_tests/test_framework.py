@@ -1,6 +1,37 @@
 import unittest2
 
-class SimpleTestCase(unittest2.TestCase):
+class FrameworkTestCase(unittest2.TestCase):
+    """unittest2-style TestCase implementation with a few tweaks."""
+
+    # This is default in unittest2 but not python 2.7 unittest, so force it on.
+    longMessage = True
+
+    def assertItemsEqual(self, expected_seq, actual_seq, msg=None):
+        """Variant implementation of standard assertItemsEqual.
+
+        This uses the unorderable_list_difference check even if the lists are
+        sortable: I prefer its output.
+
+        """
+        expected = list(expected_seq)
+        actual = list(actual_seq)
+        missing, unexpected = unittest2.util.unorderable_list_difference(
+            expected, actual, ignore_duplicate=False
+        )
+        errors = []
+        if missing:
+            errors.append('Expected, but missing:\n    %s' %
+                           unittest2.util.safe_repr(missing))
+        if unexpected:
+            errors.append('Unexpected, but present:\n    %s' %
+                           unittest2.util.safe_repr(unexpected))
+        if errors:
+            standardMsg = '\n'.join(errors)
+            self.fail(self._formatMessage(msg, standardMsg))
+
+
+
+class SimpleTestCase(FrameworkTestCase):
     """TestCase which runs a single function.
 
     Instantiate with the test function, which takes a TestCase parameter, eg:
@@ -8,8 +39,6 @@ class SimpleTestCase(unittest2.TestCase):
             tc.assertEqual(2+2, 4)
 
     """
-
-    longMessage = True
 
     def __init__(self, fn):
         unittest2.TestCase.__init__(self)
