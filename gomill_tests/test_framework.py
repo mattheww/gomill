@@ -74,6 +74,42 @@ class SimpleTestCase(FrameworkTestCase):
         return "<SimpleTestCase: %s>" % self.name
 
 
+class ParameterisedTestCase(FrameworkTestCase):
+    """Parameterised testcase.
+
+    Subclasses should define:
+      test_name      -- short string
+      set_parameters
+      runTest
+
+    """
+    def __init__(self, code, *parameters):
+        FrameworkTestCase.__init__(self)
+        self.code = code
+        self.name = "%s.%s:%s" % (self.__class__.__module__.split(".", 1)[-1],
+                                  self.test_name, code)
+        self.set_parameters(*parameters)
+
+    def set_parameters(self, *parameters):
+        raise NotImplementedError
+
+    def runTest(self):
+        raise NotImplementedError
+
+    def id(self):
+        return self.name
+
+    def shortDescription(self):
+        return None
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return "<%s: %s>" % (self.__class__.__name__, self.name)
+
+
+
 def _function_sort_key(fn):
     try:
         return fn.__code__.co_firstlineno

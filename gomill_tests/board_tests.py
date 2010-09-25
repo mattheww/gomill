@@ -1,7 +1,6 @@
 from __future__ import with_statement
 
 from gomill_tests import gomill_test_support
-from gomill_tests import test_framework
 from gomill_tests import board_test_data
 
 from gomill.gomill_common import format_vertex, coords_from_vertex
@@ -61,14 +60,11 @@ def test_copy(tc):
     tc.assertEqual(b1, b2)
 
 
-class Play_test_TestCase(gomill_test_support.Gomill_testcase_mixin,
-                         test_framework.FrameworkTestCase):
+class Play_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
     """Check final position reached by playing a sequence of moves."""
-    def __init__(self, code, moves, diagram, ko_vertex, score):
-        test_framework.FrameworkTestCase.__init__(self)
-        self.code = code
-        self.name = (self.__class__.__module__.split(".", 1)[-1] + "." +
-                     "play_test:" + code)
+    test_name = "play_test"
+
+    def set_parameters(self, moves, diagram, ko_vertex, score):
         self.moves = moves
         self.diagram = diagram
         self.ko_vertex = ko_vertex
@@ -92,27 +88,12 @@ class Play_test_TestCase(gomill_test_support.Gomill_testcase_mixin,
         self.assertEqual(ko_vertex, self.ko_vertex, "wrong ko point")
         self.assertEqual(b.area_score(), self.score, "wrong score")
 
-    def id(self):
-        return self.name
 
-    def shortDescription(self):
-        return None
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return "<%s: %s>" % (self.__class__.__name__, self.name)
-
-
-class Score_test_TestCase(gomill_test_support.Gomill_testcase_mixin,
-                          test_framework.FrameworkTestCase):
+class Score_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
     """Check score of a diagram."""
-    def __init__(self, code, diagram, score):
-        test_framework.FrameworkTestCase.__init__(self)
-        self.code = code
-        self.name = (self.__class__.__module__.split(".", 1)[-1] + "." +
-                     "score_test:" + code)
+    test_name = "score_test"
+
+    def set_parameters(self, diagram, score):
         self.diagram = diagram
         self.score = score
 
@@ -120,16 +101,4 @@ class Score_test_TestCase(gomill_test_support.Gomill_testcase_mixin,
         b = boards.Board(9)
         gomill_test_support.play_diagram(b, self.diagram)
         self.assertEqual(b.area_score(), self.score, "wrong score")
-
-    def id(self):
-        return self.name
-
-    def shortDescription(self):
-        return None
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return "<%s: %s>" % (self.__class__.__name__, self.name)
 

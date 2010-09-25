@@ -95,6 +95,13 @@ class Gomill_SimpleTestCase(
         test_framework.SimpleTestCase.__init__(self, *args, **kwargs)
         self.init_gomill_testcase_mixin()
 
+class Gomill_ParameterisedTestCase(
+    Gomill_testcase_mixin, test_framework.ParameterisedTestCase):
+    """ParameterisedTestCase with the Gomill mixin."""
+    def __init__(self, *args, **kwargs):
+        test_framework.ParameterisedTestCase.__init__(self, *args, **kwargs)
+        self.init_gomill_testcase_mixin()
+
 
 def make_simple_tests(source, prefix="test_"):
     """Make test cases from a module's test_xxx functions.
