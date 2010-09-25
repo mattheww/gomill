@@ -6,6 +6,9 @@ from gomill.gomill_common import *
 from gomill import ascii_boards
 from gomill import boards
 
+# This makes TestResult ignore lines from this module in tracebacks
+__unittest = True
+
 def compare_boards(b1, b2):
     """Check whether two boards have the same position.
 

@@ -2,6 +2,9 @@
 
 import sys
 
+# This makes TestResult ignore lines from this module in tracebacks
+__unittest = True
+
 if sys.version_info >= (2, 7):
     import unittest as unittest2
 else:
