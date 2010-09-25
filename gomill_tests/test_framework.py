@@ -2,13 +2,14 @@
 
 import sys
 
-# This makes TestResult ignore lines from this module in tracebacks
-__unittest = True
-
 if sys.version_info >= (2, 7):
     import unittest as unittest2
 else:
     import unittest2
+
+# This makes TestResult ignore lines from this module in tracebacks
+__unittest = True
+
 
 class FrameworkTestCase(unittest2.TestCase):
     """unittest2-style TestCase implementation with a few tweaks."""
@@ -38,7 +39,6 @@ class FrameworkTestCase(unittest2.TestCase):
         if errors:
             standardMsg = '\n'.join(errors)
             self.fail(self._formatMessage(msg, standardMsg))
-
 
 
 class SimpleTestCase(FrameworkTestCase):
