@@ -77,7 +77,10 @@ class Play_test_TestCase(gomill_test_support.Gomill_testcase_mixin,
         ko_point = None
         for colour, row, col in self.moves:
             ko_point = b.play(row, col, colour)
-        # FIXME: Check the diagram
+        from gomill import ascii_boards
+        print ascii_boards.render_board(b)
+        self.assertMultiLineEqual(ascii_boards.render_board(b),
+                                  self.diagram.rstrip())
         if ko_point is None:
             ko_vertex = None
         else:
