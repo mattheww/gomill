@@ -9,7 +9,7 @@ class Group(object):
     Public attributes:
       colour
       points
-      is_captured
+      is_surrounded
 
     Points are coordinate pairs (row, col).
 
@@ -57,7 +57,7 @@ class Board(object):
 
     def _make_group(self, row, col, colour):
         points = set()
-        is_captured = True
+        is_surrounded = True
         to_handle = set()
         to_handle.add((row, col))
         while to_handle:
@@ -70,14 +70,14 @@ class Board(object):
                     continue
                 neigh_colour = self.board[r1][c1]
                 if neigh_colour is None:
-                    is_captured = False
+                    is_surrounded = False
                 elif neigh_colour == colour:
                     if coords not in points:
                         to_handle.add(coords)
         group = Group()
         group.colour = colour
         group.points = points
-        group.is_captured = is_captured
+        group.is_surrounded = is_surrounded
         return group
 
     def _make_empty_region(self, row, col):
@@ -104,13 +104,13 @@ class Board(object):
         region.neighbouring_colours = neighbouring_colours
         return region
 
-    def _find_captured_groups(self):
+    def _find_surrounded_groups(self):
         """Find solidly-connected groups with 0 liberties.
 
         Returns a list of Groups.
 
         """
-        captured = []
+        surrounded = []
         handled = set()
         for (row, col) in self.board_coords:
             colour = self.board[row][col]
@@ -120,10 +120,10 @@ class Board(object):
             if coords in handled:
                 continue
             group = self._make_group(row, col, colour)
-            if group.is_captured:
-                captured.append(group)
+            if group.is_surrounded:
+                surrounded.append(group)
             handled.update(group.points)
-        return captured
+        return surrounded
 
     def is_empty(self):
         """Say whether the board is empty."""
@@ -151,16 +151,16 @@ class Board(object):
         if self.board[row][col] is not None:
             raise ValueError
         self.board[row][col] = colour
-        captured = self._find_captured_groups()
+        surrounded = self._find_surrounded_groups()
         simple_ko_point = None
-        if captured:
-            if len(captured) == 1 and captured[0].colour == colour:
-                to_capture = captured
+        if surrounded:
+            if len(surrounded) == 1:
+                to_capture = surrounded
             else:
-                to_capture = [group for group in captured
+                to_capture = [group for group in surrounded
                               if group.colour == opponent_of(colour)]
-                if (len(to_capture) == 1 and len(to_capture[0].points) == 1):
-                    self_capture = [group for group in captured
+                if len(to_capture) == 1 and len(to_capture[0].points) == 1:
+                    self_capture = [group for group in surrounded
                                     if group.colour == colour]
                     if (len(self_capture) == 1 and
                         len(self_capture[0].points) == 1):
