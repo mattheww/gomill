@@ -95,6 +95,14 @@ def test_render_board_13x13(tc):
     b.play(3, 4, 'w')
     tc.assertDiagramEqual(ascii_boards.render_board(b), _13x13_expected)
 
+def test_play_diagram(tc):
+    b1 = boards.Board(9)
+    b1.play(2, 3, 'b')
+    b1.play(3, 4, 'w')
+    b2 = boards.Board(9)
+    ascii_boards.play_diagram(b2, _9x9_expected)
+    tc.assertEqual(b1, b2)
+
 def test_copy(tc):
     b1 = boards.Board(9)
     b1.play(2, 3, 'b')
