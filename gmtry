@@ -1,0 +1,2 @@
+#!/bin/sh
+python -m gomill_tests.run_gomill_testsuite "$@"
