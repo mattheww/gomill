@@ -44,3 +44,51 @@ def test_gmp(tc):
         controller.check_protocol_version()
     tc.assertIn("engine appears to be speaking GMP", str(ar.exception))
 
+
+class Mock_gtp_channel(gtp_controller.Linebased_gtp_channel):
+    """A Linebased_gtp_channel with preprogrammed responses."""
+    def __init__(self, responses):
+        gtp_controller.Linebased_gtp_channel.__init__(self)
+        self.last_command_line = None
+        self.response_lines = []
+        for s in responses:
+            self.response_lines.append(s+"\n")
+            self.response_lines.append("\n")
+        #raise GtpChannelError(s)
+
+    def send_command_line(self, command):
+        self.last_command_line = command
+        #raise GtpChannelClosed("engine has closed the command channel")
+        #raise GtpTransportError(str(e))
+
+    def get_response_line(self):
+        if self.last_command_line is None:
+            raise StandardError("no command sent; this will hang")
+        return self.response_lines.pop(0)
+        #raise GtpTransportError(str(e))
+
+    def get_response_byte(self):
+        if self.last_command_line is None:
+            raise StandardError("no command sent; this will hang")
+        s = self.response_lines.pop(0)
+        result = s[0]
+        if len(s) > 1:
+            self.response_lines[:0] = [s[1:]]
+        return result
+        #raise GtpTransportError(str(e))
+
+    def close(self):
+        pass
+        #self.resource_usage = rusage
+        #raise GtpTransportError("\n".join(errors))
+
+def test_linebased_channel(tc):
+    channel = Mock_gtp_channel(["=", "="])
+    tc.assertEqual(channel.last_command_line, None)
+    channel.send_command("play", ["b", "a3"])
+    tc.assertEqual(channel.last_command_line, "play b a3\n")
+    tc.assertEqual(channel.get_response(), (False, ""))
+    channel.send_command("quit", [])
+    tc.assertEqual(channel.last_command_line, "quit\n")
+    tc.assertEqual(channel.get_response(), (False, ""))
+    channel.close()
