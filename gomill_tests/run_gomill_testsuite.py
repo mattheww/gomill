@@ -3,6 +3,7 @@ import unittest2
 
 test_modules = [
     'board_tests',
+    'ascii_board_tests',
     ]
 
 def get_test_modules():
