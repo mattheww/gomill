@@ -32,5 +32,5 @@ class SimpleTestCase(unittest2.TestCase):
         return self.name
 
     def __repr__(self):
-        return "<repr SimpleTestCase: %s>" % self.name
+        return "<SimpleTestCase: %s>" % self.name
 
