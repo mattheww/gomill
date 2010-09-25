@@ -1,9 +1,17 @@
+"""Tests for boards.py and ascii_boards.py
+
+We test these together because it's convenient for later boards tests to use
+ascii_boards facilities.
+
+"""
+
 from __future__ import with_statement
 
 from gomill_tests import gomill_test_support
 from gomill_tests import board_test_data
 
 from gomill.gomill_common import format_vertex, coords_from_vertex
+from gomill import ascii_boards
 from gomill import boards
 
 def make_tests(suite):
@@ -42,6 +50,48 @@ def test_basics(tc):
     tc.assertItemsEqual(b.list_occupied_points(),
                         [('b', (2, 3)), ('w', (3, 4))])
 
+
+_9x9_expected = """\
+9  .  .  .  .  .  .  .  .  .
+8  .  .  .  .  .  .  .  .  .
+7  .  .  .  .  .  .  .  .  .
+6  .  .  .  .  .  .  .  .  .
+5  .  .  .  .  .  .  .  .  .
+4  .  .  .  .  o  .  .  .  .
+3  .  .  .  #  .  .  .  .  .
+2  .  .  .  .  .  .  .  .  .
+1  .  .  .  .  .  .  .  .  .
+   A  B  C  D  E  F  G  H  J\
+"""
+
+_13x13_expected = """\
+13  .  .  .  .  .  .  .  .  .  .  .  .  .
+12  .  .  .  .  .  .  .  .  .  .  .  .  .
+11  .  .  .  .  .  .  .  .  .  .  .  .  .
+10  .  .  .  .  .  .  .  .  .  .  .  .  .
+ 9  .  .  .  .  .  .  .  .  .  .  .  .  .
+ 8  .  .  .  .  .  .  .  .  .  .  .  .  .
+ 7  .  .  .  .  .  .  .  .  .  .  .  .  .
+ 6  .  .  .  .  .  .  .  .  .  .  .  .  .
+ 5  .  .  .  .  .  .  .  .  .  .  .  .  .
+ 4  .  .  .  .  o  .  .  .  .  .  .  .  .
+ 3  .  .  .  #  .  .  .  .  .  .  .  .  .
+ 2  .  .  .  .  .  .  .  .  .  .  .  .  .
+ 1  .  .  .  .  .  .  .  .  .  .  .  .  .
+    A  B  C  D  E  F  G  H  J  K  L  M  N\
+"""
+
+def test_ascii_9x9(tc):
+    b = boards.Board(9)
+    b.play(2, 3, 'b')
+    b.play(3, 4, 'w')
+    tc.assertMultiLineEqual(ascii_boards.render_board(b), _9x9_expected)
+
+def test_ascii_13x13(tc):
+    b = boards.Board(13)
+    b.play(2, 3, 'b')
+    b.play(3, 4, 'w')
+    tc.assertMultiLineEqual(ascii_boards.render_board(b), _13x13_expected)
 
 def test_copy(tc):
     b1 = boards.Board(9)

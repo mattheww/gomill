@@ -7,7 +7,6 @@ from gomill_tests.test_framework import unittest2
 test_modules = [
     'gomill_common_tests',
     'board_tests',
-    'ascii_board_tests',
     ]
 
 def get_test_modules():
