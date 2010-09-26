@@ -1,16 +1,20 @@
 """Tests for gtp_controller.py"""
 
 from gomill_tests import gomill_test_support
+from gomill_tests import gtp_controller_test_support
 from gomill_tests.gtp_controller_test_support import Preprogrammed_gtp_channel
 
 from gomill import gtp_controller
 from gomill.gtp_controller import (
     GtpChannelError, GtpProtocolError, GtpTransportError, GtpChannelClosed,
-    BadGtpResponse)
+    BadGtpResponse, Gtp_controller)
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
+
+
+### Channel-level
 
 def test_linebased_channel(tc):
     channel = Preprogrammed_gtp_channel("=\n\n=\n\n")
@@ -178,3 +182,16 @@ def test_channel_command_validation(tc):
     channel.send_command("pl\xc3\xa1y", ["b", "\xc3\xa13"])
     tc.assertEqual(channel.get_command_stream(), "pl\xc3\xa1y b \xc3\xa13\n")
 
+
+### Controller-level
+
+def test_controller(tc):
+    channel = gtp_controller_test_support.get_test_channel()
+    controller = Gtp_controller(channel, 'player test')
+    tc.assertEqual(controller.do_command("test"), "test response")
+    with tc.assertRaises(BadGtpResponse) as ar:
+        controller.do_command("error")
+    tc.assertEqual(ar.exception.gtp_error_message, "normal error")
+    tc.assertEqual(ar.exception.gtp_command, "error")
+    tc.assertSequenceEqual(ar.exception.gtp_arguments, [])
+    controller.close()

@@ -5,6 +5,9 @@ from gomill import gtp_controller
 from gomill.gtp_controller import (
     GtpChannelError, GtpProtocolError, GtpTransportError, GtpChannelClosed,
     BadGtpResponse)
+from gomill import gtp_engine
+from gomill.gtp_engine import GtpError, GtpFatalError
+
 
 class Mock_writing_pipe(object):
     """Mock writeable pipe object, with an interface like a cStringIO.
@@ -115,3 +118,29 @@ class Preprogrammed_gtp_channel(gtp_controller.Subprocess_gtp_channel):
     def break_response_stream(self):
         """Break the simulated pipe for the response stream."""
         self.response_pipe.simulate_broken_pipe()
+
+
+def get_test_engine():
+    """Return a Gtp_engine_protocol useful for testing controllers."""
+
+    def handle_test(args):
+        return "test response"
+
+    def handle_error(args):
+        raise GtpError("normal error")
+
+    def handle_fatal_error(args):
+        raise GtpFatalError("fatal error")
+
+    engine = gtp_engine.Gtp_engine_protocol()
+    engine.add_protocol_commands()
+    engine.add_command('test', handle_test)
+    engine.add_command('error', handle_error)
+    engine.add_command('fatal', handle_fatal_error)
+    return engine
+
+def get_test_channel():
+    """Return a Gtp_channel for use with the test engine."""
+    engine = get_test_engine()
+    return gtp_controller.Internal_gtp_channel(engine)
+
