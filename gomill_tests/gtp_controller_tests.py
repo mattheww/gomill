@@ -27,11 +27,18 @@ def test_linebased_channel(tc):
     channel.close()
 
 def test_linebased_channel_responses(tc):
-    channel = Preprogrammed_gtp_channel("= 2\n\n? unknown command\n\n")
+    channel = Preprogrammed_gtp_channel(
+        "= 2\n\n"
+        # failure response
+        "? unknown command\n\n"
+        # final response with no newlines
+        "= ok")
     channel.send_command("protocol_version", [])
     tc.assertEqual(channel.get_response(), (False, "2"))
     channel.send_command("xyzzy", ["1", "2"])
     tc.assertEqual(channel.get_response(), (True, "unknown command"))
+    channel.send_command("quit", ["1", "2"])
+    tc.assertEqual(channel.get_response(), (False, "ok"))
 
 def test_linebased_channel_response_cleaning(tc):
     channel = Preprogrammed_gtp_channel(
@@ -95,7 +102,7 @@ def test_linebased_channel_without_response(tc):
         channel.get_response)
     channel.close()
 
-def test_linebased_channel_with_usage_message(tc):
+def test_linebased_channel_with_usage_message_response(tc):
     channel = Preprogrammed_gtp_channel(
         "Usage: randomprogram [options]\n\nOptions:\n"
         "--help   show this help message and exit\n")
@@ -106,7 +113,8 @@ def test_linebased_channel_with_usage_message(tc):
     channel.close()
 
 def test_linebased_channel_with_gmp_response(tc):
-    channel = Preprogrammed_gtp_channel("\x01\xa1\xa0\x80")
+    channel = Preprogrammed_gtp_channel("\x01\xa1\xa0\x80",
+                                        hangs_before_eof=True)
     channel.send_command("protocol_version", [])
     tc.assertRaisesRegexp(
         GtpProtocolError, "appears to be speaking GMP", channel.get_response)

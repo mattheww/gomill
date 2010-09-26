@@ -40,12 +40,18 @@ class Mock_writing_pipe(object):
 class Mock_reading_pipe(object):
     """Mock readable pipe object, with an interface like a cStringIO.
 
+    Instantiate with the data to provide on the pipe.
+
     If this is 'broken', it always returns EOF from that point on.
+
+    Set the attribute hangs_before_eof true to simulate a pipe that isn't closed
+    when it runs out of data.
 
     """
     def __init__(self, response):
         self.source = StringIO(response)
         self.is_broken = False
+        self.hangs_before_eof = False
 
     def read(self, n):
         if self.is_broken:
@@ -55,7 +61,11 @@ class Mock_reading_pipe(object):
     def readline(self):
         if self.is_broken:
             return ""
-        return self.source.readline()
+        result = self.source.readline()
+        if self.hangs_before_eof and not result.endswith("\n"):
+            raise StandardError(
+                "readline called with no newline; this would hang")
+        return result
 
     def close(self):
         self.source.close()
@@ -70,16 +80,20 @@ class Preprogrammed_gtp_channel(gtp_controller.Subprocess_gtp_channel):
 
     Instantiate with a string containing the complete response stream.
 
+    Pass hangs_before_eof True to simulate an engine that doesn't close its
+    response pipe when the preprogrammed response data runs out.
+
     This will send the contents of the response stream, irrespective of what
     commands are received.
 
     The command stream is available from get_command_stream().
 
     """
-    def __init__(self, response):
+    def __init__(self, response, hangs_before_eof=False):
         gtp_controller.Linebased_gtp_channel.__init__(self)
         self.command_pipe = Mock_writing_pipe()
         self.response_pipe = Mock_reading_pipe(response)
+        self.response_pipe.hangs_before_eof = hangs_before_eof
         #raise GtpChannelError(s)
 
     def close(self):
