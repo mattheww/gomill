@@ -50,3 +50,13 @@ def test_linebased_channel_with_gmp_output(tc):
     tc.assertRaisesRegexp(
         GtpProtocolError, "appears to be speaking GMP", channel.get_response)
     channel.close()
+
+def test_linebased_channel_with_closed_input(tc):
+    channel = Preprogrammed_gtp_channel(
+        "Usage: randomprogram [options]\n\nOptions:\n"
+        "--help   show this help message and exit\n")
+    channel.close_command_stream()
+    tc.assertRaisesRegexp(
+        GtpChannelClosed, "^engine has closed the command channel$",
+        channel.send_command, "protocol_version", [])
+    channel.close()
