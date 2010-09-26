@@ -144,9 +144,14 @@ class Gtp_channel(object):
         For a success response, 'response' is the result from the engine; for a
         failure response it's the error message from the engine.
 
-        'response' is a string with no trailing whitespace. It may contain
-        newlines, but there are no empty lines except perhaps the first. There
-        is no leading whitespace on the first line.
+        This cleans the response according to the GTP spec, and also removes
+        leading and trailing whitespace.
+
+        This means that 'response' is an 8-bit string with no trailing
+        whitespace. It may contain newlines, but there are no empty lines except
+        perhaps the first. There is no leading whitespace on the first line.
+        There are no other control characters. It may include 'high' characters,
+        in whatever encoding the engine was using.
 
         May raise GtpChannelError. In particular, raises GtpProtocolError if the
         success/failure indicator can't be read from the engine's response.
@@ -489,10 +494,13 @@ class Gtp_controller(object):
         Arguments may be unicode objects, in which case they will be sent as
         utf-8.
 
+
         Returns the result text from the engine as an 8-bit string with no
         trailing whitespace. It may contain newlines, but there are no empty
         lines except perhaps the first. There is no leading whitespace on the
-        first line. (The result text doesn't include the leading =[id] bit.)
+        first line. There are no other control characters. It may include 'high'
+        characters, in whatever encoding the engine was using. (The result text
+        doesn't include the leading =[id] bit.)
 
         If the engine returns a failure response, raises BadGtpResponse (use the
         gtp_error_message attribute to retrieve the text of the response).

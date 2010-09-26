@@ -49,6 +49,8 @@ def test_linebased_channel_response_cleaning(tc):
         "= 6abcde  \t  \n\n"
         # doesn't strip whitespace in the middle of a multiline response
         "= 7aaa  \n  bbb\tccc\nddd  \t  \n\n"
+        # passes high characters through
+        "= 8ab\xc3\xa7de\n\n"
         # all this at once, in a failure response
         "?    a\raa  \r\n  b\rbb\tcc\x01c\nddd  \t  \n\n"
         )
@@ -59,6 +61,7 @@ def test_linebased_channel_response_cleaning(tc):
     tc.assertEqual(channel.get_response(), (False, "5abcde"))
     tc.assertEqual(channel.get_response(), (False, "6abcde"))
     tc.assertEqual(channel.get_response(), (False, "7aaa  \n  bbb ccc\nddd"))
+    tc.assertEqual(channel.get_response(), (False, "8ab\xc3\xa7de"))
     tc.assertEqual(channel.get_response(), (True, "aaa  \n  bbb ccc\nddd"))
 
 def test_linebased_channel_without_response(tc):
