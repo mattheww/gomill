@@ -144,7 +144,7 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
     sent.
 
     If you send a command after the engine has exited, this raises
-    GtpChannelClosed. Instantiate with engine_exit_breaks_commands=False to
+    GtpChannelClosed. Set the attribute engine_exit_breaks_commands to False to
     disable this behaviour (it will ignore the command and respond with EOF
     instead).
 
@@ -154,12 +154,12 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
       force_next_response -- string (get_response_line uses this string)
 
     """
-    def __init__(self, engine, engine_exit_breaks_commands=True):
+    def __init__(self, engine):
         gtp_controller.Linebased_gtp_channel.__init__(self)
         self.engine = engine
         self.stored_response = ""
         self.session_is_ended = False
-        self.engine_exit_breaks_commands = engine_exit_breaks_commands
+        self.engine_exit_breaks_commands = True
         self.fail_next_command = False
         self.fail_next_response = False
         self.force_next_response = None

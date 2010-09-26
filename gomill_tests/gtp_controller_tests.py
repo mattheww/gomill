@@ -205,8 +205,8 @@ def test_testing_gtp_channel(tc):
 
 def test_testing_gtp_channel_alt(tc):
     engine = gtp_controller_test_support.get_test_engine()
-    channel = gtp_controller_test_support.Testing_gtp_channel(
-        engine, engine_exit_breaks_commands=False)
+    channel = gtp_controller_test_support.Testing_gtp_channel(engine)
+    channel.engine_exit_breaks_commands = False
     channel.send_command("test", [])
     tc.assertEqual(channel.get_response(), (False, "test response"))
     channel.send_command("quit", [])
@@ -284,6 +284,20 @@ def test_controller(tc):
     tc.assertEqual(str(ar.exception),
                    "error sending 'test' to player test:\n"
                    "engine has closed the command channel")
+    tc.assertTrue(controller.channel_is_bad)
+    controller.close()
+
+def test_controller_alt_exit(tc):
+    channel = gtp_controller_test_support.get_test_channel()
+    channel.engine_exit_breaks_commands = False
+    controller = Gtp_controller(channel, 'player test')
+    controller.do_command("quit")
+    tc.assertFalse(controller.channel_is_bad)
+    with tc.assertRaises(GtpChannelClosed) as ar:
+        controller.do_command("test")
+    tc.assertEqual(str(ar.exception),
+                   "error reading response to 'test' from player test:\n"
+                   "engine has closed the response channel")
     tc.assertTrue(controller.channel_is_bad)
     controller.close()
 
