@@ -290,7 +290,7 @@ def test_known_command_2(tc):
     # and that it treats an error or unknown value the same as 'false'.
     channel = Preprogrammed_gtp_channel(
         "= true\n\n= absolutely not\n\n? error\n\n# unreached\n\n")
-    controller = Gtp_controller(channel, 'preprogrammed test')
+    controller = Gtp_controller(channel, 'kc2 test')
     tc.assertTrue(controller.known_command("one"))
     tc.assertFalse(controller.known_command("two"))
     tc.assertFalse(controller.known_command("three"))
@@ -299,6 +299,21 @@ def test_known_command_2(tc):
     tc.assertEqual(
         channel.get_command_stream(),
         "known_command one\nknown_command two\nknown_command three\n")
+
+def test_check_protocol_version(tc):
+    channel = gtp_controller_test_support.get_test_channel()
+    controller = Gtp_controller(channel, 'pv test')
+    controller.check_protocol_version()
+
+def test_check_protocol_version_2(tc):
+    channel = Preprogrammed_gtp_channel("= 1\n\n? error\n\n# unreached\n\n")
+    controller = Gtp_controller(channel, 'pv2 test')
+    with tc.assertRaises(BadGtpResponse) as ar:
+        controller.check_protocol_version()
+    tc.assertEqual(str(ar.exception), "pv2 test reports GTP protocol version 1")
+    tc.assertEqual(ar.exception.gtp_error_message, None)
+    # check error is not treated as a check failure
+    controller.check_protocol_version()
 
 
 
