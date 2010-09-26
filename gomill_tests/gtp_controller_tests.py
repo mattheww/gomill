@@ -194,4 +194,14 @@ def test_controller(tc):
     tc.assertEqual(ar.exception.gtp_error_message, "normal error")
     tc.assertEqual(ar.exception.gtp_command, "error")
     tc.assertSequenceEqual(ar.exception.gtp_arguments, [])
+    tc.assertEqual(str(ar.exception),
+                   "failure response from 'error' to player test:\n"
+                   "normal error")
+    with tc.assertRaises(BadGtpResponse) as ar:
+        controller.do_command("fatal")
+    with tc.assertRaises(GtpChannelClosed) as ar:
+        controller.do_command("test")
+    tc.assertEqual(str(ar.exception),
+                   "error sending 'test' to player test:\n"
+                   "engine has ended the session")
     controller.close()
