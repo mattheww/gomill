@@ -1,5 +1,8 @@
 """Tests for gtp_controller.py"""
 
+import os
+import sys
+
 from gomill_tests import gomill_test_support
 from gomill_tests import gtp_controller_test_support
 from gomill_tests.gtp_controller_test_support import (
@@ -433,4 +436,22 @@ def test_describe_engine(tc):
     tc.assertEqual(short_s, "test engine:v1.2.3")
     tc.assertEqual(long_s, "test engine:v1.2.3")
 
+
+### Subprocess-specific
+
+def test_subprocess_channel(tc):
+    # This tests that Subprocess_gtp_channel really launches a subprocess
+    # It also checks that the 'env' and 'cwd' parameters work
+    pathname = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "subprocess_state_reporter.py"))
+    devnull = open(os.devnull, "w")
+    channel = gtp_controller.Subprocess_gtp_channel(
+        ["python", pathname],
+        stderr=devnull,
+        env={'GOMILL_TEST' : "from_gtp_controller_tests"},
+        cwd="/")
+    devnull.close()
+    channel.send_command("tell", [])
+    tc.assertEqual(channel.get_response(),
+                   (False, "cwd: /\nGOMILL_TEST:from_gtp_controller_tests"))
 
