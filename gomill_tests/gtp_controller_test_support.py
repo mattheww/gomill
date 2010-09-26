@@ -74,17 +74,16 @@ class Mock_reading_pipe(object):
         self.is_broken = True
 
 
-
 class Preprogrammed_gtp_channel(gtp_controller.Subprocess_gtp_channel):
-    """A Linebased_gtp_channel with preprogrammed response stream.
+    """A Linebased_gtp_channel with hardwired response stream.
 
     Instantiate with a string containing the complete response stream.
 
+    This sends the contents of the response stream, irrespective of what
+    commands are received.
+
     Pass hangs_before_eof True to simulate an engine that doesn't close its
     response pipe when the preprogrammed response data runs out.
-
-    This will send the contents of the response stream, irrespective of what
-    commands are received.
 
     The command stream is available from get_command_stream().
 
