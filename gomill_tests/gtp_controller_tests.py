@@ -36,13 +36,11 @@ def test_linebased_channel_responses(tc):
 def test_linebased_channel_response_cleaning(tc):
     channel = Preprogrammed_gtp_channel(
         # ignores CRs (GTP spec)
-        "= 1abc\rde\r\n\n"
-        # FIXME: really ignores CRs (GTP spec) [broken?]
-        #"= 1abc\der\n\r\n"
+        "= 1abc\rde\r\n\r\n"
         # ignores extra blank lines (GTP spec)
         "= 2abcde\n\n\n\n"
         # strips control characters (GTP spec)
-        "= 3a\x7fbc\x00d\x07e\n\n"
+        "= 3a\x7fbc\x00d\x07e\n\x01\n"
         # converts tabs to spaces (GTP spec)
         "= 4abc\tde\n\n"
         # strips leading whitespace (channel docs)

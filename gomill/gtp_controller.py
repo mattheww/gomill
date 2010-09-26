@@ -281,6 +281,10 @@ class Linebased_gtp_channel(Gtp_channel):
             if peeked_byte:
                 s = peeked_byte + s
                 peeked_byte = None
+            # << All other [than HT, CR, LF] control characters must be
+            # discarded on input >>
+            # << Any occurence of a CR character must be discarded on input >>
+            s = _remove_response_controls_re.sub("", s)
             # << Empty lines and lines with only whitespace sent by the engine
             #    and occuring outside a response must be ignored by the
             #    controller >>
@@ -312,7 +316,6 @@ class Linebased_gtp_channel(Gtp_channel):
                 "first line is `%s`" % first_line.rstrip())
         lines[0] = first_line[1:].lstrip(" \t")
         response = "".join(lines).rstrip()
-        response = _remove_response_controls_re.sub("", response)
         response = response.replace("\t", " ")
         return is_error, response
 
