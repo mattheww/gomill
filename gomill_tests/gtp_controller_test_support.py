@@ -2,32 +2,6 @@ from cStringIO import StringIO
 
 from gomill import gtp_controller
 
-class Mock_gmp_channel(gtp_controller.Linebased_gtp_channel):
-    """A Linebased_gtp_channel that simulates talking to a GMP engine."""
-    def __init__(self):
-        gtp_controller.Linebased_gtp_channel.__init__(self)
-        self.closed = False
-        self.bytes_sent = 0
-
-    def send_command_line(self, command):
-        pass
-
-    def get_response_line(self):
-        if self.closed:
-            raise GtpTransportError("pipe is closed")
-        raise StandardError("requested a full line; this will hang")
-
-    def get_response_byte(self):
-        if self.closed:
-            raise GtpTransportError("pipe is closed")
-        packet = "\x01\xa1\xa0\x80"
-        result = packet[self.bytes_sent]
-        self.bytes_sent += 1
-        return result
-
-    def close(self):
-        self.closed = True
-
 class Preprogrammed_gtp_channel(gtp_controller.Subprocess_gtp_channel):
     """A Linebased_gtp_channel with preprogrammed response stream.
 
