@@ -120,11 +120,72 @@ class Preprogrammed_gtp_channel(gtp_controller.Subprocess_gtp_channel):
         self.response_pipe.simulate_broken_pipe()
 
 
+class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
+    """Linebased GTP channel that runs an internal Gtp_engine.
+
+    Instantiate with a Gtp_engine_protocol object.
+
+    This is used for testing how controllers handle GtpChannelError.
+
+    This raises an error if sent two commands without requesting a response in
+    between, or if asked for a response when no command was sent since the last
+    response.
+
+    Unlike Internal_gtp_channel, this runs the command as the point when it is
+    sent.
+
+    If you send a command after the engine has exited, this raises
+    GtpChannelClosed. Instantiate with engine_exit_breaks_commands=False to
+    disable this behaviour (it will ignore the command and respond with EOF
+    instead).
+
+    """
+    def __init__(self, engine, engine_exit_breaks_commands=True):
+        gtp_controller.Linebased_gtp_channel.__init__(self)
+        self.engine = engine
+        self.stored_response = ""
+        self.session_is_ended = False
+        self.engine_exit_breaks_commands = engine_exit_breaks_commands
+
+    def send_command_line(self, command):
+        # Should support triggering GtpTransportError
+        if self.stored_response != "":
+            raise StandardError("two commands in a row")
+        if self.session_is_ended:
+            if self.engine_exit_breaks_commands:
+                raise GtpChannelClosed("engine has closed the command channel")
+            return
+        cmd_list = command.strip().split(" ")
+        is_error, response, end_session = \
+            self.engine.run_command(cmd_list[0], cmd_list[1:])
+        if end_session:
+            self.session_is_ended = True
+        self.stored_response = ("? " if is_error else "= ") + response + "\n\n"
+
+    def get_response_line(self):
+        # Should support triggering GtpTransportError
+        # Should support returning an ill-formed response, including EOF.
+        if self.stored_response == "":
+            if self.session_is_ended:
+                return ""
+            raise StandardError("response request without command")
+        line, self.stored_response = self.stored_response.split("\n", 1)
+        return line + "\n"
+
+    def close(self):
+        # Should support triggering GtpTransportError
+        # Should set resource usage
+        pass
+
+
 def get_test_engine():
     """Return a Gtp_engine_protocol useful for testing controllers."""
 
     def handle_test(args):
         return "test response"
+
+    def handle_multiline(args):
+        return "first line  \n  second line\nthird line"
 
     def handle_error(args):
         raise GtpError("normal error")
@@ -135,6 +196,7 @@ def get_test_engine():
     engine = gtp_engine.Gtp_engine_protocol()
     engine.add_protocol_commands()
     engine.add_command('test', handle_test)
+    engine.add_command('multiline', handle_multiline)
     engine.add_command('error', handle_error)
     engine.add_command('fatal', handle_fatal_error)
     return engine

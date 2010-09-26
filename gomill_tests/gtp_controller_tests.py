@@ -183,6 +183,61 @@ def test_channel_command_validation(tc):
     tc.assertEqual(channel.get_command_stream(), "pl\xc3\xa1y b \xc3\xa13\n")
 
 
+### Validating Testing_gtp_channel
+
+def test_testing_gtp_channel(tc):
+    engine = gtp_controller_test_support.get_test_engine()
+    channel = gtp_controller_test_support.Testing_gtp_channel(engine)
+    channel.send_command("play", ["b", "a3"])
+    tc.assertEqual(channel.get_response(), (True, "unknown command"))
+    channel.send_command("test", [])
+    tc.assertEqual(channel.get_response(), (False, "test response"))
+    channel.send_command("multiline", [])
+    tc.assertEqual(channel.get_response(),
+                   (False, "first line  \n  second line\nthird line"))
+    channel.send_command("quit", [])
+    tc.assertEqual(channel.get_response(), (False, ""))
+    tc.assertRaisesRegexp(
+        GtpChannelClosed, "engine has closed the command channel",
+        channel.send_command, "quit", [])
+    channel.close()
+
+def test_testing_gtp_channel_alt(tc):
+    engine = gtp_controller_test_support.get_test_engine()
+    channel = gtp_controller_test_support.Testing_gtp_channel(
+        engine, engine_exit_breaks_commands=False)
+    channel.send_command("test", [])
+    tc.assertEqual(channel.get_response(), (False, "test response"))
+    channel.send_command("quit", [])
+    tc.assertEqual(channel.get_response(), (False, ""))
+    channel.send_command("test", [])
+    tc.assertRaisesRegexp(
+        GtpChannelClosed, "engine has closed the response channel",
+        channel.get_response)
+    channel.close()
+
+def test_testing_gtp_channel_fatal_errors(tc):
+    engine = gtp_controller_test_support.get_test_engine()
+    channel = gtp_controller_test_support.Testing_gtp_channel(engine)
+    channel.send_command("fatal", [])
+    tc.assertEqual(channel.get_response(), (True, "fatal error"))
+    tc.assertRaisesRegexp(
+        GtpChannelClosed, "engine has closed the response channel",
+        channel.get_response)
+    channel.close()
+
+def test_testing_gtp_channel_sequencing(tc):
+    engine = gtp_controller_test_support.get_test_engine()
+    channel = gtp_controller_test_support.Testing_gtp_channel(engine)
+    tc.assertRaisesRegexp(
+        StandardError, "response request without command",
+        channel.get_response)
+    channel.send_command("test", [])
+    tc.assertRaisesRegexp(
+        StandardError, "two commands in a row",
+        channel.send_command, "test", [])
+
+
 ### Controller-level
 
 def test_controller(tc):
@@ -208,7 +263,7 @@ def test_controller(tc):
                    "engine has ended the session")
     controller.close()
 
-def test_controller_first_error(tc):
+def test_controller_first_command_error(tc):
     channel = gtp_controller_test_support.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
     with tc.assertRaises(BadGtpResponse) as ar:
@@ -258,4 +313,5 @@ def test_describe_engine(tc):
     short_s, long_s = gtp_controller.describe_engine(controller)
     tc.assertEqual(short_s, "test engine:v1.2.3")
     tc.assertEqual(long_s, "test engine:v1.2.3")
+
 
