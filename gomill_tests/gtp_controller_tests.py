@@ -188,6 +188,8 @@ def test_channel_command_validation(tc):
 def test_controller(tc):
     channel = gtp_controller_test_support.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
+    tc.assertEqual(controller.name, 'player test')
+    tc.assertIs(controller.channel, channel)
     tc.assertEqual(controller.do_command("test"), "test response")
     with tc.assertRaises(BadGtpResponse) as ar:
         controller.do_command("error")
