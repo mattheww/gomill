@@ -245,6 +245,8 @@ def test_controller(tc):
     controller = Gtp_controller(channel, 'player test')
     tc.assertEqual(controller.name, 'player test')
     tc.assertIs(controller.channel, channel)
+    tc.assertFalse(controller.channel_is_bad)
+
     tc.assertEqual(controller.do_command("test"), "test response")
     with tc.assertRaises(BadGtpResponse) as ar:
         controller.do_command("error")
@@ -256,11 +258,14 @@ def test_controller(tc):
                    "normal error")
     with tc.assertRaises(BadGtpResponse) as ar:
         controller.do_command("fatal")
+    tc.assertFalse(controller.channel_is_bad)
+
     with tc.assertRaises(GtpChannelClosed) as ar:
         controller.do_command("test")
     tc.assertEqual(str(ar.exception),
                    "error sending 'test' to player test:\n"
                    "engine has ended the session")
+    tc.assertTrue(controller.channel_is_bad)
     controller.close()
 
 def test_controller_first_command_error(tc):
