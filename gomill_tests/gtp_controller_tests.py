@@ -444,6 +444,8 @@ def test_describe_engine(tc):
 def test_subprocess_channel(tc):
     # This tests that Subprocess_gtp_channel really launches a subprocess.
     # It also checks that the 'stderr', 'env' and 'cwd' parameters work.
+    # This test relies on there being a 'python' executable on the PATH
+    # (doesn't have to be the same version as is running the testsuite).
     pathname = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "subprocess_state_reporter.py"))
     rd, wr = os.pipe()
@@ -470,4 +472,23 @@ def test_subprocess_channel_nonexistent_program(tc):
     with tc.assertRaises(GtpChannelError) as ar:
         gtp_controller.Subprocess_gtp_channel(["/nonexistent/program"])
     tc.assertIn("[Errno 2] No such file or directory", str(ar.exception))
+
+def test_subprocess_channel_with_controller(tc):
+    pathname = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "subprocess_state_reporter.py"))
+    devnull = open(os.devnull, "w")
+    try:
+        channel = gtp_controller.Subprocess_gtp_channel(
+            ["python", pathname],
+            stderr=devnull,
+            env={'GOMILL_TEST' : "from_gtp_controller_tests"},
+            cwd="/")
+    finally:
+        devnull.close()
+    controller = Gtp_controller(channel, 'subprocess test')
+    tc.assertEqual(controller.do_command("tell"),
+                   "cwd: /\nGOMILL_TEST:from_gtp_controller_tests")
+    controller.close()
+    rusage = channel.resource_usage
+    tc.assertTrue(hasattr(rusage, 'ru_utime'))
 
