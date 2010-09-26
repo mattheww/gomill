@@ -148,6 +148,11 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
     disable this behaviour (it will ignore the command and respond with EOF
     instead).
 
+    You can force errors by setting the following attributes:
+      fail_next_command   -- bool (send_command_line raises GtpTransportError)
+      fail_next_response  -- bool (get_response_line raises GtpTransportError)
+      force_next_response -- string (get_response_line uses this string)
+
     """
     def __init__(self, engine, engine_exit_breaks_commands=True):
         gtp_controller.Linebased_gtp_channel.__init__(self)
@@ -155,15 +160,20 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         self.stored_response = ""
         self.session_is_ended = False
         self.engine_exit_breaks_commands = engine_exit_breaks_commands
+        self.fail_next_command = False
+        self.fail_next_response = False
+        self.force_next_response = None
 
     def send_command_line(self, command):
-        # Should support triggering GtpTransportError
         if self.stored_response != "":
             raise SupporterError("two commands in a row")
         if self.session_is_ended:
             if self.engine_exit_breaks_commands:
                 raise GtpChannelClosed("engine has closed the command channel")
             return
+        if self.fail_next_command:
+            self.fail_next_command = False
+            raise GtpTransportError("forced failure for send_command_line")
         cmd_list = command.strip().split(" ")
         is_error, response, end_session = \
             self.engine.run_command(cmd_list[0], cmd_list[1:])
@@ -172,12 +182,16 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         self.stored_response = ("? " if is_error else "= ") + response + "\n\n"
 
     def get_response_line(self):
-        # Should support triggering GtpTransportError
-        # Should support returning an ill-formed response, including EOF.
         if self.stored_response == "":
             if self.session_is_ended:
                 return ""
             raise SupporterError("response request without command")
+        if self.fail_next_response:
+            self.fail_next_response = False
+            raise GtpTransportError("forced failure for get_response_line")
+        if self.force_next_response is not None:
+            self.stored_response = self.force_next_response
+            self.force_next_response = None
         line, self.stored_response = self.stored_response.split("\n", 1)
         return line + "\n"
 

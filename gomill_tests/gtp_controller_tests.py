@@ -238,6 +238,24 @@ def test_testing_gtp_channel_sequencing(tc):
         SupporterError, "two commands in a row",
         channel.send_command, "test", [])
 
+def test_testing_gtp_force_error(tc):
+    engine = gtp_controller_test_support.get_test_engine()
+    channel = gtp_controller_test_support.Testing_gtp_channel(engine)
+    channel.fail_next_command = True
+    tc.assertRaisesRegexp(
+        GtpTransportError, "forced failure for send_command_line",
+        channel.send_command, "test", [])
+    channel.send_command("test", [])
+    channel.fail_next_response = True
+    tc.assertRaisesRegexp(
+        GtpTransportError, "forced failure for get_response_line",
+        channel.get_response)
+    channel.force_next_response = "# error\n\n"
+    tc.assertRaisesRegexp(
+        GtpProtocolError,
+        "no success/failure indication from engine: first line is `# error`",
+        channel.get_response)
+
 
 ### Controller-level
 
@@ -278,6 +296,49 @@ def test_controller_first_command_error(tc):
         str(ar.exception),
         "failure response from first command (error) to player test:\n"
         "normal error")
+
+def test_controller_command_transport_error(tc):
+    channel = gtp_controller_test_support.get_test_channel()
+    controller = Gtp_controller(channel, 'player test')
+    tc.assertEqual(controller.do_command("test"), "test response")
+    tc.assertFalse(controller.channel_is_bad)
+    channel.fail_next_command = True
+    with tc.assertRaises(GtpTransportError) as ar:
+        controller.do_command("test")
+    tc.assertEqual(
+        str(ar.exception),
+        "transport error sending 'test' to player test:\n"
+        "forced failure for send_command_line")
+    tc.assertTrue(controller.channel_is_bad)
+
+def test_controller_response_transport_error(tc):
+    channel = gtp_controller_test_support.get_test_channel()
+    controller = Gtp_controller(channel, 'player test')
+    tc.assertFalse(controller.channel_is_bad)
+    channel.fail_next_response = True
+    with tc.assertRaises(GtpTransportError) as ar:
+        controller.do_command("test")
+    tc.assertEqual(
+        str(ar.exception),
+        "transport error reading response to first command (test) "
+        "from player test:\n"
+        "forced failure for get_response_line")
+    tc.assertTrue(controller.channel_is_bad)
+
+def test_controller_response_protocol_error(tc):
+    channel = gtp_controller_test_support.get_test_channel()
+    controller = Gtp_controller(channel, 'player test')
+    tc.assertEqual(controller.do_command("test"), "test response")
+    tc.assertFalse(controller.channel_is_bad)
+    channel.force_next_response = "# error\n\n"
+    with tc.assertRaises(GtpProtocolError) as ar:
+        controller.do_command("test")
+    tc.assertEqual(
+        str(ar.exception),
+        "GTP protocol error reading response to 'test' from player test:\n"
+        "no success/failure indication from engine: first line is `# error`")
+    tc.assertTrue(controller.channel_is_bad)
+
 
 def test_known_command(tc):
     channel = gtp_controller_test_support.get_test_channel()
