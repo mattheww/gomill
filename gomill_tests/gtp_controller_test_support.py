@@ -1,3 +1,4 @@
+import errno
 from cStringIO import StringIO
 
 from gomill import gtp_controller
@@ -5,7 +6,34 @@ from gomill.gtp_controller import (
     GtpChannelError, GtpProtocolError, GtpTransportError, GtpChannelClosed,
     BadGtpResponse)
 
-class Preprogrammed_gtp_channel(gtp_controller.Linebased_gtp_channel):
+class Mock_writing_pipe(object):
+    """Mock writeable pipe object, built on a cStringIO."""
+    def __init__(self):
+        self.is_broken = False
+        self.sink = StringIO()
+
+    def write(self, s):
+        if self.is_broken:
+            raise IOError(errno.EPIPE, "Broken pipe")
+        try:
+            self.sink.write(s)
+        except ValueError, e:
+            raise IOError(errno.EIO, str(e))
+
+    def flush(self):
+        self.sink.flush()
+
+    def close(self):
+        self.sink.close()
+
+    def simulate_broken_pipe(self):
+        self.is_broken = True
+
+    def getvalue(self):
+        return self.sink.getvalue()
+
+
+class Preprogrammed_gtp_channel(gtp_controller.Subprocess_gtp_channel):
     """A Linebased_gtp_channel with preprogrammed response stream.
 
     Instantiate with a string containing the complete response stream.
@@ -18,35 +46,9 @@ class Preprogrammed_gtp_channel(gtp_controller.Linebased_gtp_channel):
     """
     def __init__(self, response):
         gtp_controller.Linebased_gtp_channel.__init__(self)
-        self.command_pipe = StringIO()
+        self.command_pipe = Mock_writing_pipe()
         self.response_pipe = StringIO(response)
         #raise GtpChannelError(s)
-
-
-    # These send and get methods should resemble those from
-    # Subprocess_gtp_channel as much as possible.
-
-    def send_command_line(self, command):
-        try:
-            self.command_pipe.write(command)
-            self.command_pipe.flush()
-        except Exception, e:
-            if "I/O operation on closed file" in str(e):
-                raise GtpChannelClosed("engine has closed the command channel")
-            else:
-                raise GtpTransportError(str(e))
-
-    def get_response_line(self):
-        try:
-            return self.response_pipe.readline()
-        except StandardError, e:
-            raise GtpTransportError(str(e))
-
-    def get_response_byte(self):
-        try:
-            return self.response_pipe.read(1)
-        except StandardError, e:
-            raise GtpTransportError(str(e))
 
     def close(self):
         self.command_pipe.close()
@@ -58,6 +60,10 @@ class Preprogrammed_gtp_channel(gtp_controller.Linebased_gtp_channel):
         """Return the complete contents of the command stream sent so far."""
         return self.command_pipe.getvalue()
 
-    def close_command_stream(self):
-        """Forcibly close the command stream."""
-        self.command_pipe.close()
+    def break_command_stream(self):
+        """Break the simulated pipe for the command stream."""
+        self.command_pipe.simulate_broken_pipe()
+
+    def close_response_stream(self):
+        """Forcibly close the response stream."""
+        self.response_pipe.close()
