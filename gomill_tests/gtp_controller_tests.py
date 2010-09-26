@@ -264,7 +264,7 @@ def test_controller(tc):
         controller.do_command("test")
     tc.assertEqual(str(ar.exception),
                    "error sending 'test' to player test:\n"
-                   "engine has ended the session")
+                   "engine has closed the command channel")
     tc.assertTrue(controller.channel_is_bad)
     controller.close()
 

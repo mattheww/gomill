@@ -129,7 +129,8 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
 
     This raises an error if sent two commands without requesting a response in
     between, or if asked for a response when no command was sent since the last
-    response.
+    response. (GTP permits stacking up commands, but Gtp_controller should never
+    do it, so we want to report it).
 
     Unlike Internal_gtp_channel, this runs the command as the point when it is
     sent.
@@ -204,5 +205,5 @@ def get_test_engine():
 def get_test_channel():
     """Return a Gtp_channel for use with the test engine."""
     engine = get_test_engine()
-    return gtp_controller.Internal_gtp_channel(engine)
+    return Testing_gtp_channel(engine)
 
