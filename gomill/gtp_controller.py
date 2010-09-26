@@ -476,7 +476,6 @@ class Gtp_controller(object):
         self.log_dest = None
         self.gtp_translations = {}
         self.is_first_command = True
-        self.quit_needed = True
         self.errors_seen = []
         self.channel_is_closed = False
         self.channel_is_bad = False
@@ -551,7 +550,6 @@ class Gtp_controller(object):
             is_sending = False
             is_failure, response = self.channel.get_response()
         except GtpChannelError, e:
-            self.quit_needed = False
             self.channel_is_bad = True
             if isinstance(e, GtpTransportError):
                 error_label = "transport error"
