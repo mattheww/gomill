@@ -45,50 +45,47 @@ def test_gmp(tc):
     tc.assertIn("engine appears to be speaking GMP", str(ar.exception))
 
 
-class Mock_gtp_channel(gtp_controller.Linebased_gtp_channel):
-    """A Linebased_gtp_channel with preprogrammed responses."""
-    def __init__(self, responses):
+from cStringIO import StringIO
+
+class Preprogrammed_gtp_channel(gtp_controller.Subprocess_gtp_channel):
+    """A Linebased_gtp_channel with preprogrammed response stream.
+
+    Instantiate with a string containing the complete response stream.
+
+    This will send the contents of the response stream, irrespective of what
+    commands are received.
+
+    The command stream is available from get_command_stream().
+
+    """
+    def __init__(self, response):
         gtp_controller.Linebased_gtp_channel.__init__(self)
-        self.last_command_line = None
-        self.response_lines = []
-        for s in responses:
-            self.response_lines.append(s+"\n")
-            self.response_lines.append("\n")
+        self.command_pipe = StringIO()
+        self.response_pipe = StringIO(response)
         #raise GtpChannelError(s)
 
-    def send_command_line(self, command):
-        self.last_command_line = command
-        #raise GtpChannelClosed("engine has closed the command channel")
-        #raise GtpTransportError(str(e))
-
-    def get_response_line(self):
-        if self.last_command_line is None:
-            raise StandardError("no command sent; this will hang")
-        return self.response_lines.pop(0)
-        #raise GtpTransportError(str(e))
-
-    def get_response_byte(self):
-        if self.last_command_line is None:
-            raise StandardError("no command sent; this will hang")
-        s = self.response_lines.pop(0)
-        result = s[0]
-        if len(s) > 1:
-            self.response_lines[:0] = [s[1:]]
-        return result
-        #raise GtpTransportError(str(e))
-
     def close(self):
-        pass
+        self.command_pipe.close()
+        self.response_pipe.close()
         #self.resource_usage = rusage
         #raise GtpTransportError("\n".join(errors))
 
+    def get_command_stream(self):
+        """Return the complete contents of the command stream sent so far."""
+        return self.command_pipe.getvalue()
+
+
 def test_linebased_channel(tc):
-    channel = Mock_gtp_channel(["=", "="])
-    tc.assertEqual(channel.last_command_line, None)
+    channel = Preprogrammed_gtp_channel("=\n\n=\n\n")
+    tc.assertEqual(channel.get_command_stream(), "")
     channel.send_command("play", ["b", "a3"])
-    tc.assertEqual(channel.last_command_line, "play b a3\n")
+    tc.assertEqual(channel.get_command_stream(), "play b a3\n")
     tc.assertEqual(channel.get_response(), (False, ""))
     channel.send_command("quit", [])
-    tc.assertEqual(channel.last_command_line, "quit\n")
+    tc.assertEqual(channel.get_command_stream(), "play b a3\nquit\n")
     tc.assertEqual(channel.get_response(), (False, ""))
+    tc.assertRaisesRegexp(
+        GtpChannelClosed, "engine has closed the response channel",
+        channel.get_response)
     channel.close()
+
