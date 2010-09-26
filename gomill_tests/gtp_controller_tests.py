@@ -216,3 +216,44 @@ def test_controller_first_error(tc):
         "failure response from first command (error) to player test:\n"
         "normal error")
 
+def test_describe_engine(tc):
+    channel = gtp_controller_test_support.get_test_channel()
+    controller = Gtp_controller(channel, 'player test')
+    short_s, long_s = gtp_controller.describe_engine(controller)
+    tc.assertEqual(short_s, "unknown")
+    tc.assertEqual(long_s, "unknown")
+
+    channel = gtp_controller_test_support.get_test_channel()
+    channel.engine.add_command('name', lambda args:"test engine")
+    controller = Gtp_controller(channel, 'player test')
+    short_s, long_s = gtp_controller.describe_engine(controller)
+    tc.assertEqual(short_s, "test engine")
+    tc.assertEqual(long_s, "test engine")
+
+    channel = gtp_controller_test_support.get_test_channel()
+    channel.engine.add_command('name', lambda args:"test engine")
+    channel.engine.add_command('version', lambda args:"1.2.3")
+    controller = Gtp_controller(channel, 'player test')
+    short_s, long_s = gtp_controller.describe_engine(controller)
+    tc.assertEqual(short_s, "test engine:1.2.3")
+    tc.assertEqual(long_s, "test engine:1.2.3")
+
+    channel = gtp_controller_test_support.get_test_channel()
+    channel.engine.add_command('name', lambda args:"test engine")
+    channel.engine.add_command('version', lambda args:"1.2.3")
+    channel.engine.add_command(
+        'gomill-describe_engine',
+        lambda args:"test engine (v1.2.3):\n  pl\xc3\xa1yer \xa3")
+    controller = Gtp_controller(channel, 'player test')
+    short_s, long_s = gtp_controller.describe_engine(controller)
+    tc.assertEqual(short_s, "test engine:1.2.3")
+    tc.assertEqual(long_s, "test engine (v1.2.3):\n  pl\xc3\xa1yer ?")
+
+    channel = gtp_controller_test_support.get_test_channel()
+    channel.engine.add_command('name', lambda args:"test engine")
+    channel.engine.add_command('version', lambda args:"test engine v1.2.3")
+    controller = Gtp_controller(channel, 'player test')
+    short_s, long_s = gtp_controller.describe_engine(controller)
+    tc.assertEqual(short_s, "test engine:v1.2.3")
+    tc.assertEqual(long_s, "test engine:v1.2.3")
+
