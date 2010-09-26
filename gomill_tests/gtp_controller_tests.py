@@ -35,6 +35,10 @@ def test_linebased_channel_responses(tc):
 
 def test_linebased_channel_response_cleaning(tc):
     channel = Preprogrammed_gtp_channel(
+        # empty response
+        "=\n\n"
+        # whitespace-only response
+        "= \n\n"
         # ignores CRs (GTP spec)
         "= 1abc\rde\r\n\r\n"
         # ignores extra blank lines (GTP spec)
@@ -54,6 +58,8 @@ def test_linebased_channel_response_cleaning(tc):
         # all this at once, in a failure response
         "?    a\raa  \r\n  b\rbb\tcc\x01c\nddd  \t  \n\n"
         )
+    tc.assertEqual(channel.get_response(), (False, ""))
+    tc.assertEqual(channel.get_response(), (False, ""))
     tc.assertEqual(channel.get_response(), (False, "1abcde"))
     tc.assertEqual(channel.get_response(), (False, "2abcde"))
     tc.assertEqual(channel.get_response(), (False, "3abcde"))
@@ -63,6 +69,23 @@ def test_linebased_channel_response_cleaning(tc):
     tc.assertEqual(channel.get_response(), (False, "7aaa  \n  bbb ccc\nddd"))
     tc.assertEqual(channel.get_response(), (False, "8ab\xc3\xa7de"))
     tc.assertEqual(channel.get_response(), (True, "aaa  \n  bbb ccc\nddd"))
+
+def test_linebased_channel_invalid_responses(tc):
+    channel = Preprogrammed_gtp_channel(
+        # good response first, to get past the "isn't speaking GTP" checking
+        "=\n\n"
+        "ERROR\n\n"
+        "# comments not allowed in responses\n\n"
+        )
+    tc.assertEqual(channel.get_response(), (False, ""))
+    tc.assertRaisesRegexp(
+        GtpProtocolError, "^no success/failure indication from engine: "
+                          "first line is `ERROR`$",
+        channel.get_response)
+    tc.assertRaisesRegexp(
+        GtpProtocolError, "^no success/failure indication from engine: "
+                          "first line is `#",
+        channel.get_response)
 
 def test_linebased_channel_without_response(tc):
     channel = Preprogrammed_gtp_channel("")
