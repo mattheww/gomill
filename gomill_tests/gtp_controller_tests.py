@@ -147,7 +147,7 @@ def test_linebased_channel_with_broken_command_pipe(tc):
         channel.send_command, "protocol_version", [])
     channel.close()
 
-def test_linebase_channel_with_broken_response_pipe(tc):
+def test_linebased_channel_with_broken_response_pipe(tc):
     channel = Preprogrammed_gtp_channel("= 2\n\n? unreached\n\n")
     channel.send_command("protocol_version", [])
     tc.assertEqual(channel.get_response(), (False, "2"))
@@ -157,3 +157,24 @@ def test_linebase_channel_with_broken_response_pipe(tc):
         GtpChannelClosed, "^engine has closed the response channel$",
         channel.get_response)
     channel.close()
+
+def test_channel_command_validation(tc):
+    channel = Preprogrammed_gtp_channel("\n\n")
+    # empty command
+    tc.assertRaises(ValueError, channel.send_command, "", [])
+    # space in command
+    tc.assertRaises(ValueError, channel.send_command, "play b a3", [])
+    # space after command
+    tc.assertRaises(ValueError, channel.send_command, "play ", ["b", "a3"])
+    # control character in command
+    tc.assertRaises(ValueError, channel.send_command, "pla\x01y", ["b", "a3"])
+    # unicode command
+    tc.assertRaises(ValueError, channel.send_command, u"protocol_version", [])
+    # space in argument
+    tc.assertRaises(ValueError, channel.send_command, "play", ["b a3"])
+    # unicode argument
+    tc.assertRaises(ValueError, channel.send_command, "play ", [u"b", "a3"])
+    # high characters
+    channel.send_command("pl\xc3\xa1y", ["b", "\xc3\xa13"])
+    tc.assertEqual(channel.get_command_stream(), "pl\xc3\xa1y b \xc3\xa13\n")
+
