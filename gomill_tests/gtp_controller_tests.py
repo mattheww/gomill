@@ -26,7 +26,7 @@ def test_linebased_channel(tc):
         channel.get_response)
     channel.close()
 
-def test_linebased_channel_without_output(tc):
+def test_linebased_channel_without_response(tc):
     channel = Preprogrammed_gtp_channel("")
     channel.send_command("protocol_version", [])
     tc.assertRaisesRegexp(
@@ -44,14 +44,14 @@ def test_linebased_channel_with_usage_message(tc):
         channel.get_response)
     channel.close()
 
-def test_linebased_channel_with_gmp_output(tc):
+def test_linebased_channel_with_gmp_response(tc):
     channel = Preprogrammed_gtp_channel("\x01\xa1\xa0\x80")
     channel.send_command("protocol_version", [])
     tc.assertRaisesRegexp(
         GtpProtocolError, "appears to be speaking GMP", channel.get_response)
     channel.close()
 
-def test_linebased_channel_with_closed_input(tc):
+def test_linebased_channel_with_broken_command_pipe(tc):
     channel = Preprogrammed_gtp_channel(
         "Usage: randomprogram [options]\n\nOptions:\n"
         "--help   show this help message and exit\n")
@@ -59,4 +59,15 @@ def test_linebased_channel_with_closed_input(tc):
     tc.assertRaisesRegexp(
         GtpChannelClosed, "^engine has closed the command channel$",
         channel.send_command, "protocol_version", [])
+    channel.close()
+
+def test_linebase_channel_with_broken_response_pipe(tc):
+    channel = Preprogrammed_gtp_channel("= 2\n\n? unreached\n\n")
+    channel.send_command("protocol_version", [])
+    tc.assertEqual(channel.get_response(), (False, "2"))
+    channel.break_response_stream()
+    channel.send_command("list_commands", [])
+    tc.assertRaisesRegexp(
+        GtpChannelClosed, "^engine has closed the response channel$",
+        channel.get_response)
     channel.close()

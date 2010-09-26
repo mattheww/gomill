@@ -7,10 +7,14 @@ from gomill.gtp_controller import (
     BadGtpResponse)
 
 class Mock_writing_pipe(object):
-    """Mock writeable pipe object, built on a cStringIO."""
+    """Mock writeable pipe object, with an interface like a cStringIO.
+
+    If this is 'broken', it raises IOError(EPIPE) on any further writes.
+
+    """
     def __init__(self):
-        self.is_broken = False
         self.sink = StringIO()
+        self.is_broken = False
 
     def write(self, s):
         if self.is_broken:
@@ -33,6 +37,34 @@ class Mock_writing_pipe(object):
         return self.sink.getvalue()
 
 
+class Mock_reading_pipe(object):
+    """Mock readable pipe object, with an interface like a cStringIO.
+
+    If this is 'broken', it always returns EOF from that point on.
+
+    """
+    def __init__(self, response):
+        self.source = StringIO(response)
+        self.is_broken = False
+
+    def read(self, n):
+        if self.is_broken:
+            return ""
+        return self.source.read(n)
+
+    def readline(self):
+        if self.is_broken:
+            return ""
+        return self.source.readline()
+
+    def close(self):
+        self.source.close()
+
+    def simulate_broken_pipe(self):
+        self.is_broken = True
+
+
+
 class Preprogrammed_gtp_channel(gtp_controller.Subprocess_gtp_channel):
     """A Linebased_gtp_channel with preprogrammed response stream.
 
@@ -47,7 +79,7 @@ class Preprogrammed_gtp_channel(gtp_controller.Subprocess_gtp_channel):
     def __init__(self, response):
         gtp_controller.Linebased_gtp_channel.__init__(self)
         self.command_pipe = Mock_writing_pipe()
-        self.response_pipe = StringIO(response)
+        self.response_pipe = Mock_reading_pipe(response)
         #raise GtpChannelError(s)
 
     def close(self):
@@ -64,6 +96,6 @@ class Preprogrammed_gtp_channel(gtp_controller.Subprocess_gtp_channel):
         """Break the simulated pipe for the command stream."""
         self.command_pipe.simulate_broken_pipe()
 
-    def close_response_stream(self):
-        """Forcibly close the response stream."""
-        self.response_pipe.close()
+    def break_response_stream(self):
+        """Break the simulated pipe for the response stream."""
+        self.response_pipe.simulate_broken_pipe()
