@@ -9,6 +9,14 @@ from gomill import gtp_engine
 from gomill.gtp_engine import GtpError, GtpFatalError
 
 
+class SupporterError(StandardError):
+    """Exception raised by support objects when something goes wrong.
+
+    This is raised to indicate things like sequencing errors detected by mock
+    objects.
+
+    """
+
 class Mock_writing_pipe(object):
     """Mock writeable pipe object, with an interface like a cStringIO.
 
@@ -61,7 +69,7 @@ class Mock_reading_pipe(object):
             return ""
         result = self.source.read(n)
         if self.hangs_before_eof and result == "":
-            raise StandardError("read called with no data; this would hang")
+            raise SupporterError("read called with no data; this would hang")
         return result
 
     def readline(self):
@@ -69,7 +77,7 @@ class Mock_reading_pipe(object):
             return ""
         result = self.source.readline()
         if self.hangs_before_eof and not result.endswith("\n"):
-            raise StandardError(
+            raise SupporterError(
                 "readline called with no newline; this would hang")
         return result
 
@@ -151,7 +159,7 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
     def send_command_line(self, command):
         # Should support triggering GtpTransportError
         if self.stored_response != "":
-            raise StandardError("two commands in a row")
+            raise SupporterError("two commands in a row")
         if self.session_is_ended:
             if self.engine_exit_breaks_commands:
                 raise GtpChannelClosed("engine has closed the command channel")
@@ -169,7 +177,7 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         if self.stored_response == "":
             if self.session_is_ended:
                 return ""
-            raise StandardError("response request without command")
+            raise SupporterError("response request without command")
         line, self.stored_response = self.stored_response.split("\n", 1)
         return line + "\n"
 

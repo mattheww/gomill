@@ -2,7 +2,8 @@
 
 from gomill_tests import gomill_test_support
 from gomill_tests import gtp_controller_test_support
-from gomill_tests.gtp_controller_test_support import Preprogrammed_gtp_channel
+from gomill_tests.gtp_controller_test_support import (
+    SupporterError, Preprogrammed_gtp_channel)
 
 from gomill import gtp_controller
 from gomill.gtp_controller import (
@@ -130,7 +131,7 @@ def test_linebased_channel_hang(tc):
     channel = Preprogrammed_gtp_channel("=prompt> ", hangs_before_eof=True)
     channel.send_command("protocol_version", [])
     tc.assertRaisesRegexp(
-        StandardError, "this would hang", channel.get_response)
+        SupporterError, "this would hang", channel.get_response)
     channel.close()
 
 def test_linebased_channel_with_gmp_response(tc):
@@ -230,11 +231,11 @@ def test_testing_gtp_channel_sequencing(tc):
     engine = gtp_controller_test_support.get_test_engine()
     channel = gtp_controller_test_support.Testing_gtp_channel(engine)
     tc.assertRaisesRegexp(
-        StandardError, "response request without command",
+        SupporterError, "response request without command",
         channel.get_response)
     channel.send_command("test", [])
     tc.assertRaisesRegexp(
-        StandardError, "two commands in a row",
+        SupporterError, "two commands in a row",
         channel.send_command, "test", [])
 
 
