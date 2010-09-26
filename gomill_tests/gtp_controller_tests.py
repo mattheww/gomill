@@ -455,9 +455,14 @@ def test_subprocess_channel(tc):
     finally:
         os.close(wr)
         os.close(rd)
+    tc.assertIsNone(channel.resource_usage)
     channel.send_command("tell", [])
     tc.assertEqual(channel.get_response(),
                    (False, "cwd: /\nGOMILL_TEST:from_gtp_controller_tests"))
+    channel.close()
+    rusage = channel.resource_usage
+    tc.assertTrue(hasattr(rusage, 'ru_utime'))
+    tc.assertTrue(hasattr(rusage, 'ru_stime'))
 
 def test_subprocess_channel_nonexistent_program(tc):
     with tc.assertRaises(GtpChannelError) as ar:
