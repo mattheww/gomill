@@ -279,6 +279,29 @@ def test_controller_first_command_error(tc):
         "failure response from first command (error) to player test:\n"
         "normal error")
 
+def test_known_command(tc):
+    channel = gtp_controller_test_support.get_test_channel()
+    controller = Gtp_controller(channel, 'kc test')
+    tc.assertTrue(controller.known_command("test"))
+    tc.assertFalse(controller.known_command("nonesuch"))
+
+def test_known_command_2(tc):
+    # Checking that known_command caches its responses
+    # and that it treats an error or unknown value the same as 'false'.
+    channel = Preprogrammed_gtp_channel(
+        "= true\n\n= absolutely not\n\n? error\n\n# unreached\n\n")
+    controller = Gtp_controller(channel, 'preprogrammed test')
+    tc.assertTrue(controller.known_command("one"))
+    tc.assertFalse(controller.known_command("two"))
+    tc.assertFalse(controller.known_command("three"))
+    tc.assertTrue(controller.known_command("one"))
+    tc.assertFalse(controller.known_command("two"))
+    tc.assertEqual(
+        channel.get_command_stream(),
+        "known_command one\nknown_command two\nknown_command three\n")
+
+
+
 def test_describe_engine(tc):
     channel = gtp_controller_test_support.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
