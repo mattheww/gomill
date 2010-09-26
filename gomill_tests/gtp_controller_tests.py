@@ -112,6 +112,23 @@ def test_linebased_channel_with_usage_message_response(tc):
         channel.get_response)
     channel.close()
 
+def test_linebased_channel_with_interactive_response(tc):
+    channel = Preprogrammed_gtp_channel("prompt> \n", hangs_before_eof=True)
+    channel.send_command("protocol_version", [])
+    tc.assertRaisesRegexp(
+        GtpProtocolError, "^engine isn't speaking GTP", channel.get_response)
+    channel.close()
+
+def test_linebased_channel_hang(tc):
+    # Correct behaviour for a GTP controller here is to wait for a newline.
+    # (Would be nice to have a timeout.)
+    # This serves as a check that the hangs_before_eof modelling is working.
+    channel = Preprogrammed_gtp_channel("=prompt> ", hangs_before_eof=True)
+    channel.send_command("protocol_version", [])
+    tc.assertRaisesRegexp(
+        StandardError, "this would hang", channel.get_response)
+    channel.close()
+
 def test_linebased_channel_with_gmp_response(tc):
     channel = Preprogrammed_gtp_channel("\x01\xa1\xa0\x80",
                                         hangs_before_eof=True)
