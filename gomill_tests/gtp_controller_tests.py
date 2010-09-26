@@ -440,18 +440,27 @@ def test_describe_engine(tc):
 ### Subprocess-specific
 
 def test_subprocess_channel(tc):
-    # This tests that Subprocess_gtp_channel really launches a subprocess
-    # It also checks that the 'env' and 'cwd' parameters work
+    # This tests that Subprocess_gtp_channel really launches a subprocess.
+    # It also checks that the 'stderr', 'env' and 'cwd' parameters work.
     pathname = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "subprocess_state_reporter.py"))
-    devnull = open(os.devnull, "w")
-    channel = gtp_controller.Subprocess_gtp_channel(
-        ["python", pathname],
-        stderr=devnull,
-        env={'GOMILL_TEST' : "from_gtp_controller_tests"},
-        cwd="/")
-    devnull.close()
+    rd, wr = os.pipe()
+    try:
+        channel = gtp_controller.Subprocess_gtp_channel(
+            ["python", pathname],
+            stderr=wr,
+            env={'GOMILL_TEST' : "from_gtp_controller_tests"},
+            cwd="/")
+        tc.assertEqual(os.read(rd, 256), "subprocess_state_reporter: testing\n")
+    finally:
+        os.close(wr)
+        os.close(rd)
     channel.send_command("tell", [])
     tc.assertEqual(channel.get_response(),
                    (False, "cwd: /\nGOMILL_TEST:from_gtp_controller_tests"))
+
+def test_subprocess_channel_nonexistent_program(tc):
+    with tc.assertRaises(GtpChannelError) as ar:
+        gtp_controller.Subprocess_gtp_channel(["/nonexistent/program"])
+    tc.assertIn("[Errno 2] No such file or directory", str(ar.exception))
 
