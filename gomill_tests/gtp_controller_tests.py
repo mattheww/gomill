@@ -1,7 +1,7 @@
 """Tests for gtp_controller.py"""
 
 from gomill_tests import gomill_test_support
-from gomill_tests import gtp_controller_test_support
+from gomill_tests.gtp_controller_test_support import Preprogrammed_gtp_channel
 
 from gomill import gtp_controller
 from gomill.gtp_controller import (
@@ -13,8 +13,7 @@ def make_tests(suite):
 
 
 def test_linebased_channel(tc):
-    channel = gtp_controller_test_support.Preprogrammed_gtp_channel(
-        "=\n\n=\n\n")
+    channel = Preprogrammed_gtp_channel("=\n\n=\n\n")
     tc.assertEqual(channel.get_command_stream(), "")
     channel.send_command("play", ["b", "a3"])
     tc.assertEqual(channel.get_command_stream(), "play b a3\n")
@@ -28,7 +27,7 @@ def test_linebased_channel(tc):
     channel.close()
 
 def test_linebased_channel_without_output(tc):
-    channel = gtp_controller_test_support.Preprogrammed_gtp_channel("")
+    channel = Preprogrammed_gtp_channel("")
     channel.send_command("protocol_version", [])
     tc.assertRaisesRegexp(
         GtpChannelClosed, "^engine has closed the response channel$",
@@ -36,7 +35,7 @@ def test_linebased_channel_without_output(tc):
     channel.close()
 
 def test_linebased_channel_with_usage_message(tc):
-    channel = gtp_controller_test_support.Preprogrammed_gtp_channel(
+    channel = Preprogrammed_gtp_channel(
         "Usage: randomprogram [options]\n\nOptions:\n"
         "--help   show this help message and exit\n")
     channel.send_command("protocol_version", [])
@@ -46,8 +45,7 @@ def test_linebased_channel_with_usage_message(tc):
     channel.close()
 
 def test_linebased_channel_with_gmp_output(tc):
-    channel = gtp_controller_test_support.Preprogrammed_gtp_channel(
-        "\x01\xa1\xa0\x80")
+    channel = Preprogrammed_gtp_channel("\x01\xa1\xa0\x80")
     channel.send_command("protocol_version", [])
     tc.assertRaisesRegexp(
         GtpProtocolError, "appears to be speaking GMP", channel.get_response)
