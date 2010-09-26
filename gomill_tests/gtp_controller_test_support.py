@@ -56,7 +56,10 @@ class Mock_reading_pipe(object):
     def read(self, n):
         if self.is_broken:
             return ""
-        return self.source.read(n)
+        result = self.source.read(n)
+        if self.hangs_before_eof and result == "":
+            raise StandardError("read called with no data; this would hang")
+        return result
 
     def readline(self):
         if self.is_broken:
