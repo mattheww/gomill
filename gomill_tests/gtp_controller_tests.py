@@ -205,3 +205,14 @@ def test_controller(tc):
                    "error sending 'test' to player test:\n"
                    "engine has ended the session")
     controller.close()
+
+def test_controller_first_error(tc):
+    channel = gtp_controller_test_support.get_test_channel()
+    controller = Gtp_controller(channel, 'player test')
+    with tc.assertRaises(BadGtpResponse) as ar:
+        controller.do_command("error")
+    tc.assertEqual(
+        str(ar.exception),
+        "failure response from first command (error) to player test:\n"
+        "normal error")
+
