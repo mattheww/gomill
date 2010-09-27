@@ -1,5 +1,6 @@
 """Gomill-specific test support code."""
 
+from gomill_tests.test_framework import unittest2
 from gomill_tests import test_framework
 
 from gomill.gomill_common import *
@@ -56,8 +57,8 @@ class Gomill_testcase_mixin(object):
         self.addTypeEqualityFunc(boards.Board, self.assertBoardEqual)
 
     def _format_message(self, msg, standardMsg):
-        # This is the same as _formatMessage from unittest2; copying it
-        # because it's not part of the public API.
+        # This is the same as _formatMessage from python 2.7 unittest; copying
+        # it because it's not part of the public API.
         if not self.longMessage:
             return msg or standardMsg
         if msg is None:
@@ -65,8 +66,8 @@ class Gomill_testcase_mixin(object):
         try:
             return '%s : %s' % (standardMsg, msg)
         except UnicodeDecodeError:
-            return '%s : %s' % (unittest2.util.safe_str(standardMsg),
-                                unittest2.util.safe_str(msg))
+            return '%s : %s' % (unittest2.util.safe_repr(standardMsg),
+                                unittest2.util.safe_repr(msg))
 
     def assertBoardEqual(self, b1, b2, msg=None):
         are_equal, desc = compare_boards(b1, b2)
