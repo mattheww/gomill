@@ -48,7 +48,7 @@ def worker_run_jobs(job_queue, response_queue):
                 response = JobError(job, str(e))
                 sys.exc_clear()
                 del e
-            except StandardError:
+            except Exception:
                 response = JobError(
                     job, compact_tracebacks.format_traceback(skip=1))
                 sys.exc_clear()
@@ -95,7 +95,7 @@ class Multiprocessing_job_manager(Job_manager):
             if active_jobs < self.number_of_workers:
                 try:
                     job = job_source.get_job()
-                except StandardError, e:
+                except Exception, e:
                     for cls in self.passed_exceptions:
                         if isinstance(e, cls):
                             raise
@@ -115,7 +115,7 @@ class Multiprocessing_job_manager(Job_manager):
                 try:
                     job_source.process_error_response(
                         response.job, response.msg)
-                except StandardError, e:
+                except Exception, e:
                     for cls in self.passed_exceptions:
                         if isinstance(e, cls):
                             raise
@@ -125,7 +125,7 @@ class Multiprocessing_job_manager(Job_manager):
             else:
                 try:
                     job_source.process_response(response)
-                except StandardError, e:
+                except Exception, e:
                     for cls in self.passed_exceptions:
                         if isinstance(e, cls):
                             raise
@@ -151,7 +151,7 @@ class In_process_job_manager(Job_manager):
         while True:
             try:
                 job = job_source.get_job()
-            except StandardError, e:
+            except Exception, e:
                 for cls in self.passed_exceptions:
                     if isinstance(e, cls):
                         raise
@@ -162,14 +162,14 @@ class In_process_job_manager(Job_manager):
                 break
             try:
                 response = job.run()
-            except StandardError, e:
+            except Exception, e:
                 if isinstance(e, JobFailed):
                     msg = str(e)
                 else:
                     msg = compact_tracebacks.format_traceback(skip=1)
                 try:
                     job_source.process_error_response(job, msg)
-                except StandardError, e:
+                except Exception, e:
                     for cls in self.passed_exceptions:
                         if isinstance(e, cls):
                             raise
@@ -179,7 +179,7 @@ class In_process_job_manager(Job_manager):
             else:
                 try:
                     job_source.process_response(response)
-                except StandardError, e:
+                except Exception, e:
                     for cls in self.passed_exceptions:
                         if isinstance(e, cls):
                             raise
@@ -208,10 +208,10 @@ def run_jobs(job_source, max_workers=None, allow_mp=True,
     job_manager.start_workers()
     try:
         job_manager.run_jobs(job_source)
-    except StandardError:
+    except Exception:
         try:
             job_manager.finish()
-        except StandardError, e2:
+        except Exception, e2:
             print >>sys.stderr, "Error closing down workers:\n%s" % e2
         raise
     job_manager.finish()

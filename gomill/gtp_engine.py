@@ -231,7 +231,7 @@ class Gtp_engine_protocol(object):
     exception message will be reported, as a success or failure response
     respectively.
 
-    If they raise another exception (instance of StandardError), this will be
+    If they raise another exception (instance of Exception), this will be
     reported as 'internal error', followed by the exception description and
     traceback. By default, this is not treated as a fatal error; use
     set_handler_exceptions_fatal() to change this.
@@ -280,9 +280,9 @@ class Gtp_engine_protocol(object):
             raise GtpError("unknown command")
         try:
             return handler(args)
-        except GtpError:
+        except (GtpError, GtpQuit):
             raise
-        except StandardError:
+        except Exception:
             traceback = compact_tracebacks.format_traceback(skip=1)
             if self.handler_exceptions_are_fatal:
                 raise GtpFatalError("internal error; exiting\n" + traceback)
@@ -502,7 +502,7 @@ def run_interactive_gtp_session(engine):
 
     try:
         import readline
-    except StandardError:
+    except Exception:
         run_gtp_session(engine, sys.stdin, sys.stdout)
         return
 

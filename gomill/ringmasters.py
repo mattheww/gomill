@@ -134,6 +134,8 @@ class Ringmaster(object):
             config = interpret_python(
                 control_u, self.competition.control_file_globals(),
                 display_filename=self.control_pathname)
+        except KeyboardInterrupt:
+            raise
         except:
             raise ControlFileError(compact_tracebacks.format_error_and_line())
 
@@ -144,7 +146,7 @@ class Ringmaster(object):
             self._initialise_from_control_file(config)
         except ControlFileError:
             raise
-        except StandardError, e:
+        except Exception, e:
             raise RingmasterError("unhandled error in control file:\n%s" %
                                   compact_tracebacks.format_traceback(skip=1))
 
@@ -152,7 +154,7 @@ class Ringmaster(object):
             self.competition.initialise_from_control_file(config)
         except ControlFileError:
             raise
-        except StandardError, e:
+        except Exception, e:
             raise RingmasterError("unhandled error in control file:\n%s" %
                                   compact_tracebacks.format_traceback(skip=1))
 
@@ -345,7 +347,7 @@ class Ringmaster(object):
             f.close()
         except pickle.UnpicklingError:
             raise RingmasterError("corrupt status file")
-        except StandardError, e:
+        except Exception, e:
             raise RingmasterError("error reading status file: %s" % e)
         if status_format_version != self.status_format_version:
             raise RingmasterError("incompatible status file")
@@ -586,7 +588,7 @@ class Ringmaster(object):
             try:
                 msg = "games in progress were: %s" % (
                     " ".join(sorted(self.games_in_progress)))
-            except:
+            except Exception:
                 pass
             self.log(msg)
 

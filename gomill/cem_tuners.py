@@ -140,7 +140,7 @@ class Cem_tuner(Competition):
         try:
             self.initial_distribution = Distribution(
                 specials['initial_distribution'])
-        except StandardError:
+        except Exception:
             raise ControlFileError("initial_distribution: invalid")
 
         try:
@@ -216,13 +216,13 @@ class Cem_tuner(Competition):
     def _make_candidate(self, candidate_code, optimiser_params):
         try:
             engine_parameters = self.translate_parameters_fn(optimiser_params)
-        except StandardError:
+        except Exception:
             raise CompetitionError(
                 "error from user-defined parameter converter\n%s" %
                 compact_tracebacks.format_traceback(skip=1))
         try:
             candidate_config = self.candidate_maker_fn(engine_parameters)
-        except StandardError:
+        except Exception:
             raise CompetitionError(
                 "error from user-defined candidate function\n%s" %
                 compact_tracebacks.format_traceback(skip=1))
@@ -233,7 +233,7 @@ class Cem_tuner(Competition):
         try:
             candidate = self.game_jobs_player_from_config(
                 candidate_code, candidate_config)
-        except StandardError, e:
+        except Exception, e:
             raise CompetitionError(
                 "error making candidate player\nparameters: %s\nerror: %s" %
                 (self.format_parameters(optimiser_params), e))
@@ -348,7 +348,7 @@ class Cem_tuner(Competition):
     def format_parameters(self, optimiser_parameters):
         try:
             return self.format_parameters_fn(optimiser_parameters)
-        except StandardError:
+        except Exception:
             return ("[error from user-defined parameter formatter]\n"
                     "[optimiser parameters %s]" % optimiser_parameters)
 

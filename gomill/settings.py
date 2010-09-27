@@ -128,7 +128,7 @@ def interpret_sequence(l):
     """
     try:
         l = list(l)
-    except StandardError:
+    except Exception:
         raise ValueError("not a sequence")
     return l
 
@@ -156,7 +156,7 @@ def interpret_map(m):
     """
     try:
         d = dict(m)
-    except StandardError:
+    except Exception:
         raise ValueError("not a map")
     return d.items()
 

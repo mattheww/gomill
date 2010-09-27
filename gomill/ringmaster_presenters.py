@@ -159,7 +159,7 @@ class Clearing_presenter(Presenter):
         if self.clear_method is None:
             try:
                 isatty = os.isatty(sys.stdout.fileno())
-            except StandardError:
+            except Exception:
                 isatty = False
             if isatty:
                 self.clear_method = "clear"
@@ -169,7 +169,7 @@ class Clearing_presenter(Presenter):
         if self.clear_method == "clear":
             try:
                 retcode = subprocess.call("clear")
-            except StandardError:
+            except Exception:
                 retcode = 1
             if retcode != 0:
                 self.clear_method = "newlines"

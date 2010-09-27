@@ -37,7 +37,7 @@ class Terminal_reader(object):
             new_cc[termios.VMIN] = 0
             self.cbreak_tcattr = [
                 iflag, oflag, cflag, new_lflag, ispeed, ospeed, new_cc]
-        except StandardError:
+        except Exception:
             self.enabled = False
             return
 

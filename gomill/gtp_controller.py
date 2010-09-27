@@ -107,7 +107,7 @@ class Gtp_channel(object):
         try:
             self.log_dest.write(marker + self.log_prefix + message + "\n")
             self.log_dest.flush()
-        except StandardError:
+        except Exception:
             pass
 
     def send_command(self, command, arguments):

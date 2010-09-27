@@ -498,7 +498,7 @@ class Mcts_tuner(Competition):
     def format_parameters(self, optimiser_parameters):
         try:
             return self.format_parameters_fn(optimiser_parameters)
-        except StandardError:
+        except Exception:
             return ("[error from format_parameters()]\n"
                     "[optimiser parameters %s]" % optimiser_parameters)
 
@@ -511,13 +511,13 @@ class Mcts_tuner(Competition):
         try:
             engine_parameters = \
                 self.translate_parameters_fn(optimiser_parameters)
-        except StandardError:
+        except Exception:
             raise CompetitionError(
                 "error from convert_optimiser_parameters_to_engine_parameters"
                 "\n%s" % compact_tracebacks.format_traceback(skip=1))
         try:
             candidate_config = self.candidate_maker_fn(engine_parameters)
-        except StandardError:
+        except Exception:
             raise CompetitionError(
                 "error from make_candidate()\n%s" %
                 compact_tracebacks.format_traceback(skip=1))
@@ -528,7 +528,7 @@ class Mcts_tuner(Competition):
         try:
             candidate = self.game_jobs_player_from_config(
                 player_code, candidate_config)
-        except StandardError, e:
+        except Exception, e:
             raise CompetitionError(
                 "bad player spec from make_candidate():\n"
                 "%s\nparameters were: %s" %

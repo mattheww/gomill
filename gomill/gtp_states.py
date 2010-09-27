@@ -535,7 +535,7 @@ class Gtp_state(object):
                     raise ValueError
                 identifier = identifier.upper()
                 value = value.replace("\\_", " ").replace("\\\\", "\\")
-            except StandardError:
+            except Exception:
                 gtp_engine.report_bad_arguments()
             sgf_game.set_root_property(identifier, value)
         if not self.history_base.is_empty():

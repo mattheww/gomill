@@ -20,7 +20,7 @@ def main(executable):
         if sys.argv[1] not in ("--9", "--13", "--19"):
             raise ValueError
         size = sys.argv[1][2:]
-    except StandardError:
+    except Exception:
         sys.exit("mogo_wrapper: first parameter must be --9, --13, or --19")
 
     def handle_boardsize(args):

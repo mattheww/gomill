@@ -113,11 +113,11 @@ class Competition(object):
             raise ValueError("empty pathname")
         try:
             pathname = os.path.expanduser(pathname)
-        except StandardError:
+        except Exception:
             raise ValueError("bad pathname")
         try:
             return os.path.join(self.base_directory, pathname)
-        except StandardError:
+        except Exception:
             raise ValueError(
                 "relative path supplied but base directory isn't set")
 
@@ -218,7 +218,7 @@ class Competition(object):
             try:
                 player = self.game_jobs_player_from_config(
                     player_code, player_config)
-            except StandardError, e:
+            except Exception, e:
                 raise ControlFileError("player %s: %s" % (player_code, e))
             self.players[player_code] = player
 
@@ -248,12 +248,12 @@ class Competition(object):
         try:
             player.cmd_args = shlex.split(config['command_string'])
             player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
-        except StandardError, e:
+        except Exception, e:
             raise ControlFileError("'command_string': %s" % e)
 
         try:
             player.cwd = self.resolve_pathname(config['cwd'])
-        except StandardError, e:
+        except Exception, e:
             raise ControlFileError("'cwd': %s" % e)
         player.environ = config['environ']
 
@@ -265,7 +265,7 @@ class Competition(object):
                     if not all(gtp_controller.is_well_formed_gtp_word(word)
                                for word in words):
                         raise StandardError
-                except StandardError:
+                except Exception:
                     raise ValueError("invalid command string %s" % s)
                 player.startup_gtp_commands.append((words[0], words[1:]))
         except ValueError, e:

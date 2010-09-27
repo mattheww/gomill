@@ -37,7 +37,7 @@ class Kgs_proxy(object):
         self.filename_template = "%04d.sgf"
         try:
             opts.filename_template % 3
-        except StandardError:
+        except Exception:
             pass
         else:
             self.filename_template = opts.filename_template
