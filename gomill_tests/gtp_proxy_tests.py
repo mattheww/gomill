@@ -16,28 +16,48 @@ def _make_proxy():
     proxy.set_back_end_controller(controller)
     return proxy
 
+def check_engine(tc, engine, command, args, expected,
+                 expect_failure=False, expect_end=False):
+    """Send a command to an engine and check its response.
+
+    tc             -- testcase
+    engine         -- Gtp_engine_protocol
+    command        -- gtp command to send
+    args           -- list of gtp arguments to send
+    expected       -- expected response string
+    expect_failure -- expect a GTP failure response
+    expect_end     -- expect the engine to report 'end session'
+
+    If the response isn't as expected, uses 'tc' to report this.
+
+    """
+    failure, response, end = engine.run_command(command, args)
+    if expect_failure:
+        tc.assertTrue(failure,
+                      "unexpected GTP success response: %s" % response)
+    else:
+        tc.assertFalse(failure,
+                       "unexpected GTP failure response: %s" % response)
+    tc.assertEqual(response, expected, "GTP response not as expected")
+    if expect_end:
+        tc.assertTrue(end, "expected end-session not seen")
+    else:
+        tc.assertFalse(end, "unexpected end-session")
+
 def test_proxy(tc):
     proxy = _make_proxy()
-    tc.assertEqual(
-        proxy.engine.run_command('test', ['ab', 'cd']),
-        (False, 'args: ab cd', False))
+    check_engine(tc, proxy.engine, 'test', ['ab', 'cd'], "args: ab cd")
     proxy.close()
 
 def test_passthrough(tc):
     proxy = _make_proxy()
-    tc.assertEqual(
-        proxy.engine.run_command(
-            'known_command', ['gomill-passthrough']),
-        (False, 'true', False))
-    tc.assertEqual(
-        proxy.engine.run_command(
-            'test', ['ab', 'cd']),
-        (False, 'args: ab cd', False))
-    tc.assertEqual(
-        proxy.engine.run_command(
-            'gomill-passthrough', ['known_command', 'gomill-passthrough']),
-        (False, 'false', False))
-    tc.assertEqual(
-        proxy.engine.run_command('gomill-passthrough', []),
-        (True, 'invalid arguments', False))
-
+    check_engine(tc, proxy.engine,
+                 'known_command', ['gomill-passthrough'], "true")
+    check_engine(tc, proxy.engine,
+                 'gomill-passthrough', ['test', 'ab', 'cd'], "args: ab cd")
+    check_engine(tc, proxy.engine,
+                 'gomill-passthrough', ['known_command', 'gomill-passthrough'],
+                 "false")
+    check_engine(tc, proxy.engine,
+                 'gomill-passthrough', [],
+                 "invalid arguments", expect_failure=True)
