@@ -57,6 +57,12 @@ def test_list_commands(tc):
          'list_commands', 'multiline', 'protocol_version', 'quit', 'test'])
     proxy.close()
 
+def test_back_end_has_command(tc):
+    proxy = _make_proxy()
+    tc.assertTrue(proxy.back_end_has_command('test'))
+    tc.assertFalse(proxy.back_end_has_command('xyzzy'))
+    tc.assertFalse(proxy.back_end_has_command('gomill-passthrough'))
+
 def test_passthrough(tc):
     proxy = _make_proxy()
     check_engine(tc, proxy.engine,
