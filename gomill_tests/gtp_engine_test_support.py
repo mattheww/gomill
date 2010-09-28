@@ -8,10 +8,10 @@ def check_engine(tc, engine, command, args, expected,
                  expect_failure=False, expect_end=False):
     """Send a command to an engine and check its response.
 
-    tc             -- testcase
+    tc             -- TestCase
     engine         -- Gtp_engine_protocol
-    command        -- gtp command to send
-    args           -- list of gtp arguments to send
+    command        -- GTP command to send
+    args           -- list of GTP arguments to send
     expected       -- expected response string
     expect_failure -- expect a GTP failure response
     expect_end     -- expect the engine to report 'end session'
