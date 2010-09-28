@@ -80,8 +80,13 @@ def test_passthrough(tc):
 
 def test_handle_command(tc):
     def handle_xyzzy(args):
-        return proxy.handle_command("test", ["nothing", "happens"])
+        if args and args[0] == "error":
+            return proxy.handle_command("error", [])
+        else:
+            return proxy.handle_command("test", ["nothing", "happens"])
     proxy = _make_proxy()
     proxy.engine.add_command("xyzzy", handle_xyzzy)
     check_engine(tc, proxy.engine, 'xyzzy', [], "args: nothing happens")
+    check_engine(tc, proxy.engine, 'xyzzy', ['error'],
+                 "normal error", expect_failure=True)
 
