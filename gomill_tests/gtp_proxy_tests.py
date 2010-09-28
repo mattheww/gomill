@@ -1,10 +1,15 @@
 """Tests for gtp_proxy.py"""
 
+from __future__ import with_statement
+
 from gomill_tests import gomill_test_support
 from gomill_tests import gtp_controller_test_support
 
 from gomill import gtp_controller
 from gomill import gtp_proxy
+from gomill.gtp_controller import (
+    GtpChannelError, GtpProtocolError, GtpTransportError, GtpChannelClosed,
+    BadGtpResponse, Gtp_controller)
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
@@ -77,6 +82,16 @@ def test_passthrough(tc):
     check_engine(tc, proxy.engine,
                  'gomill-passthrough', [],
                  "invalid arguments", expect_failure=True)
+
+def test_pass_command(tc):
+    proxy = _make_proxy()
+    tc.assertEqual(proxy.pass_command("test", ["ab", "cd"]), "args: ab cd")
+    with tc.assertRaises(BadGtpResponse) as ar:
+        proxy.pass_command("error", [])
+    tc.assertEqual(ar.exception.gtp_error_message, "normal error")
+    tc.assertEqual(str(ar.exception),
+                   "failure response from 'error' to testbackend:\n"
+                   "normal error")
 
 def test_handle_command(tc):
     def handle_xyzzy(args):
