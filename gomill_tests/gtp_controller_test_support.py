@@ -205,7 +205,10 @@ def get_test_engine():
     """Return a Gtp_engine_protocol useful for testing controllers."""
 
     def handle_test(args):
-        return "test response"
+        if args:
+            return "args: " + " ".join(args)
+        else:
+            return "test response"
 
     def handle_multiline(args):
         return "first line  \n  second line\nthird line"

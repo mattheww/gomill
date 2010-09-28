@@ -271,7 +271,7 @@ def test_controller(tc):
     tc.assertIs(controller.channel, channel)
     tc.assertFalse(controller.channel_is_bad)
 
-    tc.assertEqual(controller.do_command("test"), "test response")
+    tc.assertEqual(controller.do_command("test", "ab", "cd"), "args: ab cd")
     with tc.assertRaises(BadGtpResponse) as ar:
         controller.do_command("error")
     tc.assertEqual(ar.exception.gtp_error_message, "normal error")
