@@ -126,4 +126,18 @@ def test_nontgtp_backend(tc):
                    "GTP protocol error reading response to first command "
                    "(list_commands) from testbackend:\n"
                    "engine isn't speaking GTP: first byte is 'U'")
+    proxy.close()
 
+def test_error_from_list_commands(tc):
+    def force_error(args):
+        1 / 0
+    channel = gtp_controller_test_support.get_test_channel()
+    channel.engine.add_command("list_commands", force_error)
+    controller = gtp_controller.Gtp_controller(channel, 'testbackend')
+    proxy = gtp_proxy.Gtp_proxy()
+    with tc.assertRaises(BackEndError) as ar:
+        proxy.set_back_end_controller(controller)
+    tc.assertIn("failure response from first command "
+                "(list_commands) to testbackend:\n",
+                str(ar.exception))
+    proxy.close()
