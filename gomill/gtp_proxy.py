@@ -95,6 +95,8 @@ class Gtp_proxy(object):
 
         Raises BackEndError if it can't communicate with the back end.
 
+        By convention, the controller's channel name should be "back end".
+
         """
         if self._back_end_is_set():
             raise StandardError("back end already set")
