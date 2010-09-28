@@ -10,6 +10,7 @@ test_modules = [
     'board_tests',
     'sgf_writer_tests',
     'gtp_controller_tests',
+    'gtp_proxy_tests',
     ]
 
 def get_test_modules():
