@@ -49,6 +49,14 @@ def test_proxy(tc):
     check_engine(tc, proxy.engine, 'test', ['ab', 'cd'], "args: ab cd")
     proxy.close()
 
+def test_list_commands(tc):
+    proxy = _make_proxy()
+    tc.assertListEqual(
+        proxy.engine.list_commands(),
+        ['error', 'fatal', 'gomill-passthrough', 'known_command',
+         'list_commands', 'multiline', 'protocol_version', 'quit', 'test'])
+    proxy.close()
+
 def test_passthrough(tc):
     proxy = _make_proxy()
     check_engine(tc, proxy.engine,
