@@ -105,3 +105,11 @@ def test_handle_command(tc):
     check_engine(tc, proxy.engine, 'xyzzy', ['error'],
                  "normal error", expect_failure=True)
 
+def test_back_end_goes_away(tc):
+    proxy = _make_proxy()
+    tc.assertEqual(proxy.pass_command("quit", []), "")
+    check_engine(tc, proxy.engine, 'test', ['ab', 'cd'],
+                 "error sending 'test ab cd' to testbackend:\n"
+                 "engine has closed the command channel",
+                 expect_failure=True, expect_end=True)
+
