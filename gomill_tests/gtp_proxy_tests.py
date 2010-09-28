@@ -77,3 +77,11 @@ def test_passthrough(tc):
     check_engine(tc, proxy.engine,
                  'gomill-passthrough', [],
                  "invalid arguments", expect_failure=True)
+
+def test_handle_command(tc):
+    def handle_xyzzy(args):
+        return proxy.handle_command("test", ["nothing", "happens"])
+    proxy = _make_proxy()
+    proxy.engine.add_command("xyzzy", handle_xyzzy)
+    check_engine(tc, proxy.engine, 'xyzzy', [], "args: nothing happens")
+
