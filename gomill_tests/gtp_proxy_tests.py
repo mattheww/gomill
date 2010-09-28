@@ -10,6 +10,7 @@ from gomill import gtp_proxy
 from gomill.gtp_controller import (
     GtpChannelError, GtpProtocolError, GtpTransportError, GtpChannelClosed,
     BadGtpResponse, Gtp_controller)
+from gomill.gtp_proxy import BackEndError
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
@@ -112,4 +113,17 @@ def test_back_end_goes_away(tc):
                  "error sending 'test ab cd' to testbackend:\n"
                  "engine has closed the command channel",
                  expect_failure=True, expect_end=True)
+
+def test_nontgtp_backend(tc):
+    channel = gtp_controller_test_support.Preprogrammed_gtp_channel(
+        "Usage: randomprogram [options]\n\nOptions:\n"
+        "--help   show this help message and exit\n")
+    controller = gtp_controller.Gtp_controller(channel, 'testbackend')
+    proxy = gtp_proxy.Gtp_proxy()
+    with tc.assertRaises(BackEndError) as ar:
+        proxy.set_back_end_controller(controller)
+    tc.assertEqual(str(ar.exception),
+                   "GTP protocol error reading response to first command "
+                   "(list_commands) from testbackend:\n"
+                   "engine isn't speaking GTP: first byte is 'U'")
 
