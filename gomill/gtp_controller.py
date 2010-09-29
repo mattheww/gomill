@@ -642,6 +642,8 @@ class Gtp_controller(object):
         engine to exit.
 
         """
+        if self.channel_is_closed:
+            raise StandardError("channel is closed")
         try:
             self.channel.close()
         except GtpTransportError, e:
