@@ -152,6 +152,7 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
       fail_next_command   -- bool (send_command_line raises GtpTransportError)
       fail_next_response  -- bool (get_response_line raises GtpTransportError)
       force_next_response -- string (get_response_line uses this string)
+      fail_close          -- bool (close raises GtpTransportError)
 
     """
     def __init__(self, engine):
@@ -159,12 +160,16 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         self.engine = engine
         self.stored_response = ""
         self.session_is_ended = False
+        self.is_closed = False
         self.engine_exit_breaks_commands = True
         self.fail_next_command = False
         self.fail_next_response = False
         self.force_next_response = None
+        self.fail_close = False
 
     def send_command_line(self, command):
+        if self.is_closed:
+            raise SupporterError("channel is closed")
         if self.stored_response != "":
             raise SupporterError("two commands in a row")
         if self.session_is_ended:
@@ -182,6 +187,8 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         self.stored_response = ("? " if is_error else "= ") + response + "\n\n"
 
     def get_response_line(self):
+        if self.is_closed:
+            raise SupporterError("channel is closed")
         if self.stored_response == "":
             if self.session_is_ended:
                 return ""
@@ -196,9 +203,9 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         return line + "\n"
 
     def close(self):
-        # Should support triggering GtpTransportError
-        # Should set resource usage
-        pass
+        if self.fail_close:
+            raise GtpTransportError("forced failure for close")
+        self.is_closed = True
 
 
 def get_test_engine():

@@ -260,6 +260,10 @@ def test_testing_gtp_force_error(tc):
         GtpProtocolError,
         "no success/failure indication from engine: first line is `# error`",
         channel.get_response)
+    channel.fail_close = True
+    tc.assertRaisesRegexp(
+        GtpTransportError, "forced failure for close",
+        channel.close)
 
 
 ### Controller-level
@@ -357,6 +361,28 @@ def test_controller_response_protocol_error(tc):
         "GTP protocol error reading response to 'test' from player test:\n"
         "no success/failure indication from engine: first line is `# error`")
     tc.assertTrue(controller.channel_is_bad)
+
+def test_controller_close(tc):
+    channel = gtp_controller_test_support.get_test_channel()
+    controller = Gtp_controller(channel, 'player test')
+    tc.assertFalse(controller.channel_is_closed)
+    tc.assertEqual(controller.do_command("test"), "test response")
+    tc.assertFalse(controller.channel_is_closed)
+    tc.assertFalse(controller.channel.is_closed)
+    controller.close()
+    tc.assertTrue(controller.channel_is_closed)
+    tc.assertTrue(controller.channel.is_closed)
+
+def test_controller_close_error(tc):
+    channel = gtp_controller_test_support.get_test_channel()
+    controller = Gtp_controller(channel, 'player test')
+    channel.fail_close = True
+    with tc.assertRaises(GtpTransportError) as ar:
+        controller.close()
+    tc.assertEqual(
+        str(ar.exception),
+        "error closing player test:\n"
+        "forced failure for close")
 
 
 def test_known_command(tc):
