@@ -208,6 +208,22 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         self.is_closed = True
 
 
+class Recording_gtp_engine_protocol(gtp_engine.Gtp_engine_protocol):
+    """Variant of Gtp_engine_protocol that records its commands.
+
+    Public attributes:
+      commands_handled -- list of pairs (command, args)
+
+    """
+    def __init__(self):
+        gtp_engine.Gtp_engine_protocol.__init__(self)
+        self.commands_handled = []
+
+    def run_command(self, command, args):
+        self.commands_handled.append((command, args))
+        return gtp_engine.Gtp_engine_protocol.run_command(self, command, args)
+
+
 def get_test_engine():
     """Return a Gtp_engine_protocol useful for testing controllers."""
 
@@ -226,7 +242,7 @@ def get_test_engine():
     def handle_fatal_error(args):
         raise GtpFatalError("fatal error")
 
-    engine = gtp_engine.Gtp_engine_protocol()
+    engine = Recording_gtp_engine_protocol()
     engine.add_protocol_commands()
     engine.add_command('test', handle_test)
     engine.add_command('multiline', handle_multiline)
