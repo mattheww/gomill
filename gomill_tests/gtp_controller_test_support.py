@@ -1,3 +1,9 @@
+"""Support code for gtp_controller_tests.
+
+This is also used by gtp_engine_fixtures (and so by gtp proxy tests).
+
+"""
+
 import errno
 from cStringIO import StringIO
 
