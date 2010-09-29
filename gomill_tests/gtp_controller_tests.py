@@ -384,6 +384,37 @@ def test_controller_close_error(tc):
         "error closing player test:\n"
         "forced failure for close")
 
+def test_controller_safe_close(tc):
+    channel = gtp_controller_test_support.get_test_channel()
+    controller = Gtp_controller(channel, 'player test')
+    tc.assertFalse(controller.channel_is_closed)
+    tc.assertEqual(controller.do_command("test"), "test response")
+    tc.assertFalse(controller.channel_is_closed)
+    tc.assertFalse(controller.channel.is_closed)
+    controller.safe_close()
+    tc.assertTrue(controller.channel_is_closed)
+    tc.assertTrue(controller.channel.is_closed)
+    tc.assertListEqual(channel.engine.commands_handled,
+                       [('test', []), ('quit', [])])
+    # safe to call twice
+    controller.safe_close()
+
+def test_controller_safe_close_after_error(tc):
+    channel = gtp_controller_test_support.get_test_channel()
+    controller = Gtp_controller(channel, 'player test')
+    tc.assertEqual(controller.do_command("test"), "test response")
+    tc.assertFalse(controller.channel_is_bad)
+    channel.force_next_response = "# error\n\n"
+    with tc.assertRaises(GtpProtocolError) as ar:
+        controller.do_command("test")
+    tc.assertTrue(controller.channel_is_bad)
+    # doesn't send quit when channel_is_bad
+    controller.safe_close()
+    tc.assertTrue(controller.channel_is_closed)
+    tc.assertTrue(controller.channel.is_closed)
+    tc.assertListEqual(channel.engine.commands_handled,
+                       [('test', []), ('test', [])])
+
 
 def test_known_command(tc):
     channel = gtp_controller_test_support.get_test_channel()
