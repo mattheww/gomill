@@ -5,15 +5,17 @@ from __future__ import with_statement
 import os
 import sys
 
-from gomill_tests import gomill_test_support
-from gomill_tests import gtp_controller_test_support
-from gomill_tests.gtp_controller_test_support import (
-    SupporterError, Preprogrammed_gtp_channel)
-
 from gomill import gtp_controller
 from gomill.gtp_controller import (
     GtpChannelError, GtpProtocolError, GtpTransportError, GtpChannelClosed,
     BadGtpResponse, Gtp_controller)
+
+from gomill_tests import gomill_test_support
+from gomill_tests import gtp_controller_test_support
+from gomill_tests import gtp_engine_fixtures
+from gomill_tests.gomill_test_support import SupporterError
+from gomill_tests.gtp_controller_test_support import Preprogrammed_gtp_channel
+
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
@@ -192,7 +194,7 @@ def test_channel_command_validation(tc):
 ### Validating Testing_gtp_channel
 
 def test_testing_gtp_channel(tc):
-    engine = gtp_controller_test_support.get_test_engine()
+    engine = gtp_engine_fixtures.get_test_engine()
     channel = gtp_controller_test_support.Testing_gtp_channel(engine)
     channel.send_command("play", ["b", "a3"])
     tc.assertEqual(channel.get_response(), (True, "unknown command"))
@@ -209,7 +211,7 @@ def test_testing_gtp_channel(tc):
     channel.close()
 
 def test_testing_gtp_channel_alt(tc):
-    engine = gtp_controller_test_support.get_test_engine()
+    engine = gtp_engine_fixtures.get_test_engine()
     channel = gtp_controller_test_support.Testing_gtp_channel(engine)
     channel.engine_exit_breaks_commands = False
     channel.send_command("test", [])
@@ -223,7 +225,7 @@ def test_testing_gtp_channel_alt(tc):
     channel.close()
 
 def test_testing_gtp_channel_fatal_errors(tc):
-    engine = gtp_controller_test_support.get_test_engine()
+    engine = gtp_engine_fixtures.get_test_engine()
     channel = gtp_controller_test_support.Testing_gtp_channel(engine)
     channel.send_command("fatal", [])
     tc.assertEqual(channel.get_response(), (True, "fatal error"))
@@ -233,7 +235,7 @@ def test_testing_gtp_channel_fatal_errors(tc):
     channel.close()
 
 def test_testing_gtp_channel_sequencing(tc):
-    engine = gtp_controller_test_support.get_test_engine()
+    engine = gtp_engine_fixtures.get_test_engine()
     channel = gtp_controller_test_support.Testing_gtp_channel(engine)
     tc.assertRaisesRegexp(
         SupporterError, "response request without command",
@@ -244,7 +246,7 @@ def test_testing_gtp_channel_sequencing(tc):
         channel.send_command, "test", [])
 
 def test_testing_gtp_force_error(tc):
-    engine = gtp_controller_test_support.get_test_engine()
+    engine = gtp_engine_fixtures.get_test_engine()
     channel = gtp_controller_test_support.Testing_gtp_channel(engine)
     channel.fail_next_command = True
     tc.assertRaisesRegexp(
@@ -269,7 +271,7 @@ def test_testing_gtp_force_error(tc):
 ### Controller-level
 
 def test_controller(tc):
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
     tc.assertEqual(controller.name, 'player test')
     tc.assertIs(controller.channel, channel)
@@ -298,7 +300,7 @@ def test_controller(tc):
     tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_alt_exit(tc):
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     channel.engine_exit_breaks_commands = False
     controller = Gtp_controller(channel, 'player test')
     controller.do_command("quit")
@@ -313,7 +315,7 @@ def test_controller_alt_exit(tc):
     tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_first_command_error(tc):
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
     with tc.assertRaises(BadGtpResponse) as ar:
         controller.do_command("error")
@@ -324,7 +326,7 @@ def test_controller_first_command_error(tc):
     tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_command_transport_error(tc):
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
     tc.assertEqual(controller.do_command("test"), "test response")
     tc.assertFalse(controller.channel_is_bad)
@@ -339,7 +341,7 @@ def test_controller_command_transport_error(tc):
     tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_response_transport_error(tc):
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
     tc.assertFalse(controller.channel_is_bad)
     channel.fail_next_response = True
@@ -354,7 +356,7 @@ def test_controller_response_transport_error(tc):
     tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_response_protocol_error(tc):
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
     tc.assertEqual(controller.do_command("test"), "test response")
     tc.assertFalse(controller.channel_is_bad)
@@ -369,7 +371,7 @@ def test_controller_response_protocol_error(tc):
     tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_close(tc):
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
     tc.assertFalse(controller.channel_is_closed)
     tc.assertEqual(controller.do_command("test"), "test response")
@@ -385,7 +387,7 @@ def test_controller_close(tc):
     tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_close_error(tc):
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
     channel.fail_close = True
     with tc.assertRaises(GtpTransportError) as ar:
@@ -397,7 +399,7 @@ def test_controller_close_error(tc):
     tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_safe_close(tc):
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
     tc.assertFalse(controller.channel_is_closed)
     tc.assertEqual(controller.do_command("test"), "test response")
@@ -413,7 +415,7 @@ def test_controller_safe_close(tc):
     tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_safe_close_after_error(tc):
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
     tc.assertEqual(controller.do_command("test"), "test response")
     tc.assertFalse(controller.channel_is_bad)
@@ -430,7 +432,7 @@ def test_controller_safe_close_after_error(tc):
     tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_safe_close_with_error_from_quit(tc):
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
     channel.force_next_response = "# error\n\n"
     controller.safe_close()
@@ -445,7 +447,7 @@ def test_controller_safe_close_with_error_from_quit(tc):
          "no success/failure indication from engine: first line is `# error`"])
 
 def test_controller_safe_close_with_error_from_close(tc):
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
     channel.fail_close = True
     controller.safe_close()
@@ -459,7 +461,7 @@ def test_controller_safe_close_with_error_from_close(tc):
 
 
 def test_known_command(tc):
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'kc test')
     tc.assertTrue(controller.known_command("test"))
     tc.assertFalse(controller.known_command("nonesuch"))
@@ -480,7 +482,7 @@ def test_known_command_2(tc):
         "known_command one\nknown_command two\nknown_command three\n")
 
 def test_check_protocol_version(tc):
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'pv test')
     controller.check_protocol_version()
 
@@ -497,20 +499,20 @@ def test_check_protocol_version_2(tc):
 
 
 def test_describe_engine(tc):
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
     short_s, long_s = gtp_controller.describe_engine(controller)
     tc.assertEqual(short_s, "unknown")
     tc.assertEqual(long_s, "unknown")
 
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     channel.engine.add_command('name', lambda args:"test engine")
     controller = Gtp_controller(channel, 'player test')
     short_s, long_s = gtp_controller.describe_engine(controller)
     tc.assertEqual(short_s, "test engine")
     tc.assertEqual(long_s, "test engine")
 
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     channel.engine.add_command('name', lambda args:"test engine")
     channel.engine.add_command('version', lambda args:"1.2.3")
     controller = Gtp_controller(channel, 'player test')
@@ -518,7 +520,7 @@ def test_describe_engine(tc):
     tc.assertEqual(short_s, "test engine:1.2.3")
     tc.assertEqual(long_s, "test engine:1.2.3")
 
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     channel.engine.add_command('name', lambda args:"test engine")
     channel.engine.add_command('version', lambda args:"1.2.3")
     channel.engine.add_command(
@@ -529,7 +531,7 @@ def test_describe_engine(tc):
     tc.assertEqual(short_s, "test engine:1.2.3")
     tc.assertEqual(long_s, "test engine (v1.2.3):\n  pl\xc3\xa1yer ?")
 
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     channel.engine.add_command('name', lambda args:"test engine")
     channel.engine.add_command('version', lambda args:"test engine v1.2.3")
     controller = Gtp_controller(channel, 'player test')

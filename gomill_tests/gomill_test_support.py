@@ -10,6 +10,14 @@ from gomill import boards
 # This makes TestResult ignore lines from this module in tracebacks
 __unittest = True
 
+class SupporterError(StandardError):
+    """Exception raised by support objects when something goes wrong.
+
+    This is raised to indicate things like sequencing errors detected by mock
+    objects.
+
+    """
+
 def compare_boards(b1, b2):
     """Check whether two boards have the same position.
 

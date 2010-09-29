@@ -2,11 +2,6 @@
 
 from __future__ import with_statement
 
-from gomill_tests import gomill_test_support
-from gomill_tests import gtp_controller_test_support
-from gomill_tests import gtp_engine_test_support
-from gomill_tests.gtp_engine_test_support import check_engine
-
 from gomill import gtp_controller
 from gomill import gtp_proxy
 from gomill.gtp_controller import (
@@ -14,12 +9,18 @@ from gomill.gtp_controller import (
     BadGtpResponse, Gtp_controller)
 from gomill.gtp_proxy import BackEndError
 
+from gomill_tests import gomill_test_support
+from gomill_tests import gtp_controller_test_support
+from gomill_tests import gtp_engine_fixtures
+from gomill_tests import gtp_engine_test_support
+from gomill_tests.gtp_engine_test_support import check_engine
+
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
 def _make_proxy():
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     controller = gtp_controller.Gtp_controller(channel, 'testbackend')
     proxy = gtp_proxy.Gtp_proxy()
     proxy.set_back_end_controller(controller)
@@ -104,7 +105,7 @@ def test_nontgtp_backend(tc):
 def test_error_from_list_commands(tc):
     def force_error(args):
         1 / 0
-    channel = gtp_controller_test_support.get_test_channel()
+    channel = gtp_engine_fixtures.get_test_channel()
     channel.engine.add_command("list_commands", force_error)
     controller = gtp_controller.Gtp_controller(channel, 'testbackend')
     proxy = gtp_proxy.Gtp_proxy()

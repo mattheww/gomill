@@ -5,17 +5,9 @@ from gomill import gtp_controller
 from gomill.gtp_controller import (
     GtpChannelError, GtpProtocolError, GtpTransportError, GtpChannelClosed,
     BadGtpResponse)
-from gomill import gtp_engine
-from gomill.gtp_engine import GtpError, GtpFatalError
 
+from gomill_tests.gomill_test_support import SupporterError
 
-class SupporterError(StandardError):
-    """Exception raised by support objects when something goes wrong.
-
-    This is raised to indicate things like sequencing errors detected by mock
-    objects.
-
-    """
 
 class Mock_writing_pipe(object):
     """Mock writeable pipe object, with an interface like a cStringIO.
@@ -107,13 +99,10 @@ class Preprogrammed_gtp_channel(gtp_controller.Subprocess_gtp_channel):
         self.command_pipe = Mock_writing_pipe()
         self.response_pipe = Mock_reading_pipe(response)
         self.response_pipe.hangs_before_eof = hangs_before_eof
-        #raise GtpChannelError(s)
 
     def close(self):
         self.command_pipe.close()
         self.response_pipe.close()
-        #self.resource_usage = rusage
-        #raise GtpTransportError("\n".join(errors))
 
     def get_command_stream(self):
         """Return the complete contents of the command stream sent so far."""
@@ -206,52 +195,3 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         if self.fail_close:
             raise GtpTransportError("forced failure for close")
         self.is_closed = True
-
-
-class Recording_gtp_engine_protocol(gtp_engine.Gtp_engine_protocol):
-    """Variant of Gtp_engine_protocol that records its commands.
-
-    Public attributes:
-      commands_handled -- list of pairs (command, args)
-
-    """
-    def __init__(self):
-        gtp_engine.Gtp_engine_protocol.__init__(self)
-        self.commands_handled = []
-
-    def run_command(self, command, args):
-        self.commands_handled.append((command, args))
-        return gtp_engine.Gtp_engine_protocol.run_command(self, command, args)
-
-
-def get_test_engine():
-    """Return a Gtp_engine_protocol useful for testing controllers."""
-
-    def handle_test(args):
-        if args:
-            return "args: " + " ".join(args)
-        else:
-            return "test response"
-
-    def handle_multiline(args):
-        return "first line  \n  second line\nthird line"
-
-    def handle_error(args):
-        raise GtpError("normal error")
-
-    def handle_fatal_error(args):
-        raise GtpFatalError("fatal error")
-
-    engine = Recording_gtp_engine_protocol()
-    engine.add_protocol_commands()
-    engine.add_command('test', handle_test)
-    engine.add_command('multiline', handle_multiline)
-    engine.add_command('error', handle_error)
-    engine.add_command('fatal', handle_fatal_error)
-    return engine
-
-def get_test_channel():
-    """Return a Gtp_channel for use with the test engine."""
-    engine = get_test_engine()
-    return Testing_gtp_channel(engine)
-
