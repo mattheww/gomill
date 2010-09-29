@@ -295,6 +295,7 @@ def test_controller(tc):
                    "engine has closed the command channel")
     tc.assertTrue(controller.channel_is_bad)
     controller.close()
+    tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_alt_exit(tc):
     channel = gtp_controller_test_support.get_test_channel()
@@ -309,6 +310,7 @@ def test_controller_alt_exit(tc):
                    "engine has closed the response channel")
     tc.assertTrue(controller.channel_is_bad)
     controller.close()
+    tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_first_command_error(tc):
     channel = gtp_controller_test_support.get_test_channel()
@@ -319,6 +321,7 @@ def test_controller_first_command_error(tc):
         str(ar.exception),
         "failure response from first command (error) to player test:\n"
         "normal error")
+    tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_command_transport_error(tc):
     channel = gtp_controller_test_support.get_test_channel()
@@ -333,6 +336,7 @@ def test_controller_command_transport_error(tc):
         "transport error sending 'test' to player test:\n"
         "forced failure for send_command_line")
     tc.assertTrue(controller.channel_is_bad)
+    tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_response_transport_error(tc):
     channel = gtp_controller_test_support.get_test_channel()
@@ -347,6 +351,7 @@ def test_controller_response_transport_error(tc):
         "from player test:\n"
         "forced failure for get_response_line")
     tc.assertTrue(controller.channel_is_bad)
+    tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_response_protocol_error(tc):
     channel = gtp_controller_test_support.get_test_channel()
@@ -361,6 +366,7 @@ def test_controller_response_protocol_error(tc):
         "GTP protocol error reading response to 'test' from player test:\n"
         "no success/failure indication from engine: first line is `# error`")
     tc.assertTrue(controller.channel_is_bad)
+    tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_close(tc):
     channel = gtp_controller_test_support.get_test_channel()
@@ -372,6 +378,7 @@ def test_controller_close(tc):
     controller.close()
     tc.assertTrue(controller.channel_is_closed)
     tc.assertTrue(controller.channel.is_closed)
+    tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_close_error(tc):
     channel = gtp_controller_test_support.get_test_channel()
@@ -383,6 +390,7 @@ def test_controller_close_error(tc):
         str(ar.exception),
         "error closing player test:\n"
         "forced failure for close")
+    tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_safe_close(tc):
     channel = gtp_controller_test_support.get_test_channel()
@@ -398,6 +406,7 @@ def test_controller_safe_close(tc):
                        [('test', []), ('quit', [])])
     # safe to call twice
     controller.safe_close()
+    tc.assertListEqual(controller.retrieve_error_messages(), [])
 
 def test_controller_safe_close_after_error(tc):
     channel = gtp_controller_test_support.get_test_channel()
@@ -414,6 +423,35 @@ def test_controller_safe_close_after_error(tc):
     tc.assertTrue(controller.channel.is_closed)
     tc.assertListEqual(channel.engine.commands_handled,
                        [('test', []), ('test', [])])
+    tc.assertListEqual(controller.retrieve_error_messages(), [])
+
+def test_controller_safe_close_with_error_from_quit(tc):
+    channel = gtp_controller_test_support.get_test_channel()
+    controller = Gtp_controller(channel, 'player test')
+    channel.force_next_response = "# error\n\n"
+    controller.safe_close()
+    tc.assertTrue(controller.channel_is_closed)
+    tc.assertTrue(controller.channel.is_closed)
+    tc.assertListEqual(channel.engine.commands_handled,
+                       [('quit', [])])
+    tc.assertListEqual(
+        controller.retrieve_error_messages(),
+        ["GTP protocol error reading response to first command (quit) "
+         "from player test:\n"
+         "no success/failure indication from engine: first line is `# error`"])
+
+def test_controller_safe_close_with_error_from_close(tc):
+    channel = gtp_controller_test_support.get_test_channel()
+    controller = Gtp_controller(channel, 'player test')
+    channel.fail_close = True
+    controller.safe_close()
+    tc.assertTrue(controller.channel_is_closed)
+    tc.assertListEqual(channel.engine.commands_handled,
+                       [('quit', [])])
+    tc.assertListEqual(
+        controller.retrieve_error_messages(),
+        ["error closing player test:\n"
+         "forced failure for close"])
 
 
 def test_known_command(tc):
