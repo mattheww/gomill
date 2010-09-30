@@ -4,6 +4,7 @@ from __future__ import with_statement
 
 from gomill import gtp_controller
 from gomill import gtp_proxy
+from gomill.gtp_engine import GtpError, GtpFatalError
 from gomill.gtp_controller import (
     GtpChannelError, GtpProtocolError, GtpTransportError, GtpChannelClosed,
     BadGtpResponse, Gtp_controller)
@@ -97,6 +98,8 @@ def test_pass_command_with_channel_error(tc):
                    "transport error sending 'test' to testbackend:\n"
                    "forced failure for send_command_line")
     tc.assertIsInstance(ar.exception.cause, GtpTransportError)
+    proxy.close()
+    tc.assertEqual(proxy._commands_handled, [('list_commands', [])])
 
 def test_handle_command(tc):
     def handle_xyzzy(args):
@@ -109,6 +112,19 @@ def test_handle_command(tc):
     check_engine(tc, proxy.engine, 'xyzzy', [], "args: nothing happens")
     check_engine(tc, proxy.engine, 'xyzzy', ['error'],
                  "normal error", expect_failure=True)
+
+def test_handle_command_with_channel_error(tc):
+    def handle_xyzzy(args):
+        return proxy.handle_command("test", [])
+    proxy = _make_proxy()
+    proxy.engine.add_command("xyzzy", handle_xyzzy)
+    proxy.controller.channel.fail_next_command = True
+    check_engine(tc, proxy.engine, 'xyzzy', [],
+                 "transport error sending 'test' to testbackend:\n"
+                 "forced failure for send_command_line",
+                 expect_failure=True, expect_end=True)
+    proxy.close()
+    tc.assertEqual(proxy._commands_handled, [('list_commands', [])])
 
 def test_back_end_goes_away(tc):
     proxy = _make_proxy()
