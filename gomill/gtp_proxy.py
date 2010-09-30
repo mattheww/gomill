@@ -243,13 +243,14 @@ class Gtp_proxy(object):
         # Ignores GtpChannelClosed
         try:
             result = self.pass_command("quit", [])
-        except BadGtpResponse, e:
-            raise GtpError(e.gtp_error_message)
         except BackEndError, e:
             if isinstance(e.cause, GtpChannelClosed):
                 result = ""
             else:
                 raise GtpFatalError(str(e))
+        except BadGtpResponse, e:
+            self.expect_back_end_exit()
+            raise GtpFatalError(e.gtp_error_message)
         self.expect_back_end_exit()
         raise GtpQuit(result)
 
