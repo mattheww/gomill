@@ -188,3 +188,14 @@ def test_set_back_end_subprocess(tct):
         proxy.close()
     finally:
         devnull.close()
+
+def test_set_back_end_subprocess_nonexistent_program(tc):
+    proxy = gtp_proxy.Gtp_proxy()
+    with tc.assertRaises(BackEndError) as ar:
+        proxy.set_back_end_subprocess("/nonexistent/program")
+    tc.assertEqual(str(ar.exception),
+                   "can't launch back end command\n"
+                   "[Errno 2] No such file or directory")
+    tc.assertIsInstance(ar.exception.cause, GtpChannelError)
+    # check it's safe to close when the controller was never set
+    proxy.close()
