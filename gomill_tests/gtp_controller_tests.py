@@ -3,7 +3,6 @@
 from __future__ import with_statement
 
 import os
-import sys
 
 from gomill import gtp_controller
 from gomill.gtp_controller import (
