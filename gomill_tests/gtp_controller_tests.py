@@ -459,6 +459,36 @@ def test_controller_safe_close_with_error_from_close(tc):
         ["error closing player test:\n"
          "forced failure for close"])
 
+def test_safe_do_command(tc):
+    channel = gtp_engine_fixtures.get_test_channel()
+    controller = Gtp_controller(channel, 'player test')
+    tc.assertEqual(controller.safe_do_command("test", "ab"), "args: ab")
+    with tc.assertRaises(BadGtpResponse) as ar:
+        controller.safe_do_command("error")
+    tc.assertFalse(controller.channel_is_bad)
+    channel.fail_next_response = True
+    tc.assertIsNone(controller.safe_do_command("test"))
+    tc.assertTrue(controller.channel_is_bad)
+    tc.assertIsNone(controller.safe_do_command("test"))
+    tc.assertListEqual(
+        controller.retrieve_error_messages(),
+        ["transport error reading response to 'test' from player test:\n"
+         "forced failure for get_response_line"])
+    controller.safe_close()
+    # check that third 'test' wasn't sent, and nor was 'quit'
+    tc.assertListEqual(channel.engine.commands_handled,
+                       [('test', ['ab']), ('error', []), ('test', [])])
+
+def test_safe_do_command_closed_channel(tc):
+    # check it's ok to call safe_do_command() on a closed channel
+    channel = gtp_engine_fixtures.get_test_channel()
+    controller = Gtp_controller(channel, 'player test')
+    controller.safe_close()
+    tc.assertIsNone(controller.safe_do_command("test"))
+    tc.assertListEqual(channel.engine.commands_handled,
+                       [('quit', [])])
+    tc.assertListEqual(controller.retrieve_error_messages(), [])
+
 
 def test_known_command(tc):
     channel = gtp_engine_fixtures.get_test_channel()
