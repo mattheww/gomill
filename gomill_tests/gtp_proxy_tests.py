@@ -24,12 +24,26 @@ def _make_proxy():
     controller = gtp_controller.Gtp_controller(channel, 'testbackend')
     proxy = gtp_proxy.Gtp_proxy()
     proxy.set_back_end_controller(controller)
+    # Make the commands from the underlying Recording_gtp_engine_protocol
+    # available to tests
+    proxy._commands_handled = controller.channel.engine.commands_handled
     return proxy
 
 def test_proxy(tc):
     proxy = _make_proxy()
     check_engine(tc, proxy.engine, 'test', ['ab', 'cd'], "args: ab cd")
     proxy.close()
+    tc.assertEqual(
+        proxy._commands_handled,
+        [('list_commands', []), ('test', ['ab', 'cd']), ('quit', [])])
+
+def test_close_after_quit(tc):
+    proxy = _make_proxy()
+    check_engine(tc, proxy.engine, 'quit', [], "", expect_end=True)
+    proxy.close()
+    tc.assertEqual(
+        proxy._commands_handled,
+        [('list_commands', []), ('quit', [])])
 
 def test_list_commands(tc):
     proxy = _make_proxy()
@@ -57,6 +71,10 @@ def test_passthrough(tc):
     check_engine(tc, proxy.engine,
                  'gomill-passthrough', [],
                  "invalid arguments", expect_failure=True)
+    tc.assertEqual(
+        proxy._commands_handled,
+        [('list_commands', []), ('test', ['ab', 'cd']),
+         ('known_command', ['gomill-passthrough'])])
 
 def test_pass_command(tc):
     proxy = _make_proxy()
@@ -87,6 +105,15 @@ def test_back_end_goes_away(tc):
                  "error sending 'test ab cd' to testbackend:\n"
                  "engine has closed the command channel",
                  expect_failure=True, expect_end=True)
+
+def test_close_with_errors(tc):
+    proxy = _make_proxy()
+    proxy.controller.channel.fail_next_command = True
+    with tc.assertRaises(BackEndError) as ar:
+        proxy.close()
+    tc.assertEqual(str(ar.exception),
+                   "transport error sending 'quit' to testbackend:\n"
+                   "forced failure for send_command_line")
 
 def test_nontgtp_backend(tc):
     channel = gtp_controller_test_support.Preprogrammed_gtp_channel(
