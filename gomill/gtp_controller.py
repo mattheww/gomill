@@ -518,7 +518,8 @@ class Gtp_controller(object):
         the engine has gone away).
 
         If any of these GtpChannelError variants is raised, this also marks the
-        channel as 'bad'.
+        channel as 'bad' (this has no effect on future do_command() calls, but
+        see safe_do_command() below).
 
         """
         if self.channel_is_closed:
