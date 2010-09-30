@@ -36,6 +36,7 @@ def test_proxy(tc):
     tc.assertEqual(
         proxy._commands_handled,
         [('list_commands', []), ('test', ['ab', 'cd']), ('quit', [])])
+    tc.assertTrue(proxy.controller.channel.is_closed)
 
 def test_close_after_quit(tc):
     proxy = _make_proxy()
@@ -44,6 +45,7 @@ def test_close_after_quit(tc):
     tc.assertEqual(
         proxy._commands_handled,
         [('list_commands', []), ('quit', [])])
+    tc.assertTrue(proxy.controller.channel.is_closed)
 
 def test_list_commands(tc):
     proxy = _make_proxy()
@@ -114,6 +116,7 @@ def test_close_with_errors(tc):
     tc.assertEqual(str(ar.exception),
                    "transport error sending 'quit' to testbackend:\n"
                    "forced failure for send_command_line")
+    tc.assertTrue(proxy.controller.channel.is_closed)
 
 def test_nontgtp_backend(tc):
     channel = gtp_controller_test_support.Preprogrammed_gtp_channel(
