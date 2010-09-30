@@ -130,6 +130,10 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
 
     This is used for testing how controllers handle GtpChannelError.
 
+    Public attributes:
+      engine    -- the engine it was instantiated with
+      is_closed -- bool (closed() has been called without a forced error)
+
     This raises an error if sent two commands without requesting a response in
     between, or if asked for a response when no command was sent since the last
     response. (GTP permits stacking up commands, but Gtp_controller should never
