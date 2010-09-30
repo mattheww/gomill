@@ -122,7 +122,7 @@ class Gtp_proxy(object):
             channel = gtp_controller.Subprocess_gtp_channel(command, **kwargs)
         except GtpChannelError, e:
             # Probably means exec failure
-            raise BackEndError("can't launch back end command\n%s" % e)
+            raise BackEndError("can't launch back end command\n%s" % e, cause=e)
         controller = gtp_controller.Gtp_controller(channel, "back end")
         self.set_back_end_controller(controller)
 
