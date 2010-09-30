@@ -576,12 +576,10 @@ def test_subprocess_channel(tc):
     # It also checks that the 'stderr', 'env' and 'cwd' parameters work.
     # This test relies on there being a 'python' executable on the PATH
     # (doesn't have to be the same version as is running the testsuite).
-    pathname = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "subprocess_state_reporter.py"))
     rd, wr = os.pipe()
     try:
         channel = gtp_controller.Subprocess_gtp_channel(
-            ["python", pathname],
+            gtp_controller_test_support.state_reporter_cmd,
             stderr=wr,
             env={'GOMILL_TEST' : "from_gtp_controller_tests"},
             cwd="/")
@@ -604,12 +602,10 @@ def test_subprocess_channel_nonexistent_program(tc):
     tc.assertIn("[Errno 2] No such file or directory", str(ar.exception))
 
 def test_subprocess_channel_with_controller(tc):
-    pathname = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "subprocess_state_reporter.py"))
     devnull = open(os.devnull, "w")
     try:
         channel = gtp_controller.Subprocess_gtp_channel(
-            ["python", pathname],
+            gtp_controller_test_support.state_reporter_cmd,
             stderr=devnull,
             env={'GOMILL_TEST' : "from_gtp_controller_tests"},
             cwd="/")

@@ -5,6 +5,7 @@ This is also used by gtp_engine_fixtures (and so by gtp proxy tests).
 """
 
 import errno
+import os
 from cStringIO import StringIO
 
 from gomill import gtp_controller
@@ -205,3 +206,11 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         if self.fail_close:
             raise GtpTransportError("forced failure for close")
         self.is_closed = True
+
+
+# For testing subprocess channel
+
+state_reporter_pathname = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "subprocess_state_reporter.py"))
+
+state_reporter_cmd = ["python", state_reporter_pathname]
