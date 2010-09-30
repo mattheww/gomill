@@ -88,6 +88,16 @@ def test_pass_command(tc):
                    "failure response from 'error' to testbackend:\n"
                    "normal error")
 
+def test_pass_command_with_channel_error(tc):
+    proxy = _make_proxy()
+    proxy.controller.channel.fail_next_command = True
+    with tc.assertRaises(BackEndError) as ar:
+        proxy.pass_command("test", [])
+    tc.assertEqual(str(ar.exception),
+                   "transport error sending 'test' to testbackend:\n"
+                   "forced failure for send_command_line")
+    tc.assertIsInstance(ar.exception.cause, GtpTransportError)
+
 def test_handle_command(tc):
     def handle_xyzzy(args):
         if args and args[0] == "error":
@@ -130,6 +140,7 @@ def test_nontgtp_backend(tc):
                    "GTP protocol error reading response to first command "
                    "(list_commands) from testbackend:\n"
                    "engine isn't speaking GTP: first byte is 'U'")
+    tc.assertIsInstance(ar.exception.cause, GtpProtocolError)
     proxy.close()
 
 def test_error_from_list_commands(tc):
@@ -144,4 +155,5 @@ def test_error_from_list_commands(tc):
     tc.assertIn("failure response from first command "
                 "(list_commands) to testbackend:\n",
                 str(ar.exception))
+    tc.assertIsInstance(ar.exception.cause, BadGtpResponse)
     proxy.close()
