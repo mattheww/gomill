@@ -146,6 +146,35 @@ def test_close_with_errors(tc):
                    "forced failure for send_command_line")
     tc.assertTrue(proxy.controller.channel.is_closed)
 
+def test_quit_ignores_already_closed(tc):
+    proxy = _make_proxy()
+    tc.assertEqual(proxy.pass_command("quit", []), "")
+    check_engine(tc, proxy.engine, 'quit', [], "", expect_end=True)
+    proxy.close()
+    tc.assertEqual(proxy._commands_handled,
+                   [('list_commands', []), ('quit', [])])
+
+def test_quit_with_failure_response(tc):
+    def force_error(args):
+        1 / 0
+    proxy = _make_proxy()
+    proxy.controller.channel.engine.add_command("quit", force_error)
+    check_engine(tc, proxy.engine, 'quit', [], None,
+                 expect_failure=True, expect_end=True)
+    proxy.close()
+    tc.assertEqual(proxy._commands_handled,
+                   [('list_commands', []), ('quit', [])])
+
+def test_quit_with_channel_error(tc):
+    proxy = _make_proxy()
+    proxy.controller.channel.fail_next_command = True
+    check_engine(tc, proxy.engine, 'quit', [],
+                 "transport error sending 'quit' to testbackend:\n"
+                 "forced failure for send_command_line",
+                 expect_failure=True, expect_end=True)
+    proxy.close()
+    tc.assertEqual(proxy._commands_handled, [('list_commands', [])])
+
 def test_nontgtp_backend(tc):
     channel = gtp_controller_test_support.Preprogrammed_gtp_channel(
         "Usage: randomprogram [options]\n\nOptions:\n"

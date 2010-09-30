@@ -12,7 +12,7 @@ def check_engine(tc, engine, command, args, expected,
     engine         -- Gtp_engine_protocol
     command        -- GTP command to send
     args           -- list of GTP arguments to send
-    expected       -- expected response string
+    expected       -- expected response string (None to skip check)
     expect_failure -- expect a GTP failure response
     expect_end     -- expect the engine to report 'end session'
 
@@ -26,10 +26,10 @@ def check_engine(tc, engine, command, args, expected,
     else:
         tc.assertFalse(failure,
                        "unexpected GTP failure response: %s" % response)
-    tc.assertEqual(response, expected, "GTP response not as expected")
+    if expected is not None:
+        tc.assertEqual(response, expected, "GTP response not as expected")
     if expect_end:
         tc.assertTrue(end, "expected end-session not seen")
     else:
         tc.assertFalse(end, "unexpected end-session")
-
 
