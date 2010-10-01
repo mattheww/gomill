@@ -19,25 +19,36 @@ class Game_fixture(test_framework.Fixture):
     Both players are test player engines.
 
     attributes:
-      game -- Gtp_game
+      game         -- Gtp_game
+      controller_b -- Gtp_controller
+      controller_w -- Gtp_controller
+      channel_b    -- Testing_gtp_channel (like get_test_player_channel())
+      channel_w    -- Testing_gtp_channel (like get_test_player_channel())
 
     """
     def __init__(self, tc):
-        self.game = gtp_games.Game(board_size=9)
-        self.game.set_player_code('b', 'one')
-        self.game.set_player_code('w', 'two')
+        game = gtp_games.Game(board_size=9)
+        game.set_player_code('b', 'one')
+        game.set_player_code('w', 'two')
         channel_b = gtp_engine_fixtures.get_test_player_channel()
         channel_w = gtp_engine_fixtures.get_test_player_channel()
-        self.game.set_player_controller('b', gtp_controller.Gtp_controller(
-            channel_b, 'player one'))
-        self.game.set_player_controller('w', gtp_controller.Gtp_controller(
-            channel_w, 'player two'))
+        controller_b = gtp_controller.Gtp_controller(channel_b, 'player one')
+        controller_w = gtp_controller.Gtp_controller(channel_w, 'player two')
+        game.set_player_controller('b', controller_b)
+        game.set_player_controller('w', controller_w)
+        self.game = game
+        self.controller_b = controller_b
+        self.controller_w = controller_w
+        self.channel_b = channel_b
+        self.channel_w = channel_w
 
 
 
 def test_game(tc):
     fx = Game_fixture(tc)
     tc.assertDictEqual(fx.game.players, {'b' : 'one', 'w' : 'two'})
+    tc.assertIs(fx.game.get_controller('b'), fx.controller_b)
+    tc.assertIs(fx.game.get_controller('w'), fx.controller_w)
     fx.game.use_internal_scorer()
     fx.game.ready()
     tc.assertIsNone(fx.game.result)
