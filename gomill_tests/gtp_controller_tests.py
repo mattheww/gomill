@@ -593,10 +593,11 @@ def test_subprocess_channel(tc):
     # It also checks that the 'stderr', 'env' and 'cwd' parameters work.
     # This test relies on there being a 'python' executable on the PATH
     # (doesn't have to be the same version as is running the testsuite).
+    fx = gtp_engine_fixtures.State_reporter_fixture(tc)
     rd, wr = os.pipe()
     try:
         channel = gtp_controller.Subprocess_gtp_channel(
-            gtp_controller_test_support.state_reporter_cmd,
+            fx.cmd,
             stderr=wr,
             env={'GOMILL_TEST' : "from_gtp_controller_tests"},
             cwd="/")
@@ -619,15 +620,11 @@ def test_subprocess_channel_nonexistent_program(tc):
     tc.assertIn("[Errno 2] No such file or directory", str(ar.exception))
 
 def test_subprocess_channel_with_controller(tc):
-    devnull = open(os.devnull, "w")
-    try:
-        channel = gtp_controller.Subprocess_gtp_channel(
-            gtp_controller_test_support.state_reporter_cmd,
-            stderr=devnull,
-            env={'GOMILL_TEST' : "from_gtp_controller_tests"},
-            cwd="/")
-    finally:
-        devnull.close()
+    fx = gtp_engine_fixtures.State_reporter_fixture(tc)
+    channel = gtp_controller.Subprocess_gtp_channel(
+        fx.cmd, stderr=fx.devnull,
+        env={'GOMILL_TEST' : "from_gtp_controller_tests"},
+        cwd="/")
     controller = Gtp_controller(channel, 'subprocess test')
     tc.assertEqual(controller.do_command("tell"),
                    "cwd: /\nGOMILL_TEST:from_gtp_controller_tests")

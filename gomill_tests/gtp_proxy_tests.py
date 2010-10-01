@@ -2,8 +2,6 @@
 
 from __future__ import with_statement
 
-import os
-
 from gomill import gtp_controller
 from gomill import gtp_proxy
 from gomill.gtp_engine import GtpError, GtpFatalError
@@ -206,17 +204,13 @@ def test_error_from_list_commands(tc):
     proxy.close()
 
 
-def test_set_back_end_subprocess(tct):
-    devnull = open(os.devnull, "w")
-    try:
-        proxy = gtp_proxy.Gtp_proxy()
-        # the state-report will be taken as the response to list_commands
-        proxy.set_back_end_subprocess(
-            gtp_controller_test_support.state_reporter_cmd, stderr=devnull)
-        proxy.expect_back_end_exit()
-        proxy.close()
-    finally:
-        devnull.close()
+def test_set_back_end_subprocess(tc):
+    fx = gtp_engine_fixtures.State_reporter_fixture(tc)
+    proxy = gtp_proxy.Gtp_proxy()
+    # the state-report will be taken as the response to list_commands
+    proxy.set_back_end_subprocess(fx.cmd, stderr=fx.devnull)
+    proxy.expect_back_end_exit()
+    proxy.close()
 
 def test_set_back_end_subprocess_nonexistent_program(tc):
     proxy = gtp_proxy.Gtp_proxy()

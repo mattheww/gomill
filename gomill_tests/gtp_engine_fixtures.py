@@ -1,11 +1,15 @@
 """Engines (and channels) provided for the use of controller-side testing."""
 
+import os
+
 from gomill import gtp_controller
 from gomill import gtp_engine
 from gomill.gtp_engine import GtpError, GtpFatalError
 
-from gomill_tests.gomill_test_support import SupporterError
+from gomill_tests import test_framework
 from gomill_tests import gtp_controller_test_support
+from gomill_tests.gomill_test_support import SupporterError
+
 
 class Recording_gtp_engine_protocol(gtp_engine.Gtp_engine_protocol):
     """Variant of Gtp_engine_protocol that records its commands.
@@ -57,4 +61,22 @@ def get_test_channel():
     """Return a Testing_gtp_channel connected to the test engine."""
     engine = get_test_engine()
     return gtp_controller_test_support.Testing_gtp_channel(engine)
+
+
+class State_reporter_fixture(test_framework.Fixture):
+    """Fixture for use with suprocess_state_reporter.py
+
+    Attributes:
+      pathname -- pathname of the state reporter python script
+      cmd      -- command list suitable for use with suprocess.Popen
+      devnull  -- file open for writing to /dev/null
+
+    """
+    def __init__(self, tc):
+        self._pathname = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+                         "subprocess_state_reporter.py"))
+        self.cmd = ["python", self._pathname]
+        self.devnull = open(os.devnull, "w")
+        tc.addCleanup(self.devnull.close)
 
