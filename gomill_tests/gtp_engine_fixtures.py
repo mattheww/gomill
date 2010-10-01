@@ -2,6 +2,7 @@
 
 import os
 
+from gomill import gomill_common
 from gomill import gtp_controller
 from gomill import gtp_engine
 from gomill.gtp_engine import GtpError, GtpFatalError
@@ -86,11 +87,17 @@ class Test_player(object):
 
     This supports at least the minimal commands required to play a game.
 
-    At present, this always resigns.
+    At present, this plays up column 4 (for black) or 6 (for white), then
+    resigns. It pays no attention to its opponent's moves, and doesn't maintain
+    a board position.
 
     """
+    def __init__(self):
+        self.boardsize = None
+        self.row_to_play = 0
+
     def handle_boardsize(self, args):
-        pass
+        self.boardsize = gtp_engine.interpret_int(args[0])
 
     def handle_clear_board(self, args):
         pass
@@ -102,7 +109,14 @@ class Test_player(object):
         pass
 
     def handle_genmove(self, args):
-        return "resign"
+        colour = gtp_engine.interpret_colour(args[0])
+        if self.row_to_play < self.boardsize:
+            col = 4 if colour == 'b' else 6
+            result = gomill_common.format_vertex((self.row_to_play, col))
+            self.row_to_play += 1
+            return result
+        else:
+            return "pass"
 
     def get_handlers(self):
         return {

@@ -35,9 +35,9 @@ class Game_fixture(test_framework.Fixture):
 
 def test_game(tc):
     fx = Game_fixture(tc)
+    fx.game.use_internal_scorer()
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
     tc.assertIsNone(fx.game.describe_late_errors())
-    tc.assertEqual(fx.game.result.sgf_result, "W+R")
-
+    tc.assertEqual(fx.game.result.sgf_result, "B+18")
