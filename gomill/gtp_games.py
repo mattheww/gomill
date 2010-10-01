@@ -25,7 +25,7 @@ class Game_result(object):
       winning_colour      -- 'b', 'w', or None
       winning_player      -- player code or None
       sgf_result          -- string describing the game's result (for sgf RE)
-      detail              -- additional information (string)
+      detail              -- additional information (string or None)
       cpu_times           -- map player code -> float or None or '?'.
 
     Winning colour and winning player are None for a jigo, unknown result, or
