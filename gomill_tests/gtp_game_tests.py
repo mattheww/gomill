@@ -1,5 +1,7 @@
 """Tests for gtp_games.py"""
 
+import cPickle as pickle
+
 from gomill import gtp_controller
 from gomill import gtp_games
 
@@ -47,7 +49,10 @@ def test_game(tc):
     tc.assertEqual(fx.game.result.winning_colour, 'b')
     tc.assertEqual(fx.game.result.winning_player, 'one')
     tc.assertEqual(fx.game.result.sgf_result, "B+18")
-    tc.assertEqual(fx.game.result.detail, None)
+    tc.assertIsNone(fx.game.result.detail)
+    tc.assertEqual(fx.game.result.describe(), "one beat two B+18")
+    result2 = pickle.loads(pickle.dumps(fx.game.result))
+    tc.assertEqual(result2.describe(), "one beat two B+18")
     tc.assertDictEqual(fx.game.result.cpu_times, {'one' : None, 'two' : None})
     tc.assertListEqual(fx.game.moves, [
         ('b', (0, 4), None), ('w', (0, 6), None),
