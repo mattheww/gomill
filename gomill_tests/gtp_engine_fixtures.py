@@ -81,6 +81,56 @@ def get_test_channel():
     return gtp_controller_test_support.Testing_gtp_channel(engine)
 
 
+class Test_player(object):
+    """Trivial player.
+
+    This supports at least the minimal commands required to play a game.
+
+    At present, this always resigns.
+
+    """
+    def handle_boardsize(self, args):
+        pass
+
+    def handle_clear_board(self, args):
+        pass
+
+    def handle_komi(self, args):
+        pass
+
+    def handle_play(self, args):
+        pass
+
+    def handle_genmove(self, args):
+        return "resign"
+
+    def get_handlers(self):
+        return {
+            'boardsize'   : self.handle_boardsize,
+            'clear_board' : self.handle_clear_board,
+            'komi'        : self.handle_komi,
+            'play'        : self.handle_play,
+            'genmove'     : self.handle_genmove,
+            }
+
+def get_test_player_engine():
+    """Return a Gtp_engine_protocol based on a Test_player.
+
+    Actually returns a Test_gtp_engine_protocol.
+
+    """
+    test_player = Test_player()
+    engine = Test_gtp_engine_protocol()
+    engine.add_protocol_commands()
+    engine.add_commands(test_player.get_handlers())
+    return engine
+
+def get_test_player_channel():
+    """Return a Testing_gtp_channel connected to the test player engine."""
+    engine = get_test_player_engine()
+    return gtp_controller_test_support.Testing_gtp_channel(engine)
+
+
 class State_reporter_fixture(test_framework.Fixture):
     """Fixture for use with suprocess_state_reporter.py
 

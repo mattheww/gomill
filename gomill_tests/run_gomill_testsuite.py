@@ -11,6 +11,7 @@ test_modules = [
     'sgf_writer_tests',
     'gtp_controller_tests',
     'gtp_proxy_tests',
+    'gtp_game_tests',
     ]
 
 def get_test_modules():
