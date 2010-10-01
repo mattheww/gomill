@@ -446,11 +446,9 @@ def test_controller_safe_close_with_error_from_quit(tc):
          "no success/failure indication from engine: first line is `# error`"])
 
 def test_controller_safe_close_with_failure_response_from_quit(tc):
-    def force_error(args):
-        1 / 0
     channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
-    channel.engine.add_command("quit", force_error)
+    channel.engine.force_error("quit")
     controller.safe_close()
     tc.assertTrue(controller.channel_is_closed)
     tc.assertTrue(controller.channel.is_closed)
@@ -458,9 +456,10 @@ def test_controller_safe_close_with_failure_response_from_quit(tc):
                        [('quit', [])])
     error_messages = controller.retrieve_error_messages()
     tc.assertEqual(len(error_messages), 1)
-    tc.assertTrue(error_messages[0].startswith(
-        "failure response from first command (quit) to player test:\n"))
-    tc.assertIn("ZeroDivisionError", error_messages[0])
+    tc.assertEqual(
+        error_messages[0],
+        "failure response from first command (quit) to player test:\n"
+        "handler forced to fail")
 
 def test_controller_safe_close_with_error_from_close(tc):
     channel = gtp_engine_fixtures.get_test_channel()

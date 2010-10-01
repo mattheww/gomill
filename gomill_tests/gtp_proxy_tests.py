@@ -29,7 +29,7 @@ class Proxy_fixture(test_framework.Fixture):
       channel           -- Testing_gtp_channel (like get_test_channel())
       engine            -- the proxy engine
       underlying_engine -- the underlying test engine (like get_test_engine())
-      commands_handled  -- from the underlying Recording_gtp_engine_protocol
+      commands_handled  -- from the underlying Test_gtp_engine_protocol
 
     """
     def __init__(self, tc):
@@ -174,12 +174,10 @@ def test_quit_ignores_already_closed(tc):
                    [('list_commands', []), ('quit', [])])
 
 def test_quit_with_failure_response(tc):
-    def force_error(args):
-        1 / 0
     fx = Proxy_fixture(tc)
-    fx.underlying_engine.add_command("quit", force_error)
+    fx.underlying_engine.force_error("quit")
     fx.check_command('quit', [], None,
-                 expect_failure=True, expect_end=True)
+                     expect_failure=True, expect_end=True)
     fx.proxy.close()
     tc.assertEqual(fx.commands_handled,
                    [('list_commands', []), ('quit', [])])
@@ -210,17 +208,16 @@ def test_nontgtp_backend(tc):
     proxy.close()
 
 def test_error_from_list_commands(tc):
-    def force_error(args):
-        1 / 0
     channel = gtp_engine_fixtures.get_test_channel()
-    channel.engine.add_command("list_commands", force_error)
+    channel.engine.force_error("list_commands")
     controller = gtp_controller.Gtp_controller(channel, 'testbackend')
     proxy = gtp_proxy.Gtp_proxy()
     with tc.assertRaises(BackEndError) as ar:
         proxy.set_back_end_controller(controller)
-    tc.assertIn("failure response from first command "
-                "(list_commands) to testbackend:\n",
-                str(ar.exception))
+    tc.assertEqual(str(ar.exception),
+                   "failure response from first command "
+                   "(list_commands) to testbackend:\n"
+                   "handler forced to fail")
     tc.assertIsInstance(ar.exception.cause, BadGtpResponse)
     proxy.close()
 

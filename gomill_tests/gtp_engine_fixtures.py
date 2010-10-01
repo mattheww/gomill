@@ -11,11 +11,15 @@ from gomill_tests import gtp_controller_test_support
 from gomill_tests.gomill_test_support import SupporterError
 
 
-class Recording_gtp_engine_protocol(gtp_engine.Gtp_engine_protocol):
-    """Variant of Gtp_engine_protocol that records its commands.
+class Test_gtp_engine_protocol(gtp_engine.Gtp_engine_protocol):
+    """Variant of Gtp_engine_protocol with additional facilities for testing.
 
     Public attributes:
       commands_handled -- list of pairs (command, args)
+
+    This records all commands sent to the engine and makes them available in the
+    commands_handled attribute. It also provides a mechanism to force commands
+    to fail.
 
     """
     def __init__(self):
@@ -26,11 +30,25 @@ class Recording_gtp_engine_protocol(gtp_engine.Gtp_engine_protocol):
         self.commands_handled.append((command, args))
         return gtp_engine.Gtp_engine_protocol.run_command(self, command, args)
 
+    def _forced_error(self, args):
+        raise GtpError("handler forced to fail")
+
+    def _forced_fatal_error(self, args):
+        raise GtpFatalError("handler forced to fail and exit")
+
+    def force_error(self, command):
+        """Set the handler for 'command' to report failure."""
+        self.add_command(command, self._forced_error)
+
+    def force_fatal_error(self, command):
+        """Set the handler for 'command' to report failure and exit."""
+        self.add_command(command, self._forced_fatal_error)
+
 
 def get_test_engine():
     """Return a Gtp_engine_protocol useful for testing controllers.
 
-    Actually returns a Recording_gtp_engine_protocol.
+    Actually returns a Test_gtp_engine_protocol.
 
     """
 
@@ -49,7 +67,7 @@ def get_test_engine():
     def handle_fatal_error(args):
         raise GtpFatalError("fatal error")
 
-    engine = Recording_gtp_engine_protocol()
+    engine = Test_gtp_engine_protocol()
     engine.add_protocol_commands()
     engine.add_command('test', handle_test)
     engine.add_command('multiline', handle_multiline)
