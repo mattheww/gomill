@@ -619,14 +619,13 @@ def test_subprocess_channel_nonexistent_program(tc):
     tc.assertIn("[Errno 2] No such file or directory", str(ar.exception))
 
 def test_subprocess_channel_with_controller(tc):
+    # Also tests that leaving 'env' and 'cwd' unset works
     fx = gtp_engine_fixtures.State_reporter_fixture(tc)
     channel = gtp_controller.Subprocess_gtp_channel(
-        fx.cmd, stderr=fx.devnull,
-        env={'GOMILL_TEST' : "from_gtp_controller_tests"},
-        cwd="/")
+        fx.cmd, stderr=fx.devnull)
     controller = Gtp_controller(channel, 'subprocess test')
     tc.assertEqual(controller.do_command("tell"),
-                   "cwd: /\nGOMILL_TEST:from_gtp_controller_tests")
+                   "cwd: %s\nGOMILL_TEST:None" % os.getcwd())
     controller.close()
     rusage = channel.resource_usage
     tc.assertTrue(hasattr(rusage, 'ru_utime'))
