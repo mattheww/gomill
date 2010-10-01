@@ -225,13 +225,14 @@ class Gtp_engine_protocol(object):
     value isn't suitable to be used directly as a GTP response, it will be
     'cleaned up' so that it can be. Unicode objects will be encoded as utf-8.
 
-    To report an error, they should raise GtpError with an appropriate message.
+    To return a failure response, the handler should raise GtpError with an
+    appropriate message.
 
-    To end the session, they should raise GtpQuit or GtpFatalError. Any
+    To end the session, the handler should raise GtpQuit or GtpFatalError. Any
     exception message will be reported, as a success or failure response
     respectively.
 
-    If they raise another exception (instance of Exception), this will be
+    If a handler raises another exception (instance of Exception), this will be
     reported as 'internal error', followed by the exception description and
     traceback. By default, this is not treated as a fatal error; use
     set_handler_exceptions_fatal() to change this.
