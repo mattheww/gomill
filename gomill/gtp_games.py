@@ -209,8 +209,10 @@ class Game(object):
                               check_protocol_version=True):
         """Specify a player using a Gtp_controller.
 
-        controller -- Gtp_controller
+        controller             -- Gtp_controller
         check_protocol_version -- bool (default True)
+
+        By convention, the channel name should be 'player <player code>'.
 
         If check_protocol_version is true, rejects an engine that declares a
         GTP protocol version <> 2.
