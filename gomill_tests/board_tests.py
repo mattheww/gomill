@@ -7,12 +7,12 @@ ascii_boards facilities.
 
 from __future__ import with_statement
 
-from gomill_tests import gomill_test_support
-from gomill_tests import board_test_data
-
 from gomill.gomill_common import format_vertex, coords_from_vertex
 from gomill import ascii_boards
 from gomill import boards
+
+from gomill_tests import gomill_test_support
+from gomill_tests import board_test_data
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
