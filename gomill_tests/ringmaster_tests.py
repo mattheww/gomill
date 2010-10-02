@@ -1,6 +1,5 @@
 """Tests for ringmaster.py."""
 
-import os
 import string
 
 from gomill_tests import test_framework
