@@ -52,6 +52,17 @@ def test_game_job(tc):
     tc.assertIsNone(channel.requested_cwd)
     tc.assertIsNone(channel.requested_env)
 
+def test_game_job_exec_failure(tc):
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    gj = Game_job_fixture(tc)
+    gj.job.player_w.cmd_args.append('fail=startup')
+    with tc.assertRaises(JobFailed) as ar:
+        gj.job.run()
+    tc.assertEqual(str(ar.exception),
+                   "aborting game due to error:\n"
+                   "error starting subprocess for player two:\n"
+                   "exec forced to fail")
+
 def test_game_job_channel_error(tc):
     def fail_first_command(channel):
         channel.fail_next_command = True
