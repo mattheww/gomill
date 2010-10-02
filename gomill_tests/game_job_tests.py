@@ -1,5 +1,7 @@
 """Tests for game_jobs.py"""
 
+import os
+
 from gomill import gtp_controller
 from gomill import game_jobs
 
@@ -22,7 +24,7 @@ class Player_check_fixture(test_framework.Fixture):
     def __init__(self, tc):
         self.player = game_jobs.Player()
         self.player.code = 'test'
-        self.player.cmd_args = ['test']
+        self.player.cmd_args = ['test', 'id=test']
         self.check = game_jobs.Player_check()
         self.check.player = self.player
         self.check.board_size = 9
@@ -32,13 +34,23 @@ def test_check_player(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     ck = Player_check_fixture(tc)
     game_jobs.check_player(ck.check)
+    channel = fx.get_channel('test')
+    tc.assertIsNone(channel.requested_stderr)
+
+def test_check_player_discard_stderr(tc):
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    ck = Player_check_fixture(tc)
+    game_jobs.check_player(ck.check, discard_stderr=True)
+    channel = fx.get_channel('test')
+    tc.assertIsInstance(channel.requested_stderr, file)
+    tc.assertEqual(channel.requested_stderr.name, os.devnull)
 
 def test_check_player_boardsize_fails(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     engine = gtp_engine_fixtures.get_test_engine()
     fx.register_engine('no_boardsize', engine)
     ck = Player_check_fixture(tc)
-    ck.player.cmd_args = ['no_boardsize']
+    ck.player.cmd_args.append('engine=no_boardsize')
 
     with tc.assertRaises(game_jobs.CheckFailed) as ar:
         game_jobs.check_player(ck.check)
