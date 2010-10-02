@@ -102,14 +102,19 @@ class Ringmaster(object):
         except ControlFileError, e:
             raise RingmasterError("error in control file:\n%s" % e)
 
+
+    def _read_control_file(self):
+        """Return the contents of the control file as an 8-bit string."""
+        try:
+            with open(self.control_pathname) as f:
+                return f.read()
+        except EnvironmentError, e:
+            raise RingmasterError("failed to read control file:\n%s" % e)
+
     def _load_control_file(self):
         """Main implementation for __init__."""
 
-        try:
-            with open(self.control_pathname) as f:
-                control_s = f.read()
-        except EnvironmentError, e:
-            raise RingmasterError("failed to read control file:\n%s" % e)
+        control_s = self._read_control_file()
 
         try:
             self.competition_type = self._parse_competition_type(control_s)
