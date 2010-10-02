@@ -13,6 +13,7 @@ test_modules = [
     'gtp_proxy_tests',
     'gtp_game_tests',
     'game_job_tests',
+    'competition_scheduler_tests',
     ]
 
 def get_test_modules():
