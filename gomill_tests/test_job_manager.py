@@ -16,13 +16,14 @@ class Job(object):
         sys.stderr.write("worker %d: %s\n" % (os.getpid(), self))
         time.sleep(random.random()*6)
         if self.num == 4:
-            print int("asd")
+            int("forcefailure4")
         return "response to %s" % self
 
 class Game_dispatcher(object):
     def __init__(self):
         self.counter = 0
         self.max = 7
+        self.errors_seen = []
 
     def get_job(self):
         if self.counter >= self.max:
@@ -36,6 +37,7 @@ class Game_dispatcher(object):
     def process_error_response(self, job, message):
         print "** Error from worker working on %s" % job
         print message
+        self.errors_seen.append(message)
 
 
 def test():
@@ -49,6 +51,14 @@ def test():
 def test2():
     job_source = Game_dispatcher()
     job_manager.run_jobs(job_source, 3, allow_mp=True)
+    assert job_source.errors_seen == [
+        "ValueError: invalid literal for int() with base 10: 'forcefailure4'\n"
+        "traceback (most recent call last):\n"
+        "  gomill_tests/test_job_manager.py:19 (run)\n"
+        "failing line:\n"
+        "int(\"forcefailure4\")\n"
+        ]
+    print "\nTEST PASSED\n"
 
 if __name__ == "__main__":
     test2()
