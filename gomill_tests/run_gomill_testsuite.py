@@ -16,6 +16,7 @@ test_modules = [
     'game_job_tests',
     'competition_scheduler_tests',
     'competition_tests',
+    'ringmaster_tests',
     ]
 
 def get_test_modules():
