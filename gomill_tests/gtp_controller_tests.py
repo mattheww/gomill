@@ -12,7 +12,7 @@ from gomill.gtp_controller import (
 from gomill_tests import gomill_test_support
 from gomill_tests import gtp_controller_test_support
 from gomill_tests import gtp_engine_fixtures
-from gomill_tests.gomill_test_support import SupporterError
+from gomill_tests.test_framework import SupporterError
 from gomill_tests.gtp_controller_test_support import Preprogrammed_gtp_channel
 
 

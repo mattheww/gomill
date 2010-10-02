@@ -1,4 +1,4 @@
-"""Generic (non-gomill-specific) test support code."""
+"""Generic (non-gomill-specific) test framework code."""
 
 import sys
 
@@ -10,6 +10,13 @@ else:
 # This makes TestResult ignore lines from this module in tracebacks
 __unittest = True
 
+class SupporterError(StandardError):
+    """Exception raised by support objects when something goes wrong.
+
+    This is raised to indicate things like sequencing errors detected by mock
+    objects.
+
+    """
 
 class FrameworkTestCase(unittest2.TestCase):
     """unittest2-style TestCase implementation with a few tweaks."""

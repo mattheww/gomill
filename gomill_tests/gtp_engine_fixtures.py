@@ -10,7 +10,7 @@ from gomill.gtp_controller import GtpChannelError
 
 from gomill_tests import test_framework
 from gomill_tests import gtp_controller_test_support
-from gomill_tests.gomill_test_support import SupporterError
+from gomill_tests.test_framework import SupporterError
 
 
 ## Test engine
