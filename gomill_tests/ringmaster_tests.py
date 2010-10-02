@@ -21,14 +21,14 @@ class Ringmaster_fixture(test_framework.Fixture):
         self.ringmaster = ringmaster_test_support.Testing_ringmaster(
             os.path.join(os.path.abspath(os.path.dirname(__file__)),
                          "ringmaster_test_files", control_filename))
+        self.ringmaster.set_display_mode('test')
 
-def xtest_check_players(tc):
+def test_check_players(tc):
     fx = Ringmaster_fixture(tc, 'test1.ctl')
     fx.ringmaster.check_players(discard_stderr=True)
 
 def test_run(tc):
     fx = Ringmaster_fixture(tc, 'test1.ctl')
-    fx.ringmaster.set_display_mode('test')
     fx.ringmaster.set_clean_status()
     fx.ringmaster.run()
     tc.assertListEqual(

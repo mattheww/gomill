@@ -39,6 +39,8 @@ class Testing_ringmaster(ringmasters.Ringmaster):
     FIXME: This is supposed to be nobbled so that it doesn't read from or write
     to the filesystem.
 
+    You'll want to run set_display_mode('test') with this.
+
     """
 
     _presenter_classes = {
@@ -46,15 +48,14 @@ class Testing_ringmaster(ringmasters.Ringmaster):
         }
 
     def _open_files(self):
-        """FIXME"""
         self.logfile = StringIO()
         self.historyfile = StringIO()
 
     def _close_files(self):
-        """FIXME"""
         # Don't want to close the StringIOs
+        pass
 
-    def write_status(sefl):
+    def write_status(self):
         """FIXME: nobbled for now."""
         pass
 
