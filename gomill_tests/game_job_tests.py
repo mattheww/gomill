@@ -1,5 +1,7 @@
 """Tests for game_jobs.py"""
 
+from __future__ import with_statement
+
 import os
 
 from gomill import gtp_controller
