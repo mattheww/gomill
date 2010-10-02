@@ -178,36 +178,59 @@ class Mock_subprocess_gtp_channel(
     This has the same construction interface as Subprocess_gtp_channel, but is
     in fact a Testing_gtp_channel.
 
-    Public attributes:
-        engine_registry   -- map command name -> Gtp_engine_protocol
+    This accepts the following 'command line arguments' in the 'command' list:
+        id=<string>     -- id to use in the channels registry
+        engine=<string> -- look up engine in the engine registry
+
+    By default, the underlying engine is a newly-created test player engine.
+    You can override this using 'engine=xxx'.
+
+    If you want to get at the channel object after creating it, pass 'id=xxx'
+    and find it using the 'channels' class attribute.
+
+    Class attributes:
+        engine_registry   -- map engine name string -> Gtp_engine_protocol
+        channels          -- map id string -> Mock_subprocess_gtp_channel
+
+    Instance attributes:
+        id                -- string or None
         requested_command -- list of strings
         requested_stderr
         requested_cwd
         requested_env
 
-    The underlying engine is specified by the command name (ie, the first item
-    of the 'command' list given to Subprocess_gtp_channel):
-     - if it's 'test', a new test player engine is created and used
-     - otherwise, an engine is looked up in the engine registry
-     - if it's not found there, SupporterError is raised
-
     """
     engine_registry = {}
+    channels = {}
 
     def __init__(self, command, stderr=None, cwd=None, env=None):
         self.requested_command = command
         self.requested_stderr = stderr
         self.requested_cwd = cwd
         self.requested_env = env
-        if command[0] == 'test':
+        self.id = None
+        engine = None
+        for arg in command[1:]:
+            key, eq, value = arg.partition("=")
+            if not eq:
+                raise SupporterError("Mock_subprocess_gtp_channel: "
+                                     "unknown command-line argument: %s" % arg)
+            if key == 'id':
+                self.id = value
+                self.channels[value] = self
+            elif key == 'engine':
+                try:
+                    engine = self.engine_registry[value]
+                except KeyError:
+                    raise SupporterError(
+                        "Mock_subprocess_gtp_channel: unregistered engine '%s'"
+                        % value)
+            else:
+                raise SupporterError("Mock_subprocess_gtp_channel: "
+                                     "unknown option: %s" % key)
+
+        if engine is None:
             engine = get_test_player_engine()
-        else:
-            try:
-                engine = self.engine_registry[command[0]]
-            except KeyError:
-                raise SupporterError(
-                    "Mock_subprocess_gtp_channel: unregistered engine '%s'" %
-                    command[0])
         gtp_controller_test_support.Testing_gtp_channel.__init__(self, engine)
 
 
@@ -217,11 +240,8 @@ class Mock_subprocess_fixture(test_framework.Fixture):
     While this fixture is active, attempts to instantiate a
     Subprocess_gtp_channel will produce a Testing_gtp_channel.
 
-    Use command name 'test', or a name registered using register_engine()
-
     """
     def __init__(self, tc):
-        self.engine_registry = {}
         self._patch()
         tc.addCleanup(self._unpatch)
 
@@ -230,18 +250,23 @@ class Mock_subprocess_fixture(test_framework.Fixture):
         gtp_controller.Subprocess_gtp_channel = Mock_subprocess_gtp_channel
 
     def _unpatch(self):
+        Mock_subprocess_gtp_channel.engine_registry.clear()
+        Mock_subprocess_gtp_channel.channels.clear()
         gtp_controller.Subprocess_gtp_channel = self._sgc
 
-    def register_engine(self, name, engine):
+    def register_engine(self, code, engine):
         """Specify an engine for a mock subprocess channel to run.
 
-        name   -- string
+        code   -- string
         engine -- Gtp_engine_protocol
 
         After this is called, attempts to instantiate a Subprocess_gtp_channel
-        with command name 'name' will return a Testing_gtp_channel based on the
-        specified engine.
+        with an 'engine=code' argument will return a Testing_gtp_channel based
+        on the specified engine.
 
         """
-        Mock_subprocess_gtp_channel.engine_registry[name] = engine
+        Mock_subprocess_gtp_channel.engine_registry[code] = engine
 
+    def get_channel(self, id):
+        """Retrieve a channel via its 'id' command-line argument."""
+        return Mock_subprocess_gtp_channel.channels[id]
