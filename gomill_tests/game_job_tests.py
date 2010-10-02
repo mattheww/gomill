@@ -13,6 +13,43 @@ def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
+### Game_job proper
+
+class Game_job_fixture(test_framework.Fixture):
+    """Fixture setting up a Game_job.
+
+    attributes:
+      job -- game_jobs.Game_job
+
+    """
+    def __init__(self, tc):
+        player_b = game_jobs.Player()
+        player_b.code = 'one'
+        player_b.cmd_args = ['test', 'id=one']
+        player_w = game_jobs.Player()
+        player_w.code = 'two'
+        player_w.cmd_args = ['test', 'id=two']
+        self.job = game_jobs.Game_job()
+        self.job.game_id = 'gameid'
+        self.job.player_b = player_b
+        self.job.player_w = player_w
+        self.job.board_size = 9
+        self.job.komi = 7.5
+        self.job.move_limit = 1000
+
+def test_game_job(tc):
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    gj = Game_job_fixture(tc)
+    gj.job.game_data = 'gamedata'
+    result = gj.job.run()
+    # Win by 18 on the board minus 7.5 komi
+    tc.assertEqual(result.game_result.sgf_result, "B+10.5")
+    tc.assertEqual(result.game_id, 'gameid')
+    tc.assertEqual(result.game_data, 'gamedata')
+
+
+### check_player
+
 class Player_check_fixture(test_framework.Fixture):
     """Fixture setting up a Player_check.
 
