@@ -4,6 +4,7 @@ import os
 
 from gomill import gtp_controller
 from gomill import game_jobs
+from gomill.job_manager import JobFailed
 
 from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
@@ -46,6 +47,21 @@ def test_game_job(tc):
     tc.assertEqual(result.game_result.sgf_result, "B+10.5")
     tc.assertEqual(result.game_id, 'gameid')
     tc.assertEqual(result.game_data, 'gamedata')
+
+def test_game_job_channel_error(tc):
+    def fail_first_command(channel):
+        channel.fail_next_command = True
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    fx.register_init_callback('fail_first_command', fail_first_command)
+    gj = Game_job_fixture(tc)
+    gj.job.player_w.cmd_args.append('init=fail_first_command')
+    with tc.assertRaises(JobFailed) as ar:
+        gj.job.run()
+    tc.assertEqual(str(ar.exception),
+                   "aborting game due to error:\n"
+                   "transport error sending first command (protocol_version) "
+                   "to player two:\n"
+                   "forced failure for send_command_line")
 
 
 ### check_player
