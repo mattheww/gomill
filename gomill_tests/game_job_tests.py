@@ -97,3 +97,12 @@ def test_check_player_env(tc):
     # Check environment was merged, not replaced
     tc.assertIn('PATH', channel.requested_env)
 
+def test_check_player_exec_failure(tc):
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    ck = Player_check_fixture(tc)
+    ck.player.cmd_args.append('fail=startup')
+    with tc.assertRaises(game_jobs.CheckFailed) as ar:
+        game_jobs.check_player(ck.check)
+    tc.assertEqual(str(ar.exception),
+                   "error starting subprocess for test:\n"
+                   "exec forced to fail")

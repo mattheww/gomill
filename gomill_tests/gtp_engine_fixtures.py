@@ -6,6 +6,7 @@ from gomill import gomill_common
 from gomill import gtp_controller
 from gomill import gtp_engine
 from gomill.gtp_engine import GtpError, GtpFatalError
+from gomill.gtp_controller import GtpChannelError
 
 from gomill_tests import test_framework
 from gomill_tests import gtp_controller_test_support
@@ -181,6 +182,7 @@ class Mock_subprocess_gtp_channel(
     This accepts the following 'command line arguments' in the 'command' list:
         id=<string>     -- id to use in the channels registry
         engine=<string> -- look up engine in the engine registry
+        fail=startup    -- simulate exec failure
 
     By default, the underlying engine is a newly-created test player engine.
     You can override this using 'engine=xxx'.
@@ -214,7 +216,7 @@ class Mock_subprocess_gtp_channel(
             key, eq, value = arg.partition("=")
             if not eq:
                 raise SupporterError("Mock_subprocess_gtp_channel: "
-                                     "unknown command-line argument: %s" % arg)
+                                     "bad command-line argument: %s" % arg)
             if key == 'id':
                 self.id = value
                 self.channels[value] = self
@@ -225,9 +227,11 @@ class Mock_subprocess_gtp_channel(
                     raise SupporterError(
                         "Mock_subprocess_gtp_channel: unregistered engine '%s'"
                         % value)
+            elif key == 'fail' and value == 'startup':
+                raise GtpChannelError("exec forced to fail")
             else:
                 raise SupporterError("Mock_subprocess_gtp_channel: "
-                                     "unknown option: %s" % key)
+                                     "bad command-line argument: %s" % arg)
 
         if engine is None:
             engine = get_test_player_engine()
