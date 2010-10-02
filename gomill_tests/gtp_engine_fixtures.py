@@ -96,6 +96,9 @@ class Test_player(object):
     resigns. It pays no attention to its opponent's moves, and doesn't maintain
     a board position.
 
+    (This means that if two Test_players play each other, black will win by
+    boardsize*2 on the board).
+
     """
     def __init__(self):
         self.boardsize = None
