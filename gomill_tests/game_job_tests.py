@@ -47,6 +47,10 @@ def test_game_job(tc):
     tc.assertEqual(result.game_result.sgf_result, "B+10.5")
     tc.assertEqual(result.game_id, 'gameid')
     tc.assertEqual(result.game_data, 'gamedata')
+    channel = fx.get_channel('one')
+    tc.assertIsNone(channel.requested_stderr)
+    tc.assertIsNone(channel.requested_cwd)
+    tc.assertIsNone(channel.requested_env)
 
 def test_game_job_channel_error(tc):
     def fail_first_command(channel):
@@ -62,6 +66,21 @@ def test_game_job_channel_error(tc):
                    "transport error sending first command (protocol_version) "
                    "to player two:\n"
                    "forced failure for send_command_line")
+
+def test_game_job_stderr_cwd_env(tc):
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    gj = Game_job_fixture(tc)
+    gj.job.player_b.stderr_pathname = os.devnull
+    gj.job.player_b.cwd = "/nonexistent_directory"
+    gj.job.player_b.environ = {'GOMILL_TEST' : 'gomill'}
+    result = gj.job.run()
+    channel = fx.get_channel('one')
+    tc.assertIsInstance(channel.requested_stderr, file)
+    tc.assertEqual(channel.requested_stderr.name, os.devnull)
+    tc.assertEqual(channel.requested_cwd, "/nonexistent_directory")
+    tc.assertEqual(channel.requested_env['GOMILL_TEST'], 'gomill')
+    # Check environment was merged, not replaced
+    tc.assertIn('PATH', channel.requested_env)
 
 
 ### check_player
