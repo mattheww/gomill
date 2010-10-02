@@ -1,5 +1,7 @@
 """Tests for gtp_engine.py"""
 
+from __future__ import with_statement
+
 from gomill import gtp_engine
 
 from gomill_tests import gomill_test_support
@@ -33,6 +35,22 @@ def test_run_gtp_session(tc):
     gtp_engine.run_gtp_session(engine, command_pipe, response_pipe)
     tc.assertMultiLineEqual(response_pipe.getvalue(),
                             "= true\n\n? unknown command\n\n=\n\n")
+    command_pipe.close()
+    response_pipe.close()
+
+def test_run_gtp_session_broken_pipe(tc):
+    def break_pipe(args):
+        response_pipe.simulate_broken_pipe()
+
+    engine = gtp_engine.Gtp_engine_protocol()
+    engine.add_protocol_commands()
+    engine.add_command("break", break_pipe)
+
+    stream = "known_command list_commands\nbreak\nquit\n"
+    command_pipe = test_support.Mock_reading_pipe(stream)
+    response_pipe = test_support.Mock_writing_pipe()
+    with tc.assertRaises(gtp_engine.ControllerDisconnected) as ar:
+        gtp_engine.run_gtp_session(engine, command_pipe, response_pipe)
     command_pipe.close()
     response_pipe.close()
 
