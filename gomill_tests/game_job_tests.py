@@ -36,6 +36,8 @@ def test_check_player(tc):
     game_jobs.check_player(ck.check)
     channel = fx.get_channel('test')
     tc.assertIsNone(channel.requested_stderr)
+    tc.assertIsNone(channel.requested_cwd)
+    tc.assertIsNone(channel.requested_env)
 
 def test_check_player_discard_stderr(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
@@ -51,7 +53,6 @@ def test_check_player_boardsize_fails(tc):
     fx.register_engine('no_boardsize', engine)
     ck = Player_check_fixture(tc)
     ck.player.cmd_args.append('engine=no_boardsize')
-
     with tc.assertRaises(game_jobs.CheckFailed) as ar:
         game_jobs.check_player(ck.check)
     tc.assertEqual(str(ar.exception),
@@ -77,4 +78,22 @@ def test_check_player_nonexistent_cwd(tc):
         game_jobs.check_player(ck.check)
     tc.assertEqual(str(ar.exception),
                    "bad working directory: /nonexistent/directory")
+
+def test_check_player_cwd(tc):
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    ck = Player_check_fixture(tc)
+    ck.player.cwd = "/"
+    game_jobs.check_player(ck.check)
+    channel = fx.get_channel('test')
+    tc.assertEqual(channel.requested_cwd, "/")
+
+def test_check_player_env(tc):
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    ck = Player_check_fixture(tc)
+    ck.player.environ = {'GOMILL_TEST' : 'gomill'}
+    game_jobs.check_player(ck.check)
+    channel = fx.get_channel('test')
+    tc.assertEqual(channel.requested_env['GOMILL_TEST'], 'gomill')
+    # Check environment was merged, not replaced
+    tc.assertIn('PATH', channel.requested_env)
 
