@@ -12,6 +12,8 @@ from gomill_tests import gtp_controller_test_support
 from gomill_tests.gomill_test_support import SupporterError
 
 
+## Test engine
+
 class Test_gtp_engine_protocol(gtp_engine.Gtp_engine_protocol):
     """Variant of Gtp_engine_protocol with additional facilities for testing.
 
@@ -82,6 +84,8 @@ def get_test_channel():
     return gtp_controller_test_support.Testing_gtp_channel(engine)
 
 
+## Test player engine
+
 class Test_player(object):
     """Trivial player.
 
@@ -145,6 +149,8 @@ def get_test_player_channel():
     return gtp_controller_test_support.Testing_gtp_channel(engine)
 
 
+## State reporter subprocess
+
 class State_reporter_fixture(test_framework.Fixture):
     """Fixture for use with suprocess_state_reporter.py
 
@@ -161,4 +167,81 @@ class State_reporter_fixture(test_framework.Fixture):
         self.cmd = ["python", self._pathname]
         self.devnull = open(os.devnull, "w")
         tc.addCleanup(self.devnull.close)
+
+
+## Mock subprocess gtp channel
+
+class Mock_subprocess_gtp_channel(
+    gtp_controller_test_support.Testing_gtp_channel):
+    """Mock substitute for Subprocess_gtp_channel.
+
+    This has the same construction interface as Subprocess_gtp_channel, but is
+    in fact a Testing_gtp_channel.
+
+    Public attributes:
+        engine_registry   -- map command name -> Gtp_engine_protocol
+        requested_command -- list of strings
+        requested_stderr
+        requested_cwd
+        requested_env
+
+    The underlying engine is specified by the command name (ie, the first item
+    of the 'command' list given to Subprocess_gtp_channel):
+     - if it's 'test', a new test player engine is created and used
+     - otherwise, an engine is looked up in the engine registry
+     - if it's not found there, SupporterError is raised
+
+    """
+    engine_registry = {}
+
+    def __init__(self, command, stderr=None, cwd=None, env=None):
+        self.requested_command = command
+        self.requested_stderr = stderr
+        self.requested_cwd = cwd
+        self.requested_env = env
+        if command[0] == 'test':
+            engine = get_test_player_engine()
+        else:
+            try:
+                engine = self.engine_registry[command[0]]
+            except KeyError:
+                raise SupporterError(
+                    "Mock_subprocess_gtp_channel: unregistered engine '%s'" %
+                    command[0])
+        gtp_controller_test_support.Testing_gtp_channel.__init__(self, engine)
+
+
+class Mock_subprocess_fixture(test_framework.Fixture):
+    """Fixture for using Mock_subprocess_gtp_channel.
+
+    While this fixture is active, attempts to instantiate a
+    Subprocess_gtp_channel will produce a Testing_gtp_channel.
+
+    Use command name 'test', or a name registered using register_engine()
+
+    """
+    def __init__(self, tc):
+        self.engine_registry = {}
+        self._patch()
+        tc.addCleanup(self._unpatch)
+
+    def _patch(self):
+        self._sgc = gtp_controller.Subprocess_gtp_channel
+        gtp_controller.Subprocess_gtp_channel = Mock_subprocess_gtp_channel
+
+    def _unpatch(self):
+        gtp_controller.Subprocess_gtp_channel = self._sgc
+
+    def register_engine(self, name, engine):
+        """Specify an engine for a mock subprocess channel to run.
+
+        name   -- string
+        engine -- Gtp_engine_protocol
+
+        After this is called, attempts to instantiate a Subprocess_gtp_channel
+        with command name 'name' will return a Testing_gtp_channel based on the
+        specified engine.
+
+        """
+        Mock_subprocess_gtp_channel.engine_registry[name] = engine
 
