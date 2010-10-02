@@ -106,3 +106,31 @@ def test_check_player_exec_failure(tc):
     tc.assertEqual(str(ar.exception),
                    "error starting subprocess for test:\n"
                    "exec forced to fail")
+
+def test_check_player_channel_error(tc):
+    def fail_first_command(channel):
+        channel.fail_next_command = True
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    fx.register_init_callback('fail_first_command', fail_first_command)
+    ck = Player_check_fixture(tc)
+    ck.player.cmd_args.append('init=fail_first_command')
+    with tc.assertRaises(game_jobs.CheckFailed) as ar:
+        game_jobs.check_player(ck.check)
+    tc.assertEqual(str(ar.exception),
+                   "transport error sending first command (protocol_version) "
+                   "to test:\n"
+                   "forced failure for send_command_line")
+
+def test_check_player_channel_error_on_close(tc):
+    def fail_close(channel):
+        channel.fail_close = True
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    fx.register_init_callback('fail_close', fail_close)
+    ck = Player_check_fixture(tc)
+    ck.player.cmd_args.append('init=fail_close')
+    with tc.assertRaises(game_jobs.CheckFailed) as ar:
+        game_jobs.check_player(ck.check)
+    tc.assertEqual(str(ar.exception),
+                   "error closing test:\n"
+                   "forced failure for close")
+

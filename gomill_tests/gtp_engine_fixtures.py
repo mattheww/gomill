@@ -182,6 +182,7 @@ class Mock_subprocess_gtp_channel(
     This accepts the following 'command line arguments' in the 'command' list:
         id=<string>     -- id to use in the channels registry
         engine=<string> -- look up engine in the engine registry
+        init=<string>   -- look up initialisation fn in the callback registry
         fail=startup    -- simulate exec failure
 
     By default, the underlying engine is a newly-created test player engine.
@@ -190,8 +191,12 @@ class Mock_subprocess_gtp_channel(
     If you want to get at the channel object after creating it, pass 'id=xxx'
     and find it using the 'channels' class attribute.
 
+    If you want to modify the returned channel object, pass 'init=xxx' and
+    register a callback function taking a channel parameter.
+
     Class attributes:
-        engine_registry   -- map engine name string -> Gtp_engine_protocol
+        engine_registry   -- map engine code -> Gtp_engine_protocol
+        callback_registry -- map callback code -> function
         channels          -- map id string -> Mock_subprocess_gtp_channel
 
     Instance attributes:
@@ -203,6 +208,7 @@ class Mock_subprocess_gtp_channel(
 
     """
     engine_registry = {}
+    callback_registry = {}
     channels = {}
 
     def __init__(self, command, stderr=None, cwd=None, env=None):
@@ -212,6 +218,7 @@ class Mock_subprocess_gtp_channel(
         self.requested_env = env
         self.id = None
         engine = None
+        callback = None
         for arg in command[1:]:
             key, eq, value = arg.partition("=")
             if not eq:
@@ -227,6 +234,13 @@ class Mock_subprocess_gtp_channel(
                     raise SupporterError(
                         "Mock_subprocess_gtp_channel: unregistered engine '%s'"
                         % value)
+            elif key == 'init':
+                try:
+                    callback = self.callback_registry[value]
+                except KeyError:
+                    raise SupporterError(
+                        "Mock_subprocess_gtp_channel: unregistered init '%s'"
+                        % value)
             elif key == 'fail' and value == 'startup':
                 raise GtpChannelError("exec forced to fail")
             else:
@@ -236,6 +250,8 @@ class Mock_subprocess_gtp_channel(
         if engine is None:
             engine = get_test_player_engine()
         gtp_controller_test_support.Testing_gtp_channel.__init__(self, engine)
+        if callback is not None:
+            callback(self)
 
 
 class Mock_subprocess_fixture(test_framework.Fixture):
@@ -270,6 +286,19 @@ class Mock_subprocess_fixture(test_framework.Fixture):
 
         """
         Mock_subprocess_gtp_channel.engine_registry[code] = engine
+
+    def register_init_callback(self, code, fn):
+        """Specify an initialisation callback for the mock subprocess channel.
+
+        code -- string
+        fn   -- function
+
+        After this is called, attempts to instantiate a Subprocess_gtp_channel
+        with an 'init=code' argument will call the specified function, passing
+        the Testing_gtp_channel as its parameter.
+
+        """
+        Mock_subprocess_gtp_channel.callback_registry[code] = fn
 
     def get_channel(self, id):
         """Retrieve a channel via its 'id' command-line argument."""
