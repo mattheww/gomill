@@ -115,11 +115,11 @@ class Move_generator_result(object):
       cookie    -- arbitrary value
 
     Exactly one of the first three attributes should be set to a nondefault
-    value.
+    value. The other attributes can be safely left at their defaults.
 
     If claim is true, either 'move' or 'pass_move' must still be set.
 
-    comments are used by gomill-savesgf.
+    comments are used by gomill-explain_last_move and gomill-savesgf.
 
     See History_move for an explanation of the cookie attribute. It has the
     value None if not explicitly set.
