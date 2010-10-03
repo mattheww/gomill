@@ -541,6 +541,15 @@ def test_check_protocol_version_2(tc):
     # check error is not treated as a check failure
     controller.check_protocol_version()
 
+def test_list_commands(tc):
+    channel = gtp_engine_fixtures.get_test_channel()
+    controller = Gtp_controller(channel, 'lc test')
+    channel.engine.add_command("xyzzy", None)
+    channel.engine.add_command("pl ugh", None)
+    tc.assertListEqual(
+        controller.list_commands(),
+        ['error', 'fatal', 'known_command', 'list_commands',
+         'multiline', 'protocol_version', 'quit', 'test', 'xyzzy'])
 
 
 def test_describe_engine(tc):
