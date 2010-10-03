@@ -186,7 +186,7 @@ class Gtp_channel(object):
         (this is unlikely in practice).
 
         When it is meaningful (eg, for subprocess channels) this waits for the
-        engine to exit.
+        engine to exit. Nonzero exit status is not considered a serious error.
 
         """
         pass
@@ -648,7 +648,7 @@ class Gtp_controller(object):
         by using safe_close() instead of close()).
 
         When it is meaningful (eg, for subprocess channels) this waits for the
-        engine to exit.
+        engine to exit. Nonzero exit status is not considered an error.
 
         """
         if self.channel_is_closed:
@@ -717,7 +717,7 @@ class Gtp_controller(object):
         safe_do_command.
 
         When it is meaningful (eg, for subprocess channels) this waits for the
-        engine to exit.
+        engine to exit. Nonzero exit status is not reported as an error.
 
 
         This will send 'quit' to the engine if the channel is not marked as bad.
