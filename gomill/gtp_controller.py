@@ -628,15 +628,15 @@ class Gtp_controller(object):
         """Return the engine's declared command list.
 
         Returns a list of nonempty strings without leading or trailing
-        whitespace.
+        whitespace. Filters out strings which wouldn't be accepted as commands.
 
         May propagate GtpChannelError or BadGtpResponse
 
         """
         response = self.do_command('list_commands')
-        return [s for s in
-                (t.strip() for t in response.split("\n"))
-                if s]
+        stripped = [s for s in
+                    (t.strip() for t in response.split("\n"))]
+        return [s for s in stripped if is_well_formed_gtp_word(s)]
 
     def close(self):
         """Close the communication channel to the engine.
