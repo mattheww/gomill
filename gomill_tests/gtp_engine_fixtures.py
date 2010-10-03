@@ -140,11 +140,15 @@ def get_test_player_engine():
 
     Actually returns a Test_gtp_engine_protocol.
 
+    It has an additional 'player' attribute, which gives access to the
+    Test_player.
+
     """
     test_player = Test_player()
     engine = Test_gtp_engine_protocol()
     engine.add_protocol_commands()
     engine.add_commands(test_player.get_handlers())
+    engine.player = test_player
     return engine
 
 def get_test_player_channel():

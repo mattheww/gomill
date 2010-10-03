@@ -24,6 +24,8 @@ class Game_fixture(test_framework.Fixture):
       controller_w -- Gtp_controller
       channel_b    -- Testing_gtp_channel (like get_test_player_channel())
       channel_w    -- Testing_gtp_channel (like get_test_player_channel())
+      player_b     -- Test_player
+      player_w     -- Test_player
 
     """
     def __init__(self, tc):
@@ -41,6 +43,8 @@ class Game_fixture(test_framework.Fixture):
         self.controller_w = controller_w
         self.channel_b = channel_b
         self.channel_w = channel_w
+        self.player_b = channel_b.engine.player
+        self.player_w = channel_w.engine.player
 
 
 
@@ -76,3 +80,21 @@ def test_game(tc):
         ('b', (7, 4), None), ('w', (7, 6), None),
         ('b', (8, 4), None), ('w', (8, 6), None),
         ('b', None, None), ('w', None, None)])
+
+def test_claim(tc):
+    def handle_genmove_ex(args):
+        if fx.player_b.row_to_play < 3:
+            return fx.player_b.handle_genmove(args)
+        return "claim"
+    fx = Game_fixture(tc)
+    fx.channel_b.engine.add_command('gomill-genmove_ex', handle_genmove_ex)
+    fx.game.use_internal_scorer()
+    fx.game.ready()
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertEqual(fx.game.result.sgf_result, "B+C")
+    tc.assertListEqual(fx.game.moves, [
+        ('b', (0, 4), None), ('w', (0, 6), None),
+        ('b', (1, 4), None), ('w', (1, 6), None),
+        ('b', (2, 4), None), ('w', (2, 6), None),
+        ])

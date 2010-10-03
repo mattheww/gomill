@@ -384,14 +384,14 @@ class Game(object):
 
     def _play_move(self, colour):
         opponent = opponent_of(colour)
-        if self.known_command(colour, "gomill-genmove_claim"):
-            genmove_command = "gomill-genmove_claim"
+        if self.known_command(colour, "gomill-genmove_ex"):
+            genmove_command = ["gomill-genmove_ex", colour, "claim"]
             may_claim = True
         else:
-            genmove_command = "genmove"
+            genmove_command = ["genmove", colour]
             may_claim = False
         try:
-            move_s = self.send_command(colour, genmove_command, colour).lower()
+            move_s = self.send_command(colour, *genmove_command).lower()
         except BadGtpResponse, e:
             self.winner = opponent
             self.forfeited = True

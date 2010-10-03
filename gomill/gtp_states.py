@@ -110,7 +110,7 @@ class Move_generator_result(object):
       resign    -- bool
       pass_move -- bool
       move      -- (row, col), or None
-      claim     -- bool (for gomill-genmove_claim)
+      claim     -- bool (for gomill-genmove_ex claim)
       comments  -- multiline string, or None
       cookie    -- arbitrary value
 
@@ -395,8 +395,12 @@ class Gtp_state(object):
     def handle_genmove(self, args):
         return self._handle_genmove(args)
 
-    def handle_genmove_claim(self, args):
-        return self._handle_genmove(args, allow_claim=True)
+    def handle_genmove_ex(self, args):
+        allow_claim = False
+        for arg in args[1:]:
+            if arg == 'claim':
+                allow_claim = True
+        return self._handle_genmove(args[:1], allow_claim=allow_claim)
 
     def handle_reg_genmove(self, args):
         return self._handle_genmove(args, for_regression=True)
@@ -535,7 +539,7 @@ class Gtp_state(object):
                 'place_free_handicap'      : self.handle_place_free_handicap,
                 'play'                     : self.handle_play,
                 'genmove'                  : self.handle_genmove,
-                'gomill-genmove_claim'     : self.handle_genmove_claim,
+                'gomill-genmove_ex'        : self.handle_genmove_ex,
                 'reg_genmove'              : self.handle_reg_genmove,
                 'undo'                     : self.handle_undo,
                 'showboard'                : self.handle_showboard,
