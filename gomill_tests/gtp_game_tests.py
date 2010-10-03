@@ -24,6 +24,8 @@ class Game_fixture(test_framework.Fixture):
       controller_w -- Gtp_controller
       channel_b    -- Testing_gtp_channel (like get_test_player_channel())
       channel_w    -- Testing_gtp_channel (like get_test_player_channel())
+      engine_b     -- Test_gtp_engine_protocol (like get_test_player_engine())
+      engine_w     -- Test_gtp_engine_protocol (like get_test_player_engine())
       player_b     -- Test_player
       player_w     -- Test_player
 
@@ -43,6 +45,8 @@ class Game_fixture(test_framework.Fixture):
         self.controller_w = controller_w
         self.channel_b = channel_b
         self.channel_w = channel_w
+        self.engine_b = channel_b.engine
+        self.engine_w = channel_w.engine
         self.player_b = channel_b.engine.player
         self.player_w = channel_w.engine.player
 
@@ -82,13 +86,17 @@ def test_game(tc):
         ('b', None, None), ('w', None, None)])
 
 def test_claim(tc):
-    def handle_genmove_ex(args):
+    def handle_genmove_ex_b(args):
         if fx.player_b.row_to_play < 3:
             return fx.player_b.handle_genmove(args)
         return "claim"
+    def handle_genmove_ex_w(args):
+        return "claim"
     fx = Game_fixture(tc)
-    fx.channel_b.engine.add_command('gomill-genmove_ex', handle_genmove_ex)
+    fx.engine_b.add_command('gomill-genmove_ex', handle_genmove_ex_b)
+    fx.engine_w.add_command('gomill-genmove_ex', handle_genmove_ex_w)
     fx.game.use_internal_scorer()
+    fx.game.set_claim_allowed('b')
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()

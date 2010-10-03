@@ -137,6 +137,7 @@ class Game(object):
     def __init__(self, board_size, komi=0.0, move_limit=1000):
         self.players = {'b' : 'b', 'w' : 'w'}
         self.controllers = {}
+        self.claim_allowed = {'b' : False, 'w' : False}
         self.after_move_callback = None
         self.board_size = board_size
         self.komi = komi
@@ -187,6 +188,15 @@ class Game(object):
 
         """
         self.allowed_scorers.append(colour)
+
+    def set_claim_allowed(self, colour, b=True):
+        """Allow the specified player to claim a win.
+
+        This will have no effect if the engine doesn't implement
+        gomill-genmove_ex.
+
+        """
+        self.claim_allowed[colour] = bool(b)
 
     def set_move_callback(self, fn):
         """Specify a callback function to be called after every move.
@@ -384,7 +394,8 @@ class Game(object):
 
     def _play_move(self, colour):
         opponent = opponent_of(colour)
-        if self.known_command(colour, "gomill-genmove_ex"):
+        if (self.claim_allowed[colour] and
+            self.known_command(colour, "gomill-genmove_ex")):
             genmove_command = ["gomill-genmove_ex", colour, "claim"]
             may_claim = True
         else:

@@ -17,6 +17,7 @@ class Player(object):
 
     optional attributes:
       is_reliable_scorer   -- bool (default True)
+      allow_claim          -- bool (default False)
       gtp_translations     -- map command string -> command string
       startup_gtp_commands -- list of pairs (command_name, arguments)
       stderr_pathname      -- pathname or None (default None)
@@ -42,6 +43,7 @@ class Player(object):
     """
     def __init__(self):
         self.is_reliable_scorer = True
+        self.allow_claim = False
         self.gtp_translations = {}
         self.startup_gtp_commands = []
         self.stderr_pathname = None
@@ -164,6 +166,8 @@ class Game_job(object):
             self._files_to_close.append(stderr)
         else:
             stderr = None
+        if player.allow_claim:
+            game.set_claim_allowed(colour)
         game.set_player_subprocess(
             colour, player.cmd_args,
             env=player.make_environ(), cwd=player.cwd, stderr=stderr)
