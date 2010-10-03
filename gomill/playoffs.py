@@ -4,6 +4,7 @@ from __future__ import division
 
 from collections import defaultdict
 
+from gomill import ascii_tables
 from gomill import game_jobs
 from gomill import competitions
 from gomill import competition_schedulers
@@ -361,33 +362,46 @@ class Playoff(Competition):
 
         p(matchup.describe_details())
 
-        pad = max(len(player_x), len(player_y)) + 2
-        xname = player_x.ljust(pad)
-        yname = player_y.ljust(pad)
+        t = ascii_tables.Table(row_count=3)
+        t.add_heading("") # player name
+        i = t.add_column(align='left', right_padding=3)
+        t.set_column_values(i, [player_x, player_y])
+
+        t.add_heading("wins")
+        i = t.add_column(align='right')
+        t.set_column_values(i, [x_wins, y_wins])
+
+        t.add_heading("") # overall pct
+        i = t.add_column(align='right')
+        t.set_column_values(i, [pct(x_wins, total), pct(y_wins, total)])
 
         if alternating:
-            p(" " * (pad) +
-              " wins               black         white        avg cpu")
-            p("%s %4d %7s    %4d %7s  %4d %7s  %s"
-              % (xname, x_wins, pct(x_wins, total),
-                 xb_wins, pct(xb_wins, xb_played),
-                 xw_wins, pct(xw_wins, xw_played),
-                 x_avg_time_s))
-            p("%s %4d %7s    %4d %7s  %4d %7s  %s"
-              % (yname, y_wins, pct(y_wins, total),
-                 yb_wins, pct(yb_wins, yb_played),
-                 yw_wins, pct(yw_wins, yw_played),
-                 y_avg_time_s))
-            p(" " * (pad+17) + "%4d %7s  %4d %7s"
-              % (b_wins, pct(b_wins, total), w_wins, pct(w_wins, total)))
+            t.columns[i].right_padding = 7
+            t.add_heading("black", span=2)
+            i = t.add_column(align='left')
+            t.set_column_values(i, [xb_wins, yb_wins, b_wins])
+            i = t.add_column(align='right', right_padding=5)
+            t.set_column_values(i, [pct(xb_wins, xb_played),
+                                    pct(yb_wins, yb_played),
+                                    pct(b_wins, total)])
+
+            t.add_heading("white", span=2)
+            i = t.add_column(align='left')
+            t.set_column_values(i, [xw_wins, yw_wins, w_wins])
+            i = t.add_column(align='right', right_padding=3)
+            t.set_column_values(i, [pct(xw_wins, xw_played),
+                                    pct(yw_wins, yw_played),
+                                    pct(w_wins, total)])
         else:
-            p(" " * pad + " wins                     avg cpu")
-            p("%s %4d %7s   (%s) %s"
-              % (xname, x_wins, pct(x_wins, total),
-                 x_colour, x_avg_time_s))
-            p("%s %4d %7s   (%s) %s"
-              % (yname, y_wins, pct(y_wins, total),
-                 y_colour, y_avg_time_s))
+            t.columns[i].right_padding = 3
+            t.add_heading("")
+            i = t.add_column(align='left')
+            t.set_column_values(i, ["(%s)" % x_colour, "(%s)" % y_colour])
+
+        t.add_heading("avg cpu")
+        i = t.add_column(align='right', right_padding=2)
+        t.set_column_values(i, [x_avg_time_s, y_avg_time_s])
+        p("\n".join(t.render()))
 
     def write_screen_report(self, out):
         results_by_matchup_id = defaultdict(list)

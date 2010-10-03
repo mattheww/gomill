@@ -76,7 +76,7 @@ def test_run(tc):
         fx.messages('screen_report'),
         ["p1 v p2 (3/400 games)\n"
          "board size: 9   komi: 7.5\n"
-         "     wins                     avg cpu\n"
+         "     wins                   avg cpu\n"
          "p1      3 100.00%   (black)    ----\n"
          "p2      0   0.00%   (white)    ----"])
 
