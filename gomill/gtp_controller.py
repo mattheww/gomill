@@ -72,15 +72,22 @@ class Gtp_channel(object):
     """A communication channel to a GTP engine.
 
     public attributes:
+      exit_status
       resource_usage
 
+    exit_status describes the engine's exit status as an integer. It is None if
+    not available. The integer is in the form returned by os.wait() (in
+    particular, zero for successful exit, nonzero for unsuccessful).
+
     resource_usage describes the engine's resource usage (see
-    resource.getrusage() for the format). It is None if not available. In
-    practice, it's only available for subprocess-based channels, and only after
-    they've been closed.
+    resource.getrusage() for the format). It is None if not available.
+
+    In practice these attributes are only available for subprocess-based
+    channels, and only after they've been closed.
 
     """
     def __init__(self):
+        self.exit_status = None
         self.resource_usage = None
         self.log_dest = None
         self.log_prefix = None
@@ -440,11 +447,12 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             errors.append("error closing response pipe:\n%s" % e)
             errors.append(str(e))
         try:
-            # We don't care about the exit status, but we do want to be sure it
-            # isn't still running.
+            # We don't really care about the exit status, but we do want to be
+            # sure it isn't still running.
             # Even if there were errors closing the pipes, it's most likely that
             # the subprocesses has exited.
             pid, exit_status, rusage = os.wait4(self.subprocess.pid, 0)
+            self.exit_status = exit_status
             self.resource_usage = rusage
         except EnvironmentError, e:
             errors.append(str(e))

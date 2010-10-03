@@ -604,11 +604,13 @@ def test_subprocess_channel(tc):
     finally:
         os.close(wr)
         os.close(rd)
+    tc.assertIsNone(channel.exit_status)
     tc.assertIsNone(channel.resource_usage)
     channel.send_command("tell", [])
     tc.assertEqual(channel.get_response(),
                    (False, "cwd: /\nGOMILL_TEST:from_gtp_controller_tests"))
     channel.close()
+    tc.assertEqual(channel.exit_status, 0)
     rusage = channel.resource_usage
     tc.assertTrue(hasattr(rusage, 'ru_utime'))
     tc.assertTrue(hasattr(rusage, 'ru_stime'))
@@ -621,12 +623,12 @@ def test_subprocess_channel_nonexistent_program(tc):
 def test_subprocess_channel_with_controller(tc):
     # Also tests that leaving 'env' and 'cwd' unset works
     fx = gtp_engine_fixtures.State_reporter_fixture(tc)
-    channel = gtp_controller.Subprocess_gtp_channel(
-        fx.cmd, stderr=fx.devnull)
+    channel = gtp_controller.Subprocess_gtp_channel(fx.cmd, stderr=fx.devnull)
     controller = Gtp_controller(channel, 'subprocess test')
     tc.assertEqual(controller.do_command("tell"),
                    "cwd: %s\nGOMILL_TEST:None" % os.getcwd())
     controller.close()
+    tc.assertEqual(channel.exit_status, 0)
     rusage = channel.resource_usage
     tc.assertTrue(hasattr(rusage, 'ru_utime'))
 
