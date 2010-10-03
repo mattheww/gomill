@@ -90,8 +90,8 @@ class Game_state(object):
 
     time_settings values m, b, s are main time (in seconds), 'Canadian byo-yomi'
     time (in seconds), and 'Canadian byo-yomi' stones; see GTP spec 4.2 (which
-    desribes what 0 values mean). time_settings None means the information isn't
-    available.
+    describes what 0 values mean). time_settings None means the information
+    isn't available.
 
     time_remaining None means the game isn't timed. canadian_stones_remaining
     None means we're in main time.
