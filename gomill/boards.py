@@ -38,6 +38,8 @@ class Board(object):
       side         -- board size (eg 9)
       board_coords -- list of coordinates of all points on the board
 
+    Behaviour is unspecified if methods are passed out-of-range coordinates.
+
     """
     def __init__(self, side):
         self.side = side
