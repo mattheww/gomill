@@ -87,6 +87,7 @@ def test_game(tc):
 
 def test_claim(tc):
     def handle_genmove_ex_b(args):
+        tc.assertIn('claim', args)
         if fx.player_b.row_to_play < 3:
             return fx.player_b.handle_genmove(args)
         return "claim"
