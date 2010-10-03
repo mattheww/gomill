@@ -297,22 +297,11 @@ class Gtp_state(object):
         self.handicap = len(args)
         self.simple_ko_point = None
 
-    def handle_place_free_handicap(self, args):
-        try:
-            number_of_stones = gtp_engine.interpret_int(args[0])
-        except IndexError:
-            gtp_engine.report_bad_arguments()
-        max_points = handicap_layout.max_free_handicap_for_board_size(
-            self.board_size)
-        if not 2 <= number_of_stones <= max_points:
-            raise GtpError("invalid number of stones")
-        if not self.board.is_empty():
-            raise GtpError("board not empty")
-        if number_of_stones == max_points:
-            number_of_stones = max_points - 1
+    def _choose_free_handicap_moves(self, number_of_stones):
         moves = []
         fake_komi = 0
         max_fake_komi = self.board_size * self.board_size - 2
+        board = self.board.copy()
         for i in xrange(number_of_stones):
             game_state = Game_state()
             game_state.size = self.board_size
@@ -336,11 +325,29 @@ class Gtp_state(object):
             fake_komi = min(fake_komi + 5, max_fake_komi)
             row, col = generated.move
             try:
-                self.board.play(row, col, 'b')
+                board.play(row, col, 'b')
             except ValueError:
                 vertex = format_vertex((row, col))
                 raise GtpError("engine error: tried to play %s" % vertex)
             moves.append(generated.move)
+        return moves
+
+    def handle_place_free_handicap(self, args):
+        try:
+            number_of_stones = gtp_engine.interpret_int(args[0])
+        except IndexError:
+            gtp_engine.report_bad_arguments()
+        max_points = handicap_layout.max_free_handicap_for_board_size(
+            self.board_size)
+        if not 2 <= number_of_stones <= max_points:
+            raise GtpError("invalid number of stones")
+        if not self.board.is_empty():
+            raise GtpError("board not empty")
+        if number_of_stones == max_points:
+            number_of_stones = max_points - 1
+        moves = self._choose_free_handicap_moves(number_of_stones)
+        for row, col in moves:
+            self.board.play(row, col, 'b')
         self.simple_ko_point = None
         self.handicap = number_of_stones
         self.set_history_base(self.board.copy())
