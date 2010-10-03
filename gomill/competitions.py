@@ -53,6 +53,7 @@ _player_settings = [
             interpret_map_of(interpret_8bit_string, interpret_8bit_string),
             default=None),
     Setting('is_reliable_scorer', interpret_bool, default=True),
+    Setting('allow_claim', interpret_bool, default=False),
     Setting('gtp_translations',
             interpret_map_of(interpret_8bit_string, interpret_8bit_string),
             default=dict),
@@ -256,6 +257,8 @@ class Competition(object):
         except Exception, e:
             raise ControlFileError("'cwd': %s" % e)
         player.environ = config['environ']
+
+        player.allow_claim = config['allow_claim']
 
         player.startup_gtp_commands = []
         try:
