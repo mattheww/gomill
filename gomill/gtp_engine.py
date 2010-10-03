@@ -497,13 +497,13 @@ def run_interactive_gtp_session(engine):
     """
     # readline doesn't do anything if stdin isn't a tty, but it's simplest to
     # just not import it in that case.
-    if not os.isatty(sys.stdin.fileno()):
-        run_gtp_session(engine, sys.stdin, sys.stdout)
-        return
-
     try:
-        import readline
+        use_readline = os.isatty(sys.stdin.fileno())
+        if use_readline:
+            import readline
     except Exception:
+        use_readline = False
+    if not use_readline:
         run_gtp_session(engine, sys.stdin, sys.stdout)
         return
 
