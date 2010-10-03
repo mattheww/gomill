@@ -643,9 +643,8 @@ class Gtp_controller(object):
 
         May propagate GtpTransportError.
 
-        Some engines (eg Mogo) don't behave well if we just close their input
-        without sending 'quit', so it's usually best to send 'quit' first (eg,
-        by using safe_close() instead of close()).
+        Unless you have a good reason, you should send 'quit' before closing the
+        connection (eg, by using safe_close() instead of close()).
 
         When it is meaningful (eg, for subprocess channels) this waits for the
         engine to exit. Nonzero exit status is not considered an error.
