@@ -7,7 +7,7 @@ from gomill import ringmasters
 from gomill import ringmaster_presenters
 
 class Test_presenter(ringmaster_presenters.Presenter):
-    """Presenter which stores all messages."""
+    """Presenter which stores the messages."""
     def __init__(self):
         ringmaster_presenters.Presenter.__init__(self)
         self.channels = defaultdict(list)
@@ -23,8 +23,8 @@ class Test_presenter(ringmaster_presenters.Presenter):
     def refresh(self):
         pass
 
-    def retrieve(self, channel):
-        """Retrieve a list of messages sent on the specified channel.
+    def recent_messages(self, channel):
+        """Retrieve messages sent since the channel was last cleared.
 
         Returns a list of strings.
 
