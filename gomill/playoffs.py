@@ -187,7 +187,7 @@ class Playoff(Competition):
             self.matchups.append(m)
 
     # State attributes (*: in persistent state):
-    #  *results               -- list of pairs (matchup_id, Game_result)
+    #  *results               -- map matchup id -> list of Game_results
     #  *scheduler             -- Group_scheduler (group codes are matchup ids)
     #  *engine_names          -- map player code -> string
     #  *engine_descriptions   -- map player code -> string
@@ -201,7 +201,7 @@ class Playoff(Competition):
             enumerate(m.number_of_games for m in self.matchups))
 
     def set_clean_status(self):
-        self.results = []
+        self.results = defaultdict(list)
         self.engine_names = {}
         self.engine_descriptions = {}
         self.scheduler = competition_schedulers.Group_scheduler()
@@ -271,7 +271,7 @@ class Playoff(Competition):
         self.working_matchups.add(matchup_id)
         self.probationary_matchups.discard(matchup_id)
         self.scheduler.fix(matchup_id, game_number)
-        self.results.append((matchup_id, response.game_result))
+        self.results[matchup_id].append(response.game_result)
         self.log_history("%7s %s" %
                          (response.game_id, response.game_result.describe()))
 
@@ -416,13 +416,10 @@ class Playoff(Competition):
         p("\n".join(t.render()))
 
     def write_screen_report(self, out):
-        results_by_matchup_id = defaultdict(list)
-        for matchup_id, result in self.results:
-            results_by_matchup_id[matchup_id].append(result)
-        for (i, matchup) in enumerate(self.matchups):
-            if i != 0:
+        for (matchup_id, matchup) in enumerate(self.matchups):
+            if matchup_id != 0:
                 print >>out
-            results = results_by_matchup_id[i]
+            results = self.results[matchup_id]
             if results:
                 self.write_matchup_report(out, matchup, results)
 
