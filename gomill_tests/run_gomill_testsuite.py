@@ -19,24 +19,26 @@ test_modules = [
     'ringmaster_tests',
     ]
 
+def get_test_module(name):
+    """Import the specified gomill_tests module and return it."""
+    dotted_name = "gomill_tests." + name
+    __import__(dotted_name)
+    return sys.modules[dotted_name]
+
 def get_test_modules():
     """Import all _tests modules in the specified order.
 
     Returns a list of module objects.
 
     """
-    result = []
-    for name in test_modules:
-        dotted_name = "gomill_tests." + name
-        __import__(dotted_name)
-        result.append(sys.modules[dotted_name])
-    return result
+    return [get_test_module(name) for name in test_modules]
 
-def run_testsuite(failfast, buffer):
+def run_testsuite(module_name, failfast, buffer):
     """Run the gomill testsuite.
 
-    failfast -- bool (stop at first failing test)
-    buffer   -- bool (show stderr/stdout only for failing tests)
+    module_name -- name of a module from gomill_tests, or None for all
+    failfast    -- bool (stop at first failing test)
+    buffer      -- bool (show stderr/stdout only for failing tests)
 
     Output is to stderr
 
@@ -46,22 +48,30 @@ def run_testsuite(failfast, buffer):
         unittest2.signals.installHandler()
     except Exception:
         pass
+    if module_name is None:
+        modules = get_test_modules()
+    else:
+        modules = [get_test_module(module_name)]
     suite = unittest2.TestSuite()
-    for mdl in get_test_modules():
+    for mdl in modules:
         mdl.make_tests(suite)
     runner = unittest2.TextTestRunner(failfast=failfast, buffer=buffer)
     runner.run(suite)
 
 def run(argv):
-    parser = OptionParser()
+    parser = OptionParser(usage="%prog [options] [module]")
     parser.add_option("-f", "--failfast", action="store_true",
                       help="stop after first test")
     parser.add_option("--nobuffer", action="store_true",
                       help="show stderr/stdout for successful tests")
     (options, args) = parser.parse_args(argv)
     if args:
-        parser.error("too many arguments")
-    run_testsuite(options.failfast, not options.nobuffer)
+        module_name = args[0]
+        if module_name not in test_modules:
+            parser.error("unknown module: %s" % module_name)
+    else:
+        module_name = None
+    run_testsuite(module_name, options.failfast, not options.nobuffer)
 
 def main():
     run(sys.argv[1:])
