@@ -25,6 +25,7 @@ class Game_result(object):
       winning_colour      -- 'b', 'w', or None
       winning_player      -- player code or None
       sgf_result          -- string describing the game's result (for sgf RE)
+      is_forfeit          -- bool
       detail              -- additional information (string or None)
       cpu_times           -- map player code -> float or None or '?'.
 
@@ -48,6 +49,7 @@ class Game_result(object):
             self.winning_player,
             self.sgf_result,
             self.detail,
+            self.is_forfeit,
             self.cpu_times,
             )
 
@@ -58,6 +60,7 @@ class Game_result(object):
          self.winning_player,
          self.sgf_result,
          self.detail,
+         self.is_forfeit,
          self.cpu_times,
          ) = state
 
@@ -541,6 +544,7 @@ class Game(object):
         result.player_w = self.players['w']
         result.winning_colour = self.winner
         result.winning_player = self.players.get(self.winner)
+        result.is_forfeit = False
         result.detail = None
         result.cpu_times = {result.player_b : None, result.player_w : None}
         if self.hit_move_limit:
@@ -552,6 +556,7 @@ class Game(object):
             result.sgf_result = "%s+C" % self.winner.upper()
         elif self.forfeited:
             result.sgf_result = "%s+F" % self.winner.upper()
+            result.is_forfeit = True
             result.detail = "forfeit: %s" % self.forfeit_reason
         elif self.margin == 0:
             result.sgf_result = "0"

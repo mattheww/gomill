@@ -306,6 +306,11 @@ class Playoff(Competition):
         yb_played = sum(r.player_b == player_y for r in results)
         yw_played = sum(r.player_w == player_y for r in results)
 
+        x_forfeits = sum(r.winning_player == player_y and r.is_forfeit
+                         for r in results)
+        y_forfeits = sum(r.winning_player == player_x and r.is_forfeit
+                         for r in results)
+
         # Trust the results, not the matchup config
         if xw_played == 0 and yb_played == 0:
             alternating = False
@@ -397,6 +402,11 @@ class Playoff(Competition):
             t.add_heading("")
             i = t.add_column(align='left')
             t.set_column_values(i, ["(%s)" % x_colour, "(%s)" % y_colour])
+
+        if x_forfeits or y_forfeits:
+            t.add_heading("forfeits")
+            i = t.add_column(align='right')
+            t.set_column_values(i, [x_forfeits, y_forfeits])
 
         t.add_heading("avg cpu")
         i = t.add_column(align='right', right_padding=2)
