@@ -10,6 +10,21 @@ def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
+def test_player_is_reliable_scorer(tc):
+    Player_config = competitions.Player_config
+    comp = competitions.Competition('test')
+    config = {
+        'players' : {
+            't1' : Player_config("test"),
+            't2' : Player_config("test", is_reliable_scorer=False),
+            't3' : Player_config("test", is_reliable_scorer=True),
+            }
+        }
+    comp.initialise_from_control_file(config)
+    tc.assertTrue(comp.players['t1'].is_reliable_scorer)
+    tc.assertFalse(comp.players['t2'].is_reliable_scorer)
+    tc.assertTrue(comp.players['t3'].is_reliable_scorer)
+
 def test_player_cwd(tc):
     Player_config = competitions.Player_config
     comp = competitions.Competition('test')

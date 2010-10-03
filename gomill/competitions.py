@@ -258,6 +258,7 @@ class Competition(object):
             raise ControlFileError("'cwd': %s" % e)
         player.environ = config['environ']
 
+        player.is_reliable_scorer = config['is_reliable_scorer']
         player.allow_claim = config['allow_claim']
 
         player.startup_gtp_commands = []
