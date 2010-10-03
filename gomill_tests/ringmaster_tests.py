@@ -66,7 +66,7 @@ def test_run(tc):
     fx.ringmaster.set_clean_status()
     fx.ringmaster.run(max_games=3)
     tc.assertListEqual(
-        fx.ringmaster.presenter.retrieve_warnings(),
+        fx.ringmaster.presenter.retrieve('warnings'),
         [])
 
 def test_check_players_fail(tc):
@@ -86,7 +86,7 @@ def test_run_fail(tc):
     fx.ringmaster.set_clean_status()
     fx.ringmaster.run()
     tc.assertListEqual(
-        fx.ringmaster.presenter.retrieve_warnings(),
+        fx.ringmaster.presenter.retrieve('warnings'),
         ["game 0_0 -- aborting game due to error:\n"
          "error starting subprocess for player p2:\n"
          "exec forced to fail",

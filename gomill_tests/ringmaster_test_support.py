@@ -1,36 +1,35 @@
 """Test support code for testing Ringmasters."""
 
+from collections import defaultdict
 from cStringIO import StringIO
 
 from gomill import ringmasters
 from gomill import ringmaster_presenters
 
 class Test_presenter(ringmaster_presenters.Presenter):
-    """Presenter which stores warnings."""
+    """Presenter which stores all messages."""
     def __init__(self):
         ringmaster_presenters.Presenter.__init__(self)
-        self.warnings = []
+        self.channels = defaultdict(list)
 
-    # Make the ringmaster do the extra work
     shows_warnings_only = False
 
     def clear(self, channel):
-        pass
+        self.channels[channel] = []
 
     def say(self, channel, s):
-        if channel == 'warnings':
-            self.warnings.append(s)
+        self.channels[channel].append(s)
 
     def refresh(self):
         pass
 
-    def retrieve_warnings(self):
-        """Retrieve a list of warning messages sent to the presenter.
+    def retrieve(self, channel):
+        """Retrieve a list of messages sent on the specified channel.
 
         Returns a list of strings.
 
         """
-        return self.warnings[:]
+        return self.channels[channel][:]
 
 
 class Testing_ringmaster(ringmasters.Ringmaster):
