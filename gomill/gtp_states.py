@@ -396,6 +396,8 @@ class Gtp_state(object):
         return self._handle_genmove(args)
 
     def handle_genmove_ex(self, args):
+        if not args:
+            return "claim"
         allow_claim = False
         for arg in args[1:]:
             if arg == 'claim':
