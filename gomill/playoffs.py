@@ -408,9 +408,11 @@ class Playoff(Competition):
             i = t.add_column(align='right')
             t.set_column_values(i, [x_forfeits, y_forfeits])
 
-        t.add_heading("avg cpu")
-        i = t.add_column(align='right', right_padding=2)
-        t.set_column_values(i, [x_avg_time_s, y_avg_time_s])
+        if x_known_times or y_known_times:
+              t.add_heading("avg cpu")
+              i = t.add_column(align='right', right_padding=2)
+              t.set_column_values(i, [x_avg_time_s, y_avg_time_s])
+
         p("\n".join(t.render()))
 
     def write_screen_report(self, out):
