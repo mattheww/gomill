@@ -95,6 +95,21 @@ def test_game_job_stderr_cwd_env(tc):
     # Check environment was merged, not replaced
     tc.assertIn('PATH', channel.requested_env)
 
+def test_game_job_claim(tc):
+    def handle_genmove_ex(args):
+        tc.assertIn('claim', args)
+        return "claim"
+    def register_genmove_ex(channel):
+        channel.engine.add_command('gomill-genmove_ex', handle_genmove_ex)
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    fx.register_init_callback('genmove_ex', register_genmove_ex)
+    gj = Game_job_fixture(tc)
+    gj.job.player_b.cmd_args.append('init=genmove_ex')
+    gj.job.player_w.cmd_args.append('init=genmove_ex')
+    gj.job.player_w.allow_claim = True
+    result = gj.job.run()
+    tc.assertEqual(result.game_result.sgf_result, "W+C")
+
 
 ### check_player
 
