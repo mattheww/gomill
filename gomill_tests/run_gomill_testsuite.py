@@ -62,7 +62,7 @@ def run(argv):
     parser = OptionParser(usage="%prog [options] [module]")
     parser.add_option("-f", "--failfast", action="store_true",
                       help="stop after first test")
-    parser.add_option("--nobuffer", action="store_true",
+    parser.add_option("-p", "--nobuffer", action="store_true",
                       help="show stderr/stdout for successful tests")
     (options, args) = parser.parse_args(argv)
     if args:
