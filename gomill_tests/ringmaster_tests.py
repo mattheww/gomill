@@ -72,6 +72,13 @@ def test_run(tc):
     tc.assertListEqual(
         fx.messages('warnings'),
         [])
+    tc.assertListEqual(
+        fx.messages('screen_report'),
+        ["p1 v p2 (3/400 games)\n"
+         "board size: 9   komi: 7.5\n"
+         "     wins                     avg cpu\n"
+         "p1      3 100.00%   (black)    ----\n"
+         "p2      0   0.00%   (white)    ----"])
 
 def test_check_players_fail(tc):
     vals = {
@@ -95,4 +102,7 @@ def test_run_fail(tc):
          "error starting subprocess for player p2:\n"
          "exec forced to fail",
          "halting run due to void games"])
+    tc.assertListEqual(
+        fx.messages('screen_report'),
+        ["1 void games; see log file."])
 
