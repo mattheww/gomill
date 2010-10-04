@@ -135,6 +135,70 @@ class Test_player(object):
             'genmove'     : self.handle_genmove,
             }
 
+class Programmed_player(object):
+    """Player that follows a preset sequence of moves.
+
+    Instantiate with a sequence of pairs (colour, coords)
+
+    The sequence can have moves for both colours; genmove goes through the
+    moves in order and ignores ones for the colour that wasn't requested (the
+    idea is that you can create two players with the same move list).
+
+    Passes when it runs out of moves.
+
+    """
+    def __init__(self, moves):
+        self.boardsize = None
+        self.moves = list(moves)
+        self._reset()
+
+    def _reset(self):
+        self.iter = iter(self.moves)
+
+    def handle_boardsize(self, args):
+        self.boardsize = gtp_engine.interpret_int(args[0])
+
+    def handle_clear_board(self, args=None):
+        self._reset()
+
+    def handle_komi(self, args):
+        pass
+
+    def handle_play(self, args):
+        pass
+
+    def handle_genmove(self, args):
+        colour = gtp_engine.interpret_colour(args[0])
+        for move_colour, coords in self.iter:
+            if move_colour == colour:
+                return gomill_common.format_vertex(coords)
+        return "pass"
+
+    def get_handlers(self):
+        return {
+            'boardsize'   : self.handle_boardsize,
+            'clear_board' : self.handle_clear_board,
+            'komi'        : self.handle_komi,
+            'play'        : self.handle_play,
+            'genmove'     : self.handle_genmove,
+            }
+
+
+def make_player_engine(player):
+    """Return a Gtp_engine_protocol based on a specified player object.
+
+    Actually returns a Test_gtp_engine_protocol.
+
+    It has an additional 'player' attribute, which gives access to the
+    player object.
+
+    """
+    engine = Test_gtp_engine_protocol()
+    engine.add_protocol_commands()
+    engine.add_commands(player.get_handlers())
+    engine.player = player
+    return engine
+
 def get_test_player_engine():
     """Return a Gtp_engine_protocol based on a Test_player.
 
@@ -144,12 +208,7 @@ def get_test_player_engine():
     Test_player.
 
     """
-    test_player = Test_player()
-    engine = Test_gtp_engine_protocol()
-    engine.add_protocol_commands()
-    engine.add_commands(test_player.get_handlers())
-    engine.player = test_player
-    return engine
+    return make_player_engine(Test_player())
 
 def get_test_player_channel():
     """Return a Testing_gtp_channel connected to the test player engine."""
