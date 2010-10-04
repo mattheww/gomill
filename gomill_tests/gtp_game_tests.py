@@ -185,3 +185,22 @@ def test_forfeit_simple_ko(tc):
     tc.assertEqual(fx.game.result.detail,
                    "forfeit: one attempted move to ko-forbidden point e5")
     fx.check_moves(moves[:-1])
+
+def test_forfeit_illformed_move(tc):
+    moves = [
+        ('b', 'C5'), ('w', 'F5'),
+        ('b', 'D6'), ('w', 'Z99'), # ill-formed move
+        ]
+    fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
+    fx.game.use_internal_scorer()
+    fx.game.ready()
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertEqual(fx.game.result.sgf_result, "B+F")
+    tc.assertEqual(fx.game.result.winning_colour, 'b')
+    tc.assertEqual(fx.game.result.winning_player, 'one')
+    tc.assertTrue(fx.game.result.is_forfeit)
+    tc.assertEqual(fx.game.result.detail,
+                   "forfeit: two attempted ill-formed move z99")
+    fx.check_moves(moves[:-1])
+
