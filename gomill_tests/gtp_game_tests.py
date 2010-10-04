@@ -223,3 +223,44 @@ def test_forfeit_genmove_fails(tc):
                    "forced to fail")
     fx.check_moves(moves[:-1])
 
+def test_forfeit_rejected_as_illegal(tc):
+    moves = [
+        ('b', 'C5'), ('w', 'F5'),
+        ('b', 'D6'), ('w', 'E4'), # will be rejected
+        ]
+    fx = Game_fixture(tc,
+                      Programmed_player(moves, reject=('E4', 'illegal move')),
+                      Programmed_player(moves))
+    fx.game.use_internal_scorer()
+    fx.game.ready()
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertEqual(fx.game.result.sgf_result, "B+F")
+    tc.assertEqual(fx.game.result.winning_colour, 'b')
+    tc.assertEqual(fx.game.result.winning_player, 'one')
+    tc.assertTrue(fx.game.result.is_forfeit)
+    tc.assertEqual(fx.game.result.detail,
+                   "forfeit: one claims move e4 is illegal")
+    fx.check_moves(moves[:-1])
+
+def test_forfeit_play_failed(tc):
+    moves = [
+        ('b', 'C5'), ('w', 'F5'),
+        ('b', 'D6'), ('w', 'E4'), # will be rejected
+        ]
+    fx = Game_fixture(tc,
+                      Programmed_player(moves, reject=('E4', 'crash')),
+                      Programmed_player(moves))
+    fx.game.use_internal_scorer()
+    fx.game.ready()
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertEqual(fx.game.result.sgf_result, "W+F")
+    tc.assertEqual(fx.game.result.winning_colour, 'w')
+    tc.assertEqual(fx.game.result.winning_player, 'two')
+    tc.assertTrue(fx.game.result.is_forfeit)
+    tc.assertEqual(fx.game.result.detail,
+                   "forfeit: failure response from 'play w e4' to player one:\n"
+                   "crash")
+    fx.check_moves(moves[:-1])
+

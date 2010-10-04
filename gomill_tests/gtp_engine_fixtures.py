@@ -152,12 +152,13 @@ class Programmed_player(object):
     returned literally.
 
     """
-    def __init__(self, moves):
+    def __init__(self, moves, reject=None):
         self.moves = []
         for colour, vertex in moves:
             if isinstance(vertex, tuple):
                 vertex = format_vertex(vertex)
             self.moves.append((colour, vertex))
+        self.reject = reject
         self._reset()
 
     def _reset(self):
@@ -173,7 +174,11 @@ class Programmed_player(object):
         pass
 
     def handle_play(self, args):
-        pass
+        if self.reject is None:
+            return
+        vertex, msg = self.reject
+        if args[1].lower() == vertex.lower():
+            raise GtpError(msg)
 
     def handle_genmove(self, args):
         colour = gtp_engine.interpret_colour(args[0])
