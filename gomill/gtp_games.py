@@ -203,7 +203,7 @@ class Game(object):
         """Specify a callback function to be called after every move.
 
         This function is called after each move is played, including passes but
-        not resignations.
+        not resignations, and not moves which triggered a forfeit.
 
         It is passed three parameters: colour, move, board
           move is a pair (row, col), or None for a pass
@@ -448,9 +448,6 @@ class Game(object):
         else:
             self.pass_count += 1
             self.simple_ko_point = None
-        self.moves.append((colour, move, comment))
-        if self.after_move_callback:
-            self.after_move_callback(colour, move, self.board)
         try:
             self.send_command(opponent, "play", colour, move_s)
         except BadGtpResponse, e:
@@ -460,6 +457,10 @@ class Game(object):
                     self.players[opponent], move_s))
             else:
                 self._forfeit_to(colour, str(e))
+            return
+        self.moves.append((colour, move, comment))
+        if self.after_move_callback:
+            self.after_move_callback(colour, move, self.board)
 
     def _handle_pass_pass(self):
         def ask(colour):
