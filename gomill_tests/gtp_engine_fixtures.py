@@ -139,8 +139,7 @@ class Programmed_player(object):
     """Player that follows a preset sequence of moves.
 
     Instantiate with
-      moves     -- a sequence of pairs (colour, coords), or
-                   a sequence of pairs (colour, vertex)
+      moves -- a sequence of pairs (colour, vertex)
 
     The sequence can have moves for both colours; genmove goes through the
     moves in order and ignores ones for the colour that wasn't requested (the
@@ -148,27 +147,26 @@ class Programmed_player(object):
 
     Passes when it runs out of moves.
 
+    if 'vertex' is a tuple, it's interpreted as (row, col) and converted to a
+    gtp vertex. Otherwise it's returned literally.
+
     """
     def __init__(self, moves):
-        self.boardsize = None
-        self.moves_param = moves
-        self.iter = None
+        self.moves = []
+        for colour, vertex in moves:
+            if isinstance(vertex, tuple):
+                vertex = format_vertex(vertex)
+            self.moves.append((colour, vertex))
+        self._reset()
 
-    def _reset(self, boardsize):
-        if not self.moves_param:
-            moves = []
-        elif isinstance(self.moves_param[0][1], str):
-            moves = [(colour, coords_from_vertex(vertex, boardsize))
-                     for (colour, vertex) in self.moves_param]
-        else:
-            moves = list(self.moves_param)
-        self.iter = iter(moves)
+    def _reset(self):
+        self.iter = iter(self.moves)
 
     def handle_boardsize(self, args):
-        self.boardsize = gtp_engine.interpret_int(args[0])
+        pass
 
-    def handle_clear_board(self, args=None):
-        self._reset(self.boardsize)
+    def handle_clear_board(self, args):
+        self._reset()
 
     def handle_komi(self, args):
         pass
@@ -178,9 +176,9 @@ class Programmed_player(object):
 
     def handle_genmove(self, args):
         colour = gtp_engine.interpret_colour(args[0])
-        for move_colour, coords in self.iter:
+        for move_colour, vertex in self.iter:
             if move_colour == colour:
-                return format_vertex(coords)
+                return vertex
         return "pass"
 
     def get_handlers(self):
