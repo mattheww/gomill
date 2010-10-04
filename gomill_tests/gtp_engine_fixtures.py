@@ -148,7 +148,8 @@ class Programmed_player(object):
     Passes when it runs out of moves.
 
     if 'vertex' is a tuple, it's interpreted as (row, col) and converted to a
-    gtp vertex. Otherwise it's returned literally.
+    gtp vertex. The special value 'fail' causes a GtpError. Otherwise it's
+    returned literally.
 
     """
     def __init__(self, moves):
@@ -178,6 +179,8 @@ class Programmed_player(object):
         colour = gtp_engine.interpret_colour(args[0])
         for move_colour, vertex in self.iter:
             if move_colour == colour:
+                if vertex == 'fail':
+                    raise GtpError("forced to fail")
                 return vertex
         return "pass"
 

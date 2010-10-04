@@ -204,3 +204,22 @@ def test_forfeit_illformed_move(tc):
                    "forfeit: two attempted ill-formed move z99")
     fx.check_moves(moves[:-1])
 
+def test_forfeit_genmove_fails(tc):
+    moves = [
+        ('b', 'C5'), ('w', 'F5'),
+        ('b', 'fail'), # GTP failure response
+        ]
+    fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
+    fx.game.use_internal_scorer()
+    fx.game.ready()
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertEqual(fx.game.result.sgf_result, "W+F")
+    tc.assertEqual(fx.game.result.winning_colour, 'w')
+    tc.assertEqual(fx.game.result.winning_player, 'two')
+    tc.assertTrue(fx.game.result.is_forfeit)
+    tc.assertEqual(fx.game.result.detail,
+                   "forfeit: failure response from 'genmove b' to player one:\n"
+                   "forced to fail")
+    fx.check_moves(moves[:-1])
+
