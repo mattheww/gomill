@@ -410,9 +410,7 @@ class Game(object):
         try:
             move_s = self.send_command(colour, *genmove_command).lower()
         except BadGtpResponse, e:
-            self.winner = opponent
-            self.forfeited = True
-            self.forfeit_reason = str(e)
+            self._forfeit_to(opponent, str(e))
             return
         if move_s == "resign":
             self.winner = opponent
