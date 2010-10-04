@@ -129,8 +129,8 @@ class Game(object):
    has been decided, they will set these errors aside; retrieve them with
    describe_late_errors().
 
-
-   This doesn't enforce any ko rule. It accepts self-capture moves.
+   This enforces a simple ko rule, but no superko rule. It accepts self-capture
+   moves.
 
    """
 
@@ -153,6 +153,7 @@ class Game(object):
         self.sgf_setup_stones = None
         self.result = None
         self.board = boards.Board(board_size)
+        self.simple_ko_point = None
 
 
     ## Configuration methods (callable before set_player_...)
@@ -392,6 +393,11 @@ class Game(object):
         self.sgf_setup_stones = [("b", coords) for coords in points]
         self.first_player = "w"
 
+    def _forfeit_to(self, winner, msg):
+        self.winner = winner
+        self.forfeited = True
+        self.forfeit_reason = msg
+
     def _play_move(self, colour):
         opponent = opponent_of(colour)
         if (self.claim_allowed[colour] and
@@ -419,30 +425,31 @@ class Game(object):
         try:
             move = coords_from_vertex(move_s, self.board_size)
         except ValueError:
-            self.winner = opponent
-            self.forfeited = True
-            self.forfeit_reason = "%s attempted ill-formed move %s" % (
-                self.players[colour], move_s)
+            self._forfeit_to(opponent, "%s attempted ill-formed move %s" % (
+                self.players[colour], move_s))
             return
         comment = self.maybe_send_command(colour, "gomill-explain_last_move")
         comment = sanitise_utf8(comment)
         if comment == "":
             comment = None
         if move is not None:
+            self.pass_count = 0
+            if move == self.simple_ko_point:
+                self._forfeit_to(
+                    opponent, "%s attempted move to ko-forbidden point %s" % (
+                        self.players[colour], move_s))
+                return
             row, col = move
             try:
-                self.board.play(row, col, colour)
+                self.simple_ko_point = self.board.play(row, col, colour)
             except ValueError:
-                self.winner = opponent
-                self.forfeited = True
-                self.forfeit_reason = (
-                    "%s attempted move to occupied point %s" % (
-                    self.players[colour], move_s))
+                self._forfeit_to(
+                    opponent, "%s attempted move to occupied point %s" % (
+                        self.players[colour], move_s))
                 return
-        if move is None:
-            self.pass_count += 1
         else:
-            self.pass_count = 0
+            self.pass_count += 1
+            self.simple_ko_point = None
         self.moves.append((colour, move, comment))
         if self.after_move_callback:
             self.after_move_callback(colour, move, self.board)
@@ -451,14 +458,10 @@ class Game(object):
         except BadGtpResponse, e:
             if e.gtp_error_message == "illegal move":
                 # we assume the move really was illegal, so 'colour' should lose
-                self.winner = opponent
-                self.forfeited = True
-                self.forfeit_reason = "%s claims move %s is illegal" % (
-                    self.players[opponent], move_s)
+                self._forfeit_to(opponent, "%s claims move %s is illegal" % (
+                    self.players[opponent], move_s))
             else:
-                self.winner = colour
-                self.forfeited = True
-                self.forfeit_reason = str(e)
+                self._forfeit_to(colour, str(e))
 
     def _handle_pass_pass(self):
         def ask(colour):

@@ -118,10 +118,8 @@ def test_claim(tc):
 
 def test_forfeit_occupied_point(tc):
     moves = [
-        ('b', (2, 2)),
-        ('w', (2, 3)),
-        ('b', (3, 3)),
-        ('w', (3, 3)), # occupied point
+        ('b', (2, 2)), ('w', (2, 3)),
+        ('b', (3, 3)), ('w', (3, 3)), # occupied point
         ]
     fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
     fx.game.use_internal_scorer()
@@ -133,3 +131,19 @@ def test_forfeit_occupied_point(tc):
         ('b', (2, 2), None), ('w', (2, 3), None),
         ('b', (3, 3), None),
         ])
+
+def test_forfeit_simple_ko(tc):
+    moves = [
+        ('b', (4, 2)), ('w', (4, 5)),
+        ('b', (5, 3)), ('w', (3, 4)),
+        ('b', (3, 3)), ('w', (5, 4)),
+        ('b', (4, 4)), ('w', (4, 3)),
+        ('b', (4, 4)), # ko violation
+        ]
+    fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
+    fx.game.use_internal_scorer()
+    fx.game.ready()
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertEqual(fx.game.result.sgf_result, "W+F")
+    tc.assertEqual(len(fx.game.moves), len(moves)-1)
