@@ -4,6 +4,7 @@ import cPickle as pickle
 
 from gomill import gtp_controller
 from gomill import gtp_games
+from gomill.gomill_common import format_vertex
 
 from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
@@ -33,7 +34,9 @@ class Game_fixture(test_framework.Fixture):
 
     """
     def __init__(self, tc, player_b=None, player_w=None):
-        game = gtp_games.Game(board_size=9)
+        self.tc = tc
+        self.board_size = 9
+        game = gtp_games.Game(board_size=self.board_size)
         game.set_player_code('b', 'one')
         game.set_player_code('w', 'two')
         if player_b is None:
@@ -58,6 +61,15 @@ class Game_fixture(test_framework.Fixture):
         self.player_b = channel_b.engine.player
         self.player_w = channel_w.engine.player
 
+    def check_moves(self, expected_moves):
+        """Check that the game's moves are as expected.
+
+        expected_moves -- list of pairs (colour, vertex)
+
+        """
+        game_moves = [(colour, format_vertex(coords))
+                      for (colour, coords, comment) in self.game.moves]
+        self.tc.assertListEqual(game_moves, expected_moves)
 
 
 def test_game(tc):
@@ -92,6 +104,18 @@ def test_game(tc):
         ('b', (7, 4), None), ('w', (7, 6), None),
         ('b', (8, 4), None), ('w', (8, 6), None),
         ('b', None, None), ('w', None, None)])
+    fx.check_moves([
+        ('b', 'E1'), ('w', 'G1'),
+        ('b', 'E2'), ('w', 'G2'),
+        ('b', 'E3'), ('w', 'G3'),
+        ('b', 'E4'), ('w', 'G4'),
+        ('b', 'E5'), ('w', 'G5'),
+        ('b', 'E6'), ('w', 'G6'),
+        ('b', 'E7'), ('w', 'G7'),
+        ('b', 'E8'), ('w', 'G8'),
+        ('b', 'E9'), ('w', 'G9'),
+        ('b', 'pass'), ('w', 'pass'),
+        ])
 
 def test_claim(tc):
     def handle_genmove_ex_b(args):
@@ -110,16 +134,16 @@ def test_claim(tc):
     fx.game.run()
     fx.game.close_players()
     tc.assertEqual(fx.game.result.sgf_result, "B+C")
-    tc.assertListEqual(fx.game.moves, [
-        ('b', (0, 4), None), ('w', (0, 6), None),
-        ('b', (1, 4), None), ('w', (1, 6), None),
-        ('b', (2, 4), None), ('w', (2, 6), None),
+    fx.check_moves([
+        ('b', 'E1'), ('w', 'G1'),
+        ('b', 'E2'), ('w', 'G2'),
+        ('b', 'E3'), ('w', 'G3'),
         ])
 
 def test_forfeit_occupied_point(tc):
     moves = [
-        ('b', (2, 2)), ('w', (2, 3)),
-        ('b', (3, 3)), ('w', (3, 3)), # occupied point
+        ('b', 'C3'), ('w', 'D3'),
+        ('b', 'D4'), ('w', 'D4'), # occupied point
         ]
     fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
     fx.game.use_internal_scorer()
@@ -127,18 +151,15 @@ def test_forfeit_occupied_point(tc):
     fx.game.run()
     fx.game.close_players()
     tc.assertEqual(fx.game.result.sgf_result, "B+F")
-    tc.assertListEqual(fx.game.moves, [
-        ('b', (2, 2), None), ('w', (2, 3), None),
-        ('b', (3, 3), None),
-        ])
+    fx.check_moves(moves[:-1])
 
 def test_forfeit_simple_ko(tc):
     moves = [
-        ('b', (4, 2)), ('w', (4, 5)),
-        ('b', (5, 3)), ('w', (3, 4)),
-        ('b', (3, 3)), ('w', (5, 4)),
-        ('b', (4, 4)), ('w', (4, 3)),
-        ('b', (4, 4)), # ko violation
+        ('b', 'C5'), ('w', 'F5'),
+        ('b', 'D6'), ('w', 'E4'),
+        ('b', 'D4'), ('w', 'E6'),
+        ('b', 'E5'), ('w', 'D5'),
+        ('b', 'E5'), # ko violation
         ]
     fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
     fx.game.use_internal_scorer()
@@ -146,4 +167,4 @@ def test_forfeit_simple_ko(tc):
     fx.game.run()
     fx.game.close_players()
     tc.assertEqual(fx.game.result.sgf_result, "W+F")
-    tc.assertEqual(len(fx.game.moves), len(moves)-1)
+    fx.check_moves(moves[:-1])

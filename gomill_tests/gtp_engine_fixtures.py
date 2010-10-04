@@ -2,11 +2,11 @@
 
 import os
 
-from gomill import gomill_common
 from gomill import gtp_controller
 from gomill import gtp_engine
 from gomill.gtp_engine import GtpError, GtpFatalError
 from gomill.gtp_controller import GtpChannelError
+from gomill.gomill_common import *
 
 from gomill_tests import test_framework
 from gomill_tests import gtp_controller_test_support
@@ -120,7 +120,7 @@ class Test_player(object):
         colour = gtp_engine.interpret_colour(args[0])
         if self.row_to_play < self.boardsize:
             col = 4 if colour == 'b' else 6
-            result = gomill_common.format_vertex((self.row_to_play, col))
+            result = format_vertex((self.row_to_play, col))
             self.row_to_play += 1
             return result
         else:
@@ -138,7 +138,9 @@ class Test_player(object):
 class Programmed_player(object):
     """Player that follows a preset sequence of moves.
 
-    Instantiate with a sequence of pairs (colour, coords)
+    Instantiate with
+      moves     -- a sequence of pairs (colour, coords), or
+                   a sequence of pairs (colour, vertex)
 
     The sequence can have moves for both colours; genmove goes through the
     moves in order and ignores ones for the colour that wasn't requested (the
@@ -149,17 +151,24 @@ class Programmed_player(object):
     """
     def __init__(self, moves):
         self.boardsize = None
-        self.moves = list(moves)
-        self._reset()
+        self.moves_param = moves
+        self.iter = None
 
-    def _reset(self):
-        self.iter = iter(self.moves)
+    def _reset(self, boardsize):
+        if not self.moves_param:
+            moves = []
+        elif isinstance(self.moves_param[0][1], str):
+            moves = [(colour, coords_from_vertex(vertex, boardsize))
+                     for (colour, vertex) in self.moves_param]
+        else:
+            moves = list(self.moves_param)
+        self.iter = iter(moves)
 
     def handle_boardsize(self, args):
         self.boardsize = gtp_engine.interpret_int(args[0])
 
     def handle_clear_board(self, args=None):
-        self._reset()
+        self._reset(self.boardsize)
 
     def handle_komi(self, args):
         pass
@@ -171,7 +180,7 @@ class Programmed_player(object):
         colour = gtp_engine.interpret_colour(args[0])
         for move_colour, coords in self.iter:
             if move_colour == colour:
-                return gomill_common.format_vertex(coords)
+                return format_vertex(coords)
         return "pass"
 
     def get_handlers(self):
