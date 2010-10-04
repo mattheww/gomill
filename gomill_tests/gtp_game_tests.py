@@ -88,6 +88,7 @@ def test_game(tc):
     tc.assertEqual(fx.game.result.winning_colour, 'b')
     tc.assertEqual(fx.game.result.winning_player, 'one')
     tc.assertEqual(fx.game.result.sgf_result, "B+18")
+    tc.assertFalse(fx.game.result.is_forfeit)
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.describe(), "one beat two B+18")
     result2 = pickle.loads(pickle.dumps(fx.game.result))
@@ -134,6 +135,9 @@ def test_claim(tc):
     fx.game.run()
     fx.game.close_players()
     tc.assertEqual(fx.game.result.sgf_result, "B+C")
+    tc.assertEqual(fx.game.result.winning_colour, 'b')
+    tc.assertEqual(fx.game.result.winning_player, 'one')
+    tc.assertFalse(fx.game.result.is_forfeit)
     fx.check_moves([
         ('b', 'E1'), ('w', 'G1'),
         ('b', 'E2'), ('w', 'G2'),
@@ -151,6 +155,14 @@ def test_forfeit_occupied_point(tc):
     fx.game.run()
     fx.game.close_players()
     tc.assertEqual(fx.game.result.sgf_result, "B+F")
+    tc.assertEqual(fx.game.result.winning_colour, 'b')
+    tc.assertEqual(fx.game.result.winning_player, 'one')
+    tc.assertTrue(fx.game.result.is_forfeit)
+    tc.assertEqual(fx.game.result.detail,
+                   "forfeit: two attempted move to occupied point d4")
+    tc.assertEqual(fx.game.result.describe(),
+                   "one beat two B+F "
+                   "(forfeit: two attempted move to occupied point d4)")
     fx.check_moves(moves[:-1])
 
 def test_forfeit_simple_ko(tc):
@@ -167,4 +179,9 @@ def test_forfeit_simple_ko(tc):
     fx.game.run()
     fx.game.close_players()
     tc.assertEqual(fx.game.result.sgf_result, "W+F")
+    tc.assertEqual(fx.game.result.winning_colour, 'w')
+    tc.assertEqual(fx.game.result.winning_player, 'two')
+    tc.assertTrue(fx.game.result.is_forfeit)
+    tc.assertEqual(fx.game.result.detail,
+                   "forfeit: one attempted move to ko-forbidden point e5")
     fx.check_moves(moves[:-1])
