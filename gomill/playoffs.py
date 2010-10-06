@@ -152,7 +152,10 @@ class Playoff(Competition):
 
         matchup_id = kwargs.get('id')
         if matchup_id is not None:
-            matchup_id = interpret_identifier(matchup_id)
+            try:
+                matchup_id = interpret_identifier(matchup_id)
+            except ValueError, e:
+                raise ControlFileError("id: %s" % e)
         matchup.id = matchup_id
 
         name = kwargs.get('name')
