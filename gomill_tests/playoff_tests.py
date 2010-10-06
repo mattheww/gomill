@@ -24,31 +24,40 @@ def test_basic_config(tc):
                 't1',  't2', board_size=9, komi=0.5, alternating=True,
                 handicap=6, handicap_style='free',
                 move_limit=50, scorer="internal", number_of_games=20),
-            Matchup_config('t2',  't1', id='simple',),
+            Matchup_config('t2', 't1', id='m1'),
+            Matchup_config('t1', 't2'),
             ],
         }
     comp.initialise_from_control_file(config)
-    tc.assertEqual(comp.matchups['0'].p1, 't1')
-    tc.assertEqual(comp.matchups['0'].p2, 't2')
-    tc.assertEqual(comp.matchups['0'].board_size, 9)
-    tc.assertEqual(comp.matchups['0'].komi, 0.5)
-    tc.assertIs(comp.matchups['0'].alternating, True)
-    tc.assertEqual(comp.matchups['0'].handicap, 6)
-    tc.assertEqual(comp.matchups['0'].handicap_style, 'free')
-    tc.assertEqual(comp.matchups['0'].move_limit, 50)
-    tc.assertEqual(comp.matchups['0'].scorer, 'internal')
-    tc.assertEqual(comp.matchups['0'].number_of_games, 20)
+    m0 = comp.get_matchup('0')
+    m1 = comp.get_matchup('m1')
+    m2 = comp.get_matchup('2')
 
-    tc.assertEqual(comp.matchups['simple'].p1, 't2')
-    tc.assertEqual(comp.matchups['simple'].p2, 't1')
-    tc.assertEqual(comp.matchups['simple'].board_size, 13)
-    tc.assertEqual(comp.matchups['simple'].komi, 7.5)
-    tc.assertIs(comp.matchups['simple'].alternating, False)
-    tc.assertEqual(comp.matchups['simple'].handicap, None)
-    tc.assertEqual(comp.matchups['simple'].handicap_style, 'fixed')
-    tc.assertEqual(comp.matchups['simple'].move_limit, 1000)
-    tc.assertEqual(comp.matchups['simple'].scorer, 'players')
-    tc.assertEqual(comp.matchups['simple'].number_of_games, None)
+    tc.assertListEqual(comp.get_matchup_ids(), ['0', 'm1', '2'])
+    tc.assertDictEqual(comp.get_matchups(), {'0' : m0, 'm1' : m1, '2' : m2})
+
+    tc.assertEqual(m0.p1, 't1')
+    tc.assertEqual(m0.p2, 't2')
+    tc.assertEqual(m0.board_size, 9)
+    tc.assertEqual(m0.komi, 0.5)
+    tc.assertIs(m0.alternating, True)
+    tc.assertEqual(m0.handicap, 6)
+    tc.assertEqual(m0.handicap_style, 'free')
+    tc.assertEqual(m0.move_limit, 50)
+    tc.assertEqual(m0.scorer, 'internal')
+    tc.assertEqual(m0.number_of_games, 20)
+
+    tc.assertEqual(m1.p1, 't2')
+    tc.assertEqual(m1.p2, 't1')
+    tc.assertEqual(m1.board_size, 13)
+    tc.assertEqual(m1.komi, 7.5)
+    tc.assertIs(m1.alternating, False)
+    tc.assertEqual(m1.handicap, None)
+    tc.assertEqual(m1.handicap_style, 'fixed')
+    tc.assertEqual(m1.move_limit, 1000)
+    tc.assertEqual(m1.scorer, 'players')
+    tc.assertEqual(m1.number_of_games, None)
+
 
 def test_global_handicap_validation(tc):
     comp = playoffs.Playoff('test')

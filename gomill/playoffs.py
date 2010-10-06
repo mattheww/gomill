@@ -463,3 +463,25 @@ class Playoff(Competition):
 
     write_full_report = write_short_report
 
+    def get_matchup_ids(self):
+        """Return a list of all matchup ids, in definition order."""
+        return [m.id for m in self.matchup_list]
+
+    def get_matchups(self):
+        """Return a map matchup id -> Matchup."""
+        return self.matchups.copy()
+
+    def get_matchup(self, matchup_id):
+        """Return the Matchup with the specified id."""
+        return self.matchups[matchup_id]
+
+    def get_matchup_results(self, matchup_id):
+        """Return the results for the specified matchup.
+
+        Status must be loaded to use this.
+
+        Returns a list of Game_results
+
+        """
+        return self.results[matchup_id][:]
+
