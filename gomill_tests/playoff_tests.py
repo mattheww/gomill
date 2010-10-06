@@ -2,6 +2,8 @@
 
 from gomill import competitions
 from gomill import playoffs
+from gomill.competitions import Player_config, ControlFileError
+from gomill.playoffs import Matchup_config
 
 from gomill_tests import gomill_test_support
 
@@ -9,8 +11,6 @@ def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 def test_basic_config(tc):
-    Player_config = competitions.Player_config
-    Matchup_config = playoffs.Matchup_config
     comp = playoffs.Playoff('test')
     config = {
         'players' : {
@@ -50,4 +50,23 @@ def test_basic_config(tc):
     tc.assertEqual(comp.matchups[1].move_limit, 1000)
     tc.assertEqual(comp.matchups[1].scorer, 'players')
     tc.assertEqual(comp.matchups[1].number_of_games, None)
+
+def test_global_handicap_validation(tc):
+    comp = playoffs.Playoff('test')
+    config = {
+        'players' : {
+            't1' : Player_config("test"),
+            't2' : Player_config("test"),
+            },
+        'board_size' : 12,
+        'handicap' : 6,
+        'komi' : 7.5,
+        'matchups' : [
+            Matchup_config('t1',  't2'),
+            ],
+        }
+    with tc.assertRaises(ControlFileError) as ar:
+        comp.initialise_from_control_file(config)
+    tc.assertEqual(str(ar.exception),
+                   "default fixed handicap out of range for board size 12")
 
