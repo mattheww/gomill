@@ -1,8 +1,13 @@
 """Tests for playoffs.py"""
 
+from cStringIO import StringIO
+
 from gomill import competitions
 from gomill import playoffs
-from gomill.competitions import Player_config, ControlFileError
+from gomill.gtp_games import Game_result
+from gomill.game_jobs import Game_job, Game_job_result
+from gomill.competitions import (Player_config, ControlFileError,
+                                 NoGameAvailable)
 from gomill.playoffs import Matchup_config
 
 from gomill_tests import gomill_test_support
@@ -77,4 +82,70 @@ def test_global_handicap_validation(tc):
         comp.initialise_from_control_file(config)
     tc.assertEqual(str(ar.exception),
                    "default fixed handicap out of range for board size 12")
+
+
+def test_play(tc):
+    comp = playoffs.Playoff('testcomp')
+    config = {
+        'players' : {
+            't1' : Player_config("test1"),
+            't2' : Player_config("test2"),
+            },
+        'board_size' : 12,
+        'komi' : 3.5,
+        'matchups' : [
+            Matchup_config('t1', 't2', alternating=True),
+            ],
+        }
+    comp.initialise_from_control_file(config)
+    comp.set_clean_status()
+
+    job1 = comp.get_game()
+    tc.assertIsInstance(job1, Game_job)
+    tc.assertEqual(job1.game_id, '0_0')
+    tc.assertEqual(job1.player_b.code, 't1')
+    tc.assertEqual(job1.player_w.code, 't2')
+    tc.assertEqual(job1.board_size, 12)
+    tc.assertEqual(job1.komi, 3.5)
+    tc.assertEqual(job1.move_limit, 1000)
+    tc.assertEqual(job1.game_data, ('0', 0))
+    tc.assertIsNone(job1.sgf_pathname)
+    tc.assertIsNone(job1.void_sgf_pathname)
+    tc.assertEqual(job1.sgf_event, 'testcomp')
+    tc.assertIsNone(job1.gtp_log_pathname)
+
+    job2 = comp.get_game()
+    tc.assertIsInstance(job2, Game_job)
+    tc.assertEqual(job2.game_id, '0_1')
+    tc.assertEqual(job2.player_b.code, 't2')
+    tc.assertEqual(job2.player_w.code, 't1')
+
+    result1 = Game_result()
+    result1.player_b = 't1'
+    result1.player_w = 't2'
+    result1.winning_colour = 'b'
+    result1.winning_player = 't1'
+    result1.is_forfeit = False
+    result1.detail = None
+    result1.cpu_times = {'t1' : None, 't2' : None}
+    result1.sgf_result = "B+8.5"
+    response1 = Game_job_result()
+    response1.game_id = job1.game_id
+    response1.game_result = result1
+    response1.engine_names = {}
+    response1.engine_descriptions = {}
+    response1.game_data = job1.game_data
+    comp.process_game_result(response1)
+
+    out = StringIO()
+    comp.write_screen_report(out)
+    tc.assertMultiLineEqual(
+        out.getvalue(),
+        "t1 v t2 (1 games)\n"
+        "board size: 12   komi: 3.5\n"
+        "     wins\n"
+        "t1      1 100.00%   (black)\n"
+        "t2      0   0.00%   (white)\n")
+
+    tc.assertListEqual(comp.get_matchup_results('0'), [result1])
 
