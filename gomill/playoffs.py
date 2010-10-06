@@ -23,6 +23,7 @@ class Matchup(object):
     """Internal description of a matchup from the configuration file.
 
     Public attributes:
+      id             -- matchup id (int)
       p1             -- player code
       p2             -- player code
       name           -- shortish string to show in reports
@@ -181,8 +182,10 @@ class Playoff(Competition):
         except ValueError, e:
             raise ControlFileError(str(e))
 
-        # List of Matchups indexed by matchup_id
-        self.matchups = []
+        # map matchup_id -> Matchup
+        self.matchups = {}
+        # Matchups in order of definition
+        self.matchup_list = []
         if not specials['matchups']:
             raise ControlFileError("matchups: empty list")
         for i, matchup in enumerate(specials['matchups']):
@@ -191,7 +194,8 @@ class Playoff(Competition):
             except StandardError, e:
                 raise ControlFileError("matchup entry %d: %s" % (i, e))
             m.id = i
-            self.matchups.append(m)
+            self.matchups[m.id] = m
+            self.matchup_list.append(m)
 
     # State attributes (*: in persistent state):
     #  *results               -- map matchup id -> list of Game_results
@@ -205,7 +209,7 @@ class Playoff(Competition):
 
     def _set_scheduler_groups(self):
         self.scheduler.set_groups(
-            enumerate(m.number_of_games for m in self.matchups))
+            (m.id, m.number_of_games) for m in self.matchup_list)
 
     def set_clean_status(self):
         self.results = defaultdict(list)
@@ -234,7 +238,7 @@ class Playoff(Competition):
         # For board size and komi, we check the values from the first matchup
         # the player appears in.
         used_players = {}
-        for m in reversed(self.matchups):
+        for m in reversed(self.matchup_list):
             used_players[m.p1] = m
             used_players[m.p2] = m
         result = []
@@ -423,12 +427,16 @@ class Playoff(Competition):
         p("\n".join(t.render()))
 
     def write_screen_report(self, out):
-        for (matchup_id, matchup) in enumerate(self.matchups):
-            if matchup_id != 0:
+        first = True
+        for matchup in self.matchup_list:
+            results = self.results[matchup.id]
+            if not results:
+                continue
+            if first:
+                first = False
+            else:
                 print >>out
-            results = self.results[matchup_id]
-            if results:
-                self.write_matchup_report(out, matchup, results)
+            self.write_matchup_report(out, matchup, results)
 
     def write_short_report(self, out):
         def p(s):
