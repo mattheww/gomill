@@ -532,7 +532,7 @@ class Game(object):
     def fake_run(self, winner):
         """Set state variables as if the game had been run (for testing).
 
-        You don't need to use set_player_... to call this.
+        You don't need to use set_player_{subprocess,controller} to call this.
 
         winner -- 'b' or 'w'
 
