@@ -23,7 +23,7 @@ class Matchup(object):
     """Internal description of a matchup from the configuration file.
 
     Public attributes:
-      id             -- matchup id (int)
+      id             -- matchup id (string)
       p1             -- player code
       p2             -- player code
       name           -- shortish string to show in reports
@@ -109,6 +109,9 @@ class Playoff(Competition):
 
         Returns a Matchup with all attributes set.
 
+        If 'id' wasn't specified, it is left as None (caller should then set
+        it).
+
         """
         if not isinstance(matchup_config, Matchup_config):
             raise ControlFileError("not a Matchup")
@@ -117,7 +120,7 @@ class Playoff(Competition):
         kwargs = matchup_config.kwargs
         matchup = Matchup()
         argument_names = set(setting.name for setting in self.matchup_settings)
-        argument_names.update(('name',))
+        argument_names.update(('id', 'name'))
         for key in kwargs:
             if key not in argument_names:
                 raise ControlFileError("unknown argument '%s'" % key)
@@ -146,6 +149,11 @@ class Playoff(Competition):
 
         competitions.validate_handicap(
             matchup.handicap, matchup.handicap_style, matchup.board_size)
+
+        matchup_id = kwargs.get('id')
+        if matchup_id is not None:
+            matchup_id = interpret_identifier(matchup_id)
+        matchup.id = matchup_id
 
         name = kwargs.get('name')
         if name is None:
@@ -193,7 +201,10 @@ class Playoff(Competition):
                 m = self.matchup_from_config(matchup, matchup_defaults)
             except StandardError, e:
                 raise ControlFileError("matchup entry %d: %s" % (i, e))
-            m.id = i
+            if m.id is None:
+                m.id = str(i)
+            if m.id in self.matchups:
+                raise ControlFileError("duplicate matchup id '%s'" % m.id)
             self.matchups[m.id] = m
             self.matchup_list.append(m)
 
@@ -259,7 +270,7 @@ class Playoff(Competition):
             player_b, player_w = matchup.p2, matchup.p1
         else:
             player_b, player_w = matchup.p1, matchup.p2
-        game_id = "%d_%d" % (matchup_id, game_number)
+        game_id = "%s_%d" % (matchup_id, game_number)
 
         job = game_jobs.Game_job()
         job.game_id = game_id
