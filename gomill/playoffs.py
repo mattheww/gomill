@@ -77,7 +77,7 @@ class Playoff(Competition):
 
 
     # These settings can be specified both globally and in matchups.
-    # The global values (stored as Playoff attributes) are defaults for the
+    # The global values (not stored) are defaults for the
     # matchup values (stored as Matchup attributes).
     matchup_settings = [
         Matchup_setting('board_size', competitions.interpret_board_size),
@@ -93,7 +93,7 @@ class Playoff(Competition):
                         default=None),
         ]
 
-    global_settings = matchup_settings + [
+    global_settings = [
         Setting('description', interpret_as_utf8_stripped, default=""),
         ]
 
@@ -101,7 +101,7 @@ class Playoff(Competition):
         Setting('matchups', interpret_sequence),
         ]
 
-    def matchup_from_config(self, matchup_config):
+    def matchup_from_config(self, matchup_config, matchup_defaults):
         """Make a Matchup from a Matchup_config.
 
         Raises ControlFileError if there is an error in the configuration.
@@ -138,7 +138,7 @@ class Playoff(Competition):
                 except ValueError, e:
                     raise ControlFileError(str(e))
             else:
-                v = getattr(self, setting.name)
+                v = matchup_defaults[setting.name]
                 if v is _required_in_matchup:
                     raise ControlFileError("'%s' not specified" % setting.name)
             setattr(matchup, setting.name, v)
@@ -160,12 +160,19 @@ class Playoff(Competition):
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
 
+        try:
+            matchup_defaults = load_settings(self.matchup_settings, config)
+        except ValueError, e:
+            raise ControlFileError(str(e))
+
         # Check default handicap settings when possible, for friendlier error
         # reporting (would be caught in the matchup anyway).
-        if self.board_size is not _required_in_matchup:
+        if matchup_defaults['board_size'] is not _required_in_matchup:
             try:
                 competitions.validate_handicap(
-                    self.handicap, self.handicap_style, self.board_size)
+                    matchup_defaults['handicap'],
+                    matchup_defaults['handicap_style'],
+                    matchup_defaults['board_size'])
             except ControlFileError, e:
                 raise ControlFileError("default %s" % e)
 
@@ -180,7 +187,7 @@ class Playoff(Competition):
             raise ControlFileError("matchups: empty list")
         for i, matchup in enumerate(specials['matchups']):
             try:
-                m = self.matchup_from_config(matchup)
+                m = self.matchup_from_config(matchup, matchup_defaults)
             except StandardError, e:
                 raise ControlFileError("matchup entry %d: %s" % (i, e))
             m.id = i
