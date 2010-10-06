@@ -147,5 +147,5 @@ def test_play(tc):
         "t1      1 100.00%   (black)\n"
         "t2      0   0.00%   (white)\n")
 
-    tc.assertListEqual(comp.get_matchup_results('0'), [result1])
+    tc.assertListEqual(comp.get_matchup_results('0'), [('0_0', result1)])
 

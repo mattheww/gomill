@@ -209,7 +209,8 @@ class Playoff(Competition):
             self.matchup_list.append(m)
 
     # State attributes (*: in persistent state):
-    #  *results               -- map matchup id -> list of Game_results
+    #  *results               -- map matchup id -> list of pairs
+    #                                              (game_id, Game_result)
     #  *scheduler             -- Group_scheduler (group codes are matchup ids)
     #  *engine_names          -- map player code -> string
     #  *engine_descriptions   -- map player code -> string
@@ -290,12 +291,12 @@ class Playoff(Competition):
         self.engine_names.update(response.engine_names)
         self.engine_descriptions.update(response.engine_descriptions)
         matchup_id, game_number = response.game_data
+        game_id = response.game_id
         self.working_matchups.add(matchup_id)
         self.probationary_matchups.discard(matchup_id)
         self.scheduler.fix(matchup_id, game_number)
-        self.results[matchup_id].append(response.game_result)
-        self.log_history("%7s %s" %
-                         (response.game_id, response.game_result.describe()))
+        self.results[matchup_id].append((game_id, response.game_result))
+        self.log_history("%7s %s" % (game_id, response.game_result.describe()))
 
     def process_game_error(self, job, previous_error_count):
         # ignoring previous_error_count, as we can consider all jobs for the
@@ -312,11 +313,17 @@ class Playoff(Competition):
         return stop_competition, retry_game
 
     def write_matchup_report(self, out, matchup, results):
+        """Write the status table of the specified matchup to 'out'
+
+        results -- nonempty list of Game_results
+
+        """
         def p(s):
             print >>out, s
 
         total = len(results)
         assert total != 0
+
         player_x = matchup.p1
         player_y = matchup.p2
         x_wins = sum(r.winning_player == player_x for r in results)
@@ -447,7 +454,7 @@ class Playoff(Competition):
                 first = False
             else:
                 print >>out
-            self.write_matchup_report(out, matchup, results)
+            self.write_matchup_report(out, matchup, [t[1] for t in results])
 
     def write_short_report(self, out):
         def p(s):
@@ -480,7 +487,9 @@ class Playoff(Competition):
 
         Status must be loaded to use this.
 
-        Returns a list of Game_results
+        Returns a list of pairs (game id, Game_result)
+
+        game ids are short strings.
 
         """
         return self.results[matchup_id][:]

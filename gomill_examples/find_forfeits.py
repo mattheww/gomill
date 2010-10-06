@@ -15,8 +15,8 @@ def loser(result):
     return {'b' : result.player_b, 'w' : result.player_w}\
          [opponent_of(result.winning_colour)]
 
-def show_result(matchup, result):
-    print "%s: %s forfeited" % (matchup.name, loser(result))
+def show_result(matchup, game_id, result):
+    print "%s: %s forfeited game %s" % (matchup.name, loser(result), game_id)
 
 def find_forfeits(ringmaster):
     if ringmaster.competition_type != 'playoff':
@@ -29,9 +29,9 @@ def find_forfeits(ringmaster):
     for matchup_id in matchup_ids:
         matchup = playoff.get_matchup(matchup_id)
         results = playoff.get_matchup_results(matchup_id)
-        for result in results:
+        for game_id, result in results:
             if result.is_forfeit:
-                show_result(matchup, result)
+                show_result(matchup, game_id, result)
 
 
 _description = """\
