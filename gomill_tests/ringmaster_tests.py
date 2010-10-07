@@ -115,6 +115,9 @@ def test_settings(tc):
     tc.assertEqual(job.sgf_filename, '0_0.sgf')
     tc.assertEqual(job.sgf_dirname, '/nonexistent/ctl/test.games')
     tc.assertEqual(job.void_sgf_dirname, '/nonexistent/ctl/test.void')
+    tc.assertEqual(fx.ringmaster.get_sgf_filename("0_0"), "0_0.sgf")
+    tc.assertEqual(fx.ringmaster.get_sgf_pathname("0_0"),
+                   "/nonexistent/ctl/test.games/0_0.sgf")
 
 
 def test_check_players(tc):

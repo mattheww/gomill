@@ -322,6 +322,15 @@ class Ringmaster(object):
         self.terminal_reader = terminal_input.Terminal_reader()
         self.terminal_reader.initialise()
 
+    def get_sgf_filename(self, game_id):
+        """Return the sgf filename given a game id."""
+        return "%s.sgf" % game_id
+
+    def get_sgf_pathname(self, game_id):
+        """Return the sgf pathname given a game id."""
+        return os.path.join(self.sgf_dir_pathname,
+                            self.get_sgf_filename(game_id))
+
 
     # State attributes (*: in persistent state):
     #  * void_game_count   -- int
@@ -475,7 +484,7 @@ class Ringmaster(object):
 
         """
         if self.record_games:
-            job.sgf_filename = "%s.sgf" % job.game_id
+            job.sgf_filename = self.get_sgf_filename(job.game_id)
             job.sgf_dirname = self.sgf_dir_pathname
             job.void_sgf_dirname = self.void_dir_pathname
         if self.write_gtp_logs:
