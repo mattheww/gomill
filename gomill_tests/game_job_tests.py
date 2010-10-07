@@ -149,7 +149,7 @@ def test_game_job_claim(tc):
     gj.job.player_w.cmd_args.append('init=genmove_ex')
     gj.job.player_w.allow_claim = True
     result = gj.job.run()
-    tc.assertEqual(result.game_result.sgf_result, "W+C")
+    tc.assertEqual(result.game_result.sgf_result, "W+")
     tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
 
 

@@ -139,7 +139,7 @@ def test_claim(tc):
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
-    tc.assertEqual(fx.game.result.sgf_result, "B+C")
+    tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
     tc.assertEqual(fx.game.result.winning_player, 'one')
     tc.assertFalse(fx.game.result.is_forfeit)

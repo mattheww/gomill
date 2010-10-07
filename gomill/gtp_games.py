@@ -581,7 +581,8 @@ class Game(object):
         elif self.seen_resignation:
             result.sgf_result += "R"
         elif self.seen_claim:
-            result.sgf_result += "C"
+            # Leave SGF result in form 'B+'
+            pass
         elif self.forfeited:
             result.sgf_result += "F"
             result.is_forfeit = True
@@ -594,7 +595,7 @@ class Game(object):
             result.detail = "no score reported"
         else:
             # Players returned something like 'B+?'
-            result.sgf_result += "F"
+            # Leave SGF result in form 'B+'
             result.detail = "unknown margin/reason"
         self.result = result
 
