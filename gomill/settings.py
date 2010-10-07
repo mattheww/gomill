@@ -75,7 +75,7 @@ def clean_string(s):
     return re.sub(r"[\x00-\x1f\x7f-\x9f]", "?", s)
 
 # NB, tuners use '#' in player codes
-_identifier_re = re.compile(r"\A[-!$%&*+-./:;<=>?^_~a-zA-Z0-9]*\Z")
+_identifier_re = re.compile(r"\A[-!$%&*+-.:;<=>?^_~a-zA-Z0-9]*\Z")
 
 def interpret_identifier(s):
     if isinstance(s, unicode):
