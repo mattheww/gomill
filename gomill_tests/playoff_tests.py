@@ -109,8 +109,9 @@ def test_play(tc):
     tc.assertEqual(job1.komi, 3.5)
     tc.assertEqual(job1.move_limit, 1000)
     tc.assertEqual(job1.game_data, ('0', 0))
-    tc.assertIsNone(job1.sgf_pathname)
-    tc.assertIsNone(job1.void_sgf_pathname)
+    tc.assertIsNone(job1.sgf_filename)
+    tc.assertIsNone(job1.sgf_dirname)
+    tc.assertIsNone(job1.void_sgf_dirname)
     tc.assertEqual(job1.sgf_event, 'testcomp')
     tc.assertIsNone(job1.gtp_log_pathname)
 

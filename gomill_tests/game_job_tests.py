@@ -18,11 +18,34 @@ def make_tests(suite):
 
 ### Game_job proper
 
+class Test_game_job(game_jobs.Game_job):
+    """Variant of Game_job that doesn't write sgf files.
+
+    Additional attributes:
+     _sgf_pathname_written -- pathname sgf file would have been written to
+     _sgf_written          -- contents that would have been written
+     _mkdir_pathname       -- directory pathname that would have been created
+
+    """
+    def __init__(self, *args, **kwargs):
+        game_jobs.Game_job.__init__(self, *args, **kwargs)
+        self._sgf_pathname_written = None
+        self._sgf_written = None
+        self._mkdir_pathname = None
+
+    def _write_sgf(self, pathname, sgf_string):
+        self._sgf_pathname_written = pathname
+        self._sgf_written = sgf_string
+
+    def _mkdir(self, pathname):
+        self._mkdir_pathname = pathname
+
+
 class Game_job_fixture(test_framework.Fixture):
     """Fixture setting up a Game_job.
 
     attributes:
-      job -- game_jobs.Game_job
+      job -- game_jobs.Game_job (in fact, a Test_game_job)
 
     """
     def __init__(self, tc):
@@ -32,13 +55,16 @@ class Game_job_fixture(test_framework.Fixture):
         player_w = game_jobs.Player()
         player_w.code = 'two'
         player_w.cmd_args = ['test', 'id=two']
-        self.job = game_jobs.Game_job()
+        self.job = Test_game_job()
         self.job.game_id = 'gameid'
         self.job.player_b = player_b
         self.job.player_w = player_w
         self.job.board_size = 9
         self.job.komi = 7.5
         self.job.move_limit = 1000
+        self.job.sgf_dirname = "/sgf/test.games"
+        self.job.void_sgf_dirname = "/sgf/test.void"
+        self.job.sgf_filename = "gjtest.sgf"
 
 def test_game_job(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
@@ -53,6 +79,16 @@ def test_game_job(tc):
     tc.assertIsNone(channel.requested_stderr)
     tc.assertIsNone(channel.requested_cwd)
     tc.assertIsNone(channel.requested_env)
+    tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
+    tc.assertIsNone(gj.job._mkdir_pathname)
+
+def test_game_job_no_sgf(tc):
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    gj = Game_job_fixture(tc)
+    gj.job.sgf_dirname = None
+    result = gj.job.run()
+    tc.assertEqual(result.game_result.sgf_result, "B+10.5")
+    tc.assertIsNone(gj.job._sgf_pathname_written)
 
 def test_game_job_exec_failure(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
@@ -64,21 +100,25 @@ def test_game_job_exec_failure(tc):
                    "aborting game due to error:\n"
                    "error starting subprocess for player two:\n"
                    "exec forced to fail")
+    # No void sgf file unless at least one move was played
+    tc.assertIsNone(gj.job._sgf_pathname_written)
 
 def test_game_job_channel_error(tc):
-    def fail_first_command(channel):
-        channel.fail_next_command = True
+    def fail_first_genmove(channel):
+        channel.fail_command = 'genmove'
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
-    fx.register_init_callback('fail_first_command', fail_first_command)
+    fx.register_init_callback('fail_first_genmove', fail_first_genmove)
     gj = Game_job_fixture(tc)
-    gj.job.player_w.cmd_args.append('init=fail_first_command')
+    gj.job.player_w.cmd_args.append('init=fail_first_genmove')
     with tc.assertRaises(JobFailed) as ar:
         gj.job.run()
     tc.assertEqual(str(ar.exception),
                    "aborting game due to error:\n"
-                   "transport error sending first command (protocol_version) "
+                   "transport error sending 'genmove w' "
                    "to player two:\n"
                    "forced failure for send_command_line")
+    tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.void/gjtest.sgf')
+    tc.assertEqual(gj.job._mkdir_pathname, '/sgf/test.void')
 
 def test_game_job_stderr_cwd_env(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
@@ -94,6 +134,7 @@ def test_game_job_stderr_cwd_env(tc):
     tc.assertEqual(channel.requested_env['GOMILL_TEST'], 'gomill')
     # Check environment was merged, not replaced
     tc.assertIn('PATH', channel.requested_env)
+    tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
 
 def test_game_job_claim(tc):
     def handle_genmove_ex(args):
@@ -109,6 +150,7 @@ def test_game_job_claim(tc):
     gj.job.player_w.allow_claim = True
     result = gj.job.run()
     tc.assertEqual(result.game_result.sgf_result, "W+C")
+    tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
 
 
 ### check_player

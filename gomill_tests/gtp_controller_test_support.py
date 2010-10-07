@@ -76,6 +76,8 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
 
     You can force errors by setting the following attributes:
       fail_next_command   -- bool (send_command_line raises GtpTransportError)
+      fail_command        -- string (like fail_next_command, if command line
+                             starts with this string)
       fail_next_response  -- bool (get_response_line raises GtpTransportError)
       force_next_response -- string (get_response_line uses this string)
       fail_close          -- bool (close raises GtpTransportError)
@@ -92,6 +94,7 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         self.fail_next_response = False
         self.force_next_response = None
         self.fail_close = False
+        self.fail_command = None
 
     def send_command_line(self, command):
         if self.is_closed:
@@ -104,6 +107,9 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
             return
         if self.fail_next_command:
             self.fail_next_command = False
+            raise GtpTransportError("forced failure for send_command_line")
+        if self.fail_command and command.startswith(self.fail_command):
+            self.fail_command = None
             raise GtpTransportError("forced failure for send_command_line")
         cmd_list = command.strip().split(" ")
         is_error, response, end_session = \

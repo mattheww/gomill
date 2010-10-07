@@ -1,5 +1,6 @@
 """Tests for ringmaster.py."""
 
+import os
 import string
 
 from gomill_tests import test_framework
@@ -52,6 +53,69 @@ matchups = [
     ]
 
 """)
+
+def test_get_job(tc):
+    vals = {
+        'cmdline1' : "",
+        'cmdline2' : "sing song",
+        }
+    fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals))
+    fx.ringmaster.set_clean_status()
+    fx.ringmaster._open_files()
+    fx.ringmaster._initialise_presenter()
+    fx.ringmaster._initialise_terminal_reader()
+    job = fx.ringmaster.get_job()
+    tc.assertEqual(job.game_id, "0_0")
+    tc.assertEqual(job.game_data, ("0", 0))
+    tc.assertEqual(job.board_size, 9)
+    tc.assertEqual(job.komi, 7.5)
+    tc.assertEqual(job.move_limit, 400)
+    tc.assertEqual(job.handicap, None)
+    tc.assertIs(job.handicap_is_free, False)
+    tc.assertIs(job.use_internal_scorer, True)
+    tc.assertEqual(job.sgf_event, 'test')
+    tc.assertIsNone(job.gtp_log_pathname)
+    tc.assertIsNone(job.sgf_filename)
+    tc.assertIsNone(job.sgf_dirname)
+    tc.assertIsNone(job.void_sgf_dirname)
+    tc.assertEqual(job.player_b.code, 'p1')
+    tc.assertEqual(job.player_w.code, 'p2')
+    tc.assertEqual(job.player_b.cmd_args, ['test'])
+    tc.assertEqual(job.player_w.cmd_args, ['test', 'sing', 'song'])
+    tc.assertDictEqual(job.player_b.gtp_translations, {})
+    tc.assertListEqual(job.player_b.startup_gtp_commands, [])
+    tc.assertEqual(job.player_b.stderr_pathname, os.devnull)
+    tc.assertIsNone(job.player_b.cwd)
+    tc.assertIsNone(job.player_b.environ)
+
+def test_settings(tc):
+    vals = {
+        'cmdline1' : "",
+        'cmdline2' : "",
+        }
+    extra = "\n".join([
+        "handicap = 9",
+        "handicap_style = 'free'",
+        "record_games = True",
+        "scorer = 'players'"
+        ])
+    fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals) + extra)
+    fx.ringmaster.enable_gtp_logging()
+    fx.ringmaster.set_clean_status()
+    fx.ringmaster._open_files()
+    fx.ringmaster._initialise_presenter()
+    fx.ringmaster._initialise_terminal_reader()
+    job = fx.ringmaster.get_job()
+    tc.assertEqual(job.game_id, "0_0")
+    tc.assertEqual(job.handicap, 9)
+    tc.assertIs(job.handicap_is_free, True)
+    tc.assertIs(job.use_internal_scorer, False)
+    tc.assertEqual(job.gtp_log_pathname,
+                   '/nonexistent/ctl/test.gtplogs/0_0.log')
+    tc.assertEqual(job.sgf_filename, '0_0.sgf')
+    tc.assertEqual(job.sgf_dirname, '/nonexistent/ctl/test.games')
+    tc.assertEqual(job.void_sgf_dirname, '/nonexistent/ctl/test.void')
+
 
 def test_check_players(tc):
     vals = {
