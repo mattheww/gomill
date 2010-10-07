@@ -15,8 +15,8 @@ def loser(result):
     return {'b' : result.player_b, 'w' : result.player_w}\
          [opponent_of(result.winning_colour)]
 
-def show_result(matchup, game_id, result):
-    print "%s: %s forfeited game %s" % (matchup.name, loser(result), game_id)
+def show_result(matchup, result, filename):
+    print "%s: %s forfeited game %s" % (matchup.name, loser(result), filename)
 
 def find_forfeits(ringmaster):
     if ringmaster.competition_type != 'playoff':
@@ -31,7 +31,8 @@ def find_forfeits(ringmaster):
         results = playoff.get_matchup_results(matchup_id)
         for game_id, result in results:
             if result.is_forfeit:
-                show_result(matchup, game_id, result)
+                filename = ringmaster.get_sgf_filename(game_id)
+                show_result(matchup, result, filename)
 
 
 _description = """\
