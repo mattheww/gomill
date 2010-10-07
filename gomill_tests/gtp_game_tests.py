@@ -140,9 +140,11 @@ def test_claim(tc):
     fx.game.run()
     fx.game.close_players()
     tc.assertEqual(fx.game.result.sgf_result, "B+")
+    tc.assertEqual(fx.game.result.detail, "claim")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
     tc.assertEqual(fx.game.result.winning_player, 'one')
     tc.assertFalse(fx.game.result.is_forfeit)
+    tc.assertEqual(fx.game.result.describe(), "one beat two B+ (claim)")
     fx.check_moves([
         ('b', 'E1'), ('w', 'G1'),
         ('b', 'E2'), ('w', 'G2'),

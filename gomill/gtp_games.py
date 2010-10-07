@@ -582,7 +582,7 @@ class Game(object):
             result.sgf_result += "R"
         elif self.seen_claim:
             # Leave SGF result in form 'B+'
-            pass
+            result.detail = "claim"
         elif self.forfeited:
             result.sgf_result += "F"
             result.is_forfeit = True
