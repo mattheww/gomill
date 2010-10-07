@@ -475,10 +475,9 @@ class Ringmaster(object):
 
         """
         if self.record_games:
-            job.sgf_pathname = os.path.join(
-                self.sgf_dir_pathname, "%s.sgf" % job.game_id)
-            job.void_sgf_pathname = os.path.join(
-                self.void_dir_pathname, "%s.sgf" % job.game_id)
+            job.sgf_filename = "%s.sgf" % job.game_id
+            job.sgf_dirname = self.sgf_dir_pathname
+            job.void_sgf_dirname = self.void_dir_pathname
         if self.write_gtp_logs:
             job.gtp_log_pathname = os.path.join(
                     self.gtplog_dir_pathname, "%s.log" % job.game_id)

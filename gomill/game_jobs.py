@@ -99,8 +99,9 @@ class Game_job(object):
       handicap            -- int
       handicap_is_free    -- bool (default False)
       use_internal_scorer -- bool (default True)
-      sgf_pathname        -- pathname to use for the SGF file
-      void_sgf_pathname   -- pathname to use for the SGF file for void games
+      sgf_filename        -- filename for the SGF file
+      sgf_dirname         -- directory pathname for the SGF file
+      void_sgf_dirhname   -- directory pathname for the SGF file for void games
       sgf_event           -- string to show as SGF EVent
       gtp_log_pathname    -- pathname to use for the GTP log
 
@@ -114,11 +115,12 @@ class Game_job(object):
     are used to decide which player is asked to score the game (if both are
     marked as reliable, black will be tried before white).
 
-    If sgf_pathname is set, an SGF file will be written after the game is over.
+    If sgf_dirname and sgf_filename are set, an SGF file will be written after
+    the game is over.
 
-    If void_sgf_pathname is set, an SGF file will be written for void games
-    (games which were aborted due to unhandled errors). The
-    immediately-containing directory will be created if necessary.
+    If void_sgf_dirname and sgf_filename are set, an SGF file will be written
+    for void games (games which were aborted due to unhandled errors). The
+    leaf directory will be created if necessary.
 
     If gtp_log_pathname is set, all GTP messages to and from both players will
     be logged (this doesn't append; any existing file will be overwritten).
@@ -130,8 +132,9 @@ class Game_job(object):
     def __init__(self):
         self.handicap = None
         self.handicap_is_free = False
-        self.sgf_pathname = None
-        self.void_sgf_pathname = None
+        self.sgf_filename = None
+        self.sgf_dirname = None
+        self.void_sgf_dirname = None
         self.sgf_event = None
         self.use_internal_scorer = True
         self.game_data = None
@@ -217,8 +220,7 @@ class Game_job(object):
                 msg += "\nalso:\n" + late_error_messages
             raise job_manager.JobFailed(msg)
         game.close_players()
-        if self.sgf_pathname is not None:
-            self._record_game(self.sgf_pathname, game)
+        self._record_game(game)
         response = Game_job_result()
         response.game_id = self.game_id
         response.game_result = game.result
@@ -227,7 +229,16 @@ class Game_job(object):
         response.game_data = self.game_data
         return response
 
-    def _record_game(self, pathname, game, game_end_message=None, result=None):
+    def _write_sgf(self, pathname, sgf_string):
+        f = open(pathname, "w")
+        f.write(sgf_string)
+        f.close()
+
+    def _mkdir(self, pathname):
+        os.mkdir(pathname)
+
+    def _write_game_record(self, pathname, game,
+                           game_end_message=None, result=None):
         b_player = game.players['b']
         w_player = game.players['w']
 
@@ -255,21 +266,25 @@ class Game_job(object):
             "White %s %s" % (w_player, game.engine_descriptions[w_player]),
             ]
         sgf_game.set('root-comment', "\n".join(notes))
-        f = open(pathname, "w")
-        f.write(sgf_game.as_string())
-        f.close()
+        self._write_sgf(pathname, sgf_game.as_string())
+
+    def _record_game(self, game):
+        """Record the game in the standard sgf directory."""
+        if self.sgf_dirname is None or self.sgf_filename is None:
+            return
+        pathname = os.path.join(self.sgf_dirname, self.sgf_filename)
+        self._write_game_record(pathname, game)
 
     def _record_void_game(self, game, game_end_message):
-        """Record the game to void_sgf_pathname if it had any moves."""
+        """Record the game in the void sgf directory if it had any moves."""
         if not game.moves:
             return
-        if self.void_sgf_pathname is None:
+        if self.void_sgf_dirname is None or self.sgf_filename is None:
             return
-        dirname = os.path.dirname(self.void_sgf_pathname)
-        if not os.path.exists(dirname):
-            os.mkdir(dirname)
-        self._record_game(self.void_sgf_pathname, game, game_end_message,
-                          result='Void')
+        if not os.path.exists(self.void_sgf_dirname):
+            self._mkdir(self.void_sgf_dirname)
+        pathname = os.path.join(self.void_sgf_dirname, self.sgf_filename)
+        self._write_game_record(pathname, game, game_end_message, result='Void')
 
 
 class CheckFailed(StandardError):
