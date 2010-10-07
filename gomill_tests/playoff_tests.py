@@ -150,3 +150,18 @@ def test_play(tc):
 
     tc.assertListEqual(comp.get_matchup_results('0'), [('0_0', result1)])
 
+def test_game_id_format(tc):
+    comp = playoffs.Playoff('testcomp')
+    config = {
+        'players' : {
+            't1' : Player_config("test1"),
+            },
+        'board_size' : 12,
+        'komi' : 3.5,
+        'matchups' : [
+            Matchup_config('t1', 't1', number_of_games=1000),
+            ],
+        }
+    comp.initialise_from_control_file(config)
+    comp.set_clean_status()
+    tc.assertEqual(comp.get_game().game_id, '0_000')

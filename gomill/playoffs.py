@@ -43,6 +43,9 @@ class Matchup(object):
         s += "komi: %s" % self.komi
         return s
 
+    def make_game_id(self, game_number):
+        return self._game_id_template % (self.id, game_number)
+
 
 class _Required_in_matchup(object):
     def __str__(self):
@@ -167,6 +170,13 @@ class Playoff(Competition):
             except ValueError, e:
                 raise ControlFileError("name: %s" % e)
         matchup.name = name
+
+        if matchup.number_of_games is None:
+            matchup._game_id_template = "%s_%d"
+        else:
+            zeros = len(str(matchup.number_of_games-1))
+            matchup._game_id_template = "%%s_%%0%dd" % zeros
+
         return matchup
 
     def initialise_from_control_file(self, config):
@@ -274,7 +284,7 @@ class Playoff(Competition):
             player_b, player_w = matchup.p2, matchup.p1
         else:
             player_b, player_w = matchup.p1, matchup.p2
-        game_id = "%s_%d" % (matchup_id, game_number)
+        game_id = matchup.make_game_id(game_number)
 
         job = game_jobs.Game_job()
         job.game_id = game_id

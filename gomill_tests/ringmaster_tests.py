@@ -65,7 +65,7 @@ def test_get_job(tc):
     fx.ringmaster._initialise_presenter()
     fx.ringmaster._initialise_terminal_reader()
     job = fx.ringmaster.get_job()
-    tc.assertEqual(job.game_id, "0_0")
+    tc.assertEqual(job.game_id, "0_000")
     tc.assertEqual(job.game_data, ("0", 0))
     tc.assertEqual(job.board_size, 9)
     tc.assertEqual(job.komi, 7.5)
@@ -106,18 +106,18 @@ def test_settings(tc):
     fx.ringmaster._initialise_presenter()
     fx.ringmaster._initialise_terminal_reader()
     job = fx.ringmaster.get_job()
-    tc.assertEqual(job.game_id, "0_0")
+    tc.assertEqual(job.game_id, "0_000")
     tc.assertEqual(job.handicap, 9)
     tc.assertIs(job.handicap_is_free, True)
     tc.assertIs(job.use_internal_scorer, False)
     tc.assertEqual(job.gtp_log_pathname,
-                   '/nonexistent/ctl/test.gtplogs/0_0.log')
-    tc.assertEqual(job.sgf_filename, '0_0.sgf')
+                   '/nonexistent/ctl/test.gtplogs/0_000.log')
+    tc.assertEqual(job.sgf_filename, '0_000.sgf')
     tc.assertEqual(job.sgf_dirname, '/nonexistent/ctl/test.games')
     tc.assertEqual(job.void_sgf_dirname, '/nonexistent/ctl/test.void')
-    tc.assertEqual(fx.ringmaster.get_sgf_filename("0_0"), "0_0.sgf")
-    tc.assertEqual(fx.ringmaster.get_sgf_pathname("0_0"),
-                   "/nonexistent/ctl/test.games/0_0.sgf")
+    tc.assertEqual(fx.ringmaster.get_sgf_filename("0_000"), "0_000.sgf")
+    tc.assertEqual(fx.ringmaster.get_sgf_pathname("0_000"),
+                   "/nonexistent/ctl/test.games/0_000.sgf")
 
 
 def test_check_players(tc):
@@ -165,7 +165,7 @@ def test_run_fail(tc):
     fx.ringmaster.run()
     tc.assertListEqual(
         fx.messages('warnings'),
-        ["game 0_0 -- aborting game due to error:\n"
+        ["game 0_000 -- aborting game due to error:\n"
          "error starting subprocess for player p2:\n"
          "exec forced to fail",
          "halting run due to void games"])
