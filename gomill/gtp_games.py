@@ -41,13 +41,17 @@ class Game_result(object):
     Game_results are suitable for pickling.
 
     """
-    def __init__(self, players):
+    def __init__(self, players, winning_colour):
         self.players = players.copy()
         self.player_b = players['b']
         self.player_w = players['w']
-        self.winning_colour = None
+        self.winning_colour = winning_colour
+        self.winning_player = players.get(winning_colour)
         self.is_forfeit = False
-        self.sgf_result = "?"
+        if winning_colour is None:
+            self.sgf_result = "?"
+        else:
+            self.sgf_result = "%s+" % winning_colour.upper()
         self.detail = None
         self.cpu_times = {self.player_b : None, self.player_w : None}
 
@@ -69,18 +73,16 @@ class Game_result(object):
          self.is_forfeit,
          self.cpu_times,
          ) = state
-        self.player_b = self.players['b']
-        self.player_w = self.players['w']
+        players = self.players
+        self.player_b = players['b']
+        self.player_w = players['w']
+        self.winning_player = players.get(self.winning_colour)
 
     @property
     def losing_colour(self):
         if self.winning_colour is None:
             return None
         return opponent_of(self.winning_colour)
-
-    @property
-    def winning_player(self):
-        return self.players.get(self.winning_colour)
 
     @property
     def losing_player(self):
@@ -572,29 +574,27 @@ class Game(object):
         You shouldn't normally call this directly.
 
         """
-        result = Game_result(self.players)
-        result.winning_colour = self.winner
+        result = Game_result(self.players, self.winner)
         if self.hit_move_limit:
             result.sgf_result = "Void"
             result.detail = "hit move limit"
         elif self.seen_resignation:
-            result.sgf_result = "%s+R" % self.winner.upper()
+            result.sgf_result += "R"
         elif self.seen_claim:
-            result.sgf_result = "%s+C" % self.winner.upper()
+            result.sgf_result += "C"
         elif self.forfeited:
-            result.sgf_result = "%s+F" % self.winner.upper()
+            result.sgf_result += "F"
             result.is_forfeit = True
             result.detail = "forfeit: %s" % self.forfeit_reason
         elif self.margin == 0:
             result.sgf_result = "0"
         elif self.margin is not None:
-            result.sgf_result = "%s+%s" % (self.winner.upper(),
-                                           format_float(self.margin))
+            result.sgf_result += format_float(self.margin)
         elif self.winner is None:
             result.detail = "no score reported"
         else:
             # Players returned something like 'B+?'
-            result.sgf_result = "%s+F" % self.winner.upper()
+            result.sgf_result += "F"
             result.detail = "unknown margin/reason"
         self.result = result
 
