@@ -10,13 +10,9 @@ from optparse import OptionParser
 from gomill.gomill_common import opponent_of
 from gomill.ringmasters import Ringmaster, RingmasterError
 
-# FIXME
-def loser(result):
-    return {'b' : result.player_b, 'w' : result.player_w}\
-         [opponent_of(result.winning_colour)]
-
 def show_result(matchup, result, filename):
-    print "%s: %s forfeited game %s" % (matchup.name, loser(result), filename)
+    print "%s: %s forfeited game %s" % (
+        matchup.name, result.losing_player, filename)
 
 def find_forfeits(ringmaster):
     if ringmaster.competition_type != 'playoff':

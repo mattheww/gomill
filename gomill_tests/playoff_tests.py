@@ -1,5 +1,7 @@
 """Tests for playoffs.py"""
 
+from __future__ import with_statement
+
 from cStringIO import StringIO
 
 from gomill import competitions
@@ -121,14 +123,8 @@ def test_play(tc):
     tc.assertEqual(job2.player_b.code, 't2')
     tc.assertEqual(job2.player_w.code, 't1')
 
-    result1 = Game_result()
-    result1.player_b = 't1'
-    result1.player_w = 't2'
+    result1 = Game_result({'b' : 't1', 'w' : 't2'})
     result1.winning_colour = 'b'
-    result1.winning_player = 't1'
-    result1.is_forfeit = False
-    result1.detail = None
-    result1.cpu_times = {'t1' : None, 't2' : None}
     result1.sgf_result = "B+8.5"
     response1 = Game_job_result()
     response1.game_id = job1.game_id

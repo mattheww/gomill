@@ -20,16 +20,19 @@ class Game_result(object):
     """Description of a game result.
 
     Public attributes:
+      players             -- map colour -> player code
       player_b            -- player code
       player_w            -- player code
       winning_colour      -- 'b', 'w', or None
+      losing_colour       -- 'b', 'w', or None
       winning_player      -- player code or None
+      losing_player       -- player code or None
       sgf_result          -- string describing the game's result (for sgf RE)
       is_forfeit          -- bool
       detail              -- additional information (string or None)
       cpu_times           -- map player code -> float or None or '?'.
 
-    Winning colour and winning player are None for a jigo, unknown result, or
+    Winning/losing colour and player are None for a jigo, unknown result, or
     void game.
 
     cpu_times are user time + system time. '?' means that gomill-cpu_time gave
@@ -38,15 +41,20 @@ class Game_result(object):
     Game_results are suitable for pickling.
 
     """
-
-    # These are just to make the .state file more compact.
+    def __init__(self, players):
+        self.players = players.copy()
+        self.player_b = players['b']
+        self.player_w = players['w']
+        self.winning_colour = None
+        self.is_forfeit = False
+        self.sgf_result = "?"
+        self.detail = None
+        self.cpu_times = {self.player_b : None, self.player_w : None}
 
     def __getstate__(self):
         return (
-            self.player_b,
-            self.player_w,
+            self.players,
             self.winning_colour,
-            self.winning_player,
             self.sgf_result,
             self.detail,
             self.is_forfeit,
@@ -54,26 +62,38 @@ class Game_result(object):
             )
 
     def __setstate__(self, state):
-        (self.player_b,
-         self.player_w,
+        (self.players,
          self.winning_colour,
-         self.winning_player,
          self.sgf_result,
          self.detail,
          self.is_forfeit,
          self.cpu_times,
          ) = state
+        self.player_b = self.players['b']
+        self.player_w = self.players['w']
+
+    @property
+    def losing_colour(self):
+        if self.winning_colour is None:
+            return None
+        return opponent_of(self.winning_colour)
+
+    @property
+    def winning_player(self):
+        return self.players.get(self.winning_colour)
+
+    @property
+    def losing_player(self):
+        if self.winning_colour is None:
+            return None
+        return self.players.get(opponent_of(self.winning_colour))
 
     def describe(self):
         """Return a short human-readable description of the result."""
-        if self.winning_player is not None:
-            if self.player_b == self.winning_player:
-                losing_player = self.player_w
-            else:
-                losing_player = self.player_b
-            s = "%s beat %s " % (self.winning_player, losing_player)
+        if self.winning_colour is not None:
+            s = "%s beat %s " % (self.winning_player, self.losing_player)
         else:
-            s = "%s vs %s " % (self.player_b, self.player_w)
+            s = "%s vs %s " % (self.players['b'], self.players['w'])
         s += self.sgf_result
         if self.detail is not None:
             s += " (%s)" % self.detail
@@ -552,14 +572,8 @@ class Game(object):
         You shouldn't normally call this directly.
 
         """
-        result = Game_result()
-        result.player_b = self.players['b']
-        result.player_w = self.players['w']
+        result = Game_result(self.players)
         result.winning_colour = self.winner
-        result.winning_player = self.players.get(self.winner)
-        result.is_forfeit = False
-        result.detail = None
-        result.cpu_times = {result.player_b : None, result.player_w : None}
         if self.hit_move_limit:
             result.sgf_result = "Void"
             result.detail = "hit move limit"
@@ -577,7 +591,6 @@ class Game(object):
             result.sgf_result = "%s+%s" % (self.winner.upper(),
                                            format_float(self.margin))
         elif self.winner is None:
-            result.sgf_result = "?"
             result.detail = "no score reported"
         else:
             # Players returned something like 'B+?'
