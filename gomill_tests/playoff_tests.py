@@ -20,11 +20,15 @@ def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
-def check_screen_report(tc, comp, expected):
-    """Check that a competition's screen report is as expected."""
+def get_screen_report(comp):
+    """Retrieve a competition's screen report."""
     out = StringIO()
     comp.write_screen_report(out)
-    tc.assertMultiLineEqual(out.getvalue(), expected)
+    return out.getvalue()
+
+def check_screen_report(tc, comp, expected):
+    """Check that a competition's screen report is as expected."""
+    tc.assertMultiLineEqual(get_screen_report(comp), expected)
 
 def fake_response(job, winner):
     """Produce a response for the specified job."""
@@ -211,6 +215,8 @@ def test_play_many(tc):
     jobs2 = [comp2.get_game() for _ in range(4)]
     tc.assertListEqual([job.game_id for job in jobs2],
                        ['0_1', '0_5', '0_8', '0_9'])
+    tc.assertEqual(len(comp2.get_matchup_results('0')), 6)
+    check_screen_report(tc, comp2, get_screen_report(fx.comp))
 
 def test_matchup_change(tc):
     fx = Playoff_fixture(tc)
