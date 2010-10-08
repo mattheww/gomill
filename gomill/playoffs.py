@@ -364,6 +364,13 @@ class Playoff(Competition):
         results -- nonempty list of Game_results
 
         """
+        # The control file might have changed since the results were recorded.
+        # We are guaranteed that the player codes correspond, but nothing else.
+
+        # We use the current matchup to describe 'background' information, as
+        # that isn't available any other way, but we look to the results where
+        # we can.
+
         def p(s):
             print >>out, s
 
