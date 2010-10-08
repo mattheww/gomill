@@ -26,6 +26,18 @@ def check_screen_report(tc, comp, expected):
     comp.write_screen_report(out)
     tc.assertMultiLineEqual(out.getvalue(), expected)
 
+def fake_response(job, winner):
+    """Produce a response for the specified job."""
+    players = {'b' : job.player_b.code, 'w' : job.player_w.code}
+    result = Game_result(players, winner)
+    response = Game_job_result()
+    response.game_id = job.game_id
+    response.game_result = result
+    response.engine_names = {}
+    response.engine_descriptions = {}
+    response.game_data = job.game_data
+    return response
+
 class Playoff_fixture(test_framework.Fixture):
     """Fixture setting up a Playoff.
 
@@ -44,6 +56,7 @@ class Playoff_fixture(test_framework.Fixture):
     def check_screen_report(self, expected):
         """Check that the screen report is as expected."""
         check_screen_report(self.tc, self.comp, expected)
+
 
 def default_config():
     return {
@@ -166,15 +179,6 @@ def test_play_many(tc):
     fx = Playoff_fixture(tc)
 
     jobs = [fx.comp.get_game() for _ in range(8)]
-    def fake_response(job, winner):
-        result = Game_result({'b' : 't1', 'w' : 't2'}, winner)
-        response = Game_job_result()
-        response.game_id = job.game_id
-        response.game_result = result
-        response.engine_names = {}
-        response.engine_descriptions = {}
-        response.game_data = job.game_data
-        return response
     for i in [0, 3]:
         response = fake_response(jobs[i], 'b')
         fx.comp.process_game_result(response)
@@ -186,9 +190,10 @@ def test_play_many(tc):
     fx.check_screen_report(
         "t1 v t2 (6 games)\n"
         "board size: 13   komi: 7.5\n"
-        "     wins\n"
-        "t1      2 33.33%   (black)\n"
-        "t2      4 66.67%   (white)\n")
+        "     wins              black        white\n"
+        "t1      2 33.33%       1 25.00%     1 50.00%\n"
+        "t2      4 66.67%       1 50.00%     3 75.00%\n"
+        "                       2 33.33%     4 66.67%\n")
 
     tc.assertEqual(len(fx.comp.get_matchup_results('0')), 6)
 
@@ -211,25 +216,17 @@ def test_matchup_change(tc):
     fx = Playoff_fixture(tc)
 
     jobs = [fx.comp.get_game() for _ in range(8)]
-    def fake_response(job, winner):
-        result = Game_result({'b' : 't1', 'w' : 't2'}, winner)
-        response = Game_job_result()
-        response.game_id = job.game_id
-        response.game_result = result
-        response.engine_names = {}
-        response.engine_descriptions = {}
-        response.game_data = job.game_data
-        return response
-    for i in [0, 2, 3, 4, 5, 7]:
-        response = fake_response(jobs[i], ('b' if i <= 2 else 'w'))
+    for i in [0, 2, 3, 4, 6, 7]:
+        response = fake_response(jobs[i], ('b' if i in (0, 3) else 'w'))
         fx.comp.process_game_result(response)
 
     fx.check_screen_report(
         "t1 v t2 (6 games)\n"
         "board size: 13   komi: 7.5\n"
-        "     wins\n"
-        "t1      2 33.33%   (black)\n"
-        "t2      4 66.67%   (white)\n")
+        "     wins              black        white\n"
+        "t1      2 33.33%       1 25.00%     1 50.00%\n"
+        "t2      4 66.67%       1 50.00%     3 75.00%\n"
+        "                       2 33.33%     4 66.67%\n")
 
     config2 = default_config()
     config2['players']['t3'] = Player_config("test3")
