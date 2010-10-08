@@ -86,6 +86,23 @@ def test_global_handicap_validation(tc):
                    "default fixed handicap out of range for board size 12")
 
 
+def test_game_id_format(tc):
+    comp = playoffs.Playoff('testcomp')
+    config = {
+        'players' : {
+            't1' : Player_config("test1"),
+            },
+        'board_size' : 12,
+        'komi' : 3.5,
+        'matchups' : [
+            Matchup_config('t1', 't1', number_of_games=1000),
+            ],
+        }
+    comp.initialise_from_control_file(config)
+    comp.set_clean_status()
+    tc.assertEqual(comp.get_game().game_id, '0_000')
+
+
 def test_play(tc):
     comp = playoffs.Playoff('testcomp')
     config = {
@@ -145,18 +162,74 @@ def test_play(tc):
 
     tc.assertListEqual(comp.get_matchup_results('0'), [('0_0', result1)])
 
-def test_game_id_format(tc):
+def test_play_many(tc):
     comp = playoffs.Playoff('testcomp')
     config = {
         'players' : {
             't1' : Player_config("test1"),
+            't2' : Player_config("test2"),
             },
         'board_size' : 12,
         'komi' : 3.5,
         'matchups' : [
-            Matchup_config('t1', 't1', number_of_games=1000),
+            Matchup_config('t1', 't2', alternating=True),
             ],
         }
     comp.initialise_from_control_file(config)
     comp.set_clean_status()
-    tc.assertEqual(comp.get_game().game_id, '0_000')
+
+    jobs = [comp.get_game() for _ in range(8)]
+    def fake_response(job, winner):
+        result = Game_result({'b' : 't1', 'w' : 't2'}, winner)
+        response = Game_job_result()
+        response.game_id = job.game_id
+        response.game_result = result
+        response.engine_names = {}
+        response.engine_descriptions = {}
+        response.game_data = job.game_data
+        return response
+    for i in [0, 3]:
+        response = fake_response(jobs[i], 'b')
+        comp.process_game_result(response)
+    jobs += [comp.get_game() for _ in range(3)]
+    for i in [4, 2, 6, 7]:
+        response = fake_response(jobs[i], 'w')
+        comp.process_game_result(response)
+
+    out = StringIO()
+    comp.write_screen_report(out)
+    tc.assertMultiLineEqual(
+        out.getvalue(),
+        "t1 v t2 (6 games)\n"
+        "board size: 12   komi: 3.5\n"
+        "     wins\n"
+        "t1      2 33.33%   (black)\n"
+        "t2      4 66.67%   (white)\n")
+
+    tc.assertEqual(len(comp.get_matchup_results('0')), 6)
+
+    #tc.assertEqual(comp.scheduler.allocators['0'].issued, 11)
+    #tc.assertEqual(comp.scheduler.allocators['0'].fixed, 6)
+
+    status = comp.get_status()
+    config2 = {
+        'players' : {
+            't1' : Player_config("test1"),
+            't2' : Player_config("test2"),
+            },
+        'board_size' : 12,
+        'komi' : 3.5,
+        'matchups' : [
+            Matchup_config('t1', 't2', alternating=True),
+            ],
+        }
+    comp2 = playoffs.Playoff('testcomp')
+    comp2.initialise_from_control_file(config2)
+    comp2.set_status(status)
+
+    #tc.assertEqual(comp2.scheduler.allocators['0'].issued, 6)
+    #tc.assertEqual(comp2.scheduler.allocators['0'].fixed, 6)
+
+    jobs2 = [comp.get_game() for _ in range(4)]
+    tc.assertListEqual([job.game_id for job in jobs2],
+                       ['0_1', '0_5', '0_8', '0_9'])
