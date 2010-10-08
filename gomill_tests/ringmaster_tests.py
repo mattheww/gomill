@@ -29,6 +29,15 @@ class Ringmaster_fixture(test_framework.Fixture):
         """Return messages sent to the specified channel."""
         return self.ringmaster.presenter.recent_messages(channel)
 
+    def get_job(self):
+        """Initialise the ringmaster, and call get_job() once."""
+        self.ringmaster.set_clean_status()
+        self.ringmaster._open_files()
+        self.ringmaster._initialise_presenter()
+        self.ringmaster._initialise_terminal_reader()
+        return self.ringmaster.get_job()
+
+
 simple_ctl = string.Template("""
 
 competition_type = 'playoff'
@@ -60,11 +69,7 @@ def test_get_job(tc):
         'cmdline2' : "sing song",
         }
     fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals))
-    fx.ringmaster.set_clean_status()
-    fx.ringmaster._open_files()
-    fx.ringmaster._initialise_presenter()
-    fx.ringmaster._initialise_terminal_reader()
-    job = fx.ringmaster.get_job()
+    job = fx.get_job()
     tc.assertEqual(job.game_id, "0_000")
     tc.assertEqual(job.game_data, ("0", 0))
     tc.assertEqual(job.board_size, 9)
@@ -101,11 +106,7 @@ def test_settings(tc):
         ])
     fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals) + extra)
     fx.ringmaster.enable_gtp_logging()
-    fx.ringmaster.set_clean_status()
-    fx.ringmaster._open_files()
-    fx.ringmaster._initialise_presenter()
-    fx.ringmaster._initialise_terminal_reader()
-    job = fx.ringmaster.get_job()
+    job = fx.get_job()
     tc.assertEqual(job.game_id, "0_000")
     tc.assertEqual(job.handicap, 9)
     tc.assertIs(job.handicap_is_free, True)
@@ -129,11 +130,7 @@ def test_stderr_settings(tc):
         "players['p1'] = Player('test')\n"
         ])
     fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals) + extra)
-    fx.ringmaster.set_clean_status()
-    fx.ringmaster._open_files()
-    fx.ringmaster._initialise_presenter()
-    fx.ringmaster._initialise_terminal_reader()
-    job = fx.ringmaster.get_job()
+    job = fx.get_job()
     tc.assertEqual(job.player_b.stderr_pathname, "/nonexistent/ctl/test.log")
     tc.assertEqual(job.player_w.stderr_pathname, os.devnull)
 
@@ -147,11 +144,7 @@ def test_stderr_settings_nolog(tc):
         "stderr_to_log = False\n"
         ])
     fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals) + extra)
-    fx.ringmaster.set_clean_status()
-    fx.ringmaster._open_files()
-    fx.ringmaster._initialise_presenter()
-    fx.ringmaster._initialise_terminal_reader()
-    job = fx.ringmaster.get_job()
+    job = fx.get_job()
     tc.assertIsNone(job.player_b.stderr_pathname, None)
     tc.assertEqual(job.player_w.stderr_pathname, os.devnull)
 
