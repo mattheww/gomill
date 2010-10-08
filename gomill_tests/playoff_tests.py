@@ -8,8 +8,8 @@ from gomill import competitions
 from gomill import playoffs
 from gomill.gtp_games import Game_result
 from gomill.game_jobs import Game_job, Game_job_result
-from gomill.competitions import (Player_config, ControlFileError,
-                                 NoGameAvailable)
+from gomill.competitions import (
+    Player_config, NoGameAvailable, CompetitionError, ControlFileError)
 from gomill.playoffs import Matchup_config
 
 from gomill_tests import gomill_test_support
@@ -211,7 +211,6 @@ def test_play_many(tc):
     #tc.assertEqual(comp.scheduler.allocators['0'].issued, 11)
     #tc.assertEqual(comp.scheduler.allocators['0'].fixed, 6)
 
-    status = comp.get_status()
     config2 = {
         'players' : {
             't1' : Player_config("test1"),
@@ -225,7 +224,7 @@ def test_play_many(tc):
         }
     comp2 = playoffs.Playoff('testcomp')
     comp2.initialise_from_control_file(config2)
-    comp2.set_status(status)
+    comp2.set_status(comp.get_status())
 
     #tc.assertEqual(comp2.scheduler.allocators['0'].issued, 6)
     #tc.assertEqual(comp2.scheduler.allocators['0'].fixed, 6)
@@ -233,3 +232,68 @@ def test_play_many(tc):
     jobs2 = [comp.get_game() for _ in range(4)]
     tc.assertListEqual([job.game_id for job in jobs2],
                        ['0_1', '0_5', '0_8', '0_9'])
+
+def test_matchup_change(tc):
+    comp = playoffs.Playoff('testcomp')
+    config = {
+        'players' : {
+            't1' : Player_config("test1"),
+            't2' : Player_config("test2"),
+            },
+        'board_size' : 12,
+        'komi' : 3.5,
+        'matchups' : [
+            Matchup_config('t1', 't2', alternating=True),
+            ],
+        }
+    comp.initialise_from_control_file(config)
+    comp.set_clean_status()
+
+    jobs = [comp.get_game() for _ in range(8)]
+    def fake_response(job, winner):
+        result = Game_result({'b' : 't1', 'w' : 't2'}, winner)
+        response = Game_job_result()
+        response.game_id = job.game_id
+        response.game_result = result
+        response.engine_names = {}
+        response.engine_descriptions = {}
+        response.game_data = job.game_data
+        return response
+    for i in [0, 2, 3, 4, 5, 7]:
+        response = fake_response(jobs[i], ('b' if i <= 2 else 'w'))
+        comp.process_game_result(response)
+
+    out = StringIO()
+    comp.write_screen_report(out)
+    tc.assertMultiLineEqual(
+        out.getvalue(),
+        "t1 v t2 (6 games)\n"
+        "board size: 12   komi: 3.5\n"
+        "     wins\n"
+        "t1      2 33.33%   (black)\n"
+        "t2      4 66.67%   (white)\n")
+
+    # Players in the matchup change
+    config2 = {
+        'players' : {
+            't1' : Player_config("test1"),
+            't2' : Player_config("test2"),
+            't3' : Player_config("test3"),
+            },
+        'board_size' : 12,
+        'komi' : 3.5,
+        'matchups' : [
+            Matchup_config('t1', 't3', alternating=True),
+            ],
+        }
+    comp2 = playoffs.Playoff('testcomp')
+    comp2.initialise_from_control_file(config2)
+
+    with tc.assertRaises(CompetitionError) as ar:
+        comp2.set_status(comp.get_status())
+    tc.assertEqual(
+        str(ar.exception),
+        "existing results for matchup 0 are inconsistent with control file:\n"
+        "result players are t1,t2;\n"
+        "control file players are t1,t3")
+

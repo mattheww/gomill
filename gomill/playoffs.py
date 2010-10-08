@@ -8,7 +8,8 @@ from gomill import ascii_tables
 from gomill import game_jobs
 from gomill import competitions
 from gomill import competition_schedulers
-from gomill.competitions import (Competition, NoGameAvailable, ControlFileError)
+from gomill.competitions import (
+    Competition, NoGameAvailable, CompetitionError, ControlFileError)
 from gomill.settings import *
 
 
@@ -253,6 +254,7 @@ class Playoff(Competition):
 
     def set_status(self, status):
         self.results = status['results']
+        self._check_results()
         self.scheduler = status['scheduler']
         self._set_scheduler_groups()
         self.scheduler.rollback()
@@ -324,6 +326,37 @@ class Playoff(Competition):
             self.probationary_matchups.add(matchup_id)
             retry_game = True
         return stop_competition, retry_game
+
+    def _check_results(self):
+        """Check that the current results are consistent with the control file.
+
+        This is run when reloading state.
+
+        Raises CompetitionError if they're not.
+
+        (In general, control file changes are permitted. The only thing we
+        reject is results for a currently-live matchup whose players aren't
+        correct.)
+
+        """
+        # We guarantee that results for a given matchup always have consistent
+        # players, so we need only check the first result.
+        for matchup in self.matchup_list:
+            results = self.results[matchup.id]
+            if not results:
+                continue
+            game_id, result = results[0]
+            seen_players = sorted(result.players.itervalues())
+            expected_players = sorted((matchup.p1, matchup.p2))
+            if seen_players != expected_players:
+                raise CompetitionError(
+                    "existing results for matchup %s "
+                    "are inconsistent with control file:\n"
+                    "result players are %s;\n"
+                    "control file players are %s" %
+                    (matchup.id,
+                     ",".join(seen_players), ",".join(expected_players)))
+
 
     def write_matchup_report(self, out, matchup, results):
         """Write the status table of the specified matchup to 'out'
