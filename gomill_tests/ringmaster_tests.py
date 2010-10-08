@@ -36,8 +36,8 @@ competition_type = 'playoff'
 description = 'gomill_tests playoff.'
 
 players = {
-    'p1'  : Player("test ${cmdline1}", stderr=DISCARD),
-    'p2'  : Player("test ${cmdline2}", stderr=DISCARD),
+    'p1'  : Player("test ${cmdline1}", discard_stderr=True),
+    'p2'  : Player("test ${cmdline2}", discard_stderr=True),
     }
 
 move_limit = 400
@@ -110,7 +110,7 @@ def test_settings(tc):
     tc.assertEqual(job.handicap, 9)
     tc.assertIs(job.handicap_is_free, True)
     tc.assertIs(job.use_internal_scorer, False)
-    tc.assertEqual(job.player_b.stderr_pathname, "/dev/null")
+    tc.assertEqual(job.player_b.stderr_pathname, os.devnull)
     tc.assertEqual(job.gtp_log_pathname,
                    '/nonexistent/ctl/test.gtplogs/0_000.log')
     tc.assertEqual(job.sgf_filename, '0_000.sgf')
@@ -127,7 +127,6 @@ def test_stderr_settings(tc):
         }
     extra = "\n".join([
         "players['p1'] = Player('test')\n"
-        "players['p2'] = Player('test', stderr=STDERR)\n"
         ])
     fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals) + extra)
     fx.ringmaster.set_clean_status()
@@ -136,7 +135,25 @@ def test_stderr_settings(tc):
     fx.ringmaster._initialise_terminal_reader()
     job = fx.ringmaster.get_job()
     tc.assertEqual(job.player_b.stderr_pathname, "/nonexistent/ctl/test.log")
-    tc.assertIsNone(job.player_w.stderr_pathname)
+    tc.assertEqual(job.player_w.stderr_pathname, os.devnull)
+
+def test_stderr_settings_nolog(tc):
+    vals = {
+        'cmdline1' : "",
+        'cmdline2' : "",
+        }
+    extra = "\n".join([
+        "players['p1'] = Player('test')\n"
+        "stderr_to_log = False\n"
+        ])
+    fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals) + extra)
+    fx.ringmaster.set_clean_status()
+    fx.ringmaster._open_files()
+    fx.ringmaster._initialise_presenter()
+    fx.ringmaster._initialise_terminal_reader()
+    job = fx.ringmaster.get_job()
+    tc.assertIsNone(job.player_b.stderr_pathname, None)
+    tc.assertEqual(job.player_w.stderr_pathname, os.devnull)
 
 
 def test_check_players(tc):

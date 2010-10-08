@@ -16,7 +16,7 @@ from gomill import ringmaster_presenters
 from gomill import terminal_input
 from gomill.settings import *
 from gomill.competitions import (
-    NoGameAvailable, CompetitionError, ControlFileError, LOG, DISCARD)
+    NoGameAvailable, CompetitionError, ControlFileError)
 
 def interpret_python(source, provided_globals, display_filename):
     """Interpret Python code from a unicode string.
@@ -266,6 +266,7 @@ class Ringmaster(object):
 
     ringmaster_settings = [
         Setting('record_games', interpret_bool, False),
+        Setting('stderr_to_log', interpret_bool, True),
         ]
 
     def _initialise_from_control_file(self, config):
@@ -491,9 +492,9 @@ class Ringmaster(object):
             job.gtp_log_pathname = os.path.join(
                     self.gtplog_dir_pathname, "%s.log" % job.game_id)
         for player in (job.player_b, job.player_w):
-            if player._stderr is DISCARD:
+            if player.discard_stderr:
                 player.stderr_pathname = os.devnull
-            elif player._stderr is LOG:
+            elif self.stderr_to_log:
                 player.stderr_pathname = self.log_pathname
 
     def get_job(self):

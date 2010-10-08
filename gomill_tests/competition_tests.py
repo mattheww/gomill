@@ -51,14 +51,12 @@ def test_player_stderr(tc):
     config = {
         'players' : {
             't1' : Player_config("test"),
-            't2' : Player_config("test", stderr=competitions.STDERR),
-            't3' : Player_config("test", stderr=competitions.LOG),
-            't4' : Player_config("test", stderr=competitions.DISCARD),
+            't2' : Player_config("test", discard_stderr=True),
+            't3' : Player_config("test", discard_stderr=False),
             }
         }
     comp.initialise_from_control_file(config)
-    tc.assertIs(comp.players['t1']._stderr, competitions.LOG)
-    tc.assertIs(comp.players['t2']._stderr, competitions.STDERR)
-    tc.assertIs(comp.players['t3']._stderr, competitions.LOG)
-    tc.assertIs(comp.players['t4']._stderr, competitions.DISCARD)
+    tc.assertIs(comp.players['t1'].discard_stderr, False)
+    tc.assertIs(comp.players['t2'].discard_stderr, True)
+    tc.assertIs(comp.players['t3'].discard_stderr, False)
 

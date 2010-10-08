@@ -41,10 +41,6 @@ class Control_file_token(object):
     def __repr__(self):
         return "<%s>" % self.name
 
-STDERR = Control_file_token('STDERR')
-LOG = Control_file_token('LOG')
-DISCARD = Control_file_token('DISCARD')
-
 
 _player_settings = [
     Setting('command_string', interpret_8bit_string),
@@ -58,7 +54,7 @@ _player_settings = [
             interpret_map_of(interpret_8bit_string, interpret_8bit_string),
             default=dict),
     Setting('startup_gtp_commands', interpret_sequence, default=list),
-    Setting('stderr', interpret_enum(STDERR, LOG, DISCARD), default=LOG),
+    Setting('discard_stderr', interpret_bool, default=False),
     ]
 
 class Competition(object):
@@ -82,9 +78,6 @@ class Competition(object):
         """
         return {
             'Player' : Player_config,
-            'STDERR' : STDERR,
-            'LOG' : LOG,
-            'DISCARD' : DISCARD,
             }
 
     def set_base_directory(self, pathname):
@@ -286,7 +279,7 @@ class Competition(object):
         except ValueError, e:
             raise ControlFileError("'gtp_translations': %s" % e)
 
-        player._stderr = config['stderr']
+        player.discard_stderr = config['discard_stderr']
 
         return player
 
@@ -333,8 +326,8 @@ class Competition(object):
         ringmaster to finish off):
          - sgf_filename, sgf_dirname and void_sgf_dirname aren't set
          - gtp_log_pathname isn't set
-         - the Players' stderr_pathname isn't set; instead they have a _stderr
-           attribute with value STDERR, LOG, or DISCARD.
+         - the Players' stderr_pathname isn't set; instead they have a
+           discard_stderr boolean attribute
 
         """
         raise NotImplementedError
