@@ -110,6 +110,7 @@ def test_settings(tc):
     tc.assertEqual(job.handicap, 9)
     tc.assertIs(job.handicap_is_free, True)
     tc.assertIs(job.use_internal_scorer, False)
+    tc.assertEqual(job.player_b.stderr_pathname, "/dev/null")
     tc.assertEqual(job.gtp_log_pathname,
                    '/nonexistent/ctl/test.gtplogs/0_000.log')
     tc.assertEqual(job.sgf_filename, '0_000.sgf')
@@ -118,6 +119,24 @@ def test_settings(tc):
     tc.assertEqual(fx.ringmaster.get_sgf_filename("0_000"), "0_000.sgf")
     tc.assertEqual(fx.ringmaster.get_sgf_pathname("0_000"),
                    "/nonexistent/ctl/test.games/0_000.sgf")
+
+def test_stderr_settings(tc):
+    vals = {
+        'cmdline1' : "",
+        'cmdline2' : "",
+        }
+    extra = "\n".join([
+        "players['p1'] = Player('test')\n"
+        "players['p2'] = Player('test', stderr=STDERR)\n"
+        ])
+    fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals) + extra)
+    fx.ringmaster.set_clean_status()
+    fx.ringmaster._open_files()
+    fx.ringmaster._initialise_presenter()
+    fx.ringmaster._initialise_terminal_reader()
+    job = fx.ringmaster.get_job()
+    tc.assertEqual(job.player_b.stderr_pathname, "/nonexistent/ctl/test.log")
+    tc.assertIsNone(job.player_w.stderr_pathname)
 
 
 def test_check_players(tc):

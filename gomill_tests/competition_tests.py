@@ -45,3 +45,20 @@ def test_player_cwd(tc):
     tc.assertEqual(comp.players['t4'].cwd, "/base/.")
     tc.assertEqual(comp.players['t5'].cwd, os.path.expanduser("~") + "/tmp/sub")
 
+def test_player_stderr(tc):
+    Player_config = competitions.Player_config
+    comp = competitions.Competition('test')
+    config = {
+        'players' : {
+            't1' : Player_config("test"),
+            't2' : Player_config("test", stderr=competitions.STDERR),
+            't3' : Player_config("test", stderr=competitions.LOG),
+            't4' : Player_config("test", stderr=competitions.DISCARD),
+            }
+        }
+    comp.initialise_from_control_file(config)
+    tc.assertIs(comp.players['t1']._stderr, competitions.LOG)
+    tc.assertIs(comp.players['t2']._stderr, competitions.STDERR)
+    tc.assertIs(comp.players['t3']._stderr, competitions.LOG)
+    tc.assertIs(comp.players['t4']._stderr, competitions.DISCARD)
+
