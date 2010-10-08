@@ -57,7 +57,8 @@ class Game_result(object):
 
     def __getstate__(self):
         return (
-            self.players,
+            self.player_b,
+            self.player_w,
             self.winning_colour,
             self.sgf_result,
             self.detail,
@@ -66,17 +67,16 @@ class Game_result(object):
             )
 
     def __setstate__(self, state):
-        (self.players,
+        (self.player_b,
+         self.player_w,
          self.winning_colour,
          self.sgf_result,
          self.detail,
          self.is_forfeit,
          self.cpu_times,
          ) = state
-        players = self.players
-        self.player_b = players['b']
-        self.player_w = players['w']
-        self.winning_player = players.get(self.winning_colour)
+        self.players = {'b' : self.player_b, 'w' : self.player_w}
+        self.winning_player = self.players.get(self.winning_colour)
 
     @property
     def losing_colour(self):
