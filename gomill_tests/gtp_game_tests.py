@@ -123,6 +123,29 @@ def test_game(tc):
         ('b', 'pass'), ('w', 'pass'),
         ])
 
+def test_unscored_game(tc):
+    fx = Game_fixture(tc)
+    tc.assertDictEqual(fx.game.players, {'b' : 'one', 'w' : 'two'})
+    tc.assertIs(fx.game.get_controller('b'), fx.controller_b)
+    tc.assertIs(fx.game.get_controller('w'), fx.controller_w)
+    fx.game.allow_scorer('b') # it can't score
+    fx.game.ready()
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertIsNone(fx.game.describe_late_errors())
+    tc.assertDictEqual(fx.game.result.players, {'b' : 'one', 'w' : 'two'})
+    tc.assertIsNone(fx.game.result.winning_colour)
+    tc.assertIsNone(fx.game.result.losing_colour)
+    tc.assertIsNone(fx.game.result.winning_player)
+    tc.assertIsNone(fx.game.result.losing_player)
+    tc.assertEqual(fx.game.result.sgf_result, "?")
+    tc.assertFalse(fx.game.result.is_forfeit)
+    tc.assertEqual(fx.game.result.detail, "no score reported")
+    tc.assertEqual(fx.game.result.describe(),
+                   "one vs two ? (no score reported)")
+    result2 = pickle.loads(pickle.dumps(fx.game.result))
+    tc.assertEqual(result2.describe(), "one vs two ? (no score reported)")
+
 def test_claim(tc):
     def handle_genmove_ex_b(args):
         tc.assertIn('claim', args)
