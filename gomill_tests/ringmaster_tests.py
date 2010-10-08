@@ -21,6 +21,9 @@ class Ringmaster_fixture(test_framework.Fixture):
       ringmaster -- Testing_ringmaster
       msf        -- Mock_subprocess_fixture
 
+    See Mock_subprocess_gtp_channel for an explanation of how player command
+    lines are interpreted.
+
     """
     def __init__(self, tc, control_file_contents, extra_lines=[]):
         self.ringmaster = ringmaster_test_support.Testing_ringmaster(
