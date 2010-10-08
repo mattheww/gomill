@@ -36,8 +36,12 @@ class Testing_ringmaster(ringmasters.Ringmaster):
     """Variant of ringmaster suitable for use in tests.
 
     This doesn't read from or write to the filesystem.
-    FIXME: Doc restrictions on control file contents to make this true
-    (stderr, sgf-writing).
+
+    (If you're testing run(), make sure record_games is False, and
+    discard_stderr is True for each player.)
+
+    (Currently, write_status is made to do nothing, so it's not usefully
+    testable.)
 
     Instantiate with the control file contents as an 8-bit string.
 
@@ -67,6 +71,5 @@ class Testing_ringmaster(ringmasters.Ringmaster):
         return self._control_file_contents
 
     def write_status(self):
-        """FIXME: nobbled for now."""
         pass
 

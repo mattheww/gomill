@@ -1,7 +1,6 @@
 """Tests for ringmaster.py."""
 
 import os
-import string
 
 from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
@@ -13,6 +12,9 @@ def make_tests(suite):
 
 class Ringmaster_fixture(test_framework.Fixture):
     """Fixture setting up a Ringmaster with mock suprocesses.
+
+    Instantiate with testcase and the text to be used as the contents of the
+    control file.
 
     attributes:
       ringmaster -- Testing_ringmaster
@@ -38,15 +40,15 @@ class Ringmaster_fixture(test_framework.Fixture):
         return self.ringmaster.get_job()
 
 
-simple_ctl = string.Template("""
+simple_ctl = """
 
 competition_type = 'playoff'
 
 description = 'gomill_tests playoff.'
 
 players = {
-    'p1'  : Player("test ${cmdline1}", discard_stderr=True),
-    'p2'  : Player("test ${cmdline2}", discard_stderr=True),
+    'p1'  : Player('test'),
+    'p2'  : Player('test'),
     }
 
 move_limit = 400
@@ -61,14 +63,13 @@ matchups = [
     Matchup('p1', 'p2'),
     ]
 
-""")
+"""
 
 def test_get_job(tc):
-    vals = {
-        'cmdline1' : "",
-        'cmdline2' : "sing song",
-        }
-    fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals))
+    extra = "\n".join([
+        "players['p2'] = Player('test sing song')\n"
+        ])
+    fx = Ringmaster_fixture(tc, simple_ctl + extra)
     job = fx.get_job()
     tc.assertEqual(job.game_id, "0_000")
     tc.assertEqual(job.game_data, ("0", 0))
@@ -89,29 +90,25 @@ def test_get_job(tc):
     tc.assertEqual(job.player_w.cmd_args, ['test', 'sing', 'song'])
     tc.assertDictEqual(job.player_b.gtp_translations, {})
     tc.assertListEqual(job.player_b.startup_gtp_commands, [])
-    tc.assertEqual(job.player_b.stderr_pathname, os.devnull)
+    tc.assertEqual(job.player_b.stderr_pathname, "/nonexistent/ctl/test.log")
     tc.assertIsNone(job.player_b.cwd)
     tc.assertIsNone(job.player_b.environ)
 
 def test_settings(tc):
-    vals = {
-        'cmdline1' : "",
-        'cmdline2' : "",
-        }
     extra = "\n".join([
         "handicap = 9",
         "handicap_style = 'free'",
         "record_games = True",
         "scorer = 'players'"
         ])
-    fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals) + extra)
+    fx = Ringmaster_fixture(tc, simple_ctl + extra)
     fx.ringmaster.enable_gtp_logging()
     job = fx.get_job()
     tc.assertEqual(job.game_id, "0_000")
     tc.assertEqual(job.handicap, 9)
     tc.assertIs(job.handicap_is_free, True)
     tc.assertIs(job.use_internal_scorer, False)
-    tc.assertEqual(job.player_b.stderr_pathname, os.devnull)
+    tc.assertEqual(job.player_b.stderr_pathname, "/nonexistent/ctl/test.log")
     tc.assertEqual(job.gtp_log_pathname,
                    '/nonexistent/ctl/test.gtplogs/0_000.log')
     tc.assertEqual(job.sgf_filename, '0_000.sgf')
@@ -122,47 +119,35 @@ def test_settings(tc):
                    "/nonexistent/ctl/test.games/0_000.sgf")
 
 def test_stderr_settings(tc):
-    vals = {
-        'cmdline1' : "",
-        'cmdline2' : "",
-        }
     extra = "\n".join([
-        "players['p1'] = Player('test')\n"
+        "players['p2'] = Player('test', discard_stderr=True)\n"
         ])
-    fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals) + extra)
+    fx = Ringmaster_fixture(tc, simple_ctl + extra)
     job = fx.get_job()
     tc.assertEqual(job.player_b.stderr_pathname, "/nonexistent/ctl/test.log")
     tc.assertEqual(job.player_w.stderr_pathname, os.devnull)
 
 def test_stderr_settings_nolog(tc):
-    vals = {
-        'cmdline1' : "",
-        'cmdline2' : "",
-        }
     extra = "\n".join([
-        "players['p1'] = Player('test')\n"
+        "players['p2'] = Player('test', discard_stderr=True)\n"
         "stderr_to_log = False\n"
         ])
-    fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals) + extra)
+    fx = Ringmaster_fixture(tc, simple_ctl + extra)
     job = fx.get_job()
     tc.assertIsNone(job.player_b.stderr_pathname, None)
     tc.assertEqual(job.player_w.stderr_pathname, os.devnull)
 
 
 def test_check_players(tc):
-    vals = {
-        'cmdline1' : "",
-        'cmdline2' : "",
-        }
-    fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals))
+    fx = Ringmaster_fixture(tc, simple_ctl)
     tc.assertTrue(fx.ringmaster.check_players(discard_stderr=True))
 
 def test_run(tc):
-    vals = {
-        'cmdline1' : "",
-        'cmdline2' : "",
-        }
-    fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals))
+    extra = "\n".join([
+        "players['p1'] = Player('test', discard_stderr=True)\n"
+        "players['p2'] = Player('test', discard_stderr=True)\n"
+        ])
+    fx = Ringmaster_fixture(tc, simple_ctl + extra)
     fx.ringmaster.set_clean_status()
     fx.ringmaster.run(max_games=3)
     tc.assertListEqual(
@@ -177,19 +162,18 @@ def test_run(tc):
          "p2      0   0.00%   (white)"])
 
 def test_check_players_fail(tc):
-    vals = {
-        'cmdline1' : "",
-        'cmdline2' : "fail=startup",
-        }
-    fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals))
+    extra = "\n".join([
+        "players['p2'] = Player('test fail=startup')\n"
+        ])
+    fx = Ringmaster_fixture(tc, simple_ctl + extra)
     tc.assertFalse(fx.ringmaster.check_players(discard_stderr=True))
 
 def test_run_fail(tc):
-    vals = {
-        'cmdline1' : "",
-        'cmdline2' : "fail=startup",
-        }
-    fx = Ringmaster_fixture(tc, simple_ctl.substitute(vals))
+    extra = "\n".join([
+        "players['p1'] = Player('test', discard_stderr=True)\n"
+        "players['p2'] = Player('test fail=startup', discard_stderr=True)\n"
+        ])
+    fx = Ringmaster_fixture(tc, simple_ctl + extra)
     fx.ringmaster.set_clean_status()
     fx.ringmaster.run()
     tc.assertListEqual(
