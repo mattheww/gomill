@@ -232,16 +232,20 @@ class Playoff(Competition):
     #       (matchups which have successfully completed a game in this run)
     #   probationary_matchups -- set of matchup ids
     #       (matchups which failed to complete their last game)
+    #   ghost_matchup_ids     -- list of matchup ids
+    #       (matchups which have been removed from the control file)
 
     def _set_scheduler_groups(self):
         self.scheduler.set_groups(
-            (m.id, m.number_of_games) for m in self.matchup_list)
+            [(m.id, m.number_of_games) for m in self.matchup_list] +
+            [(id, 0) for id in self.ghost_matchup_ids])
 
     def set_clean_status(self):
         self.results = defaultdict(list)
         self.engine_names = {}
         self.engine_descriptions = {}
         self.scheduler = competition_schedulers.Group_scheduler()
+        self.ghost_matchup_ids = []
         self._set_scheduler_groups()
 
     def get_status(self):
@@ -255,6 +259,8 @@ class Playoff(Competition):
     def set_status(self, status):
         self.results = status['results']
         self._check_results()
+        self.ghost_matchup_ids = list(
+           set(self.results) - set(self.matchups))
         self.scheduler = status['scheduler']
         self._set_scheduler_groups()
         self.scheduler.rollback()

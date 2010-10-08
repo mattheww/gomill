@@ -249,3 +249,39 @@ def test_matchup_change(tc):
         "result players are t1,t2;\n"
         "control file players are t1,t3")
 
+def test_matchup_reappearance(tc):
+    # Test that if a matchup is removed and added again, we remember the game
+    # number.
+    config1 = default_config()
+    config1['matchups'].append(Matchup_config('t2', 't1'))
+    config2 = default_config()
+    config3 = default_config()
+    config3['matchups'].append(Matchup_config('t2', 't1'))
+
+    comp1 = playoffs.Playoff('testcomp')
+    comp1.initialise_from_control_file(config1)
+    comp1.set_clean_status()
+    jobs1 = [comp1.get_game() for _ in range(8)]
+    for job in jobs1:
+        comp1.process_game_result(fake_response(job, 'b'))
+    tc.assertListEqual(
+        [job.game_id for job in jobs1],
+        ['0_0', '1_0', '0_1', '1_1', '0_2', '1_2', '0_3', '1_3'])
+
+    comp2 = playoffs.Playoff('testcomp')
+    comp2.initialise_from_control_file(config2)
+    comp2.set_status(pickle.loads(pickle.dumps(comp1.get_status())))
+    jobs2 = [comp2.get_game() for _ in range(4)]
+    tc.assertListEqual(
+        [job.game_id for job in jobs2],
+        ['0_4', '0_5', '0_6', '0_7'])
+    for job in jobs2:
+        comp2.process_game_result(fake_response(job, 'b'))
+
+    comp3 = playoffs.Playoff('testcomp')
+    comp3.initialise_from_control_file(config3)
+    comp3.set_status(pickle.loads(pickle.dumps(comp2.get_status())))
+    jobs3 = [comp3.get_game() for _ in range(8)]
+    tc.assertListEqual(
+        [job.game_id for job in jobs3],
+        ['1_4', '1_5', '1_6', '1_7', '0_8', '1_8', '0_9', '1_9'])
