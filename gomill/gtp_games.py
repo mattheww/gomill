@@ -140,8 +140,12 @@ class Game(object):
       players               -- map colour -> player code
       result                -- Game_result (None before the game is complete)
       moves                 -- list of tuples (colour, move, comment)
+      player_scores         -- map player code -> string or None
       engine_names          -- map player code -> string
       engine_descriptions   -- map player code -> string
+
+   player_scores values are the response to the final_score GTP command (if the
+   player was asked).
 
    Methods which communicate with engines may raise BadGtpResponse if the
    engine returns a failure response.
@@ -170,6 +174,7 @@ class Game(object):
         self.engine_names = {}
         self.engine_descriptions = {}
         self.moves = []
+        self.player_scores = {'b' : None, 'w' : None}
         self.additional_sgf_props = []
         self.late_errors = []
         self.sgf_setup_stones = None
@@ -502,6 +507,7 @@ class Game(object):
                 final_score = self.maybe_send_command(colour, "final_score")
                 if final_score is not None:
                     player_scores.append(final_score.upper())
+                    self.player_scores[colour] = final_score
             for final_score in player_scores:
                 if final_score == "0":
                     self.winner = None
@@ -656,6 +662,22 @@ class Game(object):
             return None
         return "\n".join(self.late_errors)
 
+    def describe_scoring(self):
+        """Return a multiline string describing the game's scoring."""
+        if self.result is None:
+            return ""
+        l = [self.result.describe()]
+        sgf_result = self.result.sgf_result
+        score_b = self.player_scores['b']
+        score_w = self.player_scores['w']
+        if ((score_b is not None and score_b.upper() != sgf_result) or
+            (score_w is not None and score_w.upper() != sgf_result)):
+            for colour, score in (('b', score_b), ('w', score_w)):
+                if score is not None:
+                    l.append("%s final_score: %s" %
+                             (self.players[colour], score))
+        return "\n".join(l)
+
     def make_sgf(self, game_end_message=None):
         """Return an SGF description of the game.
 
@@ -682,7 +704,7 @@ class Game(object):
             sgf_game.add_move(colour, move, comment)
         if self.result is not None:
             sgf_game.set('result', self.result.sgf_result)
-            sgf_game.add_final_comment(self.result.describe())
+            sgf_game.add_final_comment(self.describe_scoring())
         if game_end_message is not None:
             sgf_game.add_final_comment(game_end_message)
         late_error_messages = self.describe_late_errors()
