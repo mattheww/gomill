@@ -237,8 +237,7 @@ def test_players_score_7(tc):
     fx.game.allow_scorer('w')
     fx.game.ready()
     fx.game.run()
-    # FIXME: Should probably prefer "B+".
-    tc.assertEqual(fx.game.result.sgf_result, "W+4")
+    tc.assertEqual(fx.game.result.sgf_result, "B+")
 
 def test_players_score_8(tc):
     fx = Game_fixture(tc)

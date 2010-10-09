@@ -515,9 +515,9 @@ class Game(object):
                     continue
                 try:
                     self.margin = float(final_score[2:])
-                    break
                 except ValueError:
-                    continue
+                    pass
+                break
 
 
     def run(self):
