@@ -47,6 +47,22 @@ class Matchup(object):
     def make_game_id(self, game_number):
         return self._game_id_template % (self.id, game_number)
 
+class Ghost_matchup(object):
+    """Dummy Matchup object for matchups which have gone from the control file.
+
+    This is used if the matchup appears in results.
+
+    """
+    def __init__(self, matchup_id, p1, p2):
+        self.id = matchup_id
+        self.p1 = p1
+        self.p2 = p2
+        self.name = "%s v %s" % (p1, p2)
+        self.number_of_games = None
+
+    def describe_details(self):
+        return "?? (missing from control file)"
+
 
 class _Required_in_matchup(object):
     def __str__(self):
@@ -232,20 +248,61 @@ class Playoff(Competition):
     #       (matchups which have successfully completed a game in this run)
     #   probationary_matchups -- set of matchup ids
     #       (matchups which failed to complete their last game)
-    #   ghost_matchup_ids     -- list of matchup ids
+    #   ghost_matchups        -- map matchup id -> Ghost_matchup
     #       (matchups which have been removed from the control file)
+
+    def _check_results(self):
+        """Check that the current results are consistent with the control file.
+
+        This is run when reloading state.
+
+        Raises CompetitionError if they're not.
+
+        (In general, control file changes are permitted. The only thing we
+        reject is results for a currently-defined matchup whose players aren't
+        correct.)
+
+        """
+        # We guarantee that results for a given matchup always have consistent
+        # players, so we need only check the first result.
+        for matchup in self.matchup_list:
+            results = self.results[matchup.id]
+            if not results:
+                continue
+            game_id, result = results[0]
+            seen_players = sorted(result.players.itervalues())
+            expected_players = sorted((matchup.p1, matchup.p2))
+            if seen_players != expected_players:
+                raise CompetitionError(
+                    "existing results for matchup %s "
+                    "are inconsistent with control file:\n"
+                    "result players are %s;\n"
+                    "control file players are %s" %
+                    (matchup.id,
+                     ",".join(seen_players), ",".join(expected_players)))
+
+    def _set_ghost_matchups(self):
+        self.ghost_matchups = {}
+        live = set(self.matchups)
+        for matchup_id, results in self.results.iteritems():
+            if matchup_id in live:
+                continue
+            result = results[0][1]
+            # p1 and p2 might not be the right way round, but it doesn't matter.
+            self.ghost_matchups[matchup_id] = Ghost_matchup(
+                matchup_id, result.player_b, result.player_w)
 
     def _set_scheduler_groups(self):
         self.scheduler.set_groups(
             [(m.id, m.number_of_games) for m in self.matchup_list] +
-            [(id, 0) for id in self.ghost_matchup_ids])
+            [(id, 0) for id in self.ghost_matchups])
 
     def set_clean_status(self):
         self.results = defaultdict(list)
         self.engine_names = {}
         self.engine_descriptions = {}
         self.scheduler = competition_schedulers.Group_scheduler()
-        self.ghost_matchup_ids = []
+        self.ghost_matchups = {}
         self._set_scheduler_groups()
 
     def get_status(self):
@@ -259,8 +316,7 @@ class Playoff(Competition):
     def set_status(self, status):
         self.results = status['results']
         self._check_results()
-        self.ghost_matchup_ids = list(
-           set(self.results) - set(self.matchups))
+        self._set_ghost_matchups()
         self.scheduler = status['scheduler']
         self._set_scheduler_groups()
         self.scheduler.rollback()
@@ -332,36 +388,6 @@ class Playoff(Competition):
             self.probationary_matchups.add(matchup_id)
             retry_game = True
         return stop_competition, retry_game
-
-    def _check_results(self):
-        """Check that the current results are consistent with the control file.
-
-        This is run when reloading state.
-
-        Raises CompetitionError if they're not.
-
-        (In general, control file changes are permitted. The only thing we
-        reject is results for a currently-live matchup whose players aren't
-        correct.)
-
-        """
-        # We guarantee that results for a given matchup always have consistent
-        # players, so we need only check the first result.
-        for matchup in self.matchup_list:
-            results = self.results[matchup.id]
-            if not results:
-                continue
-            game_id, result = results[0]
-            seen_players = sorted(result.players.itervalues())
-            expected_players = sorted((matchup.p1, matchup.p2))
-            if seen_players != expected_players:
-                raise CompetitionError(
-                    "existing results for matchup %s "
-                    "are inconsistent with control file:\n"
-                    "result players are %s;\n"
-                    "control file players are %s" %
-                    (matchup.id,
-                     ",".join(seen_players), ",".join(expected_players)))
 
 
     def write_matchup_report(self, out, matchup, results):
@@ -515,6 +541,12 @@ class Playoff(Competition):
                 print >>out
             self.write_matchup_report(out, matchup, [t[1] for t in results])
 
+    def write_ghost_report(self, out):
+        for matchup_id, matchup in sorted(self.ghost_matchups.iteritems()):
+            print >>out
+            results = self.results[matchup_id]
+            self.write_matchup_report(out, matchup, [t[1] for t in results])
+
     def write_short_report(self, out):
         def p(s):
             print >>out, s
@@ -522,6 +554,7 @@ class Playoff(Competition):
         p(self.description)
         p('')
         self.write_screen_report(out)
+        self.write_ghost_report(out)
         p('')
         for code, description in sorted(self.engine_descriptions.items()):
             p("player %s: %s" % (code, description))

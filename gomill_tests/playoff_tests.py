@@ -2,6 +2,7 @@
 
 from __future__ import with_statement
 
+from textwrap import dedent
 import cPickle as pickle
 from cStringIO import StringIO
 
@@ -26,9 +27,19 @@ def get_screen_report(comp):
     comp.write_screen_report(out)
     return out.getvalue()
 
+def get_short_report(comp):
+    """Retrieve a competition's short report."""
+    out = StringIO()
+    comp.write_short_report(out)
+    return out.getvalue()
+
 def check_screen_report(tc, comp, expected):
     """Check that a competition's screen report is as expected."""
     tc.assertMultiLineEqual(get_screen_report(comp), expected)
+
+def check_short_report(tc, comp, expected):
+    """Check that a competition's short report is as expected."""
+    tc.assertMultiLineEqual(get_short_report(comp), expected)
 
 def fake_response(job, winner):
     """Produce a response for the specified job."""
@@ -60,6 +71,10 @@ class Playoff_fixture(test_framework.Fixture):
     def check_screen_report(self, expected):
         """Check that the screen report is as expected."""
         check_screen_report(self.tc, self.comp, expected)
+
+    def check_short_report(self, expected):
+        """Check that the short report is as expected."""
+        check_short_report(self.tc, self.comp, expected)
 
 
 def default_config():
@@ -251,7 +266,8 @@ def test_matchup_change(tc):
 
 def test_matchup_reappearance(tc):
     # Test that if a matchup is removed and added again, we remember the game
-    # number.
+    # number. Test that we report the 'ghost' matchup in the short report (but
+    # not the screen report).
     config1 = default_config()
     config1['matchups'].append(Matchup_config('t2', 't1'))
     config2 = default_config()
@@ -267,6 +283,23 @@ def test_matchup_reappearance(tc):
     tc.assertListEqual(
         [job.game_id for job in jobs1],
         ['0_0', '1_0', '0_1', '1_1', '0_2', '1_2', '0_3', '1_3'])
+    expected_report_1 = dedent("""\
+    t1 v t2 (4 games)
+    board size: 13   komi: 7.5
+         wins              black         white
+    t1      2 50.00%       2 100.00%     0 0.00%
+    t2      2 50.00%       2 100.00%     0 0.00%
+                           4 100.00%     0 0.00%
+
+    t2 v t1 (4 games)
+    board size: 13   komi: 7.5
+         wins
+    t2      4 100.00%   (black)
+    t1      0   0.00%   (white)
+    """)
+    check_screen_report(tc, comp1, expected_report_1)
+    check_short_report(tc, comp1,
+                       "playoff: testcomp\n\n\n%s\n\n" % expected_report_1)
 
     comp2 = playoffs.Playoff('testcomp')
     comp2.initialise_from_control_file(config2)
@@ -277,6 +310,25 @@ def test_matchup_reappearance(tc):
         ['0_4', '0_5', '0_6', '0_7'])
     for job in jobs2:
         comp2.process_game_result(fake_response(job, 'b'))
+    expected_report_2 = dedent("""\
+    t1 v t2 (8 games)
+    board size: 13   komi: 7.5
+         wins              black         white
+    t1      4 50.00%       4 100.00%     0 0.00%
+    t2      4 50.00%       4 100.00%     0 0.00%
+                           8 100.00%     0 0.00%
+    """)
+    check_screen_report(tc, comp2, expected_report_2)
+    expected_report_2b = dedent("""\
+    t2 v t1 (4 games)
+    ?? (missing from control file)
+         wins
+    t2      4 100.00%   (black)
+    t1      0   0.00%   (white)
+    """)
+    check_short_report(tc, comp2,
+                       "playoff: testcomp\n\n\n%s\n%s\n\n" %
+                       (expected_report_2, expected_report_2b))
 
     comp3 = playoffs.Playoff('testcomp')
     comp3.initialise_from_control_file(config3)
@@ -285,3 +337,21 @@ def test_matchup_reappearance(tc):
     tc.assertListEqual(
         [job.game_id for job in jobs3],
         ['1_4', '1_5', '1_6', '1_7', '0_8', '1_8', '0_9', '1_9'])
+    expected_report_3 = dedent("""\
+    t1 v t2 (8 games)
+    board size: 13   komi: 7.5
+         wins              black         white
+    t1      4 50.00%       4 100.00%     0 0.00%
+    t2      4 50.00%       4 100.00%     0 0.00%
+                           8 100.00%     0 0.00%
+
+    t2 v t1 (4 games)
+    board size: 13   komi: 7.5
+         wins
+    t2      4 100.00%   (black)
+    t1      0   0.00%   (white)
+    """)
+    check_screen_report(tc, comp3, expected_report_3)
+    check_short_report(tc, comp3,
+                       "playoff: testcomp\n\n\n%s\n\n" % expected_report_3)
+
