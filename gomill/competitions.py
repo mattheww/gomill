@@ -255,14 +255,17 @@ class Competition(object):
 
         player.startup_gtp_commands = []
         try:
-            for s in config['startup_gtp_commands']:
+            for v in config['startup_gtp_commands']:
                 try:
-                    words = s.split()
+                    if isinstance(v, basestring):
+                        words = interpret_8bit_string(v).split()
+                    else:
+                        words = list(v)
                     if not all(gtp_controller.is_well_formed_gtp_word(word)
                                for word in words):
                         raise StandardError
                 except Exception:
-                    raise ValueError("invalid command string %s" % s)
+                    raise ValueError("invalid command %s" % v)
                 player.startup_gtp_commands.append((words[0], words[1:]))
         except ValueError, e:
             raise ControlFileError("'startup_gtp_commands': %s" % e)

@@ -77,3 +77,31 @@ def test_player_stderr(tc):
     tc.assertIs(comp.players['t2'].discard_stderr, True)
     tc.assertIs(comp.players['t3'].discard_stderr, False)
 
+def test_player_startup_gtp_commands(tc):
+    Player_config = competitions.Player_config
+    comp = competitions.Competition('test')
+    config = {
+        'players' : {
+            't1' : Player_config(
+                "test", startup_gtp_commands=["foo"]),
+            't2' : Player_config(
+                "test", startup_gtp_commands=["foo bar baz"]),
+            't3' : Player_config(
+                "test", startup_gtp_commands=[["foo", "bar", "baz"]]),
+            't4' : Player_config(
+                "test", startup_gtp_commands=[
+                    "xyzzy test",
+                    ["foo", "bar", "baz"]]),
+            }
+        }
+    comp.initialise_from_control_file(config)
+    tc.assertListEqual(comp.players['t1'].startup_gtp_commands,
+                       [("foo", [])])
+    tc.assertListEqual(comp.players['t2'].startup_gtp_commands,
+                       [("foo", ["bar", "baz"])])
+    tc.assertListEqual(comp.players['t3'].startup_gtp_commands,
+                       [("foo", ["bar", "baz"])])
+    tc.assertListEqual(comp.players['t4'].startup_gtp_commands,
+                       [("xyzzy", ["test"]),
+                        ("foo", ["bar", "baz"])])
+
