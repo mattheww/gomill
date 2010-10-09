@@ -530,12 +530,12 @@ class Game(object):
 
         """
         self.winner = winner
-        self.seen_resignation = False
+        self.seen_resignation = True
         self.seen_claim = False
         self.forfeited = False
         self.hit_move_limit = False
-        self.margin = 2
         self.forfeit_reason = None
+        self.passed_out = False
         self.calculate_result()
 
     def _score_game(self):
