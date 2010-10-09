@@ -43,8 +43,10 @@ class Test_game_job(game_jobs.Game_job):
         self._mkdir_pathname = pathname
 
     def _get_sgf_written(self):
-        """Return the sgf contents with the date scrubbed out."""
-        return re.sub(r"(?m)(?<=^Date )(.*)$", "***", self._sgf_written)
+        """Return the sgf contents with the dates scrubbed out."""
+        s = re.sub(r"(?m)(?<=^Date ).*$", "***", self._sgf_written)
+        s = re.sub(r"(?<=DT\[)[-0-9]+(?=\])", "***", s)
+        return s
 
 class Game_job_fixture(test_framework.Fixture):
     """Fixture setting up a Game_job.
@@ -98,7 +100,7 @@ def test_game_job(tc):
     on two lines
     Black one one
     White two two]
-    CA[utf-8]DT[2010-10-09]EV[game_job_tests]FF[4]GM[1]KM[7.5]PB[one]PW[two]
+    CA[utf-8]DT[***]EV[game_job_tests]FF[4]GM[1]KM[7.5]PB[one]PW[two]
     RE[B+10.5]SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge]
     ;B[ed];W[gd];B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];W[tt]
     C[one beat two B+10.5])
