@@ -24,10 +24,11 @@ class Matchup(object):
     """Internal description of a matchup from the configuration file.
 
     Public attributes:
-      id             -- matchup id (string)
-      p1             -- player code
-      p2             -- player code
-      name           -- shortish string to show in reports
+      id                -- matchup id (string)
+      p1                -- player code
+      p2                -- player code
+      name              -- shortish string to show in reports
+      event_description -- string to show as sgf event
 
     All Playoff matchup_settings are also available as attributes.
 
@@ -181,12 +182,15 @@ class Playoff(Competition):
         name = kwargs.get('name')
         if name is None:
             name = "%s v %s" % (matchup.p1, matchup.p2)
+            event_description = self.competition_code
         else:
             try:
                 name = interpret_as_utf8(name)
             except ValueError, e:
                 raise ControlFileError("name: %s" % e)
+            event_description = "%s (%s)" % (self.competition_code, name)
         matchup.name = name
+        matchup.event_description = event_description
 
         if matchup.number_of_games is None:
             matchup._game_id_template = "%s_%d"
@@ -361,7 +365,7 @@ class Playoff(Competition):
         job.handicap = matchup.handicap
         job.handicap_is_free = (matchup.handicap_style == 'free')
         job.use_internal_scorer = (matchup.scorer == 'internal')
-        job.sgf_event = self.competition_code
+        job.sgf_event = matchup.event_description
         return job
 
     def process_game_result(self, response):
