@@ -71,6 +71,32 @@ class Game_fixture(test_framework.Fixture):
                       for (colour, coords, comment) in self.game.moves]
         self.tc.assertListEqual(game_moves, expected_moves)
 
+    def run_score_test(self, b_score, w_score, allowed_scorers="bw"):
+        """Run a game and let the players score it.
+
+        b_score, w_score -- string for final_score to return
+
+        If b_score or w_score is None, the player won't implement final_score.
+        If b_score or w_score is an exception, the final_score will fail
+
+        """
+        def handle_final_score_b(args):
+            if isinstance(b_score, Exception):
+                raise b_score
+            return b_score
+        def handle_final_score_w(args):
+            if isinstance(w_score, Exception):
+                raise w_score
+            return w_score
+        if b_score is not None:
+            self.engine_b.add_command('final_score', handle_final_score_b)
+        if w_score is not None:
+            self.engine_w.add_command('final_score', handle_final_score_w)
+        for colour in allowed_scorers:
+            self.game.allow_scorer(colour)
+        self.game.ready()
+        self.game.run()
+
 
 def test_game(tc):
     fx = Game_fixture(tc)
@@ -149,80 +175,35 @@ def test_unscored_game(tc):
 
 def test_players_score_agree(tc):
     fx = Game_fixture(tc)
-    def handle_final_score_b(args):
-        return "b+3"
-    def handle_final_score_w(args):
-        return "B+3"
-    fx.engine_b.add_command('final_score', handle_final_score_b)
-    fx.engine_w.add_command('final_score', handle_final_score_w)
-    fx.game.allow_scorer('b')
-    fx.game.allow_scorer('w')
-    fx.game.ready()
-    fx.game.run()
+    fx.run_score_test("b+3", "B+3")
     tc.assertEqual(fx.game.result.sgf_result, "B+3")
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.winning_colour, 'b')
 
 def test_players_score_agree_draw(tc):
     fx = Game_fixture(tc)
-    def handle_final_score_b(args):
-        return "0"
-    def handle_final_score_w(args):
-        return "0"
-    fx.engine_b.add_command('final_score', handle_final_score_b)
-    fx.engine_w.add_command('final_score', handle_final_score_w)
-    fx.game.allow_scorer('b')
-    fx.game.allow_scorer('w')
-    fx.game.ready()
-    fx.game.run()
+    fx.run_score_test("0", "0")
     tc.assertEqual(fx.game.result.sgf_result, "0")
     tc.assertIsNone(fx.game.result.detail)
     tc.assertIsNone(fx.game.result.winning_colour)
 
 def test_players_score_disagree(tc):
     fx = Game_fixture(tc)
-    def handle_final_score_b(args):
-        return "b+3"
-    def handle_final_score_w(args):
-        return "W+4"
-    fx.engine_b.add_command('final_score', handle_final_score_b)
-    fx.engine_w.add_command('final_score', handle_final_score_w)
-    fx.game.allow_scorer('b')
-    fx.game.allow_scorer('w')
-    fx.game.ready()
-    fx.game.run()
+    fx.run_score_test("b+3", "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "?")
     tc.assertEqual(fx.game.result.detail, "players disagreed")
     tc.assertIsNone(fx.game.result.winning_colour)
 
 def test_players_score_disagree_one_no_margin(tc):
     fx = Game_fixture(tc)
-    def handle_final_score_b(args):
-        return "b+"
-    def handle_final_score_w(args):
-        return "W+4"
-    fx.engine_b.add_command('final_score', handle_final_score_b)
-    fx.engine_w.add_command('final_score', handle_final_score_w)
-    fx.game.allow_scorer('b')
-    fx.game.allow_scorer('w')
-    fx.game.ready()
-    fx.game.run()
+    fx.run_score_test("b+", "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "?")
     tc.assertEqual(fx.game.result.detail, "players disagreed")
     tc.assertIsNone(fx.game.result.winning_colour)
 
 def test_players_score_disagree_one_jigo(tc):
     fx = Game_fixture(tc)
-    def handle_final_score_b(args):
-        return "0"
-    def handle_final_score_w(args):
-        return "W+4"
-    fx.engine_b.add_command('final_score', handle_final_score_b)
-    fx.engine_w.add_command('final_score', handle_final_score_w)
-    fx.game.allow_scorer('b')
-    fx.game.allow_scorer('w')
-    fx.game.ready()
-    fx.game.run()
+    fx.run_score_test("0", "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "?")
     tc.assertEqual(fx.game.result.detail, "players disagreed")
     tc.assertIsNone(fx.game.result.winning_colour)
@@ -230,140 +211,63 @@ def test_players_score_disagree_one_jigo(tc):
 def test_players_score_disagree_equal_margin(tc):
     # check equal margin in both directions doesn't confuse it
     fx = Game_fixture(tc)
-    def handle_final_score_b(args):
-        return "b+4"
-    def handle_final_score_w(args):
-        return "W+4"
-    fx.engine_b.add_command('final_score', handle_final_score_b)
-    fx.engine_w.add_command('final_score', handle_final_score_w)
-    fx.game.allow_scorer('b')
-    fx.game.allow_scorer('w')
-    fx.game.ready()
-    fx.game.run()
+    fx.run_score_test("b+4", "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "?")
     tc.assertEqual(fx.game.result.detail, "players disagreed")
     tc.assertIsNone(fx.game.result.winning_colour)
 
 def test_players_score_one_unreliable(tc):
     fx = Game_fixture(tc)
-    def handle_final_score_b(args):
-        return "b+3"
-    def handle_final_score_w(args):
-        return "W+4"
-    fx.engine_b.add_command('final_score', handle_final_score_b)
-    fx.engine_w.add_command('final_score', handle_final_score_w)
-    fx.game.allow_scorer('w')
-    fx.game.ready()
-    fx.game.run()
+    fx.run_score_test("b+3", "W+4", allowed_scorers="w")
     tc.assertEqual(fx.game.result.sgf_result, "W+4")
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.winning_colour, 'w')
 
 def test_players_score_one_cannot_score(tc):
     fx = Game_fixture(tc)
-    def handle_final_score_w(args):
-        return "W+4"
-    fx.engine_w.add_command('final_score', handle_final_score_w)
-    fx.game.allow_scorer('b')
-    fx.game.allow_scorer('w')
-    fx.game.ready()
-    fx.game.run()
+    fx.run_score_test(None, "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "W+4")
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.winning_colour, 'w')
 
 def test_players_score_one_fails(tc):
     fx = Game_fixture(tc)
-    def handle_final_score_b(args):
-        raise ValueError
-    def handle_final_score_w(args):
-        return "W+4"
-    fx.engine_b.add_command('final_score', handle_final_score_b)
-    fx.engine_w.add_command('final_score', handle_final_score_w)
-    fx.game.allow_scorer('b')
-    fx.game.allow_scorer('w')
-    fx.game.ready()
-    fx.game.run()
+    fx.run_score_test(Exception, "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "W+4")
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.winning_colour, 'w')
 
 def test_players_score_one_illformed(tc):
     fx = Game_fixture(tc)
-    def handle_final_score_b(args):
-        return "black wins"
-    def handle_final_score_w(args):
-        return "W+4"
-    fx.engine_b.add_command('final_score', handle_final_score_b)
-    fx.engine_w.add_command('final_score', handle_final_score_w)
-    fx.game.allow_scorer('b')
-    fx.game.allow_scorer('w')
-    fx.game.ready()
-    fx.game.run()
+    fx.run_score_test("black wins", "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "W+4")
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.winning_colour, 'w')
 
 def test_players_score_agree_except_margin(tc):
     fx = Game_fixture(tc)
-    def handle_final_score_b(args):
-        return "b+3"
-    def handle_final_score_w(args):
-        return "B+4"
-    fx.engine_b.add_command('final_score', handle_final_score_b)
-    fx.engine_w.add_command('final_score', handle_final_score_w)
-    fx.game.allow_scorer('b')
-    fx.game.allow_scorer('w')
-    fx.game.ready()
-    fx.game.run()
+    fx.run_score_test("b+3", "B+4")
     tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.detail, "unknown margin")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
 
 def test_players_score_agree_one_no_margin(tc):
     fx = Game_fixture(tc)
-    def handle_final_score_b(args):
-        return "b+3"
-    def handle_final_score_w(args):
-        return "B+"
-    fx.engine_b.add_command('final_score', handle_final_score_b)
-    fx.engine_w.add_command('final_score', handle_final_score_w)
-    fx.game.allow_scorer('b')
-    fx.game.allow_scorer('w')
-    fx.game.ready()
-    fx.game.run()
+    fx.run_score_test("b+3", "B+")
     tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.detail, "unknown margin")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
 
 def test_players_score_agree_one_illformed_margin(tc):
     fx = Game_fixture(tc)
-    def handle_final_score_b(args):
-        return "b+3"
-    def handle_final_score_w(args):
-        return "B+a"
-    fx.engine_b.add_command('final_score', handle_final_score_b)
-    fx.engine_w.add_command('final_score', handle_final_score_w)
-    fx.game.allow_scorer('b')
-    fx.game.allow_scorer('w')
-    fx.game.ready()
-    fx.game.run()
+    fx.run_score_test("b+3", "B+a")
     tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.detail, "unknown margin")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
 
 def test_players_score_agree_margin_zero(tc):
     fx = Game_fixture(tc)
-    def handle_final_score_b(args):
-        return "b+0"
-    def handle_final_score_w(args):
-        return "B+0"
-    fx.engine_b.add_command('final_score', handle_final_score_b)
-    fx.engine_w.add_command('final_score', handle_final_score_w)
-    fx.game.allow_scorer('b')
-    fx.game.allow_scorer('w')
-    fx.game.ready()
-    fx.game.run()
+    fx.run_score_test("b+0", "B+0")
     tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.detail, "unknown margin")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
