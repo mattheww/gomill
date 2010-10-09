@@ -479,14 +479,23 @@ class Mcts_tuner(Competition):
         if not isinstance(parameter_config, Parameter_config):
             raise ControlFileError("not a Parameter")
 
-        args = parameter_config.args
-        kwargs = parameter_config.kwargs
-        pspec = Parameter_spec()
+        config = {}
+        argument_names = ('code', 'scale_fn', 'format')
+        for name, val in zip(argument_names, parameter_config.args):
+            config[name] = val
+        for name, val in sorted(parameter_config.kwargs.iteritems()):
+            if name not in argument_names:
+                raise ControlFileError("unknown argument '%s'" % name)
+            if name in config:
+                raise ControlFileError(
+                    "%s specified both implicitly and explicitly" % name)
+            config[name] = val
 
+        pspec = Parameter_spec()
         # FIXME: Needs lots of validation
-        pspec.code = args[0]
-        pspec.scale_fn = kwargs['scale_fn']
-        pspec.format = kwargs['format']
+        pspec.code = config['code']
+        pspec.scale_fn = config['scale_fn']
+        pspec.format = config['format']
         return pspec
 
     def initialise_from_control_file(self, config):
