@@ -1,9 +1,25 @@
 #!/usr/bin/env python
 """GTP engine intended for testing GTP controllers.
 
-This provides an example of a GTP engine using the gtp_states module.
+This provides an example of a GTP engine which does not use the gtp_states
+module.
 
-It supports the following GTP extension commands:
+It supports the following GTP commands:
+
+Standard
+  boardsize
+  clear_board
+  genmove
+  known_command
+  komi
+  list_commands
+  name
+  play
+  protocol_version
+  quit
+  version
+
+Extensions:
   gomill-force_error [error_type]
   gomill-delayed_error <move_number> [error_type]
 
@@ -25,32 +41,46 @@ import os
 import sys
 
 from gomill import gtp_engine
-from gomill import gtp_states
 from gomill.gtp_engine import GtpError, GtpFatalError
 
 
 class Test_player(object):
-    """GTP test player used with gtp_state."""
+    """GTP player used for testing controllers' error handling."""
     def __init__(self):
         self.delayed_error_move = None
         self.delayed_error_args = None
+        self.move_count = 0
 
-    def genmove(self, game_state, player):
-        """Move generator function.
+    def handle_name(self, args):
+        return "GTP test player"
 
-        game_state -- gtp_states.Game_state
-        player     -- 'b' or 'w'
+    def handle_version(self, args):
+        return ""
+
+    def handle_genmove(self, args):
+        """Handler for the genmove command.
 
         This honours gomill-delayed_error, and otherwise passes.
 
         """
+        self.move_count += 1
         if (self.delayed_error_move and
-            len(game_state.move_history) >= self.delayed_error_move-1):
+            self.move_count >= self.delayed_error_move):
             self.delayed_error_move = None
             self.handle_force_error(self.delayed_error_args)
-        result = gtp_states.Move_generator_result()
-        result.pass_move = True
-        return result
+        return "pass"
+
+    def handle_play(self, args):
+        self.move_count += 1
+
+    def handle_boardsize(self, args):
+        pass
+
+    def handle_clear_board(self, args):
+        pass
+
+    def handle_komi(self, args):
+        pass
 
     def handle_force_error(self, args):
         """Handler for the gomill-force_error command."""
@@ -81,16 +111,15 @@ class Test_player(object):
         self.delayed_error_move = move_number
         self.delayed_error_args = args[1:]
 
-    def handle_name(self, args):
-        return "GTP test player"
-
-    def handle_version(self, args):
-        return ""
-
     def get_handlers(self):
         return {
             'name'                 : self.handle_name,
             'version'              : self.handle_version,
+            'genmove'              : self.handle_genmove,
+            'play'                 : self.handle_play,
+            'boardsize'            : self.handle_boardsize,
+            'clear_board'          : self.handle_clear_board,
+            'komi'                 : self.handle_komi,
             'gomill-force_error'   : self.handle_force_error,
             'gomill-delayed_error' : self.handle_delayed_error,
             }
@@ -98,12 +127,8 @@ class Test_player(object):
 
 def make_engine(test_player):
     """Return a Gtp_engine_protocol which runs the specified Test_player."""
-    gtp_state = gtp_states.Gtp_state(
-        move_generator=test_player.genmove,
-        acceptable_sizes=(9, 13, 19))
     engine = gtp_engine.Gtp_engine_protocol()
     engine.add_protocol_commands()
-    engine.add_commands(gtp_state.get_handlers())
     engine.add_commands(test_player.get_handlers())
     return engine
 
