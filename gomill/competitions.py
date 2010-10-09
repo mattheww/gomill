@@ -1,7 +1,6 @@
 """Organise processing jobs based around playing many GTP games."""
 
 import os
-import shlex
 import sys
 
 from gomill import game_jobs
@@ -43,7 +42,7 @@ class Control_file_token(object):
 
 
 _player_settings = [
-    Setting('command_string', interpret_8bit_string),
+    Setting('command', interpret_shlex_sequence),
     Setting('cwd', interpret_8bit_string, default=None),
     Setting('environ',
             interpret_map_of(interpret_8bit_string, interpret_8bit_string),
@@ -228,10 +227,10 @@ class Competition(object):
         if len(player_config.args) > 1:
             raise ControlFileError("too many arguments")
         if player_config.args:
-            if 'command_string' in player_config.kwargs:
+            if 'command' in player_config.kwargs:
                 raise ControlFileError(
-                    "command_string specified both implicitly and explicitly")
-            player_config.kwargs['command_string'] = player_config.args[0]
+                    "command specified both implicitly and explicitly")
+            player_config.kwargs['command'] = player_config.args[0]
 
         config = load_settings(_player_settings, player_config.kwargs,
                                strict=True)
@@ -240,10 +239,10 @@ class Competition(object):
         player.code = code
 
         try:
-            player.cmd_args = shlex.split(config['command_string'])
+            player.cmd_args = config['command']
             player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
         except Exception, e:
-            raise ControlFileError("'command_string': %s" % e)
+            raise ControlFileError("'command': %s" % e)
 
         try:
             player.cwd = self.resolve_pathname(config['cwd'])

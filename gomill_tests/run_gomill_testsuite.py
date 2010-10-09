@@ -15,6 +15,7 @@ test_modules = [
     'gtp_proxy_tests',
     'gtp_game_tests',
     'game_job_tests',
+    'setting_tests',
     'competition_scheduler_tests',
     'competition_tests',
     'playoff_tests',

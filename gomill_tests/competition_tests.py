@@ -9,6 +9,23 @@ from gomill_tests import gomill_test_support
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
+def test_player_command(tc):
+    Player_config = competitions.Player_config
+    comp = competitions.Competition('test')
+    config = {
+        'players' : {
+            't1' : Player_config("test"),
+            't2' : Player_config("/bin/test foo"),
+            't3' : Player_config(["bin/test", "foo"]),
+            't4' : Player_config("~/test foo"),
+            }
+        }
+    comp.initialise_from_control_file(config)
+    tc.assertEqual(comp.players['t1'].cmd_args, ["test"])
+    tc.assertEqual(comp.players['t2'].cmd_args, ["/bin/test", "foo"])
+    tc.assertEqual(comp.players['t3'].cmd_args, ["bin/test", "foo"])
+    tc.assertEqual(comp.players['t4'].cmd_args,
+                   [os.path.expanduser("~") + "/test", "foo"])
 
 def test_player_is_reliable_scorer(tc):
     Player_config = competitions.Player_config

@@ -1,6 +1,7 @@
 """Support for describing configurable values."""
 
 import re
+import shlex
 
 __all__ = ['Setting', 'allow_none', 'load_settings',
            'interpret_any', 'interpret_bool',
@@ -8,6 +9,7 @@ __all__ = ['Setting', 'allow_none', 'load_settings',
            'interpret_8bit_string', 'interpret_identifier',
            'interpret_as_utf8', 'interpret_as_utf8_stripped',
            'interpret_colour', 'interpret_enum', 'interpret_callable',
+           'interpret_shlex_sequence',
            'interpret_sequence', 'interpret_sequence_of',
            'interpret_map', 'interpret_map_of',
            'clean_string'
@@ -119,6 +121,32 @@ def interpret_callable(c):
     if not callable(c):
         raise ValueError("invalid callable")
     return c
+
+def interpret_shlex_sequence(v):
+    """Interpret a sequence of 'shlex' tokens.
+
+    If v is a string, calls shlex.split() on it.
+
+    Otherwise, treats it as a list of strings.
+
+    Rejects empty sequences.
+
+    """
+    if isinstance(v, basestring):
+        result = shlex.split(interpret_8bit_string(v))
+    else:
+        try:
+            l = interpret_sequence(v)
+        except ValueError:
+            raise ValueError("not a string or a sequence")
+        try:
+            result = [interpret_8bit_string(s) for s in l]
+        except ValueError, e:
+            raise ValueError("element %s" % e)
+    if not result:
+        raise ValueError("empty")
+    return result
+
 
 def interpret_sequence(l):
     """Interpret a list-like object.
