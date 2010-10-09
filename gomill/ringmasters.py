@@ -4,10 +4,16 @@ from __future__ import division, with_statement
 
 import cPickle as pickle
 import datetime
+import errno
 import os
 import re
 import shutil
 import sys
+
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
 
 from gomill import compact_tracebacks
 from gomill import game_jobs
@@ -219,19 +225,31 @@ class Ringmaster(object):
     def _open_files(self):
         """Open the log files and ensure that output directories exist.
 
+        If flock is available, this takes out an exclusive lock on the log file.
+        If this lock is unavailable, it raises RingmasterError.
+
         Also removes the command file if it exists.
 
         """
+        try:
+            self.logfile = open(self.log_pathname, "a")
+        except EnvironmentError, e:
+            raise RingmasterError("failed to open log file:\n%s" % e)
+
+        if fcntl is not None:
+            try:
+                fcntl.flock(self.logfile, fcntl.LOCK_EX|fcntl.LOCK_NB)
+            except IOError, e:
+                if e.errno in (errno.EACCES, errno.EAGAIN):
+                    raise RingmasterError("competition is already running")
+            except Exception:
+                pass
+
         try:
             if os.path.exists(self.command_pathname):
                 os.remove(self.command_pathname)
         except EnvironmentError, e:
             raise RingmasterError("error removing existing .cmd file:\n%s" % e)
-
-        try:
-            self.logfile = open(self.log_pathname, "a")
-        except EnvironmentError, e:
-            raise RingmasterError("failed to open log file:\n%s" % e)
 
         try:
             self.historyfile = open(self.history_pathname, "a")
