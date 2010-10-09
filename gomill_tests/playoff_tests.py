@@ -185,12 +185,13 @@ def test_play(tc):
     response1.game_data = job1.game_data
     fx.comp.process_game_result(response1)
 
-    fx.check_screen_report(
-        "t1 v t2 (1 games)\n"
-        "board size: 13   komi: 7.5\n"
-        "     wins\n"
-        "t1      1 100.00%   (black)\n"
-        "t2      0   0.00%   (white)\n")
+    fx.check_screen_report(dedent("""\
+    t1 v t2 (1 games)
+    board size: 13   komi: 7.5
+         wins
+    t1      1 100.00%   (black)
+    t2      0   0.00%   (white)
+    """))
 
     tc.assertListEqual(fx.comp.get_matchup_results('0'), [('0_0', result1)])
 
@@ -206,13 +207,14 @@ def test_play_many(tc):
         response = fake_response(jobs[i], 'w')
         fx.comp.process_game_result(response)
 
-    fx.check_screen_report(
-        "t1 v t2 (6 games)\n"
-        "board size: 13   komi: 7.5\n"
-        "     wins              black        white\n"
-        "t1      2 33.33%       1 25.00%     1 50.00%\n"
-        "t2      4 66.67%       1 50.00%     3 75.00%\n"
-        "                       2 33.33%     4 66.67%\n")
+    fx.check_screen_report(dedent("""\
+    t1 v t2 (6 games)
+    board size: 13   komi: 7.5
+         wins              black        white
+    t1      2 33.33%       1 25.00%     1 50.00%
+    t2      4 66.67%       1 50.00%     3 75.00%
+                           2 33.33%     4 66.67%
+    """))
 
     tc.assertEqual(len(fx.comp.get_matchup_results('0')), 6)
 
@@ -241,13 +243,14 @@ def test_matchup_change(tc):
         response = fake_response(jobs[i], ('b' if i in (0, 3) else 'w'))
         fx.comp.process_game_result(response)
 
-    fx.check_screen_report(
-        "t1 v t2 (6 games)\n"
-        "board size: 13   komi: 7.5\n"
-        "     wins              black        white\n"
-        "t1      2 33.33%       1 25.00%     1 50.00%\n"
-        "t2      4 66.67%       1 50.00%     3 75.00%\n"
-        "                       2 33.33%     4 66.67%\n")
+    fx.check_screen_report(dedent("""\
+    t1 v t2 (6 games)
+    board size: 13   komi: 7.5
+         wins              black        white
+    t1      2 33.33%       1 25.00%     1 50.00%
+    t2      4 66.67%       1 50.00%     3 75.00%
+                           2 33.33%     4 66.67%
+    """))
 
     config2 = default_config()
     config2['players']['t3'] = Player_config("test3")
