@@ -1,5 +1,7 @@
 """Gomill-specific test support code."""
 
+import re
+
 from gomill_tests.test_framework import unittest2
 from gomill_tests import test_framework
 
@@ -45,6 +47,10 @@ def compare_diagrams(d1, d2):
         return True, None
     return False, "diagrams differ:\n%s\n\n%s" % (d1, d2)
 
+
+traceback_line_re = re.compile(
+    r"  (?:[a-x0-9_]+/)*([a-z0-9_]+)\.py:[0-9]+ \(([a-z0-9_]+)\)")
+
 class Gomill_testcase_mixin(object):
     """TestCase mixin adding support for gomill-specific types.
 
@@ -87,6 +93,27 @@ class Gomill_testcase_mixin(object):
             msg = self._format_message(msg, 'boards have the same position')
             raise self.failureException(msg)
         super(Gomill_testcase_mixin, self).assertNotEqual(first, second, msg)
+
+    def assertTracebackStringEqual(self, seen, expected):
+        """Compare two strings which include tracebacks.
+
+        This is for comparing strings containing tracebacks from
+        the compact_tracebacks module.
+
+        Replaces the traceback lines describing source locations with
+        '<filename>|<functionname>', for robustness.
+
+        """
+        lines = seen.split("\n")
+        new_lines = []
+        for l in lines:
+            match = traceback_line_re.match(l)
+            if match:
+                new_lines.append("|".join(match.groups()))
+            else:
+                new_lines.append(l)
+        self.assertMultiLineEqual("\n".join(new_lines), expected)
+
 
 class Gomill_SimpleTestCase(
     Gomill_testcase_mixin, test_framework.SimpleTestCase):
