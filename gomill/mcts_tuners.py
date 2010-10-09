@@ -128,7 +128,12 @@ class Tree(object):
 
         This is used when restoring serialised state.
 
+        Raises ValueError if the node doesn't have the expected number of
+        children.
+
         """
+        if not node.children or len(node.children) != self.branching_factor:
+            raise ValueError
         self.root = node
         self.node_count = node.count_tree_size()
 
@@ -493,7 +498,11 @@ class Mcts_tuner(Competition):
         self.scheduler = status['scheduler']
         self.scheduler.rollback()
         root = status['tree_root']
-        self.tree.set_root(root)
+        try:
+            self.tree.set_root(root)
+        except ValueError:
+            raise CompetitionError(
+                "stored tree is inconsistent with control file")
 
     def format_parameters(self, optimiser_parameters):
         try:
