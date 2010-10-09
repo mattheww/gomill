@@ -502,28 +502,34 @@ class Game(object):
                 self.winner = None
                 self.margin = 0
         else:
-            player_scores = []
+            interpreted_scores = []
+            winners = []
+            margins = []
             for colour in self.allowed_scorers:
                 final_score = self.maybe_send_command(colour, "final_score")
-                if final_score is not None:
-                    player_scores.append(final_score.upper())
-                    self.player_scores[colour] = final_score
-            for final_score in player_scores:
+                if final_score is None:
+                    continue
+                self.player_scores[colour] = final_score
+                final_score = final_score.upper()
                 if final_score == "0":
-                    self.winner = None
-                    self.margin = 0
-                    break
+                    winners.append(None)
+                    margins.append(0)
+                    continue
                 if final_score.startswith("B+"):
-                    self.winner = "b"
+                    winners.append("b")
                 elif final_score.startswith("W+"):
-                    self.winner = "w"
+                    winners.append("w")
                 else:
                     continue
                 try:
-                    self.margin = float(final_score[2:])
+                    margin = float(final_score[2:])
                 except ValueError:
-                    pass
-                break
+                    margin = None
+                margins.append(margin)
+            if len(set(winners)) == 1:
+                self.winner = winners[0]
+                if len(set(margins)) == 1:
+                    self.margin = margins[0]
 
 
     def run(self):

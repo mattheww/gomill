@@ -171,7 +171,7 @@ def test_players_score_2(tc):
     fx.game.allow_scorer('w')
     fx.game.ready()
     fx.game.run()
-    tc.assertEqual(fx.game.result.sgf_result, "B+3")
+    tc.assertEqual(fx.game.result.sgf_result, "?")
 
 def test_players_score_3(tc):
     fx = Game_fixture(tc)
@@ -185,7 +185,7 @@ def test_players_score_3(tc):
     fx.game.allow_scorer('b')
     fx.game.ready()
     fx.game.run()
-    tc.assertEqual(fx.game.result.sgf_result, "W+4")
+    tc.assertEqual(fx.game.result.sgf_result, "?")
 
 def test_players_score_4(tc):
     fx = Game_fixture(tc)
@@ -228,6 +228,20 @@ def test_players_score_6(tc):
 def test_players_score_7(tc):
     fx = Game_fixture(tc)
     def handle_final_score_b(args):
+        return "b+4"
+    def handle_final_score_w(args):
+        return "W+4"
+    fx.engine_b.add_command('final_score', handle_final_score_b)
+    fx.engine_w.add_command('final_score', handle_final_score_w)
+    fx.game.allow_scorer('b')
+    fx.game.allow_scorer('w')
+    fx.game.ready()
+    fx.game.run()
+    tc.assertEqual(fx.game.result.sgf_result, "?")
+
+def test_players_score_7b(tc):
+    fx = Game_fixture(tc)
+    def handle_final_score_b(args):
         return "b+"
     def handle_final_score_w(args):
         return "W+4"
@@ -237,7 +251,7 @@ def test_players_score_7(tc):
     fx.game.allow_scorer('w')
     fx.game.ready()
     fx.game.run()
-    tc.assertEqual(fx.game.result.sgf_result, "B+")
+    tc.assertEqual(fx.game.result.sgf_result, "?")
 
 def test_players_score_8(tc):
     fx = Game_fixture(tc)
@@ -265,7 +279,63 @@ def test_players_score_9(tc):
     fx.game.allow_scorer('w')
     fx.game.ready()
     fx.game.run()
+    tc.assertEqual(fx.game.result.sgf_result, "?")
+
+def test_players_score_10(tc):
+    fx = Game_fixture(tc)
+    def handle_final_score_b(args):
+        return "0"
+    def handle_final_score_w(args):
+        return "0"
+    fx.engine_b.add_command('final_score', handle_final_score_b)
+    fx.engine_w.add_command('final_score', handle_final_score_w)
+    fx.game.allow_scorer('b')
+    fx.game.allow_scorer('w')
+    fx.game.ready()
+    fx.game.run()
     tc.assertEqual(fx.game.result.sgf_result, "0")
+
+def test_players_score_11(tc):
+    fx = Game_fixture(tc)
+    def handle_final_score_b(args):
+        return "b+3"
+    def handle_final_score_w(args):
+        return "B+4"
+    fx.engine_b.add_command('final_score', handle_final_score_b)
+    fx.engine_w.add_command('final_score', handle_final_score_w)
+    fx.game.allow_scorer('b')
+    fx.game.allow_scorer('w')
+    fx.game.ready()
+    fx.game.run()
+    tc.assertEqual(fx.game.result.sgf_result, "B+")
+
+def test_players_score_12(tc):
+    fx = Game_fixture(tc)
+    def handle_final_score_b(args):
+        return "b+3"
+    def handle_final_score_w(args):
+        return "B+"
+    fx.engine_b.add_command('final_score', handle_final_score_b)
+    fx.engine_w.add_command('final_score', handle_final_score_w)
+    fx.game.allow_scorer('b')
+    fx.game.allow_scorer('w')
+    fx.game.ready()
+    fx.game.run()
+    tc.assertEqual(fx.game.result.sgf_result, "B+")
+
+def test_players_score_13(tc):
+    fx = Game_fixture(tc)
+    def handle_final_score_b(args):
+        return "b+3"
+    def handle_final_score_w(args):
+        return "B+a"
+    fx.engine_b.add_command('final_score', handle_final_score_b)
+    fx.engine_w.add_command('final_score', handle_final_score_w)
+    fx.game.allow_scorer('b')
+    fx.game.allow_scorer('w')
+    fx.game.ready()
+    fx.game.run()
+    tc.assertEqual(fx.game.result.sgf_result, "B+")
 
 
 
