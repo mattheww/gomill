@@ -485,25 +485,6 @@ class Game(object):
             self.after_move_callback(colour, move, self.board)
 
     def _handle_pass_pass(self):
-        def ask(colour):
-            final_score = self.maybe_send_command(colour, "final_score")
-            if final_score is None:
-                return False
-            final_score = final_score.upper()
-            if final_score == "0":
-                self.margin = 0
-                return True
-            if final_score.startswith("B+"):
-                self.winner = "b"
-            elif final_score.startswith("W+"):
-                self.winner = "w"
-            else:
-                return False
-            try:
-                self.margin = float(final_score[2:])
-            except ValueError:
-                return False
-            return True
         if self.internal_scorer:
             score = self.board.area_score() - self.komi
             if score > 0:
@@ -513,11 +494,31 @@ class Game(object):
                 self.winner = "w"
                 self.margin = -score
             else:
+                self.winner = None
                 self.margin = 0
         else:
+            player_scores = []
             for colour in self.allowed_scorers:
-                if ask(colour):
+                final_score = self.maybe_send_command(colour, "final_score")
+                if final_score is not None:
+                    player_scores.append(final_score.upper())
+            for final_score in player_scores:
+                if final_score == "0":
+                    self.winner = None
+                    self.margin = 0
                     break
+                if final_score.startswith("B+"):
+                    self.winner = "b"
+                elif final_score.startswith("W+"):
+                    self.winner = "w"
+                else:
+                    continue
+                try:
+                    self.margin = float(final_score[2:])
+                    break
+                except ValueError:
+                    continue
+
 
     def run(self):
         """Run a complete game between the two players.
