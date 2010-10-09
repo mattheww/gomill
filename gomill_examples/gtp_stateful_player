@@ -5,9 +5,34 @@ This provides an example of a GTP engine using the gtp_states module.
 
 It plays (and resigns) randomly.
 
-It supports the following GTP extension commands:
+It supports the following GTP commands, mostly provided by gtp_states:
+
+Standard
+  boardsize
+  clear_board
+  fixed_handicap
+  genmove
+  known_command
+  komi
+  list_commands
+  loadsgf
+  name
+  place_free_handicap
+  play
+  protocol_version
+  quit
+  reg_genmove
+  set_free_handicap
+  showboard
+  undo
+  version
+
+Gomill extensions
   gomill-explain_last_move
+  gomill-genmove_ex
   gomill-savesgf
+
+Examples
   gomill_resign_p <float>  -- resign in future with the specified probabiltiy
 
 """
