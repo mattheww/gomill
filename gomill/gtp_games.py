@@ -210,9 +210,7 @@ class Game(object):
     def allow_scorer(self, colour):
         """Allow the specified player to score the game.
 
-        If this is called for both colours, the first player specified will be
-        asked to score; if it doesn't support final-score, or final-score
-        returns an error, the second engine will be asked.
+        If this is called for both colours, both are asked to score.
 
         """
         self.allowed_scorers.append(colour)
