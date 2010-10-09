@@ -489,49 +489,6 @@ class Game(object):
         if self.after_move_callback:
             self.after_move_callback(colour, move, self.board)
 
-    def _handle_pass_pass(self):
-        if self.internal_scorer:
-            score = self.board.area_score() - self.komi
-            if score > 0:
-                self.winner = "b"
-                self.margin = score
-            elif score < 0:
-                self.winner = "w"
-                self.margin = -score
-            else:
-                self.winner = None
-                self.margin = 0
-        else:
-            interpreted_scores = []
-            winners = []
-            margins = []
-            for colour in self.allowed_scorers:
-                final_score = self.maybe_send_command(colour, "final_score")
-                if final_score is None:
-                    continue
-                self.player_scores[colour] = final_score
-                final_score = final_score.upper()
-                if final_score == "0":
-                    winners.append(None)
-                    margins.append(0)
-                    continue
-                if final_score.startswith("B+"):
-                    winners.append("b")
-                elif final_score.startswith("W+"):
-                    winners.append("w")
-                else:
-                    continue
-                try:
-                    margin = float(final_score[2:])
-                except ValueError:
-                    margin = None
-                margins.append(margin)
-            if len(set(winners)) == 1:
-                self.winner = winners[0]
-                if len(set(margins)) == 1:
-                    self.margin = margins[0]
-
-
     def run(self):
         """Run a complete game between the two players.
 
@@ -546,14 +503,14 @@ class Game(object):
         self.seen_claim = False
         self.forfeited = False
         self.hit_move_limit = False
-        self.margin = None
         self.forfeit_reason = None
+        self.passed_out = False
         player = self.first_player
         move_count = 0
         while move_count < self.move_limit:
             self._play_move(player)
             if self.pass_count == 2:
-                self._handle_pass_pass()
+                self.passed_out = True
                 break
             if self.winner is not None:
                 break
@@ -581,12 +538,67 @@ class Game(object):
         self.forfeit_reason = None
         self.calculate_result()
 
+    def _score_game(self):
+        is_disagreement = False
+        if self.internal_scorer:
+            score = self.board.area_score() - self.komi
+            if score > 0:
+                winner = "b"
+                margin = score
+            elif score < 0:
+                winner = "w"
+                margin = -score
+            else:
+                winner = None
+                margin = 0
+        else:
+            interpreted_scores = []
+            winners = []
+            margins = []
+            for colour in self.allowed_scorers:
+                final_score = self.maybe_send_command(colour, "final_score")
+                if final_score is None:
+                    continue
+                self.player_scores[colour] = final_score
+                final_score = final_score.upper()
+                if final_score == "0":
+                    winners.append(None)
+                    margins.append(0)
+                    continue
+                if final_score.startswith("B+"):
+                    winners.append("b")
+                elif final_score.startswith("W+"):
+                    winners.append("w")
+                else:
+                    continue
+                try:
+                    margin = float(final_score[2:])
+                    if margin <= 0:
+                        margin = None
+                except ValueError:
+                    margin = None
+                margins.append(margin)
+            if len(set(winners)) == 1:
+                winner = winners[0]
+                if len(set(margins)) == 1:
+                    margin = margins[0]
+                else:
+                    margin = None
+            else:
+                if len(set(winners)) > 1:
+                    is_disagreement = True
+                winner = None
+                margin = None
+        return winner, margin, is_disagreement
+
     def calculate_result(self):
         """Set self.result.
 
         You shouldn't normally call this directly.
 
         """
+        if self.passed_out:
+            self.winner, margin, is_disagreement = self._score_game()
         result = Game_result(self.players, self.winner)
         if self.hit_move_limit:
             result.sgf_result = "Void"
@@ -600,16 +612,22 @@ class Game(object):
             result.sgf_result += "F"
             result.is_forfeit = True
             result.detail = "forfeit: %s" % self.forfeit_reason
-        elif self.margin == 0:
-            result.sgf_result = "0"
-        elif self.margin is not None:
-            result.sgf_result += format_float(self.margin)
-        elif self.winner is None:
-            result.detail = "no score reported"
         else:
-            # Players returned something like 'B+?'
-            # Leave SGF result in form 'B+'
-            result.detail = "unknown margin/reason"
+            assert self.passed_out
+            if self.winner is None:
+                if margin == 0:
+                    result.sgf_result = "0"
+                else:
+                    if is_disagreement:
+                        result.detail = "players disagreed"
+                    else:
+                        result.detail = "no score reported"
+            elif margin is not None:
+                result.sgf_result += format_float(margin)
+            else:
+                # Players returned something like 'B+?'
+                # Leave SGF result in form 'B+'
+                result.detail = "unknown margin"
         self.result = result
 
     def calculate_cpu_times(self):
