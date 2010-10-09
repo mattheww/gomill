@@ -16,15 +16,6 @@ from gomill.competitions import (
 from gomill.settings import *
 
 
-class Parameter_config(object):
-    """FIXME."""
-    def __init__(self, *args, **kwargs):
-        # FIXME
-        self.code = args[0]
-        for k, v in kwargs.iteritems():
-            setattr(self, k, v)
-
-
 class Node(object):
     """A MCTS node.
 
@@ -406,6 +397,23 @@ class Greedy_simulation(Simulation):
         return max(enumerate(node.children), key=wins)
 
 
+class Parameter_config(object):
+    """Parameter (ie, dimension) description for use in control files."""
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+class Parameter_spec(object):
+    """Internal description of a parameter spec from the configuration file.
+
+    Public attributes:
+      code     -- identifier
+      format   -- string for use with '%'
+      scale_fn -- function float(0.0..1.0) -> player parameter
+
+    """
+
+
 class Mcts_tuner(Competition):
     """A Competition for parameter tuning using the Monte-carlo tree search.
 
@@ -446,7 +454,6 @@ class Mcts_tuner(Competition):
 
     special_settings = [
         Setting('opponent', interpret_any),
-        # FIXME
         Setting('parameters', interpret_sequence),
         Setting('make_candidate', interpret_callable),
         ]
@@ -460,6 +467,27 @@ class Mcts_tuner(Competition):
         Setting('initial_visits', interpret_positive_int),
         Setting('initial_wins', interpret_positive_int),
         ]
+
+    def parameter_spec_from_config(self, parameter_config):
+        """Make a Parameter_spec from a Parameter_config.
+
+        Raises ControlFileError if there is an error in the configuration.
+
+        Returns a Parameter_spec with all attributes set.
+
+        """
+        if not isinstance(parameter_config, Parameter_config):
+            raise ControlFileError("not a Parameter")
+
+        args = parameter_config.args
+        kwargs = parameter_config.kwargs
+        pspec = Parameter_spec()
+
+        # FIXME: Needs lots of validation
+        pspec.code = args[0]
+        pspec.scale_fn = kwargs['scale_fn']
+        pspec.format = kwargs['format']
+        return pspec
 
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
@@ -478,10 +506,15 @@ class Mcts_tuner(Competition):
             raise ControlFileError(
                 "opponent: unknown player %s" % specials['opponent'])
 
-        # FIXME needs lots of validation
         self.parameter_specs = []
-        for parameter_spec in specials['parameters']:
-            self.parameter_specs.append(parameter_spec)
+        if not specials['parameters']:
+            raise ControlFileError("parameters: empty list")
+        for i, parameter_spec in enumerate(specials['parameters']):
+            try:
+                pspec = self.parameter_spec_from_config(parameter_spec)
+            except StandardError, e:
+                raise ControlFileError("parameter %d: %s" % (i, e))
+            self.parameter_specs.append(pspec)
 
         self.candidate_maker_fn = specials['make_candidate']
 
