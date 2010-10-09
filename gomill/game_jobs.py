@@ -245,7 +245,7 @@ class Game_job(object):
         sgf_game = game.make_sgf(game_end_message)
         if self.sgf_event is not None:
             sgf_game.set('event', self.sgf_event)
-            notes = ["Event '%s'" % self.sgf_event]
+            notes = ["Event: %s" % self.sgf_event]
         else:
             notes = []
         notes += [
