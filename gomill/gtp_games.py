@@ -499,6 +499,8 @@ class Game(object):
         """
         self.pass_count = 0
         self.winner = None
+        self.margin = None
+        self.scorers_disagreed = False
         self.seen_resignation = False
         self.seen_claim = False
         self.forfeited = False
@@ -511,6 +513,8 @@ class Game(object):
             self._play_move(player)
             if self.pass_count == 2:
                 self.passed_out = True
+                self.winner, self.margin, self.scorers_disagreed = \
+                    self._score_game()
                 break
             if self.winner is not None:
                 break
@@ -530,12 +534,14 @@ class Game(object):
 
         """
         self.winner = winner
-        self.seen_resignation = True
+        self.seen_resignation = False
         self.seen_claim = False
         self.forfeited = False
         self.hit_move_limit = False
         self.forfeit_reason = None
-        self.passed_out = False
+        self.passed_out = True
+        self.margin = True
+        self.scorers_disagreed = False
         self.calculate_result()
 
     def _score_game(self):
@@ -597,8 +603,6 @@ class Game(object):
         You shouldn't normally call this directly.
 
         """
-        if self.passed_out:
-            self.winner, margin, is_disagreement = self._score_game()
         result = Game_result(self.players, self.winner)
         if self.hit_move_limit:
             result.sgf_result = "Void"
@@ -615,17 +619,17 @@ class Game(object):
         else:
             assert self.passed_out
             if self.winner is None:
-                if margin == 0:
+                if self.margin == 0:
                     result.sgf_result = "0"
+                elif self.scorers_disagreed:
+                    result.detail = "players disagreed"
                 else:
-                    if is_disagreement:
-                        result.detail = "players disagreed"
-                    else:
-                        result.detail = "no score reported"
-            elif margin is not None:
-                result.sgf_result += format_float(margin)
+                    result.detail = "no score reported"
+            elif self.margin is not None:
+                result.sgf_result += format_float(self.margin)
             else:
-                # Players returned something like 'B+?'
+                # Players returned something like 'B+?',
+                # or disagreed about the margin
                 # Leave SGF result in form 'B+'
                 result.detail = "unknown margin"
         self.result = result
