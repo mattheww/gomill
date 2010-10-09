@@ -482,7 +482,7 @@ class Gtp_controller(object):
         self.name = str(name)
         self.known_commands = {}
         self.log_dest = None
-        self.gtp_translations = {}
+        self.gtp_aliases = {}
         self.is_first_command = True
         self.errors_seen = []
         self.channel_is_closed = False
@@ -541,8 +541,7 @@ class Gtp_controller(object):
 
         fixed_command = fix_argument(command)
         fixed_arguments = map(fix_argument, arguments)
-        translated_command = self.gtp_translations.get(
-            fixed_command, fixed_command)
+        translated_command = self.gtp_aliases.get(fixed_command, fixed_command)
         is_first_command = self.is_first_command
         self.is_first_command = False
 
@@ -745,17 +744,17 @@ class Gtp_controller(object):
         return self.errors_seen[:]
 
 
-    def set_gtp_translations(self, translations):
-        """Set GTP command translations.
+    def set_gtp_aliases(self, aliases):
+        """Set GTP command aliases.
 
-        translations -- map public command name -> underlying command name
+        aliases -- map public command name -> underlying command name
 
         In future calls to do_command, a request to send 'public command name'
         will be sent to the underlying channel as the corresponding 'underlying
         command name'.
 
         """
-        self.gtp_translations = translations
+        self.gtp_aliases = aliases
 
 
 def describe_engine(controller, default="unknown"):

@@ -91,7 +91,7 @@ def test_get_job(tc):
     tc.assertEqual(job.player_w.code, 'p2')
     tc.assertEqual(job.player_b.cmd_args, ['test'])
     tc.assertEqual(job.player_w.cmd_args, ['test', 'sing', 'song'])
-    tc.assertDictEqual(job.player_b.gtp_translations, {})
+    tc.assertDictEqual(job.player_b.gtp_aliases, {})
     tc.assertListEqual(job.player_b.startup_gtp_commands, [])
     tc.assertEqual(job.player_b.stderr_pathname, "/nonexistent/ctl/test.log")
     tc.assertIsNone(job.player_b.cwd)

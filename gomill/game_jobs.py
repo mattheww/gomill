@@ -18,13 +18,13 @@ class Player(object):
     optional attributes:
       is_reliable_scorer   -- bool (default True)
       allow_claim          -- bool (default False)
-      gtp_translations     -- map command string -> command string
+      gtp_aliases          -- map command string -> command string
       startup_gtp_commands -- list of pairs (command_name, arguments)
       stderr_pathname      -- pathname or None (default None)
       cwd                  -- working directory to change to (default None)
       environ              -- maplike of environment variables (default None)
 
-    See gtp_controllers.Gtp_controller for an explanation of gtp_translations.
+    See gtp_controllers.Gtp_controller for an explanation of gtp_aliases.
 
     The startup commands will be executed before starting the game. Their
     responses will be ignored, but the game will be aborted if any startup
@@ -44,7 +44,7 @@ class Player(object):
     def __init__(self):
         self.is_reliable_scorer = True
         self.allow_claim = False
-        self.gtp_translations = {}
+        self.gtp_aliases = {}
         self.startup_gtp_commands = []
         self.stderr_pathname = None
         self.cwd = None
@@ -175,7 +175,7 @@ class Game_job(object):
             colour, player.cmd_args,
             env=player.make_environ(), cwd=player.cwd, stderr=stderr)
         controller = game.get_controller(colour)
-        controller.set_gtp_translations(player.gtp_translations)
+        controller.set_gtp_aliases(player.gtp_aliases)
         if gtp_log_file is not None:
             controller.channel.enable_logging(
                 gtp_log_file, prefix="%s: " % colour)
@@ -337,7 +337,7 @@ def check_player(player_check, discard_stderr=False):
             raise GtpChannelError(
                 "error starting subprocess for %s:\n%s" % (player.code, e))
         controller = gtp_controller.Gtp_controller(channel, player.code)
-        controller.set_gtp_translations(player.gtp_translations)
+        controller.set_gtp_aliases(player.gtp_aliases)
         controller.check_protocol_version()
         for command, arguments in player.startup_gtp_commands:
             controller.do_command(command, *arguments)

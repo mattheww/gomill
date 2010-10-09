@@ -49,7 +49,7 @@ _player_settings = [
             default=None),
     Setting('is_reliable_scorer', interpret_bool, default=True),
     Setting('allow_claim', interpret_bool, default=False),
-    Setting('gtp_translations',
+    Setting('gtp_aliases',
             interpret_map_of(interpret_8bit_string, interpret_8bit_string),
             default=dict),
     Setting('startup_gtp_commands', interpret_sequence, default=list),
@@ -270,16 +270,16 @@ class Competition(object):
         except ValueError, e:
             raise ControlFileError("'startup_gtp_commands': %s" % e)
 
-        player.gtp_translations = {}
+        player.gtp_aliases = {}
         try:
-            for cmd1, cmd2 in config['gtp_translations']:
+            for cmd1, cmd2 in config['gtp_aliases']:
                 if not gtp_controller.is_well_formed_gtp_word(cmd1):
                     raise ValueError("invalid command %s" % clean_string(cmd1))
                 if not gtp_controller.is_well_formed_gtp_word(cmd2):
                     raise ValueError("invalid command %s" % clean_string(cmd2))
-                player.gtp_translations[cmd1] = cmd2
+                player.gtp_aliases[cmd1] = cmd2
         except ValueError, e:
-            raise ControlFileError("'gtp_translations': %s" % e)
+            raise ControlFileError("'gtp_aliases': %s" % e)
 
         player.discard_stderr = config['discard_stderr']
 
