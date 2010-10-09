@@ -146,6 +146,130 @@ def test_unscored_game(tc):
     result2 = pickle.loads(pickle.dumps(fx.game.result))
     tc.assertEqual(result2.describe(), "one vs two ? (no score reported)")
 
+
+def test_players_score_1(tc):
+    fx = Game_fixture(tc)
+    def handle_final_score(args):
+        return "b+3"
+    fx.engine_b.add_command('final_score', handle_final_score)
+    fx.engine_w.add_command('final_score', handle_final_score)
+    fx.game.allow_scorer('b')
+    fx.game.allow_scorer('w')
+    fx.game.ready()
+    fx.game.run()
+    tc.assertEqual(fx.game.result.sgf_result, "B+3")
+
+def test_players_score_2(tc):
+    fx = Game_fixture(tc)
+    def handle_final_score_b(args):
+        return "b+3"
+    def handle_final_score_w(args):
+        return "W+4"
+    fx.engine_b.add_command('final_score', handle_final_score_b)
+    fx.engine_w.add_command('final_score', handle_final_score_w)
+    fx.game.allow_scorer('b')
+    fx.game.allow_scorer('w')
+    fx.game.ready()
+    fx.game.run()
+    tc.assertEqual(fx.game.result.sgf_result, "B+3")
+
+def test_players_score_3(tc):
+    fx = Game_fixture(tc)
+    def handle_final_score_b(args):
+        return "b+3"
+    def handle_final_score_w(args):
+        return "W+4"
+    fx.engine_b.add_command('final_score', handle_final_score_b)
+    fx.engine_w.add_command('final_score', handle_final_score_w)
+    fx.game.allow_scorer('w')
+    fx.game.allow_scorer('b')
+    fx.game.ready()
+    fx.game.run()
+    tc.assertEqual(fx.game.result.sgf_result, "W+4")
+
+def test_players_score_4(tc):
+    fx = Game_fixture(tc)
+    def handle_final_score_b(args):
+        return "b+3"
+    def handle_final_score_w(args):
+        return "W+4"
+    fx.engine_b.add_command('final_score', handle_final_score_b)
+    fx.engine_w.add_command('final_score', handle_final_score_w)
+    fx.game.allow_scorer('w')
+    fx.game.ready()
+    fx.game.run()
+    tc.assertEqual(fx.game.result.sgf_result, "W+4")
+
+def test_players_score_5(tc):
+    fx = Game_fixture(tc)
+    def handle_final_score_w(args):
+        return "W+4"
+    fx.engine_w.add_command('final_score', handle_final_score_w)
+    fx.game.allow_scorer('b')
+    fx.game.allow_scorer('w')
+    fx.game.ready()
+    fx.game.run()
+    tc.assertEqual(fx.game.result.sgf_result, "W+4")
+
+def test_players_score_6(tc):
+    fx = Game_fixture(tc)
+    def handle_final_score_b(args):
+        raise ValueError
+    def handle_final_score_w(args):
+        return "W+4"
+    fx.engine_b.add_command('final_score', handle_final_score_b)
+    fx.engine_w.add_command('final_score', handle_final_score_w)
+    fx.game.allow_scorer('b')
+    fx.game.allow_scorer('w')
+    fx.game.ready()
+    fx.game.run()
+    tc.assertEqual(fx.game.result.sgf_result, "W+4")
+
+def test_players_score_7(tc):
+    fx = Game_fixture(tc)
+    def handle_final_score_b(args):
+        return "b+"
+    def handle_final_score_w(args):
+        return "W+4"
+    fx.engine_b.add_command('final_score', handle_final_score_b)
+    fx.engine_w.add_command('final_score', handle_final_score_w)
+    fx.game.allow_scorer('b')
+    fx.game.allow_scorer('w')
+    fx.game.ready()
+    fx.game.run()
+    # FIXME: Should probably prefer "B+".
+    tc.assertEqual(fx.game.result.sgf_result, "W+4")
+
+def test_players_score_8(tc):
+    fx = Game_fixture(tc)
+    def handle_final_score_b(args):
+        return "black wins"
+    def handle_final_score_w(args):
+        return "W+4"
+    fx.engine_b.add_command('final_score', handle_final_score_b)
+    fx.engine_w.add_command('final_score', handle_final_score_w)
+    fx.game.allow_scorer('b')
+    fx.game.allow_scorer('w')
+    fx.game.ready()
+    fx.game.run()
+    tc.assertEqual(fx.game.result.sgf_result, "W+4")
+
+def test_players_score_9(tc):
+    fx = Game_fixture(tc)
+    def handle_final_score_b(args):
+        return "0"
+    def handle_final_score_w(args):
+        return "W+4"
+    fx.engine_b.add_command('final_score', handle_final_score_b)
+    fx.engine_w.add_command('final_score', handle_final_score_w)
+    fx.game.allow_scorer('b')
+    fx.game.allow_scorer('w')
+    fx.game.ready()
+    fx.game.run()
+    tc.assertEqual(fx.game.result.sgf_result, "0")
+
+
+
 def test_claim(tc):
     def handle_genmove_ex_b(args):
         tc.assertIn('claim', args)
