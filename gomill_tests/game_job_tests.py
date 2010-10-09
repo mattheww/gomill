@@ -3,6 +3,8 @@
 from __future__ import with_statement
 
 import os
+import re
+from textwrap import dedent
 
 from gomill import gtp_controller
 from gomill import game_jobs
@@ -40,6 +42,9 @@ class Test_game_job(game_jobs.Game_job):
     def _mkdir(self, pathname):
         self._mkdir_pathname = pathname
 
+    def _get_sgf_written(self):
+        """Return the sgf contents with the date scrubbed out."""
+        return re.sub(r"(?m)(?<=^Date )(.*)$", "***", self._sgf_written)
 
 class Game_job_fixture(test_framework.Fixture):
     """Fixture setting up a Game_job.
@@ -70,6 +75,7 @@ def test_game_job(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     gj = Game_job_fixture(tc)
     gj.job.game_data = 'gamedata'
+    gj.job.sgf_event = "game_job_tests"
     result = gj.job.run()
     # Win by 18 on the board minus 7.5 komi
     tc.assertEqual(result.game_result.sgf_result, "B+10.5")
@@ -81,6 +87,19 @@ def test_game_job(tc):
     tc.assertIsNone(channel.requested_env)
     tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
     tc.assertIsNone(gj.job._mkdir_pathname)
+    tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
+    (;AP[gomill:?]
+    C[Event: game_job_tests
+    Game id gameid
+    Date ***
+    Result one beat two B+10.5
+    Black one one
+    White two two]
+    CA[utf-8]DT[2010-10-09]EV[game_job_tests]FF[4]GM[1]KM[7.5]PB[one]PW[two]
+    RE[B+10.5]SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge]
+    ;B[ed];W[gd];B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];W[tt]
+    C[one beat two B+10.5])
+    """))
 
 def test_game_job_no_sgf(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
