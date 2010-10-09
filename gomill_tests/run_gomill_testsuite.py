@@ -19,6 +19,7 @@ test_modules = [
     'competition_scheduler_tests',
     'competition_tests',
     'playoff_tests',
+    'mcts_tuner_tests',
     'ringmaster_tests',
     ]
 
