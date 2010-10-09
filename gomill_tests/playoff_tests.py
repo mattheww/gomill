@@ -203,7 +203,7 @@ def test_play(tc):
         }
     response1.engine_descriptions = {
         't1' : 't1 engine:v1.2.3',
-        't2' : 't2 engine\ntestdescription',
+        't2' : 't2 engine\ntest \xc2\xa3description',
         }
     response1.game_data = job1.game_data
     fx.comp.process_game_result(response1)
@@ -218,7 +218,7 @@ def test_play(tc):
     expected_players = dedent("""\
     player t1: t1 engine:v1.2.3
     player t2: t2 engine
-    testdescription
+    test \xc2\xa3description
     """)
     fx.check_screen_report(expected_report)
     fx.check_short_report(expected_report, expected_players)
