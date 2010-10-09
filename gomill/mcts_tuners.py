@@ -482,16 +482,19 @@ class Mcts_tuner(Competition):
     #  *tree                    -- Tree (root node is persisted)
     #   outstanding_simulations -- map game_number -> Simulation
     #   halt_on_next_failure    -- bool
+    #  *opponent_description    -- string (or None)
 
 
     def set_clean_status(self):
         self.scheduler = competition_schedulers.Simple_scheduler()
         self.tree.new_root()
+        self.opponent_description = None
 
     def get_status(self):
         return {
             'scheduler' : self.scheduler,
             'tree_root' : self.tree.root,
+            'opponent_description' : self.opponent_description,
             }
 
     def set_status(self, status):
@@ -503,6 +506,7 @@ class Mcts_tuner(Competition):
         except ValueError:
             raise CompetitionError(
                 "stored tree is inconsistent with control file")
+        self.opponent_description = status['opponent_description']
 
     def format_parameters(self, optimiser_parameters):
         try:
@@ -591,6 +595,8 @@ class Mcts_tuner(Competition):
 
     def process_game_result(self, response):
         self.halt_on_next_failure = False
+        self.opponent_description = response.engine_descriptions[
+            self.opponent.code]
         game_number = response.game_data
         self.scheduler.fix(game_number)
         # Counting no-result as loss for the candidate
@@ -653,6 +659,9 @@ class Mcts_tuner(Competition):
     def write_short_report(self, out):
         self.write_static_description(out)
         self._write_main_report(out)
+        if self.opponent_description:
+            print >>out, "opponent: %s" % self.opponent_description
+            print >>out
 
     write_full_report = write_short_report
 
