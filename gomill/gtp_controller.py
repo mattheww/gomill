@@ -59,7 +59,7 @@ _remove_response_controls_re = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")
 def is_well_formed_gtp_word(s):
     """Check whether 's' is well-formed as a single GTP word.
 
-    In particular, this rejects unicode objects and strings contaning spaces.
+    In particular, this rejects unicode objects and strings containing spaces.
 
     """
     if not isinstance(s, str):
