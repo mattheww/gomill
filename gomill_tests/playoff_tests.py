@@ -48,8 +48,14 @@ def fake_response(job, winner):
     response = Game_job_result()
     response.game_id = job.game_id
     response.game_result = result
-    response.engine_names = {}
-    response.engine_descriptions = {}
+    response.engine_names = {
+        job.player_b.code : '%s engine:v1.2.3' % job.player_b.code,
+        job.player_w.code : '%s engine' % job.player_w.code,
+        }
+    response.engine_descriptions = {
+        job.player_b.code : '%s engine:v1.2.3' % job.player_b.code,
+        job.player_w.code : '%s engine\ntestdescription' % job.player_w.code,
+        }
     response.game_data = job.game_data
     return response
 
@@ -180,18 +186,33 @@ def test_play(tc):
     response1 = Game_job_result()
     response1.game_id = job1.game_id
     response1.game_result = result1
-    response1.engine_names = {}
-    response1.engine_descriptions = {}
+    response1.engine_names = {
+        't1' : 't1 engine:v1.2.3',
+        't2' : 't2 engine',
+        }
+    response1.engine_descriptions = {
+        't1' : 't1 engine:v1.2.3',
+        't2' : 't2 engine\ntestdescription',
+        }
     response1.game_data = job1.game_data
     fx.comp.process_game_result(response1)
 
-    fx.check_screen_report(dedent("""\
+    expected_report = dedent("""\
     t1 v t2 (1 games)
     board size: 13   komi: 7.5
          wins
     t1      1 100.00%   (black)
     t2      0   0.00%   (white)
-    """))
+    """)
+    expected_players = dedent("""\
+    player t1: t1 engine:v1.2.3
+    player t2: t2 engine
+    testdescription
+    """)
+    fx.check_screen_report(expected_report)
+    fx.check_short_report(
+        "playoff: testcomp\n\n\n%s\n%s\n" %
+        (expected_report, expected_players))
 
     tc.assertListEqual(fx.comp.get_matchup_results('0'), [('0_0', result1)])
 
@@ -301,8 +322,15 @@ def test_matchup_reappearance(tc):
     t1      0   0.00%   (white)
     """)
     check_screen_report(tc, comp1, expected_report_1)
-    check_short_report(tc, comp1,
-                       "playoff: testcomp\n\n\n%s\n\n" % expected_report_1)
+    expected_players = dedent("""\
+    player t1: t1 engine
+    testdescription
+    player t2: t2 engine:v1.2.3
+    """)
+    check_short_report(
+        tc, comp1,
+        "playoff: testcomp\n\n\n%s\n%s\n" %
+        (expected_report_1, expected_players))
 
     comp2 = playoffs.Playoff('testcomp')
     comp2.initialise_from_control_file(config2)
@@ -329,9 +357,10 @@ def test_matchup_reappearance(tc):
     t2      4 100.00%   (black)
     t1      0   0.00%   (white)
     """)
-    check_short_report(tc, comp2,
-                       "playoff: testcomp\n\n\n%s\n%s\n\n" %
-                       (expected_report_2, expected_report_2b))
+    check_short_report(
+        tc, comp2,
+        "playoff: testcomp\n\n\n%s\n%s\n%s\n" %
+        (expected_report_2, expected_report_2b, expected_players))
 
     comp3 = playoffs.Playoff('testcomp')
     comp3.initialise_from_control_file(config3)
@@ -355,6 +384,8 @@ def test_matchup_reappearance(tc):
     t1      0   0.00%   (white)
     """)
     check_screen_report(tc, comp3, expected_report_3)
-    check_short_report(tc, comp3,
-                       "playoff: testcomp\n\n\n%s\n\n" % expected_report_3)
+    check_short_report(
+        tc, comp3,
+        "playoff: testcomp\n\n\n%s\n%s\n" %
+        (expected_report_3, expected_players))
 
