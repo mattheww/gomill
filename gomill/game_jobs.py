@@ -254,15 +254,16 @@ class Game_job(object):
             ]
         if game.result is not None:
             notes.append("Result %s" % game.result.describe(),)
+        elif result is not None:
+            sgf_game.set('result', result)
+        if self.sgf_note is not None:
+            notes.append(self.sgf_note)
+        if game.result is not None:
             for player in [b_player, w_player]:
                 cpu_time = game.result.cpu_times[player]
                 if cpu_time is not None and cpu_time != "?":
                     notes.append("%s cpu time: %ss" %
                                  (player, "%.2f" % cpu_time))
-        elif result is not None:
-            sgf_game.set('result', result)
-        if self.sgf_note is not None:
-            notes.append(self.sgf_note)
         notes += [
             "Black %s %s" % (b_player, game.engine_descriptions[b_player]),
             "White %s %s" % (w_player, game.engine_descriptions[w_player]),
