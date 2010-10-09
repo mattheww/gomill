@@ -454,7 +454,6 @@ class Mcts_tuner(Competition):
     # These are used to instantiate Tree; they don't turn into Mcts_tuner
     # attributes.
     tree_settings = [
-        Setting('dimensions', interpret_positive_int), # FIXME len(parameters)
         Setting('subdivisions', interpret_positive_int),
         Setting('max_depth', interpret_positive_int),
         Setting('exploration_coefficient', interpret_float),
@@ -491,7 +490,8 @@ class Mcts_tuner(Competition):
         except ValueError, e:
             raise ControlFileError(str(e))
         tree_arguments['parameter_formatter'] = self.format_parameters
-        self.tree = Tree(**tree_arguments)
+        self.tree = Tree(dimensions=len(self.parameter_specs),
+                         **tree_arguments)
 
 
     # State attributes (*: in persistent state):
