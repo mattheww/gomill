@@ -20,6 +20,8 @@ def times_100_fn(f):
     return int(100*f)
 
 def simple_make_candidate(*args):
+    if -1 in args:
+        raise ValueError("oops")
     return Player_config("cand " + " ".join(map(str, args)))
 
 def test_parameter_config(tc):
@@ -68,3 +70,13 @@ def test_parameter_config(tc):
     cand = comp.make_candidate('c#1', (0.5, 0.23))
     tc.assertEqual(cand.code, 'c#1')
     tc.assertListEqual(cand.cmd_args, ['cand', '0.5', '23'])
+    with tc.assertRaises(CompetitionError) as ar:
+        comp.make_candidate('c#1', (-1, 0.23))
+    tc.assertTracebackStringEqual(str(ar.exception), dedent("""\
+    error from make_candidate()
+    ValueError: oops
+    traceback (most recent call last):
+    mcts_tuner_tests|simple_make_candidate
+    failing line:
+    raise ValueError("oops")
+    """))
