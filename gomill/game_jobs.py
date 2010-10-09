@@ -103,6 +103,7 @@ class Game_job(object):
       sgf_dirname         -- directory pathname for the SGF file
       void_sgf_dirhname   -- directory pathname for the SGF file for void games
       sgf_event           -- string to show as SGF EVent
+      sgf_note            -- multiline string to put into SGF root comment
       gtp_log_pathname    -- pathname to use for the GTP log
 
     The game_id will be returned in the job result, so you can tell which game
@@ -136,6 +137,7 @@ class Game_job(object):
         self.sgf_dirname = None
         self.void_sgf_dirname = None
         self.sgf_event = None
+        self.sgf_note = None
         self.use_internal_scorer = True
         self.game_data = None
         self.gtp_log_pathname = None
@@ -241,13 +243,11 @@ class Game_job(object):
                            game_end_message=None, result=None):
         b_player = game.players['b']
         w_player = game.players['w']
-
+        notes = []
         sgf_game = game.make_sgf(game_end_message)
         if self.sgf_event is not None:
             sgf_game.set('event', self.sgf_event)
-            notes = ["Event: %s" % self.sgf_event]
-        else:
-            notes = []
+            notes.append("Event: %s" % self.sgf_event)
         notes += [
             "Game id %s" % self.game_id,
             "Date %s" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
@@ -261,6 +261,8 @@ class Game_job(object):
                                  (player, "%.2f" % cpu_time))
         elif result is not None:
             sgf_game.set('result', result)
+        if self.sgf_note is not None:
+            notes.append(self.sgf_note)
         notes += [
             "Black %s %s" % (b_player, game.engine_descriptions[b_player]),
             "White %s %s" % (w_player, game.engine_descriptions[w_player]),

@@ -76,6 +76,7 @@ def test_game_job(tc):
     gj = Game_job_fixture(tc)
     gj.job.game_data = 'gamedata'
     gj.job.sgf_event = "game_job_tests"
+    gj.job.sgf_note = "test sgf_note\non two lines"
     result = gj.job.run()
     # Win by 18 on the board minus 7.5 komi
     tc.assertEqual(result.game_result.sgf_result, "B+10.5")
@@ -93,6 +94,8 @@ def test_game_job(tc):
     Game id gameid
     Date ***
     Result one beat two B+10.5
+    test sgf_note
+    on two lines
     Black one one
     White two two]
     CA[utf-8]DT[2010-10-09]EV[game_job_tests]FF[4]GM[1]KM[7.5]PB[one]PW[two]
