@@ -564,8 +564,9 @@ class Mcts_tuner(Competition):
 
         simulation = Simulation(self.tree)
         simulation.run()
+        optimiser_parameters = simulation.get_parameters()
         candidate = self.make_candidate(
-            "#%d" % game_number, simulation.get_parameters())
+            "#%d" % game_number, optimiser_parameters)
         self.outstanding_simulations[game_number] = simulation
 
         job = game_jobs.Game_job()
@@ -584,6 +585,8 @@ class Mcts_tuner(Competition):
         job.handicap_is_free = (self.handicap_style == 'free')
         job.use_internal_scorer = (self.scorer == 'internal')
         job.sgf_event = self.competition_code
+        job.sgf_note = ("Candidate parameters: %s" %
+                        self.format_parameters(optimiser_parameters))
         return job
 
     def process_game_result(self, response):
