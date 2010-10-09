@@ -16,6 +16,15 @@ from gomill.competitions import (
 from gomill.settings import *
 
 
+class Parameter_config(object):
+    """FIXME."""
+    def __init__(self, *args, **kwargs):
+        # FIXME
+        self.code = args[0]
+        for k, v in kwargs.iteritems():
+            setattr(self, k, v)
+
+
 class Node(object):
     """A MCTS node.
 
@@ -408,6 +417,13 @@ class Mcts_tuner(Competition):
         self.outstanding_simulations = {}
         self.halt_on_next_failure = True
 
+    def control_file_globals(self):
+        result = Competition.control_file_globals(self)
+        result.update({
+            'Parameter' : Parameter_config,
+            })
+        return result
+
     global_settings = [
         Setting('board_size', competitions.interpret_board_size),
         Setting('komi', interpret_float),
@@ -430,16 +446,15 @@ class Mcts_tuner(Competition):
 
     special_settings = [
         Setting('opponent', interpret_any),
-        Setting('convert_optimiser_parameters_to_engine_parameters',
-                interpret_callable),
-        Setting('format_parameters', interpret_callable),
+        # FIXME
+        Setting('parameters', interpret_sequence),
         Setting('make_candidate', interpret_callable),
         ]
 
     # These are used to instantiate Tree; they don't turn into Mcts_tuner
     # attributes.
     tree_settings = [
-        Setting('dimensions', interpret_positive_int),
+        Setting('dimensions', interpret_positive_int), # FIXME len(parameters)
         Setting('subdivisions', interpret_positive_int),
         Setting('max_depth', interpret_positive_int),
         Setting('exploration_coefficient', interpret_float),
@@ -464,9 +479,11 @@ class Mcts_tuner(Competition):
             raise ControlFileError(
                 "opponent: unknown player %s" % specials['opponent'])
 
-        self.translate_parameters_fn = \
-            specials['convert_optimiser_parameters_to_engine_parameters']
-        self.format_parameters_fn = specials['format_parameters']
+        # FIXME needs lots of validation
+        self.parameter_specs = []
+        for parameter_spec in specials['parameters']:
+            self.parameter_specs.append(parameter_spec)
+
         self.candidate_maker_fn = specials['make_candidate']
 
         try:
@@ -509,11 +526,25 @@ class Mcts_tuner(Competition):
         self.opponent_description = status['opponent_description']
 
     def format_parameters(self, optimiser_parameters):
-        try:
-            return self.format_parameters_fn(optimiser_parameters)
-        except Exception:
-            return ("[error from format_parameters()]\n"
-                    "[optimiser parameters %s]" % optimiser_parameters)
+        l = []
+        for pspec, v in zip(self.parameter_specs, optimiser_parameters):
+            try:
+                s = pspec.format % v
+            except Exception:
+                s = "[%s?%s]" % (pspec.code, v)
+            l.append(s)
+        return "; ".join(l)
+
+    def scale_parameters(self, optimiser_parameters):
+        l = []
+        for pspec, v in zip(self.parameter_specs, optimiser_parameters):
+            try:
+                l.append(pspec.scale_fn(v))
+            except Exception:
+                raise CmpetitionError(
+                    "error from scale_fn for %s\n%s" %
+                    (pspec.code, compact_tracebacks.format_traceback(skip=1)))
+        return tuple(l)
 
     def make_candidate(self, player_code, optimiser_parameters):
         """Make a player using the specified optimiser parameters.
@@ -521,15 +552,9 @@ class Mcts_tuner(Competition):
         Returns a game_jobs.Player.
 
         """
+        engine_parameters = self.scale_parameters(optimiser_parameters)
         try:
-            engine_parameters = \
-                self.translate_parameters_fn(optimiser_parameters)
-        except Exception:
-            raise CompetitionError(
-                "error from convert_optimiser_parameters_to_engine_parameters"
-                "\n%s" % compact_tracebacks.format_traceback(skip=1))
-        try:
-            candidate_config = self.candidate_maker_fn(engine_parameters)
+            candidate_config = self.candidate_maker_fn(*engine_parameters)
         except Exception:
             raise CompetitionError(
                 "error from make_candidate()\n%s" %
