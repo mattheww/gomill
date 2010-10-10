@@ -153,6 +153,12 @@ def test_log_scale(tc):
     lsi = mcts_tuners.Log_scale_fn(1, 100, integer=True)
     tc.assertAlmostEqual(lsi(0.1), 2)
 
+    lsn = mcts_tuners.Log_scale_fn(-2, -200)
+    tc.assertAlmostEqual(lsn(0.5), -20)
+
+    tc.assertRaises(ValueError, mcts_tuners.Log_scale_fn, 1, -2)
+
+
 def test_explicit_scale(tc):
     tc.assertRaises(ValueError, mcts_tuners.Explicit_scale_fn, [])
 

@@ -469,14 +469,12 @@ class Log_scale_fn(Scale_fn):
     def __init__(self, lower_bound, upper_bound, integer=False):
         if lower_bound == 0.0:
             raise ValueError("lower bound is zero")
-        lu = log(upper_bound)
-        ll = log(lower_bound)
-        self.a = lu - ll
-        self.b = ll
+        self.rate = log(upper_bound / lower_bound)
+        self.lower_bound = lower_bound
         self.integer = bool(integer)
 
     def __call__(self, f):
-        result = exp(self.a*f + self.b)
+        result = exp(self.rate*f) * self.lower_bound
         if self.integer:
             result = int(result+.5)
         return result
