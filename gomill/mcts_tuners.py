@@ -413,6 +413,28 @@ class Parameter_spec(object):
 
     """
 
+class Scale_fn(object):
+    """Callable implementing a scale function.
+
+    Scale_fn classes are used to provide a convenient way to describe scale
+    functions in the control file (LINEAR, LOG, ...).
+
+    """
+
+class Linear_scale_fn(Scale_fn):
+    """Linear scale function.
+
+    Instantiate with lower bound, upper bound.
+
+    """
+    def __init__(self, lower_bound, upper_bound):
+        self.lower_bound = float(lower_bound)
+        self.upper_bound = float(upper_bound)
+        self.range = float(upper_bound - lower_bound)
+
+    def __call__(self, f):
+        return (f * self.range) + self.lower_bound
+
 
 class Mcts_tuner(Competition):
     """A Competition for parameter tuning using the Monte-carlo tree search.
@@ -429,6 +451,7 @@ class Mcts_tuner(Competition):
         result = Competition.control_file_globals(self)
         result.update({
             'Parameter' : Parameter_config,
+            'LINEAR' : Linear_scale_fn,
             })
         return result
 

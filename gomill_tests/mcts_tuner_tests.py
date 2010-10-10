@@ -80,3 +80,10 @@ def test_parameter_config(tc):
     failing line:
     raise ValueError("oops")
     """))
+
+def test_linear_scale(tc):
+    ls = mcts_tuners.Linear_scale_fn(20.0, 30.0)
+    tc.assertEqual(ls(0.0), 20.0)
+    tc.assertEqual(ls(1.0), 30.0)
+    tc.assertEqual(ls(0.5), 25.0)
+
