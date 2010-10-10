@@ -256,12 +256,11 @@ class Setting(object):
         except ValueError, e:
             raise ValueError("'%s': %s" % (self.name, e))
 
-def load_settings(settings, config, strict=False):
+def load_settings(settings, config):
     """Read settings values from configuration.
 
     settings -- list of Settings
     config   -- dict containing the values to be read
-    strict   -- bool
 
     Returns a dict: setting name -> interpreted value
 
@@ -272,16 +271,7 @@ def load_settings(settings, config, strict=False):
 
     Raises ValueError with a description if a value can't be interpreted.
 
-    If strict is true, raises ValueError if there's an entry in config which
-    isn't the name of a known setting.
-
     """
-    if strict:
-        permitted = set(setting.name for setting in settings)
-        for key in config:
-            if key not in permitted:
-                raise ValueError("unknown setting '%s'" % key)
-
     result = {}
     for setting in settings:
         try:

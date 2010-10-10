@@ -28,12 +28,6 @@ class ControlFileError(StandardError):
     """Error interpreting the control file."""
 
 
-class Player_config(object):
-    """Player description for use in control files."""
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-
 class Control_file_token(object):
     def __init__(self, name):
         self.name = name
@@ -55,6 +49,14 @@ _player_settings = [
     Setting('startup_gtp_commands', interpret_sequence, default=list),
     Setting('discard_stderr', interpret_bool, default=False),
     ]
+
+class Player_config(Quiet_config):
+    """Player description for use in control files."""
+    # positional or keyword
+    positional_arguments = ('command',)
+    # keyword-only
+    keyword_arguments = tuple(setting.name for setting in _player_settings)
+
 
 class Competition(object):
     """A resumable processing job based around playing many GTP games.
@@ -224,16 +226,8 @@ class Competition(object):
         Returns an incomplete game_jobs.Player (see get_game() for details).
 
         """
-        if len(player_config.args) > 1:
-            raise ControlFileError("too many arguments")
-        if player_config.args:
-            if 'command' in player_config.kwargs:
-                raise ControlFileError(
-                    "command specified both implicitly and explicitly")
-            player_config.kwargs['command'] = player_config.args[0]
-
-        config = load_settings(_player_settings, player_config.kwargs,
-                               strict=True)
+        arguments = player_config.resolve_arguments()
+        config = load_settings(_player_settings, arguments)
 
         player = game_jobs.Player()
         player.code = code

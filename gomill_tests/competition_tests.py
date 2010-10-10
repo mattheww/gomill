@@ -12,23 +12,27 @@ def make_tests(suite):
 
 def test_player_config(tc):
     comp = competitions.Competition('test')
-    player = comp.game_jobs_player_from_config('pp', Player_config("cmd"))
-    tc.assertEqual(player.code, 'pp')
-    tc.assertEqual(player.cmd_args, ["cmd"])
+    p1 = comp.game_jobs_player_from_config('pp', Player_config("cmd"))
+    tc.assertEqual(p1.code, 'pp')
+    tc.assertEqual(p1.cmd_args, ["cmd"])
+    p2 = comp.game_jobs_player_from_config('pp', Player_config(command="cmd"))
+    tc.assertEqual(p2.code, 'pp')
+    tc.assertEqual(p2.cmd_args, ["cmd"])
+
     tc.assertRaisesRegexp(
         Exception, "'command' not specified",
         comp.game_jobs_player_from_config, 'pp',
         Player_config())
     tc.assertRaisesRegexp(
-        Exception, "too many arguments",
+        Exception, "too many positional arguments",
         comp.game_jobs_player_from_config, 'pp',
         Player_config("cmd", "xxx"))
     tc.assertRaisesRegexp(
-        Exception, "command specified both implicitly and explicitly",
+        Exception, "command specified as both positional and keyword argument",
         comp.game_jobs_player_from_config, 'pp',
         Player_config("cmd", command="cmd2"))
     tc.assertRaisesRegexp(
-        Exception, "unknown setting 'unexpected'",
+        Exception, "unknown argument 'unexpected'",
         comp.game_jobs_player_from_config, 'pp',
         Player_config("cmd", unexpected=3))
 
