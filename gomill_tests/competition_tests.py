@@ -3,14 +3,36 @@
 import os
 
 from gomill import competitions
+from gomill.competitions import Player_config
 
 from gomill_tests import gomill_test_support
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
+def test_player_config(tc):
+    comp = competitions.Competition('test')
+    player = comp.game_jobs_player_from_config('pp', Player_config("cmd"))
+    tc.assertEqual(player.code, 'pp')
+    tc.assertEqual(player.cmd_args, ["cmd"])
+    tc.assertRaisesRegexp(
+        Exception, "'command' not specified",
+        comp.game_jobs_player_from_config, 'pp',
+        Player_config())
+    tc.assertRaisesRegexp(
+        Exception, "too many arguments",
+        comp.game_jobs_player_from_config, 'pp',
+        Player_config("cmd", "xxx"))
+    tc.assertRaisesRegexp(
+        Exception, "command specified both implicitly and explicitly",
+        comp.game_jobs_player_from_config, 'pp',
+        Player_config("cmd", command="cmd2"))
+    tc.assertRaisesRegexp(
+        Exception, "unknown setting 'unexpected'",
+        comp.game_jobs_player_from_config, 'pp',
+        Player_config("cmd", unexpected=3))
+
 def test_player_command(tc):
-    Player_config = competitions.Player_config
     comp = competitions.Competition('test')
     config = {
         'players' : {
@@ -28,7 +50,6 @@ def test_player_command(tc):
                    [os.path.expanduser("~") + "/test", "foo"])
 
 def test_player_is_reliable_scorer(tc):
-    Player_config = competitions.Player_config
     comp = competitions.Competition('test')
     config = {
         'players' : {
@@ -43,7 +64,6 @@ def test_player_is_reliable_scorer(tc):
     tc.assertTrue(comp.players['t3'].is_reliable_scorer)
 
 def test_player_cwd(tc):
-    Player_config = competitions.Player_config
     comp = competitions.Competition('test')
     comp.set_base_directory("/base")
     config = {
@@ -63,7 +83,6 @@ def test_player_cwd(tc):
     tc.assertEqual(comp.players['t5'].cwd, os.path.expanduser("~") + "/tmp/sub")
 
 def test_player_stderr(tc):
-    Player_config = competitions.Player_config
     comp = competitions.Competition('test')
     config = {
         'players' : {
@@ -78,7 +97,6 @@ def test_player_stderr(tc):
     tc.assertIs(comp.players['t3'].discard_stderr, False)
 
 def test_player_startup_gtp_commands(tc):
-    Player_config = competitions.Player_config
     comp = competitions.Competition('test')
     config = {
         'players' : {
