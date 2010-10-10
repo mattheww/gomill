@@ -545,7 +545,7 @@ class Mcts_tuner(Competition):
         Setting('code', interpret_identifier),
         Setting('scale', interpret_callable),
         Setting('split', interpret_positive_int),
-        Setting('format', interpret_8bit_string),
+        Setting('format', interpret_8bit_string, default=None),
         ]
 
     def parameter_spec_from_config(self, parameter_config):
@@ -575,6 +575,13 @@ class Mcts_tuner(Competition):
         pspec = Parameter_spec()
         for name, value in interpreted.iteritems():
             setattr(pspec, name, value)
+        if pspec.format is None:
+            pspec.format = pspec.code + ":%s"
+        else:
+            try:
+                pspec.format % 0.5
+            except Exception:
+                raise ControlFileError("'format': invalid format string")
         return pspec
 
     def initialise_from_control_file(self, config):

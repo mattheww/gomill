@@ -80,6 +80,25 @@ def test_parameter_config(tc):
     return int(100*f)
     """))
 
+    tc.assertRaisesRegexp(
+        ValueError, "'code' not specified",
+        comp.parameter_spec_from_config, Parameter_config())
+    tc.assertRaisesRegexp(
+        ControlFileError, "scale specified both implicitly and explicitly",
+        comp.parameter_spec_from_config,
+        Parameter_config('pa1', float, scale=float, split=2, format="%s"))
+    tc.assertRaisesRegexp(
+        ValueError, "'scale': invalid callable",
+        comp.parameter_spec_from_config,
+        Parameter_config('pa1', scale=None, split=2, format="%s"))
+    pspec = comp.parameter_spec_from_config(
+        Parameter_config('pa1', scale=float, split=2))
+    tc.assertRaisesRegexp(
+        ControlFileError, "'format': invalid format string",
+        comp.parameter_spec_from_config,
+        Parameter_config('pa1', scale=float, split=2, format="nopct"))
+
+
 def test_make_candidate(tc):
     comp = mcts_tuners.Mcts_tuner('mctstest')
     config = default_config()
