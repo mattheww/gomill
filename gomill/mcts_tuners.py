@@ -479,11 +479,31 @@ class Log_scale_fn(Scale_fn):
             result = int(result+.5)
         return result
 
+class Explicit_scale_fn(Scale_fn):
+    """Scale function that returns elements from a list.
+
+    Instantiate with the list of values to use.
+
+    Normally use this with 'split' equal to the length of the list
+    (more generally, split**max_depth equal to the length of the list).
+
+    """
+    def __init__(self, values):
+        self.values = tuple(values)
+        self.n = len(values)
+
+    def __call__(self, f):
+        return self.values[int(self.n * f)]
+
+
 class LINEAR(Config_proxy):
     underlying = Linear_scale_fn
 
 class LOG(Config_proxy):
     underlying = Log_scale_fn
+
+class EXPLICIT(Config_proxy):
+    underlying = Explicit_scale_fn
 
 
 class Mcts_tuner(Competition):
@@ -503,6 +523,7 @@ class Mcts_tuner(Competition):
             'Parameter' : Parameter_config,
             'LINEAR'    : LINEAR,
             'LOG'       : LOG,
+            'EXPLICIT'  : EXPLICIT,
             })
         return result
 

@@ -153,6 +153,23 @@ def test_log_scale(tc):
     lsi = mcts_tuners.Log_scale_fn(1, 100, integer=True)
     tc.assertAlmostEqual(lsi(0.1), 2)
 
+def test_explicit_scale(tc):
+    pvalues = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
+
+    comp = mcts_tuners.Mcts_tuner('mctstest')
+    config = default_config()
+    config['parameters'] = [
+        Parameter_config(
+            'range',
+            scale = mcts_tuners.EXPLICIT(pvalues),
+            split = len(pvalues))]
+    comp.initialise_from_control_file(config)
+    candidate_sees = [
+        comp.scale_parameters(comp.tree.parameters_for_path([i]))[0]
+        for i, _ in enumerate(pvalues)
+        ]
+    tc.assertEqual(candidate_sees, pvalues)
+
 def test_integer_scale_example(tc):
     comp = mcts_tuners.Mcts_tuner('mctstest')
     config = default_config()
