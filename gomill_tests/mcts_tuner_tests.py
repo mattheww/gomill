@@ -24,9 +24,8 @@ def simple_make_candidate(*args):
         raise ValueError("oops")
     return Player_config("cand " + " ".join(map(str, args)))
 
-def test_parameter_config(tc):
-    comp = mcts_tuners.Mcts_tuner('mctstest')
-    config = {
+def default_config():
+    return {
         'board_size' : 13,
         'komi' : 7.5,
         'players' : {
@@ -53,9 +52,17 @@ def test_parameter_config(tc):
         'max_depth' : 1,
         'subdivisions' : 2,
         }
+
+def test_parameter_config(tc):
+    comp = mcts_tuners.Mcts_tuner('mctstest')
+    config = default_config()
     comp.initialise_from_control_file(config)
-    tc.assertEqual(comp.format_parameters((0.5, 23)), "rsn@ 0.50; iwins 23")
-    tc.assertEqual(comp.format_parameters(('x', 3)), "[resign_at?x]; iwins 3")
+    tc.assertEqual(comp.format_engine_parameters((0.5, 23)),
+                   "rsn@ 0.50; iwins 23")
+    tc.assertEqual(comp.format_engine_parameters(('x', 23)),
+                   "[resign_at?x]; iwins 23")
+    tc.assertEqual(comp.format_optimiser_parameters((0.5, 0.23)),
+                   "rsn@ 0.50; iwins 23")
     tc.assertEqual(comp.scale_parameters((0.5, 0.23)), (0.5, 23))
     with tc.assertRaises(CompetitionError) as ar:
         comp.scale_parameters((0.5, None))
@@ -67,11 +74,16 @@ def test_parameter_config(tc):
     failing line:
     return int(100*f)
     """))
-    cand = comp.make_candidate('c#1', (0.5, 0.23))
+
+def test_make_candidate(tc):
+    comp = mcts_tuners.Mcts_tuner('mctstest')
+    config = default_config()
+    comp.initialise_from_control_file(config)
+    cand = comp.make_candidate('c#1', (0.5, 23))
     tc.assertEqual(cand.code, 'c#1')
     tc.assertListEqual(cand.cmd_args, ['cand', '0.5', '23'])
     with tc.assertRaises(CompetitionError) as ar:
-        comp.make_candidate('c#1', (-1, 0.23))
+        comp.make_candidate('c#1', (-1, 23))
     tc.assertTracebackStringEqual(str(ar.exception), dedent("""\
     error from make_candidate()
     ValueError: oops
