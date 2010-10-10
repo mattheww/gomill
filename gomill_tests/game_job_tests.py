@@ -139,8 +139,7 @@ def test_game_job_channel_error(tc):
         gj.job.run()
     tc.assertEqual(str(ar.exception),
                    "aborting game due to error:\n"
-                   "transport error sending 'genmove w' "
-                   "to player two:\n"
+                   "transport error sending 'genmove w' to player two:\n"
                    "forced failure for send_command_line")
     tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.void/gjtest.sgf')
     tc.assertEqual(gj.job._mkdir_pathname, '/sgf/test.void')
@@ -156,6 +155,26 @@ def test_game_job_late_errors(tc):
     tc.assertEqual(result.game_result.sgf_result, "B+10.5")
     tc.assertEqual(result.warnings,
                    ["error closing player two:\nforced failure for close"])
+
+def test_game_job_late_error_from_void_game(tc):
+    def fail_genmove_and_close(channel):
+        channel.fail_command = 'genmove'
+        channel.fail_close = True
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    fx.register_init_callback('fail_genmove_and_close', fail_genmove_and_close)
+    gj = Game_job_fixture(tc)
+    gj.job.player_w.cmd_args.append('init=fail_genmove_and_close')
+    with tc.assertRaises(JobFailed) as ar:
+        gj.job.run()
+    tc.assertMultiLineEqual(
+        str(ar.exception),
+        "aborting game due to error:\n"
+        "transport error sending 'genmove w' to player two:\n"
+        "forced failure for send_command_line\n"
+        "also:\n"
+        "error closing player two:\n"
+        "forced failure for close")
+    tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.void/gjtest.sgf')
 
 def test_game_job_stderr_cwd_env(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
