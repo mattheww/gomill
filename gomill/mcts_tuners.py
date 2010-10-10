@@ -490,13 +490,9 @@ class Log_scale_fn(Scale_fn):
 
 class LINEAR(Config_proxy):
     underlying = Linear_scale_fn
-    positional_arguments = ('lower_bound', 'upper_bound')
-    keyword_arguments = ('integer',)
 
 class LOG(Config_proxy):
     underlying = Log_scale_fn
-    positional_arguments = ('lower_bound', 'upper_bound')
-    keyword_arguments = ('integer',)
 
 
 class Mcts_tuner(Competition):

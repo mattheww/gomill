@@ -346,13 +346,11 @@ class Quiet_config(object):
             result[name] = val
         return result
 
-class Config_proxy(Quiet_config):
+class Config_proxy(object):
     """Class proxy for use in control files.
 
-    To use this, define a subclass, giving it the following class attributes:
-      underlying           -- the underlying class
-      positional_arguments -- as for Quiet_config
-      keyword_arguments    -- as for Quiet_config
+    To use this, define a subclass, giving it the following class attribute:
+      underlying -- the underlying class
 
     Then in the control file, the proxy can be used anywhere which will be
     interpreted using the settings mechanism. An instance of the underlying
@@ -363,11 +361,13 @@ class Config_proxy(Quiet_config):
     from load_settings().
 
     """
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
 
     def resolve(self):
         try:
-            kwargs = self.resolve_arguments()
-            return self.underlying(**kwargs)
+            return self.underlying(*self.args, **self.kwargs)
         except Exception, e:
             raise ValueError("invalid parameters for %s:\n%s" %
                              (self.__class__.__name__, e))
