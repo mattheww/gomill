@@ -105,7 +105,7 @@ def test_bad_parameter_config(tc):
             split = 10))
     with tc.assertRaises(ControlFileError) as ar:
         comp.initialise_from_control_file(config)
-    tc.assertTracebackStringEqual(str(ar.exception), dedent("""\
+    tc.assertMultiLineEqual(str(ar.exception), dedent("""\
     parameter bad: 'scale': invalid parameters for LINEAR:
     invalid literal for float(): a"""))
 
@@ -152,6 +152,22 @@ def test_log_scale(tc):
 
     lsi = mcts_tuners.Log_scale_fn(1, 100, integer=True)
     tc.assertAlmostEqual(lsi(0.1), 2)
+
+def test_integer_scale_example(tc):
+    comp = mcts_tuners.Mcts_tuner('mctstest')
+    config = default_config()
+    config['parameters'] = [
+        Parameter_config(
+            'range',
+            scale = mcts_tuners.LINEAR(-.5, 10.5, integer=True),
+            split = 11)]
+    comp.initialise_from_control_file(config)
+    candidate_sees = [
+        comp.scale_parameters(comp.tree.parameters_for_path([i]))[0]
+        for i in xrange(11)
+        ]
+    tc.assertEqual(candidate_sees, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+
 
 def test_tree(tc):
     tree1 = mcts_tuners.Tree(
