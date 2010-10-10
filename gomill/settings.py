@@ -3,7 +3,8 @@
 import re
 import shlex
 
-__all__ = ['Setting', 'allow_none', 'load_settings', 'Quiet_config',
+__all__ = ['Setting', 'allow_none', 'load_settings',
+           'Quiet_config', 'Config_proxy',
            'interpret_any', 'interpret_bool',
            'interpret_int', 'interpret_positive_int', 'interpret_float',
            'interpret_8bit_string', 'interpret_identifier',
@@ -266,6 +267,8 @@ def load_settings(settings, config):
 
     Applies defaults.
 
+    Resolves Config_proxy objects (see below)
+
     Raises ValueError if a setting which has no default isn't present in
     'config'.
 
@@ -285,6 +288,11 @@ def load_settings(settings, config):
             else:
                 raise ValueError("'%s' not specified" % setting.name)
         else:
+            if isinstance(v, Config_proxy):
+                try:
+                    v = v.resolve()
+                except ValueError, e:
+                    raise ValueError("'%s': %s" % (setting.name, e))
             # May propagate ValueError
             v = setting.interpret(v)
         result[setting.name] = v
@@ -337,4 +345,30 @@ class Quiet_config(object):
                     name)
             result[name] = val
         return result
+
+class Config_proxy(Quiet_config):
+    """Class proxy for use in control files.
+
+    To use this, define a subclass, giving it the following class attributes:
+      underlying           -- the underlying class
+      positional_arguments -- as for Quiet_config
+      keyword_arguments    -- as for Quiet_config
+
+    Then in the control file, the proxy can be used anywhere which will be
+    interpreted using the settings mechanism. An instance of the underlying
+    class will be created by load_settings and then passed to the interpret
+    function as usual.
+
+    Any errors from the underlying class's __init__ will be raised as ValueError
+    from load_settings().
+
+    """
+
+    def resolve(self):
+        try:
+            kwargs = self.resolve_arguments()
+            return self.underlying(**kwargs)
+        except Exception, e:
+            raise ValueError("invalid parameters for %s:\n%s" %
+                             (self.__class__.__name__, e))
 

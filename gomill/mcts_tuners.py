@@ -455,13 +455,10 @@ class Linear_scale_fn(Scale_fn):
 
     """
     def __init__(self, lower_bound, upper_bound, integer=False):
-        try:
-            self.lower_bound = float(lower_bound)
-            self.upper_bound = float(upper_bound)
-            self.range = float(upper_bound - lower_bound)
-            self.integer = bool(integer)
-        except Exception:
-            raise ControlFileError("invalid parameters for LINEAR")
+        self.lower_bound = float(lower_bound)
+        self.upper_bound = float(upper_bound)
+        self.range = float(upper_bound - lower_bound)
+        self.integer = bool(integer)
 
     def __call__(self, f):
         result = (f * self.range) + self.lower_bound
@@ -479,20 +476,27 @@ class Log_scale_fn(Scale_fn):
 
     """
     def __init__(self, lower_bound, upper_bound, integer=False):
-        try:
-            lu = log(upper_bound)
-            ll = log(lower_bound)
-            self.a = lu - ll
-            self.b = ll
-            self.integer = bool(integer)
-        except Exception:
-            raise ControlFileError("invalid parameters for LOG")
+        lu = log(upper_bound)
+        ll = log(lower_bound)
+        self.a = lu - ll
+        self.b = ll
+        self.integer = bool(integer)
 
     def __call__(self, f):
         result = exp(self.a*f + self.b)
         if self.integer:
             result = int(result+.5)
         return result
+
+class LINEAR(Config_proxy):
+    underlying = Linear_scale_fn
+    positional_arguments = ('lower_bound', 'upper_bound')
+    keyword_arguments = ('integer',)
+
+class LOG(Config_proxy):
+    underlying = Log_scale_fn
+    positional_arguments = ('lower_bound', 'upper_bound')
+    keyword_arguments = ('integer',)
 
 
 class Mcts_tuner(Competition):
@@ -510,8 +514,8 @@ class Mcts_tuner(Competition):
         result = Competition.control_file_globals(self)
         result.update({
             'Parameter' : Parameter_config,
-            'LINEAR'    : Linear_scale_fn,
-            'LOG'       : Log_scale_fn,
+            'LINEAR'    : LINEAR,
+            'LOG'       : LOG,
             })
         return result
 
