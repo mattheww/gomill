@@ -417,16 +417,6 @@ class Parameter_config(Quiet_config):
     keyword_arguments = tuple(setting.name for setting in parameter_settings
                               if setting.name != 'code')
 
-    def get_code(self):
-        """Retrieve the 'code' argument, if possible.
-
-        Returns None if there isn't one.
-
-        """
-        if self.args:
-            return self.args[0]
-        return self.kwargs.get('code')
-
 class Parameter_spec(object):
     """Internal description of a parameter spec from the configuration file.
 
@@ -601,7 +591,7 @@ class Mcts_tuner(Competition):
             try:
                 pspec = self.parameter_spec_from_config(parameter_spec)
             except StandardError, e:
-                code = parameter_spec.get_code()
+                code = parameter_spec.get_key()
                 if code is None:
                     code = i
                 raise ControlFileError("parameter %s: %s" % (code, e))

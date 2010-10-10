@@ -373,3 +373,18 @@ class Quiet_config(object):
             result[name] = val
         return result
 
+    def get_key(self):
+        """Retrieve the first positional argument, if possible.
+
+        Does the right thing if it was specified as a keyword argument.
+
+        Returns None if there isn't one.
+
+        """
+        try:
+            if self.args:
+                return self.args[0]
+            return self.kwargs[self.positional_arguments[0]]
+        except LookupError:
+            return None
+
