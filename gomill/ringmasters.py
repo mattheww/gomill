@@ -577,6 +577,8 @@ class Ringmaster(object):
         self.log("response from game %s" % response.game_id)
         for warning in response.warnings:
             self.warn(warning)
+        for log_entry in response.log_entries:
+            self.log(log_entry)
         result_description = self.competition.process_game_result(response)
         del self.games_in_progress[response.game_id]
         self.write_status()

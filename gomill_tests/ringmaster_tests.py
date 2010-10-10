@@ -163,6 +163,7 @@ def test_process_response(tc):
     tc.assertEqual(fx.ringmaster.competition.get_matchup_results('0'), [])
     response = fake_response(job, 'w')
     response.warnings = ['warningtest']
+    response.log_entries = ['logtest']
     fx.ringmaster.process_response(response)
     tc.assertEqual(fx.ringmaster.games_in_progress, {})
     tc.assertListEqual(
@@ -176,7 +177,8 @@ def test_process_response(tc):
     tc.assertEqual(fx.get_log(),
                    "starting game 0_000: p1 (b) vs p2 (w)\n"
                    "response from game 0_000\n"
-                   "warningtest\n")
+                   "warningtest\n"
+                   "logtest\n")
     tc.assertEqual(fx.get_history(), "")
 
 

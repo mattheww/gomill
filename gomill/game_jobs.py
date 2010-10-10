@@ -71,6 +71,7 @@ class Game_job_result(object):
       game_data             -- arbitrary (copied from the Game_job)
       game_result           -- gtp_games.Game_result
       warnings              -- list of strings
+      log_entries           -- list of strings
       engine_names          -- map player code -> string
       engine_descriptions   -- map player code -> string
 
@@ -187,6 +188,7 @@ class Game_job(object):
 
     def _run(self):
         warnings = []
+        log_entries = []
         game = gtp_games.Game(self.board_size, self.komi, self.move_limit)
         game.set_player_code('b', self.player_b.code)
         game.set_player_code('w', self.player_w.code)
@@ -234,6 +236,7 @@ class Game_job(object):
         response.game_id = self.game_id
         response.game_result = game.result
         response.warnings = warnings
+        response.log_entries = log_entries
         response.engine_names = game.engine_names
         response.engine_descriptions = game.engine_descriptions
         response.game_data = self.game_data

@@ -25,5 +25,6 @@ def fake_response(job, winner):
         }
     response.game_data = job.game_data
     response.warnings = []
+    response.log_entries = []
     return response
 
