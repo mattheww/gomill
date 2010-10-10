@@ -234,11 +234,12 @@ def test_tree(tc):
 
 
 
-
-def test_tree_run(tc):
+def _disabled_test_tree_run(tc):
+    # Something like this test can be useful when changing the tree code,
+    # if you want to verify that you're not changing behaviour.
 
     tree = mcts_tuners.Tree(
-        splits=[3, 3],
+        splits=[2, 3],
         max_depth=5,
         exploration_coefficient=0.5,
         initial_visits=10,
@@ -253,9 +254,9 @@ def test_tree_run(tc):
         simulation.run()
         simulation.update_stats(candidate_won=random.randrange(2))
     tc.assertEqual(simulation.get_parameters(),
-                   [0.30658436213991769, 0.1707818930041152])
-    tc.assertEqual(tree.node_count, 3223)
-    tc.assertEqual(simulation.choice_path, [0, 7, 7, 1, 8])
+                   [0.0625, 0.42592592592592593])
+    tc.assertEqual(tree.node_count, 1597)
+    tc.assertEqual(simulation.choice_path, [1, 0, 2])
     tc.assertEqual(tree.retrieve_best_parameters(),
-                   [0.59876543209876543, 0.8662551440329217])
+                   [0.609375, 0.68930041152263366])
 
