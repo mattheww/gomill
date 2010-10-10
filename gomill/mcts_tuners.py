@@ -408,6 +408,16 @@ class Parameter_config(object):
         self.args = args
         self.kwargs = kwargs
 
+    def get_code(self):
+        """Retrieve the 'code' argument, if possible.
+
+        Returns None if there isn't one.
+
+        """
+        if self.args:
+            return self.args[0]
+        return self.kwargs.get('code')
+
 class Parameter_spec(object):
     """Internal description of a parameter spec from the configuration file.
 
@@ -591,7 +601,10 @@ class Mcts_tuner(Competition):
             try:
                 pspec = self.parameter_spec_from_config(parameter_spec)
             except StandardError, e:
-                raise ControlFileError("parameter %d: %s" % (i, e))
+                code = parameter_spec.get_code()
+                if code is None:
+                    code = i
+                raise ControlFileError("parameter %s: %s" % (code, e))
             self.parameter_specs.append(pspec)
 
         self.candidate_maker_fn = specials['make_candidate']
