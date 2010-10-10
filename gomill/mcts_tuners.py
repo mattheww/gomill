@@ -599,6 +599,7 @@ class Mcts_tuner(Competition):
         self.parameter_specs = []
         if not specials['parameters']:
             raise ControlFileError("parameters: empty list")
+        seen_codes = set()
         for i, parameter_spec in enumerate(specials['parameters']):
             try:
                 pspec = self.parameter_spec_from_config(parameter_spec)
@@ -607,6 +608,10 @@ class Mcts_tuner(Competition):
                 if code is None:
                     code = i
                 raise ControlFileError("parameter %s: %s" % (code, e))
+            if pspec.code in seen_codes:
+                raise ControlFileError(
+                    "duplicate parameter code: %s" % pspec.code)
+            seen_codes.add(pspec.code)
             self.parameter_specs.append(pspec)
 
         self.candidate_maker_fn = specials['make_candidate']
