@@ -2,6 +2,7 @@
 
 from __future__ import division
 
+import operator
 import random
 from heapq import nlargest
 from math import exp, log, sqrt
@@ -60,8 +61,8 @@ class Tree(object):
     """A tree of MCTS nodes representing N-dimensional parameter space.
 
     Parameters (available as read-only attributes):
-      dimensions       -- number of dimensions in the parameter space
-      subdivisions     -- subdivisions of each dimension at each generation
+      splits           -- subdivisions of each dimension
+                          (list of integers, one per dimension)
       max_depth        -- number of generations below the root
       initial_visits   -- visit count for newly-created nodes
       initial_wins     -- win count for newly-created nodes
@@ -69,6 +70,7 @@ class Tree(object):
 
     Public attributes:
       root             -- Node
+      dimensions       -- number of dimensions in the parameter space
 
     All changing state is in the tree of Node objects started at 'root'.
 
@@ -76,21 +78,23 @@ class Tree(object):
     'dimensions', whose values are floats in the range 0.0..1.0 representing
     a point in this space.
 
-    Each node in the tree represents an N-cube of parameter space. Each
-    expanded node has subdivisions**dimension children, tiling its cube.
+    Each node in the tree represents an N-cuboid of parameter space. Each
+    expanded node has prod(splits) children, tiling its cuboid.
+
+    (The splits are the same in each generation.)
 
     Instantiate with:
       all parameters listed above
       parameter_formatter -- function optimiser_parameters -> string
 
     """
-    def __init__(self, dimensions, subdivisions, max_depth,
+    def __init__(self, splits, max_depth,
                  exploration_coefficient,
                  initial_visits, initial_wins,
                  parameter_formatter):
-        self.dimensions = dimensions
-        self.subdivisions = subdivisions
-        self.branching_factor = subdivisions ** dimensions
+        self.splits = splits
+        self.dimensions = len(splits)
+        self.branching_factor = reduce(operator.mul, splits)
         self.max_depth = max_depth
         self.exploration_coefficient = exploration_coefficient
         self.initial_visits = initial_visits
@@ -101,15 +105,16 @@ class Tree(object):
 
         # map child index -> coordinate vector
         # coordinate vector -- tuple length 'dimensions' with values in
-        #                      range(subdivisions)
+        #                      range(splits[d])
+        # The first dimension changes most slowly.
         self._cube_coordinates = []
         for child_index in xrange(self.branching_factor):
             v = []
             i = child_index
-            for d in range(dimensions):
-                i, coord = divmod(i, subdivisions)
+            for split in reversed(splits):
+                i, coord = divmod(i, split)
                 v.append(coord)
-            v.reverse() # so that first coordinate changes most slowly
+            v.reverse()
             self._cube_coordinates.append(tuple(v))
 
     def new_root(self):
@@ -168,13 +173,13 @@ class Tree(object):
 
         """
         lo = [0.0] * self.dimensions
-        breadth = 1.0
+        breadths = [1.0] * self.dimensions
         for child_index in choice_path:
             cube_pos = self._cube_coordinates[child_index]
-            breadth /= self.subdivisions
+            breadths = [f/split for (f, split) in zip(breadths, self.splits)]
             for d, coord in enumerate(cube_pos):
-                lo[d] += breadth * coord
-        return [f + .5*breadth for f in lo]
+                lo[d] += breadths[d] * coord
+        return [f + .5*breadth for (f, breadth) in zip(lo, breadths)]
 
     def retrieve_best_parameters(self):
         """Find the parameters with the most promising simulation results.
@@ -500,6 +505,7 @@ class Mcts_tuner(Competition):
     # These are used to instantiate Tree; they don't turn into Mcts_tuner
     # attributes.
     tree_settings = [
+        # FIXME
         Setting('subdivisions', interpret_positive_int),
         Setting('max_depth', interpret_positive_int),
         Setting('exploration_coefficient', interpret_float),
@@ -570,9 +576,12 @@ class Mcts_tuner(Competition):
             tree_arguments = load_settings(self.tree_settings, config)
         except ValueError, e:
             raise ControlFileError(str(e))
+        # FIXME [[
+        tree_arguments['splits'] = [tree_arguments['subdivisions']] * len(self.parameter_specs)
+        del tree_arguments['subdivisions']
+        #]]
         tree_arguments['parameter_formatter'] = self.format_optimiser_parameters
-        self.tree = Tree(dimensions=len(self.parameter_specs),
-                         **tree_arguments)
+        self.tree = Tree(**tree_arguments)
 
 
     # State attributes (*: in persistent state):
