@@ -144,6 +144,7 @@ def test_process_response(tc):
     fx = Ringmaster_fixture(tc, base_ctl)
     job = fx.get_job()
     tc.assertEqual(fx.ringmaster.games_in_progress, {'0_000': job})
+    tc.assertEqual(fx.ringmaster.competition.get_matchup_results('0'), [])
     response = fake_response(job, 'w')
     response.warnings = ['warningtest']
     fx.ringmaster.process_response(response)
@@ -154,6 +155,8 @@ def test_process_response(tc):
     tc.assertListEqual(
         fx.messages('results'),
         ["game 0_000: p2 beat p1 W+"])
+    tc.assertEqual(fx.ringmaster.competition.get_matchup_results('0'),
+                   [('0_000', response.game_result)])
 
 
 def test_check_players(tc):
