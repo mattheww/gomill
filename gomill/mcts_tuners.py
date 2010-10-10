@@ -402,12 +402,20 @@ class Greedy_simulation(Simulation):
         return max(enumerate(node.children), key=wins)
 
 
+parameter_settings = [
+    Setting('code', interpret_identifier),
+    Setting('scale', interpret_callable),
+    Setting('split', interpret_positive_int),
+    Setting('format', interpret_8bit_string, default=None),
+    ]
+
 class Parameter_config(Quiet_config):
     """Parameter (ie, dimension) description for use in control files."""
     # positional or keyword
     positional_arguments = ('code',)
     # keyword-only
-    keyword_arguments = ('scale', 'split', 'format')
+    keyword_arguments = tuple(setting.name for setting in parameter_settings
+                              if setting.name != 'code')
 
     def get_code(self):
         """Retrieve the 'code' argument, if possible.
@@ -542,13 +550,6 @@ class Mcts_tuner(Competition):
         Setting('initial_wins', interpret_positive_int),
         ]
 
-    parameter_settings = [
-        Setting('code', interpret_identifier),
-        Setting('scale', interpret_callable),
-        Setting('split', interpret_positive_int),
-        Setting('format', interpret_8bit_string, default=None),
-        ]
-
     def parameter_spec_from_config(self, parameter_config):
         """Make a Parameter_spec from a Parameter_config.
 
@@ -561,7 +562,7 @@ class Mcts_tuner(Competition):
             raise ControlFileError("not a Parameter")
 
         arguments = parameter_config.resolve_arguments()
-        interpreted = load_settings(self.parameter_settings, arguments)
+        interpreted = load_settings(parameter_settings, arguments)
         pspec = Parameter_spec()
         for name, value in interpreted.iteritems():
             setattr(pspec, name, value)
