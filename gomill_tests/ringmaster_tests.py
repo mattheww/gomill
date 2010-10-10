@@ -6,6 +6,7 @@ from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
 from gomill_tests import ringmaster_test_support
 from gomill_tests import gtp_engine_fixtures
+from gomill_tests.playoff_tests import fake_response
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
@@ -96,6 +97,7 @@ def test_get_job(tc):
     tc.assertEqual(job.player_b.stderr_pathname, "/nonexistent/ctl/test.log")
     tc.assertIsNone(job.player_b.cwd)
     tc.assertIsNone(job.player_b.environ)
+    tc.assertEqual(fx.ringmaster.games_in_progress, {'0_000': job})
 
 def test_settings(tc):
     fx = Ringmaster_fixture(tc, base_ctl, [
@@ -136,6 +138,22 @@ def test_stderr_settings_nolog(tc):
     job = fx.get_job()
     tc.assertIsNone(job.player_b.stderr_pathname, None)
     tc.assertEqual(job.player_w.stderr_pathname, os.devnull)
+
+
+def test_process_response(tc):
+    fx = Ringmaster_fixture(tc, base_ctl)
+    job = fx.get_job()
+    tc.assertEqual(fx.ringmaster.games_in_progress, {'0_000': job})
+    response = fake_response(job, 'w')
+    response.warnings = ['warningtest']
+    fx.ringmaster.process_response(response)
+    tc.assertEqual(fx.ringmaster.games_in_progress, {})
+    tc.assertListEqual(
+        fx.messages('warnings'),
+        ["warningtest"])
+    tc.assertListEqual(
+        fx.messages('results'),
+        ["game 0_000: p2 beat p1 W+"])
 
 
 def test_check_players(tc):

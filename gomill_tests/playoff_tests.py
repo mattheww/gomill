@@ -16,6 +16,7 @@ from gomill.playoffs import Matchup_config
 
 from gomill_tests import gomill_test_support
 from gomill_tests import test_framework
+from gomill_tests.competition_test_support import fake_response
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
@@ -44,24 +45,6 @@ def check_short_report(tc, comp, expected_matchups, expected_players,
                 (competition_name, expected_matchups, expected_players))
 
     tc.assertMultiLineEqual(get_short_report(comp), expected)
-
-def fake_response(job, winner):
-    """Produce a response for the specified job."""
-    players = {'b' : job.player_b.code, 'w' : job.player_w.code}
-    result = Game_result(players, winner)
-    response = Game_job_result()
-    response.game_id = job.game_id
-    response.game_result = result
-    response.engine_names = {
-        job.player_b.code : '%s engine:v1.2.3' % job.player_b.code,
-        job.player_w.code : '%s engine' % job.player_w.code,
-        }
-    response.engine_descriptions = {
-        job.player_b.code : '%s engine:v1.2.3' % job.player_b.code,
-        job.player_w.code : '%s engine\ntestdescription' % job.player_w.code,
-        }
-    response.game_data = job.game_data
-    return response
 
 expected_fake_players = dedent("""\
     player t1: t1 engine
