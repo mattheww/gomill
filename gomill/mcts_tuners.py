@@ -467,6 +467,8 @@ class Log_scale_fn(Scale_fn):
 
     """
     def __init__(self, lower_bound, upper_bound, integer=False):
+        if lower_bound == 0.0:
+            raise ValueError("lower bound is zero")
         lu = log(upper_bound)
         ll = log(lower_bound)
         self.a = lu - ll
@@ -489,6 +491,8 @@ class Explicit_scale_fn(Scale_fn):
 
     """
     def __init__(self, values):
+        if not values:
+            raise ValueError("empty value list")
         self.values = tuple(values)
         self.n = len(values)
 

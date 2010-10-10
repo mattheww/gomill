@@ -101,13 +101,13 @@ def test_bad_parameter_config(tc):
     config['parameters'].append(
         Parameter_config(
             'bad',
-            scale = mcts_tuners.LINEAR(0, 'a'),
+            scale = mcts_tuners.LOG(0.0, 1.0),
             split = 10))
     with tc.assertRaises(ControlFileError) as ar:
         comp.initialise_from_control_file(config)
     tc.assertMultiLineEqual(str(ar.exception), dedent("""\
-    parameter bad: 'scale': invalid parameters for LINEAR:
-    invalid literal for float(): a"""))
+    parameter bad: 'scale': invalid parameters for LOG:
+    lower bound is zero"""))
 
 def test_make_candidate(tc):
     comp = mcts_tuners.Mcts_tuner('mctstest')
@@ -154,6 +154,8 @@ def test_log_scale(tc):
     tc.assertAlmostEqual(lsi(0.1), 2)
 
 def test_explicit_scale(tc):
+    tc.assertRaises(ValueError, mcts_tuners.Explicit_scale_fn, [])
+
     pvalues = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
 
     comp = mcts_tuners.Mcts_tuner('mctstest')
