@@ -3,7 +3,7 @@
 import os
 
 from gomill import competitions
-from gomill.competitions import Player_config
+from gomill.competitions import ControlFileError, Player_config
 
 from gomill_tests import gomill_test_support
 
@@ -35,6 +35,18 @@ def test_player_config(tc):
         Exception, "unknown argument 'unexpected'",
         comp.game_jobs_player_from_config, 'pp',
         Player_config("cmd", unexpected=3))
+
+def test_bad_player(tc):
+    comp = competitions.Competition('test')
+    config = {
+        'players' : {
+            't1' : Player_config("test"),
+            't2' : None,
+            }
+        }
+    tc.assertRaisesRegexp(
+        ControlFileError, "'players': bad value for 't2': not a Player",
+        comp.initialise_from_control_file, config)
 
 def test_player_command(tc):
     comp = competitions.Competition('test')
