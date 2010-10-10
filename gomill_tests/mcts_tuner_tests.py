@@ -44,17 +44,18 @@ def default_config():
             Parameter_config(
                 'resign_at',
                 scale_fn = trivial_scale_fn,
+                split = 12,
                 format = "rsn@ %.2f"),
 
             Parameter_config(
                 'initial_wins',
                 scale_fn = times_100_fn,
+                split = 10,
                 format = "iwins %d"),
             ],
         'make_candidate' : simple_make_candidate,
         # FIXME: The remainder should be optional
         'max_depth' : 1,
-        'subdivisions' : 2,
         }
 
 def test_parameter_config(tc):

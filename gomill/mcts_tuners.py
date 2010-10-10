@@ -505,8 +505,6 @@ class Mcts_tuner(Competition):
     # These are used to instantiate Tree; they don't turn into Mcts_tuner
     # attributes.
     tree_settings = [
-        # FIXME
-        Setting('subdivisions', interpret_positive_int),
         Setting('max_depth', interpret_positive_int),
         Setting('exploration_coefficient', interpret_float),
         Setting('initial_visits', interpret_positive_int),
@@ -525,7 +523,7 @@ class Mcts_tuner(Competition):
             raise ControlFileError("not a Parameter")
 
         config = {}
-        argument_names = ('code', 'scale_fn', 'format')
+        argument_names = ('code', 'scale_fn', 'split', 'format')
         for name, val in zip(argument_names, parameter_config.args):
             config[name] = val
         for name, val in sorted(parameter_config.kwargs.iteritems()):
@@ -540,6 +538,7 @@ class Mcts_tuner(Competition):
         # FIXME: Needs lots of validation
         pspec.code = config['code']
         pspec.scale_fn = config['scale_fn']
+        pspec.split = config['split']
         pspec.format = config['format']
         return pspec
 
@@ -576,12 +575,9 @@ class Mcts_tuner(Competition):
             tree_arguments = load_settings(self.tree_settings, config)
         except ValueError, e:
             raise ControlFileError(str(e))
-        # FIXME [[
-        tree_arguments['splits'] = [tree_arguments['subdivisions']] * len(self.parameter_specs)
-        del tree_arguments['subdivisions']
-        #]]
-        tree_arguments['parameter_formatter'] = self.format_optimiser_parameters
-        self.tree = Tree(**tree_arguments)
+        self.tree = Tree(splits=[pspec.split for pspec in self.parameter_specs],
+                         parameter_formatter=self.format_optimiser_parameters,
+                         **tree_arguments)
 
 
     # State attributes (*: in persistent state):
