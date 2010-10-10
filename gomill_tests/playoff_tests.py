@@ -149,6 +149,10 @@ def test_basic_config(tc):
     tc.assertEqual(m1.scorer, 'players')
     tc.assertEqual(m1.number_of_games, None)
 
+    tc.assertRaisesRegexp(
+        ControlFileError, "not enough arguments",
+        comp.matchup_from_config, Matchup_config(), {})
+
 
 def test_global_handicap_validation(tc):
     comp = playoffs.Playoff('testcomp')

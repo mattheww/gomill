@@ -13,13 +13,6 @@ from gomill.competitions import (
 from gomill.settings import *
 
 
-class Matchup_config(object):
-    """Matchup description for use in control files."""
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-
-
 class Matchup(object):
     """Internal description of a matchup from the configuration file.
 
@@ -77,6 +70,32 @@ class Matchup_setting(Setting):
             kwargs['default'] = _required_in_matchup
         Setting.__init__(self, *args, **kwargs)
 
+# These settings can be specified both globally and in matchups.
+# The global values (not stored) are defaults for the
+# matchup values (stored as Matchup attributes).
+matchup_settings = [
+    Matchup_setting('board_size', competitions.interpret_board_size),
+    Matchup_setting('komi', interpret_float),
+    Matchup_setting('alternating', interpret_bool, default=False),
+    Matchup_setting('handicap', allow_none(interpret_int), default=None),
+    Matchup_setting('handicap_style', interpret_enum('fixed', 'free'),
+                    default='fixed'),
+    Matchup_setting('move_limit', interpret_positive_int, default=1000),
+    Matchup_setting('scorer', interpret_enum('internal', 'players'),
+                    default='players'),
+    Matchup_setting('number_of_games', allow_none(interpret_int),
+                    default=None),
+    ]
+
+class Matchup_config(Quiet_config):
+    """Matchup description for use in control files."""
+    # positional or keyword
+    positional_arguments = ('player1', 'player2')
+    # keyword-only
+    keyword_arguments = (
+        ('id', 'name') +
+        tuple(setting.name for setting in matchup_settings))
+
 
 class Playoff(Competition):
     """A Competition made up of repeated matchups between specified players.
@@ -97,23 +116,6 @@ class Playoff(Competition):
             })
         return result
 
-
-    # These settings can be specified both globally and in matchups.
-    # The global values (not stored) are defaults for the
-    # matchup values (stored as Matchup attributes).
-    matchup_settings = [
-        Matchup_setting('board_size', competitions.interpret_board_size),
-        Matchup_setting('komi', interpret_float),
-        Matchup_setting('alternating', interpret_bool, default=False),
-        Matchup_setting('handicap', allow_none(interpret_int), default=None),
-        Matchup_setting('handicap_style', interpret_enum('fixed', 'free'),
-                        default='fixed'),
-        Matchup_setting('move_limit', interpret_positive_int, default=1000),
-        Matchup_setting('scorer', interpret_enum('internal', 'players'),
-                        default='players'),
-        Matchup_setting('number_of_games', allow_none(interpret_int),
-                        default=None),
-        ]
 
     global_settings = [
         Setting('description', interpret_as_utf8_stripped, default=""),
@@ -137,29 +139,23 @@ class Playoff(Competition):
         if not isinstance(matchup_config, Matchup_config):
             raise ControlFileError("not a Matchup")
 
-        args = matchup_config.args
-        kwargs = matchup_config.kwargs
-        matchup = Matchup()
-        argument_names = set(setting.name for setting in self.matchup_settings)
-        argument_names.update(('id', 'name'))
-        for key in kwargs:
-            if key not in argument_names:
-                raise ControlFileError("unknown argument '%s'" % key)
-        if len(args) > 2:
-            raise ControlFileError("too many arguments")
-        if len(args) < 2:
-            raise ControlFileError("not enough arguments")
-        matchup.p1, matchup.p2 = args
+        arguments = matchup_config.resolve_arguments()
 
+        matchup = Matchup()
+        try:
+            matchup.p1 = arguments['player1']
+            matchup.p2 = arguments['player2']
+        except KeyError:
+            raise ControlFileError("not enough arguments")
         if matchup.p1 not in self.players:
             raise ControlFileError("unknown player %s" % matchup.p1)
         if matchup.p2 not in self.players:
             raise ControlFileError("unknown player %s" % matchup.p2)
 
-        for setting in self.matchup_settings:
-            if setting.name in kwargs:
+        for setting in matchup_settings:
+            if setting.name in arguments:
                 try:
-                    v = setting.interpret(kwargs[setting.name])
+                    v = setting.interpret(arguments[setting.name])
                 except ValueError, e:
                     raise ControlFileError(str(e))
             else:
@@ -171,7 +167,7 @@ class Playoff(Competition):
         competitions.validate_handicap(
             matchup.handicap, matchup.handicap_style, matchup.board_size)
 
-        matchup_id = kwargs.get('id')
+        matchup_id = arguments.get('id')
         if matchup_id is not None:
             try:
                 matchup_id = interpret_identifier(matchup_id)
@@ -179,7 +175,7 @@ class Playoff(Competition):
                 raise ControlFileError("id: %s" % e)
         matchup.id = matchup_id
 
-        name = kwargs.get('name')
+        name = arguments.get('name')
         if name is None:
             name = "%s v %s" % (matchup.p1, matchup.p2)
             event_description = self.competition_code
@@ -204,7 +200,7 @@ class Playoff(Competition):
         Competition.initialise_from_control_file(self, config)
 
         try:
-            matchup_defaults = load_settings(self.matchup_settings, config)
+            matchup_defaults = load_settings(matchup_settings, config)
         except ValueError, e:
             raise ControlFileError(str(e))
 
