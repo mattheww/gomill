@@ -17,12 +17,6 @@ def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
-def trivial_scale_fn(f):
-    return f
-
-def times_100_fn(f):
-    return int(100*f)
-
 def simple_make_candidate(*args):
     if -1 in args:
         raise ValueError("oops")
@@ -43,13 +37,13 @@ def default_config():
         'parameters' : [
             Parameter_config(
                 'resign_at',
-                scale = trivial_scale_fn,
+                scale = float,
                 split = 12,
                 format = "rsn@ %.2f"),
 
             Parameter_config(
                 'initial_wins',
-                scale = times_100_fn,
+                scale = mcts_tuners.LINEAR(0, 100),
                 split = 10,
                 format = "iwins %d"),
             ],
@@ -72,11 +66,11 @@ def test_parameter_config(tc):
         comp.scale_parameters((0.5, None))
     tc.assertTracebackStringEqual(str(ar.exception), dedent("""\
     error from scaler for initial_wins
-    TypeError: unsupported operand type(s) for *: 'int' and 'NoneType'
+    TypeError: unsupported operand type(s) for *: 'NoneType' and 'float'
     traceback (most recent call last):
-    mcts_tuner_tests|times_100_fn
+    mcts_tuners|__call__
     failing line:
-    return int(100*f)
+    result = (f * self.range) + self.lower_bound
     """))
 
     tc.assertRaisesRegexp(
@@ -101,6 +95,19 @@ def test_parameter_config(tc):
         comp.parameter_spec_from_config,
         Parameter_config('pa1', scale=float, split=2, format="nopct"))
 
+def test_bad_parameter_config(tc):
+    comp = mcts_tuners.Mcts_tuner('mctstest')
+    config = default_config()
+    config['parameters'].append(
+        Parameter_config(
+            'bad',
+            scale = mcts_tuners.LINEAR(0, 'a'),
+            split = 10))
+    with tc.assertRaises(ControlFileError) as ar:
+        comp.initialise_from_control_file(config)
+    tc.assertTracebackStringEqual(str(ar.exception), dedent("""\
+    parameter bad: 'scale': invalid parameters for LINEAR:
+    invalid literal for float(): a"""))
 
 def test_make_candidate(tc):
     comp = mcts_tuners.Mcts_tuner('mctstest')
