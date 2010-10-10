@@ -70,6 +70,7 @@ class Game_job_result(object):
       game_id               -- short string
       game_data             -- arbitrary (copied from the Game_job)
       game_result           -- gtp_games.Game_result
+      warnings              -- list of strings
       engine_names          -- map player code -> string
       engine_descriptions   -- map player code -> string
 
@@ -226,6 +227,7 @@ class Game_job(object):
         response = Game_job_result()
         response.game_id = self.game_id
         response.game_result = game.result
+        response.warnings = []
         response.engine_names = game.engine_names
         response.engine_descriptions = game.engine_descriptions
         response.game_data = self.game_data
