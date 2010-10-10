@@ -36,64 +36,83 @@ Matchup parameters
 Usage
 -----
 
-For example::
-
-  $ ringmaster <code>.ctl
-
-runs a competition; continues from where it left off if interrupted.
-
-::
-
-  $ ringmaster <code>.ctl stop
-
-tells a running competition to stop after the current game(s).
-
-::
-
-  $ ringmaster <code>.ctl show
-
-prints a report from a competition's current status.
-
-::
-
-  $ ringmaster <code>.ctl reset
-
-deletes all state and output for the competition.
-
-::
-
-  $ ringmaster <code>.ctl check
-
-runs a test invocation of the competition's players.
-
-
 .. program:: ringmaster
+
+The ringmaster is a command line application. It expects two arguments: the
+control file and a command::
+
+  $ ringmaster [options] <control file> [run|show|reset|check|report|stop]
+
+The default command is :option:`run`, so running a competition is normally as
+simple as::
+
+  $ ringmaster tournaments/test.ctl
+
+
+The following commands are available:
+
+.. cmdoption:: run
+
+  Runs the competition. If the competition has been run already, it continues
+  from where it left off.
+
+.. cmdoption:: show
+
+  Prints a report of the competition's current status.
+
+.. cmdoption:: reset
+
+  Cleans up the competition completely. This deletes all output files,
+  including the competition's state file.
+
+.. cmdoption:: check
+
+  Runs a test invocation of the competition's players. This is the same as the
+  startup checks (see FIXME), except that any output the players send to their
+  standard error stream will be printed.
+
+.. cmdoption:: report
+
+  Rewrites the competition report file (FIXME: ref) based on the current
+  status.
+
+.. cmdoption:: stop
+
+  Tells a running competition to stop as soon as the current game(s) have
+  completed.
+
+
+It's safe to run :option:`show` or :option:`report` on a competition which
+is currently in progress.
+
+
+
 
 Command-line options:
 
 .. cmdoption:: --parallel=<N>
 
-   use multiple processes
+   Use multiple processes.
 
 .. cmdoption:: --quiet
 
-   disable printing results after each game
+   Disable the on-screen reporting.
 
 .. cmdoption:: --max-games=<N>
 
-   maximum number of games to play in the run
+   Maximum number of games to play in the run.
 
 .. cmdoption:: --log-gtp
 
-   log all GTP traffic
+   Log all GTP traffic.
 
 :option:`!--max-games` is independent of any :confval:`number_of_games`
 settings in the control file; the run will halt if either limit is reached.
 
 If :option:`!--log-gtp` is set, the ringmaster logs all GTP commands and
 responses. It writes a separate log file for each game, in the
-`<code>.sgflogs` directory.
+`<code>.sgflogs` directory. (FIXME: Define <code>).
 
-It's ok to stop a competition with :kbd:`Ctrl-C`; incomplete games will be
-rerun from scratch on the next run.
+It's ok to stop a competition with :kbd:`Ctrl-C`; any interrupted games will
+be rerun from scratch on the next run. (FIXME: Not quite true now.)
 
