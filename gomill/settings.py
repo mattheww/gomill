@@ -3,8 +3,8 @@
 import re
 import shlex
 
-__all__ = ['Setting', 'allow_none', 'load_settings',
-           'Quiet_config', 'Config_proxy',
+__all__ = ['Setting', 'allow_none', 'load_settings', 'Config_proxy',
+           'Quiet_config',
            'interpret_any', 'interpret_bool',
            'interpret_int', 'interpret_positive_int', 'interpret_float',
            'interpret_8bit_string', 'interpret_identifier',
@@ -298,6 +298,33 @@ def load_settings(settings, config):
         result[setting.name] = v
     return result
 
+class Config_proxy(object):
+    """Class proxy for use in control files.
+
+    To use this, define a subclass, giving it the following class attribute:
+      underlying -- the underlying class
+
+    Then in the control file, the proxy can be used anywhere which will be
+    interpreted using the settings mechanism. An instance of the underlying
+    class will be created by load_settings and then passed to the interpret
+    function as usual.
+
+    Any errors from the underlying class's __init__ will be raised as ValueError
+    from load_settings().
+
+    """
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    def resolve(self):
+        try:
+            return self.underlying(*self.args, **self.kwargs)
+        except Exception, e:
+            raise ValueError("invalid parameters for %s:\n%s" %
+                             (self.__class__.__name__, e))
+
+
 class Quiet_config(object):
     """Configuration object for use in control files.
 
@@ -345,30 +372,4 @@ class Quiet_config(object):
                     name)
             result[name] = val
         return result
-
-class Config_proxy(object):
-    """Class proxy for use in control files.
-
-    To use this, define a subclass, giving it the following class attribute:
-      underlying -- the underlying class
-
-    Then in the control file, the proxy can be used anywhere which will be
-    interpreted using the settings mechanism. An instance of the underlying
-    class will be created by load_settings and then passed to the interpret
-    function as usual.
-
-    Any errors from the underlying class's __init__ will be raised as ValueError
-    from load_settings().
-
-    """
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-
-    def resolve(self):
-        try:
-            return self.underlying(*self.args, **self.kwargs)
-        except Exception, e:
-            raise ValueError("invalid parameters for %s:\n%s" %
-                             (self.__class__.__name__, e))
 
