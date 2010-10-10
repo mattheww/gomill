@@ -531,6 +531,13 @@ class Mcts_tuner(Competition):
         Setting('initial_wins', interpret_positive_int),
         ]
 
+    parameter_settings = [
+        Setting('code', interpret_identifier),
+        Setting('scale', interpret_callable),
+        Setting('split', interpret_positive_int),
+        Setting('format', interpret_8bit_string),
+        ]
+
     def parameter_spec_from_config(self, parameter_config):
         """Make a Parameter_spec from a Parameter_config.
 
@@ -554,12 +561,10 @@ class Mcts_tuner(Competition):
                     "%s specified both implicitly and explicitly" % name)
             config[name] = val
 
+        interpreted = load_settings(self.parameter_settings, config)
         pspec = Parameter_spec()
-        # FIXME: Needs lots of validation
-        pspec.code = config['code']
-        pspec.scale_fn = config['scale']
-        pspec.split = config['split']
-        pspec.format = config['format']
+        for name, value in interpreted.iteritems():
+            setattr(pspec, name, value)
         return pspec
 
     def initialise_from_control_file(self, config):
@@ -635,7 +640,7 @@ class Mcts_tuner(Competition):
         l = []
         for pspec, v in zip(self.parameter_specs, optimiser_parameters):
             try:
-                l.append(pspec.scale_fn(v))
+                l.append(pspec.scale(v))
             except Exception:
                 raise CompetitionError(
                     "error from scaler for %s\n%s" %
