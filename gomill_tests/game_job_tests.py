@@ -157,10 +157,11 @@ def test_game_job_forfeit_and_quit(tc):
     tc.assertEqual(
         result.warnings,
         ["forfeit: failure response from 'genmove w' to player two:\n"
-         "I'm out of here",
-         "error sending 'known_command gomill-cpu_time' to player two:\n"
+         "I'm out of here"])
+    tc.assertEqual(
+        result.log_entries,
+        ["error sending 'known_command gomill-cpu_time' to player two:\n"
          "engine has closed the command channel"])
-    tc.assertEqual(result.log_entries, [])
     tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
 
 def test_game_job_exec_failure(tc):
@@ -201,9 +202,9 @@ def test_game_job_late_errors(tc):
     gj.job.player_w.cmd_args.append('init=fail_close')
     result = gj.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+10.5")
-    tc.assertEqual(result.warnings,
+    tc.assertEqual(result.warnings, [])
+    tc.assertEqual(result.log_entries,
                    ["error closing player two:\nforced failure for close"])
-    tc.assertEqual(result.log_entries, [])
 
 def test_game_job_late_error_from_void_game(tc):
     def fail_genmove_and_close(channel):

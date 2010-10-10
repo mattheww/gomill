@@ -264,10 +264,7 @@ def test_run_with_late_errors(tc):
     fx.msf.register_init_callback('fail_close', fail_close)
     fx.ringmaster.set_clean_status()
     fx.ringmaster.run(max_games=2)
-    tc.assertListEqual(
-        fx.messages('warnings'),
-        ["error closing player p2:\nforced failure for close",
-         "error closing player p2:\nforced failure for close"])
+    tc.assertListEqual(fx.messages('warnings'), [])
     tc.assertMultiLineEqual(
         fx.get_log(),
         "run started at *** with max_games 2\n"

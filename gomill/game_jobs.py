@@ -230,7 +230,7 @@ class Game_job(object):
         game.close_players()
         late_error_messages = game.describe_late_errors()
         if late_error_messages:
-            warnings.append(late_error_messages)
+            log_entries.append(late_error_messages)
         self._record_game(game)
         response = Game_job_result()
         response.game_id = self.game_id
