@@ -223,6 +223,8 @@ class Game_job(object):
             if late_error_messages is not None:
                 msg += "\nalso:\n" + late_error_messages
             raise job_manager.JobFailed(msg)
+        if game.result.is_forfeit:
+            warnings.append(game.result.detail)
         game.close_players()
         late_error_messages = game.describe_late_errors()
         if late_error_messages:

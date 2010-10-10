@@ -8,6 +8,7 @@ from textwrap import dedent
 
 from gomill import gtp_controller
 from gomill import game_jobs
+from gomill.gtp_engine import GtpError
 from gomill.job_manager import JobFailed
 
 from gomill_tests import test_framework
@@ -114,6 +115,22 @@ def test_game_job_no_sgf(tc):
     result = gj.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+10.5")
     tc.assertIsNone(gj.job._sgf_pathname_written)
+
+def test_game_job_forfeit(tc):
+    def handle_genmove(args):
+        raise GtpError("error")
+    def reject_genmove(channel):
+        channel.engine.add_command('genmove', handle_genmove)
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    fx.register_init_callback('reject_genmove', reject_genmove)
+    gj = Game_job_fixture(tc)
+    gj.job.player_w.cmd_args.append('init=reject_genmove')
+    result = gj.job.run()
+    tc.assertEqual(result.game_result.sgf_result, "B+F")
+    tc.assertEqual(
+        result.warnings,
+        ["forfeit: failure response from 'genmove w' to player two:\nerror"])
+    tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
 
 def test_game_job_exec_failure(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
