@@ -4,7 +4,7 @@ from __future__ import division
 
 import random
 from heapq import nlargest
-from math import log, sqrt
+from math import exp, log, sqrt
 
 from gomill import compact_tracebacks
 from gomill import game_jobs
@@ -435,6 +435,21 @@ class Linear_scale_fn(Scale_fn):
     def __call__(self, f):
         return (f * self.range) + self.lower_bound
 
+class Log_scale_fn(Scale_fn):
+    """Log scale function.
+
+    Instantiate with lower bound, upper bound.
+
+    """
+    def __init__(self, lower_bound, upper_bound):
+        lu = log(upper_bound)
+        ll = log(lower_bound)
+        self.a = lu - ll
+        self.b = ll
+
+    def __call__(self, f):
+        return exp(self.a*f + self.b)
+
 
 class Mcts_tuner(Competition):
     """A Competition for parameter tuning using the Monte-carlo tree search.
@@ -451,7 +466,8 @@ class Mcts_tuner(Competition):
         result = Competition.control_file_globals(self)
         result.update({
             'Parameter' : Parameter_config,
-            'LINEAR' : Linear_scale_fn,
+            'LINEAR'    : Linear_scale_fn,
+            'LOG'       : Log_scale_fn,
             })
         return result
 

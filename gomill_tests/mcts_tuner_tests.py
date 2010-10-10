@@ -1,5 +1,6 @@
 """Tests for mcts_tuners.py"""
 
+from math import sqrt
 from textwrap import dedent
 
 from gomill import mcts_tuners
@@ -99,3 +100,12 @@ def test_linear_scale(tc):
     tc.assertEqual(ls(1.0), 30.0)
     tc.assertEqual(ls(0.5), 25.0)
 
+def test_log_scale(tc):
+    ls = mcts_tuners.Log_scale_fn(2, 200000)
+    tc.assertAlmostEqual(ls(0.0), 2.0)
+    tc.assertAlmostEqual(ls(0.2), 20.0)
+    tc.assertAlmostEqual(ls(0.4), 200.0)
+    tc.assertAlmostEqual(ls(0.5), 2*sqrt(100000.00))
+    tc.assertAlmostEqual(ls(0.6), 2000.0)
+    tc.assertAlmostEqual(ls(0.8), 20000.0)
+    tc.assertAlmostEqual(ls(1.0), 200000.0)
