@@ -1,6 +1,9 @@
 """Tests for mcts_tuners.py"""
 
+from __future__ import with_statement, division
+
 from math import sqrt
+import random
 from textwrap import dedent
 
 from gomill import mcts_tuners
@@ -109,3 +112,116 @@ def test_log_scale(tc):
     tc.assertAlmostEqual(ls(0.6), 2000.0)
     tc.assertAlmostEqual(ls(0.8), 20000.0)
     tc.assertAlmostEqual(ls(1.0), 200000.0)
+
+
+def test_tree(tc):
+    tree1 = mcts_tuners.Tree(
+        splits=[3, 3],
+        max_depth=5,
+        exploration_coefficient=0.5,
+        initial_visits=10,
+        initial_wins=5,
+        parameter_formatter=str,
+        )
+
+    tree2 = mcts_tuners.Tree(
+        splits=[2, 4],
+        max_depth=5,
+        exploration_coefficient=0.5,
+        initial_visits=10,
+        initial_wins=5,
+        parameter_formatter=str,
+        )
+
+    tc.assertEqual(tree1._cube_coordinates, [
+        (0, 0), (0, 1), (0, 2),
+        (1, 0), (1, 1), (1, 2),
+        (2, 0), (2, 1), (2, 2),
+        ])
+
+    tc.assertEqual(tree2._cube_coordinates, [
+        (0, 0), (0, 1), (0, 2), (0, 3),
+        (1, 0), (1, 1), (1, 2), (1, 3),
+        ])
+
+    def scaleup(vector, scales):
+        """Multiply each member of 'vector' by the corresponding scale.
+
+        Rounds to nearest integer if the difference is very small.
+
+        """
+        result = []
+        for v, scale in zip(vector, scales):
+            f = v*scale
+            i = int(f+.5)
+            if abs(f - i) > 0.0000000001:
+                result.append(f)
+            else:
+                result.append(i)
+        return result
+
+    def pfp1(choice_path):
+        optimiser_params = tree1.parameters_for_path(choice_path)
+        scale = 3**len(choice_path) * 2
+        return scaleup(optimiser_params, [scale, scale])
+
+    # scale is 1/6
+    tc.assertEqual(pfp1([0]), [1, 1])
+    tc.assertEqual(pfp1([1]), [1, 3])
+    tc.assertEqual(pfp1([3]), [3, 1])
+    tc.assertEqual(pfp1([8]), [5, 5])
+    # scale is 1/18
+    tc.assertEqual(pfp1([0, 0]), [1, 1])
+    tc.assertEqual(pfp1([0, 1]), [1, 3])
+    tc.assertEqual(pfp1([3, 1]), [7, 3])
+    tc.assertEqual(pfp1([3, 4]), [9, 3])
+
+    def pfp2(choice_path):
+        optimiser_params = tree2.parameters_for_path(choice_path)
+        scale1 = 2**len(choice_path) * 2
+        scale2 = 4**len(choice_path) * 2
+        return scaleup(optimiser_params, [scale1, scale2])
+
+    # scale is 1/4, 1/8
+    tc.assertEqual(pfp2([0]), [1, 1])
+    tc.assertEqual(pfp2([1]), [1, 3])
+    tc.assertEqual(pfp2([2]), [1, 5])
+    tc.assertEqual(pfp2([3]), [1, 7])
+    tc.assertEqual(pfp2([4]), [3, 1])
+    tc.assertEqual(pfp2([5]), [3, 3])
+    # scale is 1/8, 1/32
+    tc.assertEqual(pfp2([0, 0]), [1, 1])
+    tc.assertEqual(pfp2([0, 1]), [1, 3])
+    tc.assertEqual(pfp2([0, 2]), [1, 5])
+    tc.assertEqual(pfp2([0, 3]), [1, 7])
+    tc.assertEqual(pfp2([0, 4]), [3, 1])
+    tc.assertEqual(pfp2([1, 0]), [1, 9])
+    tc.assertEqual(pfp2([7, 7]), [7, 31])
+
+
+
+
+def test_tree_run(tc):
+
+    tree = mcts_tuners.Tree(
+        splits=[3, 3],
+        max_depth=5,
+        exploration_coefficient=0.5,
+        initial_visits=10,
+        initial_wins=5,
+        parameter_formatter=str,
+        )
+
+    tree.new_root()
+    random.seed(12345)
+    for i in range(1100):
+        simulation = mcts_tuners.Simulation(tree)
+        simulation.run()
+        simulation.update_stats(candidate_won=random.randrange(2))
+    tc.assertEqual(simulation.get_parameters(),
+                   [0.30658436213991769, 0.1707818930041152])
+    tc.assertEqual(tree.node_count, 3223)
+    tc.assertEqual(simulation.choice_path, [0, 7, 7, 1, 8])
+    tc.assertEqual(tree.retrieve_best_parameters(),
+                   [0.59876543209876543, 0.8662551440329217])
+
