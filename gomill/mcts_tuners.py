@@ -554,7 +554,7 @@ class Mcts_tuner(Competition):
             tree_arguments = load_settings(self.tree_settings, config)
         except ValueError, e:
             raise ControlFileError(str(e))
-        tree_arguments['parameter_formatter'] = self.format_parameters
+        tree_arguments['parameter_formatter'] = self.format_optimiser_parameters
         self.tree = Tree(dimensions=len(self.parameter_specs),
                          **tree_arguments)
 
@@ -590,16 +590,6 @@ class Mcts_tuner(Competition):
                 "stored tree is inconsistent with control file")
         self.opponent_description = status['opponent_description']
 
-    def format_parameters(self, optimiser_parameters):
-        l = []
-        for pspec, v in zip(self.parameter_specs, optimiser_parameters):
-            try:
-                s = pspec.format % v
-            except Exception:
-                s = "[%s?%s]" % (pspec.code, v)
-            l.append(s)
-        return "; ".join(l)
-
     def scale_parameters(self, optimiser_parameters):
         l = []
         for pspec, v in zip(self.parameter_specs, optimiser_parameters):
@@ -611,13 +601,26 @@ class Mcts_tuner(Competition):
                     (pspec.code, compact_tracebacks.format_traceback(skip=1)))
         return tuple(l)
 
-    def make_candidate(self, player_code, optimiser_parameters):
-        """Make a player using the specified optimiser parameters.
+    def format_engine_parameters(self, engine_parameters):
+        l = []
+        for pspec, v in zip(self.parameter_specs, engine_parameters):
+            try:
+                s = pspec.format % v
+            except Exception:
+                s = "[%s?%s]" % (pspec.code, v)
+            l.append(s)
+        return "; ".join(l)
+
+    def format_optimiser_parameters(self, optimiser_parameters):
+        return self.format_engine_parameters(self.scale_parameters(
+            optimiser_parameters))
+
+    def make_candidate(self, player_code, engine_parameters):
+        """Make a player using the specified engine parameters.
 
         Returns a game_jobs.Player.
 
         """
-        engine_parameters = self.scale_parameters(optimiser_parameters)
         try:
             candidate_config = self.candidate_maker_fn(*engine_parameters)
         except Exception:
@@ -635,12 +638,13 @@ class Mcts_tuner(Competition):
             raise CompetitionError(
                 "bad player spec from make_candidate():\n"
                 "%s\nparameters were: %s" %
-                (e, self.format_parameters(optimiser_parameters)))
+                (e, self.format_engine_parameters(engine_parameters)))
         return candidate
 
     def get_player_checks(self):
         test_parameters = self.tree.get_test_parameters()
-        candidate = self.make_candidate('candidate', test_parameters)
+        engine_parameters = self.scale_parameters(test_parameters)
+        candidate = self.make_candidate('candidate', engine_parameters)
         result = []
         for player in [candidate, self.opponent]:
             check = game_jobs.Player_check()
@@ -659,8 +663,8 @@ class Mcts_tuner(Competition):
         simulation = Simulation(self.tree)
         simulation.run()
         optimiser_parameters = simulation.get_parameters()
-        candidate = self.make_candidate(
-            "#%d" % game_number, optimiser_parameters)
+        engine_parameters = self.scale_parameters(optimiser_parameters)
+        candidate = self.make_candidate("#%d" % game_number, engine_parameters)
         self.outstanding_simulations[game_number] = simulation
 
         job = game_jobs.Game_job()
@@ -680,7 +684,7 @@ class Mcts_tuner(Competition):
         job.use_internal_scorer = (self.scorer == 'internal')
         job.sgf_event = self.competition_code
         job.sgf_note = ("Candidate parameters: %s" %
-                        self.format_parameters(optimiser_parameters))
+                        self.format_engine_parameters(engine_parameters))
         return job
 
     def process_game_result(self, response):
