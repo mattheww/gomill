@@ -432,13 +432,17 @@ class Linear_scale_fn(Scale_fn):
     Instantiate with lower bound, upper bound.
 
     """
-    def __init__(self, lower_bound, upper_bound):
+    def __init__(self, lower_bound, upper_bound, integer=False):
         self.lower_bound = float(lower_bound)
         self.upper_bound = float(upper_bound)
         self.range = float(upper_bound - lower_bound)
+        self.integer = bool(integer)
 
     def __call__(self, f):
-        return (f * self.range) + self.lower_bound
+        result = (f * self.range) + self.lower_bound
+        if self.integer:
+            result = int(result+.5)
+        return result
 
 class Log_scale_fn(Scale_fn):
     """Log scale function.
@@ -446,14 +450,18 @@ class Log_scale_fn(Scale_fn):
     Instantiate with lower bound, upper bound.
 
     """
-    def __init__(self, lower_bound, upper_bound):
+    def __init__(self, lower_bound, upper_bound, integer=False):
         lu = log(upper_bound)
         ll = log(lower_bound)
         self.a = lu - ll
         self.b = ll
+        self.integer = bool(integer)
 
     def __call__(self, f):
-        return exp(self.a*f + self.b)
+        result = exp(self.a*f + self.b)
+        if self.integer:
+            result = int(result+.5)
+        return result
 
 
 class Mcts_tuner(Competition):

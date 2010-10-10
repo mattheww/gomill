@@ -99,21 +99,30 @@ def test_make_candidate(tc):
     """))
 
 def test_linear_scale(tc):
-    ls = mcts_tuners.Linear_scale_fn(20.0, 30.0)
-    tc.assertEqual(ls(0.0), 20.0)
-    tc.assertEqual(ls(1.0), 30.0)
-    tc.assertEqual(ls(0.5), 25.0)
+    lsf = mcts_tuners.Linear_scale_fn(20.0, 30.0)
+    tc.assertEqual(lsf(0.0), 20.0)
+    tc.assertEqual(lsf(1.0), 30.0)
+    tc.assertEqual(lsf(0.5), 25.0)
+    tc.assertEqual(lsf(0.49), 24.9)
+
+    lsi = mcts_tuners.Linear_scale_fn(20.0, 30.0, integer=True)
+    tc.assertEqual(lsi(0.0), 20)
+    tc.assertEqual(lsi(1.0), 30)
+    tc.assertEqual(lsi(0.49), 25)
+    tc.assertEqual(lsi(0.51), 25)
 
 def test_log_scale(tc):
-    ls = mcts_tuners.Log_scale_fn(2, 200000)
-    tc.assertAlmostEqual(ls(0.0), 2.0)
-    tc.assertAlmostEqual(ls(0.2), 20.0)
-    tc.assertAlmostEqual(ls(0.4), 200.0)
-    tc.assertAlmostEqual(ls(0.5), 2*sqrt(100000.00))
-    tc.assertAlmostEqual(ls(0.6), 2000.0)
-    tc.assertAlmostEqual(ls(0.8), 20000.0)
-    tc.assertAlmostEqual(ls(1.0), 200000.0)
+    lsf = mcts_tuners.Log_scale_fn(2, 200000)
+    tc.assertAlmostEqual(lsf(0.0), 2.0)
+    tc.assertAlmostEqual(lsf(0.2), 20.0)
+    tc.assertAlmostEqual(lsf(0.4), 200.0)
+    tc.assertAlmostEqual(lsf(0.5), 2*sqrt(100000.00))
+    tc.assertAlmostEqual(lsf(0.6), 2000.0)
+    tc.assertAlmostEqual(lsf(0.8), 20000.0)
+    tc.assertAlmostEqual(lsf(1.0), 200000.0)
 
+    lsi = mcts_tuners.Log_scale_fn(1, 100, integer=True)
+    tc.assertAlmostEqual(lsi(0.1), 2)
 
 def test_tree(tc):
     tree1 = mcts_tuners.Tree(
