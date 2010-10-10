@@ -429,7 +429,10 @@ class Scale_fn(object):
 class Linear_scale_fn(Scale_fn):
     """Linear scale function.
 
-    Instantiate with lower bound, upper bound.
+    Instantiate with
+      lower_bound -- float
+      upper_bound -- float
+      integer     -- bool (means 'round result to nearest integer')
 
     """
     def __init__(self, lower_bound, upper_bound, integer=False):
@@ -450,7 +453,10 @@ class Linear_scale_fn(Scale_fn):
 class Log_scale_fn(Scale_fn):
     """Log scale function.
 
-    Instantiate with lower bound, upper bound.
+    Instantiate with
+      lower_bound -- float
+      upper_bound -- float
+      integer     -- bool (means 'round result to nearest integer')
 
     """
     def __init__(self, lower_bound, upper_bound, integer=False):
