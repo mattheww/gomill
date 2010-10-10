@@ -3,7 +3,7 @@
 import re
 import shlex
 
-__all__ = ['Setting', 'allow_none', 'load_settings',
+__all__ = ['Setting', 'allow_none', 'load_settings', 'Quiet_config',
            'interpret_any', 'interpret_bool',
            'interpret_int', 'interpret_positive_int', 'interpret_float',
            'interpret_8bit_string', 'interpret_identifier',
@@ -12,7 +12,7 @@ __all__ = ['Setting', 'allow_none', 'load_settings',
            'interpret_shlex_sequence',
            'interpret_sequence', 'interpret_sequence_of',
            'interpret_map', 'interpret_map_of',
-           'clean_string'
+           'clean_string',
            ]
 
 def interpret_any(v):
@@ -299,4 +299,52 @@ def load_settings(settings, config, strict=False):
             v = setting.interpret(v)
         result[setting.name] = v
     return result
+
+class Quiet_config(object):
+    """Configuration object for use in control files.
+
+    At instantiation time, this just records its arguments, so they can be
+    validated later.
+
+    """
+    # These may be specified as positional or keyword
+    positional_arguments = ()
+    # These are keyword-only
+    keyword_arguments = ()
+
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    def resolve_arguments(self):
+        """Combine positional and keyword arguments.
+
+        Returns a dict: argument name -> value
+
+        Raises ValueError if the arguments are invalid.
+
+        Checks for:
+         - too many positional arguments
+         - unknown keyword arguments
+         - argument specified as both positional and keyword
+
+        Unspecified arguments (either positional or keyword) are not considered
+        errors; they're just not included in the result.
+
+        """
+        result = {}
+        if len(self.args) > len(self.positional_arguments):
+            raise ValueError("too many positional arguments")
+        for name, val in zip(self.positional_arguments, self.args):
+            result[name] = val
+        allowed = set(self.positional_arguments + self.keyword_arguments)
+        for name, val in sorted(self.kwargs.iteritems()):
+            if name not in allowed:
+                raise ValueError("unknown argument '%s'" % name)
+            if name in result:
+                raise ValueError(
+                    "%s specified as both positional and keyword argument" %
+                    name)
+            result[name] = val
+        return result
 

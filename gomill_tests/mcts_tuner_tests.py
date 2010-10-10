@@ -84,7 +84,11 @@ def test_parameter_config(tc):
         ValueError, "'code' not specified",
         comp.parameter_spec_from_config, Parameter_config())
     tc.assertRaisesRegexp(
-        ControlFileError, "scale specified both implicitly and explicitly",
+        ValueError, "code specified as both positional and keyword argument",
+        comp.parameter_spec_from_config,
+        Parameter_config('pa1', code='pa2', scale=float, split=2, format="%s"))
+    tc.assertRaisesRegexp(
+        ValueError, "too many positional arguments",
         comp.parameter_spec_from_config,
         Parameter_config('pa1', float, scale=float, split=2, format="%s"))
     tc.assertRaisesRegexp(

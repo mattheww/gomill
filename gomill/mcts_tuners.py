@@ -402,11 +402,12 @@ class Greedy_simulation(Simulation):
         return max(enumerate(node.children), key=wins)
 
 
-class Parameter_config(object):
+class Parameter_config(Quiet_config):
     """Parameter (ie, dimension) description for use in control files."""
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
+    # positional or keyword
+    positional_arguments = ('code',)
+    # keyword-only
+    keyword_arguments = ('scale', 'split', 'format')
 
     def get_code(self):
         """Retrieve the 'code' argument, if possible.
@@ -559,19 +560,8 @@ class Mcts_tuner(Competition):
         if not isinstance(parameter_config, Parameter_config):
             raise ControlFileError("not a Parameter")
 
-        config = {}
-        argument_names = ('code', 'scale', 'split', 'format')
-        for name, val in zip(argument_names, parameter_config.args):
-            config[name] = val
-        for name, val in sorted(parameter_config.kwargs.iteritems()):
-            if name not in argument_names:
-                raise ControlFileError("unknown argument '%s'" % name)
-            if name in config:
-                raise ControlFileError(
-                    "%s specified both implicitly and explicitly" % name)
-            config[name] = val
-
-        interpreted = load_settings(self.parameter_settings, config)
+        arguments = parameter_config.resolve_arguments()
+        interpreted = load_settings(self.parameter_settings, arguments)
         pspec = Parameter_spec()
         for name, value in interpreted.iteritems():
             setattr(pspec, name, value)
