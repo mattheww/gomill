@@ -1,6 +1,7 @@
 """Tests for ringmaster.py."""
 
 import os
+import re
 
 from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
@@ -43,6 +44,17 @@ class Ringmaster_fixture(test_framework.Fixture):
         self.ringmaster._initialise_presenter()
         self.ringmaster._initialise_terminal_reader()
         return self.ringmaster.get_job()
+
+    def get_log(self):
+        """Retrieve the log file contents with timestamps scrubbed out."""
+        s = self.ringmaster.logfile.getvalue()
+        s = re.sub(r"(?<= at )([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2})",
+                   "***", s)
+        return s
+
+    def get_history(self):
+        """Retrieve the history file contents."""
+        return self.ringmaster.historyfile.getvalue()
 
 
 base_ctl = """
@@ -98,6 +110,10 @@ def test_get_job(tc):
     tc.assertIsNone(job.player_b.cwd)
     tc.assertIsNone(job.player_b.environ)
     tc.assertEqual(fx.ringmaster.games_in_progress, {'0_000': job})
+    tc.assertEqual(fx.get_log(),
+                   "starting game 0_000: p1 (b) vs p2 (w)\n")
+    tc.assertEqual(fx.get_history(), "")
+
 
 def test_settings(tc):
     fx = Ringmaster_fixture(tc, base_ctl, [
@@ -157,6 +173,11 @@ def test_process_response(tc):
         ["game 0_000: p2 beat p1 W+"])
     tc.assertEqual(fx.ringmaster.competition.get_matchup_results('0'),
                    [('0_000', response.game_result)])
+    tc.assertEqual(fx.get_log(),
+                   "starting game 0_000: p1 (b) vs p2 (w)\n"
+                   "response from game 0_000\n"
+                   "warningtest\n")
+    tc.assertEqual(fx.get_history(), "")
 
 
 def test_check_players(tc):
@@ -180,6 +201,23 @@ def test_run(tc):
          "     wins\n"
          "p1      3 100.00%   (black)\n"
          "p2      0   0.00%   (white)"])
+    tc.assertMultiLineEqual(
+        fx.get_log(),
+        "run started at *** with max_games 3\n"
+        "starting game 0_000: p1 (b) vs p2 (w)\n"
+        "response from game 0_000\n"
+        "starting game 0_001: p1 (b) vs p2 (w)\n"
+        "response from game 0_001\n"
+        "starting game 0_002: p1 (b) vs p2 (w)\n"
+        "response from game 0_002\n"
+        "halting competition: max-games reached for this run\n"
+        "run finished at ***\n"
+        )
+    tc.assertMultiLineEqual(
+        fx.get_history(),
+        "  0_000 p1 beat p2 B+10.5\n"
+        "  0_001 p1 beat p2 B+10.5\n"
+        "  0_002 p1 beat p2 B+10.5\n")
 
 def test_check_players_fail(tc):
     fx = Ringmaster_fixture(tc, base_ctl, [
@@ -203,6 +241,16 @@ def test_run_fail(tc):
     tc.assertListEqual(
         fx.messages('screen_report'),
         ["1 void games; see log file."])
+    tc.assertMultiLineEqual(
+        fx.get_log(),
+        "run started at *** with max_games None\n"
+        "starting game 0_000: p1 (b) vs p2 (w)\n"
+        "game 0_000 -- aborting game due to error:\n"
+        "error starting subprocess for player p2:\n"
+        "exec forced to fail\n"
+        "halting competition: too many void games\n"
+        "run finished at ***\n")
+    tc.assertMultiLineEqual(fx.get_history(), "")
 
 def test_run_with_late_errors(tc):
     fx = Ringmaster_fixture(tc, base_ctl, [
@@ -218,4 +266,21 @@ def test_run_with_late_errors(tc):
         fx.messages('warnings'),
         ["error closing player p2:\nforced failure for close",
          "error closing player p2:\nforced failure for close"])
+    tc.assertMultiLineEqual(
+        fx.get_log(),
+        "run started at *** with max_games 2\n"
+        "starting game 0_000: p1 (b) vs p2 (w)\n"
+        "response from game 0_000\n"
+        "error closing player p2:\n"
+        "forced failure for close\n"
+        "starting game 0_001: p1 (b) vs p2 (w)\n"
+        "response from game 0_001\n"
+        "error closing player p2:\n"
+        "forced failure for close\n"
+        "halting competition: max-games reached for this run\n"
+        "run finished at ***\n")
+    tc.assertMultiLineEqual(
+        fx.get_history(),
+        "  0_000 p1 beat p2 B+10.5\n"
+        "  0_001 p1 beat p2 B+10.5\n")
 
