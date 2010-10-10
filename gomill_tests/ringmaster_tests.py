@@ -204,3 +204,18 @@ def test_run_fail(tc):
         fx.messages('screen_report'),
         ["1 void games; see log file."])
 
+def test_run_with_late_errors(tc):
+    fx = Ringmaster_fixture(tc, base_ctl, [
+        "players['p1'] = Player('test', discard_stderr=True)",
+        "players['p2'] = Player('test init=fail_close', discard_stderr=True)",
+        ])
+    def fail_close(channel):
+        channel.fail_close = True
+    fx.msf.register_init_callback('fail_close', fail_close)
+    fx.ringmaster.set_clean_status()
+    fx.ringmaster.run(max_games=2)
+    tc.assertListEqual(
+        fx.messages('warnings'),
+        ["error closing player p2:\nforced failure for close",
+         "error closing player p2:\nforced failure for close"])
+

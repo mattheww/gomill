@@ -186,6 +186,7 @@ class Game_job(object):
             game.send_command(colour, command, *arguments)
 
     def _run(self):
+        warnings = []
         game = gtp_games.Game(self.board_size, self.komi, self.move_limit)
         game.set_player_code('b', self.player_b.code)
         game.set_player_code('w', self.player_w.code)
@@ -223,11 +224,14 @@ class Game_job(object):
                 msg += "\nalso:\n" + late_error_messages
             raise job_manager.JobFailed(msg)
         game.close_players()
+        late_error_messages = game.describe_late_errors()
+        if late_error_messages:
+            warnings.append(late_error_messages)
         self._record_game(game)
         response = Game_job_result()
         response.game_id = self.game_id
         response.game_result = game.result
-        response.warnings = []
+        response.warnings = warnings
         response.engine_names = game.engine_names
         response.engine_descriptions = game.engine_descriptions
         response.game_data = self.game_data

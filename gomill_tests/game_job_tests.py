@@ -84,6 +84,7 @@ def test_game_job(tc):
     tc.assertEqual(result.game_result.sgf_result, "B+10.5")
     tc.assertEqual(result.game_id, 'gameid')
     tc.assertEqual(result.game_data, 'gamedata')
+    tc.assertEqual(result.warnings, [])
     channel = fx.get_channel('one')
     tc.assertIsNone(channel.requested_stderr)
     tc.assertIsNone(channel.requested_cwd)
@@ -143,6 +144,18 @@ def test_game_job_channel_error(tc):
                    "forced failure for send_command_line")
     tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.void/gjtest.sgf')
     tc.assertEqual(gj.job._mkdir_pathname, '/sgf/test.void')
+
+def test_game_job_late_errors(tc):
+    def fail_close(channel):
+        channel.fail_close = True
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    fx.register_init_callback('fail_close', fail_close)
+    gj = Game_job_fixture(tc)
+    gj.job.player_w.cmd_args.append('init=fail_close')
+    result = gj.job.run()
+    tc.assertEqual(result.game_result.sgf_result, "B+10.5")
+    tc.assertEqual(result.warnings,
+                   ["error closing player two:\nforced failure for close"])
 
 def test_game_job_stderr_cwd_env(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
