@@ -412,9 +412,9 @@ class Parameter_spec(object):
     """Internal description of a parameter spec from the configuration file.
 
     Public attributes:
-      code     -- identifier
-      format   -- string for use with '%'
-      scale_fn -- function float(0.0..1.0) -> player parameter
+      code   -- identifier
+      format -- string for use with '%'
+      scale  -- function float(0.0..1.0) -> player parameter
 
     """
 
@@ -523,7 +523,7 @@ class Mcts_tuner(Competition):
             raise ControlFileError("not a Parameter")
 
         config = {}
-        argument_names = ('code', 'scale_fn', 'split', 'format')
+        argument_names = ('code', 'scale', 'split', 'format')
         for name, val in zip(argument_names, parameter_config.args):
             config[name] = val
         for name, val in sorted(parameter_config.kwargs.iteritems()):
@@ -537,7 +537,7 @@ class Mcts_tuner(Competition):
         pspec = Parameter_spec()
         # FIXME: Needs lots of validation
         pspec.code = config['code']
-        pspec.scale_fn = config['scale_fn']
+        pspec.scale_fn = config['scale']
         pspec.split = config['split']
         pspec.format = config['format']
         return pspec
@@ -618,7 +618,7 @@ class Mcts_tuner(Competition):
                 l.append(pspec.scale_fn(v))
             except Exception:
                 raise CompetitionError(
-                    "error from scale_fn for %s\n%s" %
+                    "error from scaler for %s\n%s" %
                     (pspec.code, compact_tracebacks.format_traceback(skip=1)))
         return tuple(l)
 

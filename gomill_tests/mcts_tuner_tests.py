@@ -43,13 +43,13 @@ def default_config():
         'parameters' : [
             Parameter_config(
                 'resign_at',
-                scale_fn = trivial_scale_fn,
+                scale = trivial_scale_fn,
                 split = 12,
                 format = "rsn@ %.2f"),
 
             Parameter_config(
                 'initial_wins',
-                scale_fn = times_100_fn,
+                scale = times_100_fn,
                 split = 10,
                 format = "iwins %d"),
             ],
@@ -72,7 +72,7 @@ def test_parameter_config(tc):
     with tc.assertRaises(CompetitionError) as ar:
         comp.scale_parameters((0.5, None))
     tc.assertTracebackStringEqual(str(ar.exception), dedent("""\
-    error from scale_fn for initial_wins
+    error from scaler for initial_wins
     TypeError: unsupported operand type(s) for *: 'int' and 'NoneType'
     traceback (most recent call last):
     mcts_tuner_tests|times_100_fn
