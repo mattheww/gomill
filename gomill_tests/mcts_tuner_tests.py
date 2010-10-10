@@ -54,14 +54,13 @@ def default_config():
                 format = "iwins %d"),
             ],
         'make_candidate' : simple_make_candidate,
-        # FIXME: The remainder should be optional
-        'max_depth' : 1,
         }
 
 def test_parameter_config(tc):
     comp = mcts_tuners.Mcts_tuner('mctstest')
     config = default_config()
     comp.initialise_from_control_file(config)
+    tc.assertEqual(comp.tree.max_depth, 1)
     tc.assertEqual(comp.format_engine_parameters((0.5, 23)),
                    "rsn@ 0.50; iwins 23")
     tc.assertEqual(comp.format_engine_parameters(('x', 23)),
@@ -165,6 +164,8 @@ def test_tree(tc):
         initial_wins=5,
         parameter_formatter=str,
         )
+
+    tc.assertEqual(tree1.max_depth, 5)
 
     tc.assertEqual(tree1._cube_coordinates, [
         (0, 0), (0, 1), (0, 2),

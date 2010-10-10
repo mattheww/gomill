@@ -536,7 +536,7 @@ class Mcts_tuner(Competition):
     # These are used to instantiate Tree; they don't turn into Mcts_tuner
     # attributes.
     tree_settings = [
-        Setting('max_depth', interpret_positive_int),
+        Setting('max_depth', interpret_positive_int, default=1),
         Setting('exploration_coefficient', interpret_float),
         Setting('initial_visits', interpret_positive_int),
         Setting('initial_wins', interpret_positive_int),
