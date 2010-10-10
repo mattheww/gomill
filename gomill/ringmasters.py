@@ -147,6 +147,8 @@ class Ringmaster(object):
                 display_filename=self.control_pathname)
         except KeyboardInterrupt:
             raise
+        except ControlFileError, e:
+            raise
         except:
             raise ControlFileError(compact_tracebacks.format_error_and_line())
 

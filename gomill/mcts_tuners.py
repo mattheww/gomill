@@ -433,10 +433,13 @@ class Linear_scale_fn(Scale_fn):
 
     """
     def __init__(self, lower_bound, upper_bound, integer=False):
-        self.lower_bound = float(lower_bound)
-        self.upper_bound = float(upper_bound)
-        self.range = float(upper_bound - lower_bound)
-        self.integer = bool(integer)
+        try:
+            self.lower_bound = float(lower_bound)
+            self.upper_bound = float(upper_bound)
+            self.range = float(upper_bound - lower_bound)
+            self.integer = bool(integer)
+        except Exception:
+            raise ControlFileError("invalid parameters for LINEAR")
 
     def __call__(self, f):
         result = (f * self.range) + self.lower_bound
@@ -451,11 +454,14 @@ class Log_scale_fn(Scale_fn):
 
     """
     def __init__(self, lower_bound, upper_bound, integer=False):
-        lu = log(upper_bound)
-        ll = log(lower_bound)
-        self.a = lu - ll
-        self.b = ll
-        self.integer = bool(integer)
+        try:
+            lu = log(upper_bound)
+            ll = log(lower_bound)
+            self.a = lu - ll
+            self.b = ll
+            self.integer = bool(integer)
+        except Exception:
+            raise ControlFileError("invalid parameters for LOG")
 
     def __call__(self, f):
         result = exp(self.a*f + self.b)
