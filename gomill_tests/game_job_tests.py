@@ -8,7 +8,7 @@ from textwrap import dedent
 
 from gomill import gtp_controller
 from gomill import game_jobs
-from gomill.gtp_engine import GtpError
+from gomill.gtp_engine import GtpError, GtpFatalError
 from gomill.job_manager import JobFailed
 
 from gomill_tests import test_framework
@@ -128,8 +128,36 @@ def test_game_job_forfeit(tc):
     result = gj.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+F")
     tc.assertEqual(
+        result.game_result.detail,
+        "forfeit: failure response from 'genmove w' to player two:\n"
+        "error")
+    tc.assertEqual(
         result.warnings,
-        ["forfeit: failure response from 'genmove w' to player two:\nerror"])
+        ["forfeit: failure response from 'genmove w' to player two:\n"
+        "error"])
+    tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
+
+def test_game_job_forfeit_and_quit(tc):
+    def handle_genmove(args):
+        raise GtpFatalError("I'm out of here")
+    def reject_genmove(channel):
+        channel.engine.add_command('genmove', handle_genmove)
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    fx.register_init_callback('reject_genmove', reject_genmove)
+    gj = Game_job_fixture(tc)
+    gj.job.player_w.cmd_args.append('init=reject_genmove')
+    result = gj.job.run()
+    tc.assertEqual(result.game_result.sgf_result, "B+F")
+    tc.assertEqual(
+        result.game_result.detail,
+        "forfeit: failure response from 'genmove w' to player two:\n"
+        "I'm out of here")
+    tc.assertEqual(
+        result.warnings,
+        ["forfeit: failure response from 'genmove w' to player two:\n"
+         "I'm out of here",
+         "error sending 'known_command gomill-cpu_time' to player two:\n"
+         "engine has closed the command channel"])
     tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
 
 def test_game_job_exec_failure(tc):
