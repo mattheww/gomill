@@ -432,8 +432,9 @@ class Parameter_spec(object):
 
     Public attributes:
       code   -- identifier
-      format -- string for use with '%'
+      split  -- integer
       scale  -- function float(0.0..1.0) -> player parameter
+      format -- string for use with '%'
 
     """
 
