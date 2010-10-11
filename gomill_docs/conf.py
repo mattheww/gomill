@@ -54,5 +54,8 @@ todo_include_todos = True
 
 
 def setup(app):
+    app.add_description_unit('cmdarg', 'cmdarg',
+                             indextemplate='pair: %s; ringmaster command')
+
     app.add_description_unit('confval', 'confval',
                              indextemplate='pair: %s; configuration value')

@@ -51,38 +51,38 @@ simple as::
 
 The following commands are available:
 
-.. cmdoption:: run
+.. cmdarg:: run
 
   Runs the competition. If the competition has been run already, it continues
   from where it left off.
 
-.. cmdoption:: show
+.. cmdarg:: show
 
   Prints a report of the competition's current status.
 
-.. cmdoption:: reset
+.. cmdarg:: reset
 
   Cleans up the competition completely. This deletes all output files,
   including the competition's state file.
 
-.. cmdoption:: check
+.. cmdarg:: check
 
   Runs a test invocation of the competition's players. This is the same as the
   startup checks (see FIXME), except that any output the players send to their
   standard error stream will be printed.
 
-.. cmdoption:: report
+.. cmdarg:: report
 
   Rewrites the competition report file (FIXME: ref) based on the current
   status.
 
-.. cmdoption:: stop
+.. cmdarg:: stop
 
   Tells a running competition to stop as soon as the current game(s) have
   completed.
 
 
-It's safe to run :option:`show` or :option:`report` on a competition which
+It's safe to run :cmdarg:`!show` or :cmdarg:`!report` on a competition which
 is currently in progress.
 
 
