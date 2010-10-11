@@ -24,7 +24,7 @@ is applied to the the pathname of the executable (see
 
 
 Matchup parameters
-~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^
 
 .. confval:: number_of_games
 
@@ -85,11 +85,9 @@ It's safe to run :cmdarg:`!show` or :cmdarg:`!report` on a competition which
 is currently in progress.
 
 
-
-
 Command-line options:
 
-.. cmdoption:: --parallel=<N>
+.. cmdoption:: --parallel <N>
 
    Use multiple processes.
 
@@ -97,7 +95,7 @@ Command-line options:
 
    Disable the on-screen reporting.
 
-.. cmdoption:: --max-games=<N>
+.. cmdoption:: --max-games <N>
 
    Maximum number of games to play in the run.
 
@@ -110,8 +108,12 @@ settings in the control file; the run will halt if either limit is reached.
 
 If :option:`!--log-gtp` is set, the ringmaster logs all GTP commands and
 responses. It writes a separate log file for each game, in the
-`<code>.sgflogs` directory. (FIXME: Define <code>).
+:file:`{competition code}.sgflogs` directory.
+
+.. todo:: Define {competition code}
 
 It's ok to stop a competition with :kbd:`Ctrl-C`; any interrupted games will
-be rerun from scratch on the next run. (FIXME: Not quite true now.)
+be rerun from scratch on the next run.
+
+.. todo:: 'from scratch' not quite true now.
 
