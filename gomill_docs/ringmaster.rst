@@ -68,13 +68,12 @@ The following commands are available:
 .. cmdarg:: check
 
   Runs a test invocation of the competition's players. This is the same as the
-  startup checks (see FIXME), except that any output the players send to their
-  standard error stream will be printed.
+  `startup checks`_, except that any output the players send to their standard
+  error stream will be printed.
 
 .. cmdarg:: report
 
-  Rewrites the competition report file (FIXME: ref) based on the current
-  status.
+  Rewrites the `competition report file`_ based on the current status.
 
 .. cmdarg:: stop
 
