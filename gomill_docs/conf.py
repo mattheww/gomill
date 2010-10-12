@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+needs_sphinx = '1.0'
 extensions = ['sphinx.ext.todo']
 templates_path = ['_templates']
 source_suffix = '.rst'
@@ -21,7 +22,7 @@ modindex_common_prefix = ['gomill.']
 html_theme = 'default'
 html_theme_options = {
     'nosidebar'     : False,
-    'rightsidebar'  : True,
+    #'rightsidebar'  : True,
     'stickysidebar' : False,
 
     'footerbgcolor'    : '#3d3011',
@@ -44,6 +45,8 @@ html_theme_options = {
 
 html_static_path = ['_static']
 html_add_permalinks = False
+html_copy_source = False
+html_sidebars = {'**' : ['globaltoc.html', 'relations.html', 'searchbox.html']}
 
 #html_use_modindex = True
 #html_use_index = True
@@ -52,6 +55,11 @@ html_show_sourcelink = False
 
 todo_include_todos = True
 
+
+rst_epilog = """
+.. |gtp| replace:: :abbr:`GTP (Go Text Protocol)`
+.. |sgf| replace:: :abbr:`SGF (Smart Game Format)`
+"""
 
 def setup(app):
     app.add_description_unit('cmdarg', 'cmdarg',
