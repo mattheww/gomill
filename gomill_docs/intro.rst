@@ -1,9 +1,29 @@
 Introduction
 ============
 
+Gomill is a suite of tools, and a Python library, for use in developing and
+testing Go-playing programs. It is based around the Go Text Protocol
+(:term:`GTP`) and the Smart Game Format (:term:`SGF`).
 
-Example usage
--------------
+.. todo: refs for GTP and SGF.
+
+The principal tool is the :dfn:`ringmaster`, which plays programs against each
+other and keeps track of the results.
+
+Ringmaster features include:
+
+- testing multiple pairings in one run
+- playing multiple games in parallel
+- displaying live results
+- a protocol for per-move engine diagnostics in |sgf| output
+- engine configuration by command-line options or |sgf| commands
+
+The ringmaster also has experimental support for automatically tuning program
+parameters based on the results of previous games.
+
+
+Ringmaster example
+------------------
 
 Create a file called :file:`demo.ctl`, with the following contents::
 
@@ -24,7 +44,7 @@ Create a file called :file:`demo.ctl`, with the following contents::
       ]
 
 (If you don't have gnugo installed, change the Players to include a command
-line for whatever GTP engine you have available.)
+line for whatever |gtp| engine you have available.)
 
 Then run ::
 
@@ -35,3 +55,15 @@ of the results on screen. It will create several files named like
 :file:`demo.{xxx}` in the same directory as :file:`demo.ctl`, including a
 :file:`demo.sgf` directory containing game records.
 
+
+Other tools
+-----------
+
+.. todo:: refer to the page about them, brief summary here.
+
+
+The Python library
+------------------
+
+.. todo:: say the API isn't stable as of Gomill |version|, refer to page about
+          it.

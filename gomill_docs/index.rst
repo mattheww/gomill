@@ -1,5 +1,5 @@
-Gomill documentation
-====================
+Gomill
+======
 
 Contents:
 
@@ -9,6 +9,7 @@ Contents:
    intro
    ringmaster
    cem_tuner
+   glossary
 
 * :ref:`genindex`
 * :ref:`search`
