@@ -15,11 +15,11 @@ Ringmaster features include:
 - testing multiple pairings in one run
 - playing multiple games in parallel
 - displaying live results
+- engine configuration by command-line options or |gtp| commands
 - a protocol for per-move engine diagnostics in |sgf| output
-- engine configuration by command-line options or |sgf| commands
 
-The ringmaster also has experimental support for automatically tuning program
-parameters based on the results of previous games.
+There is also experimental support for automatically tuning player parameters
+based on the game results.
 
 
 Ringmaster example
@@ -31,20 +31,19 @@ Create a file called :file:`demo.ctl`, with the following contents::
 
   board_size = 9
   komi = 7.5
-  move_limit = 200
   record_games = True
 
   players = {
-      'gnugol1' : Player('gnugo --mode=gtp --level=1'),
-      'gnugol2' : Player('gnugo --mode=gtp --level=2'),
+      'gnugo-l1' : Player('gnugo --mode=gtp --level=1'),
+      'gnugo-l2' : Player('gnugo --mode=gtp --level=2'),
       }
 
   matchups = [
-      Matchup('gnugol1', 'gnugol2', number_of_games=5),
+      Matchup('gnugo-l1', 'gnugo-l2', number_of_games=5),
       ]
 
-(If you don't have gnugo installed, change the Players to include a command
-line for whatever |gtp| engine you have available.)
+(If you don't have :program:`gnugo` installed, change the Players to use a
+command line for whatever |gtp| engine you have available.)
 
 Then run ::
 
