@@ -5,10 +5,11 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
+   :titlesonly:
 
    intro
    ringmaster
-   cem_tuner
+   tuners
    glossary
 
 * :ref:`genindex`

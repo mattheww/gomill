@@ -62,8 +62,12 @@ rst_epilog = """
 """
 
 def setup(app):
-    app.add_description_unit('cmdarg', 'cmdarg',
-                             indextemplate='pair: %s; ringmaster command')
+    app.add_description_unit('action', 'action',
+                             indextemplate='pair: %s; ringmaster action')
 
-    app.add_description_unit('confval', 'confval',
-                             indextemplate='pair: %s; configuration value')
+    app.add_description_unit('setting', 'setting',
+                             indextemplate='pair: %s; control file setting')
+
+    app.add_description_unit('gtp', 'gtp',
+                             indextemplate='pair: %s; GTP command')
+

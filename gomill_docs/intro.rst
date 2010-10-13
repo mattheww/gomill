@@ -50,8 +50,8 @@ Then run ::
   $ ringmaster demo.ctl
 
 The ringmaster will run five games between the two players, showing a summary
-of the results on screen. It will create several files named like
-:file:`demo.{xxx}` in the same directory as :file:`demo.ctl`, including a
+of the results on screen, and then exit. It will create several files named
+like :file:`demo.{xxx}` in the same directory as :file:`demo.ctl`, including a
 :file:`demo.sgf` directory containing game records.
 
 
