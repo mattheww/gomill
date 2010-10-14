@@ -285,7 +285,7 @@ class Ringmaster(object):
             raise RingmasterError("error closing history file:\n%s" % e)
 
     ringmaster_settings = [
-        Setting('record_games', interpret_bool, False),
+        Setting('record_games', interpret_bool, True),
         Setting('stderr_to_log', interpret_bool, True),
         ]
 
