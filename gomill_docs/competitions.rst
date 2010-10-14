@@ -3,42 +3,102 @@
 Running competitions
 --------------------
 
-When a competition is run, the ringmaster will launch games between pairs of
-players, as described by the :setting:`matchup` descriptions in the control
-file (for playoffs), or as specified by a tuning algorithm (for tuning
-events).
+.. contents:: Contents
+   :local:
+   :backlinks: none
 
-It may play multiple games in parallel; see :ref:`parallel-games` below.
 
-While the competition runs, it displays a summary of the scores in each
-matchup (or of the tuning algorithm status), a list of games in progress, and
-a list of recent game results. Use :ref:`quiet mode <quiet mode>` to turn this
-display off.
+Pairings
+^^^^^^^^
+
+When a competition is run, the ringmaster will launch one or more games
+between pairs of players.
+
+For playoffs, the pairings are determined by the :setting:`matchup`
+descriptions in the control file. If there is more than one matchup specified,
+the ringmaster prefers to start games from the matchup which has played fewest
+games.
+
+For tuning events, the pairings are specified by a tuning algorithm.
+
+
+.. _simultaneous games:
+
+Simultaneous games
+^^^^^^^^^^^^^^^^^^
+
+The ringmaster can run more than one game at a time, if the
+:option:`--parallel <ringmaster --parallel>` command line option is specified.
+
+This can be useful to keep processor cores busy, or if the actual playing
+programs are running on different machines to the ringmaster.
+
+Normally it makes no difference whether the ringmaster starts games in
+sequence or in parallel, but it does have an effect on the :ref:`Monte Carlo
+tuner`, as it will have less information each time it chooses a candidate
+player.
+
+.. tip:: Even if an engine is capable of using multiple threads, it may be
+   better to use parallel single-threaded games during development to get
+   reproducible results, or to be sure that system load does not affect play.
+
+.. tip:: When deciding how many games to run in parallel, remember to take
+   into account the amount of memory needed, as well as the number of
+   processor cores available.
+
+
+Display
+^^^^^^^
+
+While the competition runs, the ringmaster displays a summary of the scores in
+each matchup (or of the tuning algorithm status), a list of games in progress,
+and a list of recent game results. For example::
+
+  2 games in progress: 0_2 0_4
+  (Ctrl-X to halt gracefully)
+
+  gnugo-l1 v gnugo-l2 (3/5 games)
+  board size: 9   komi: 7.5
+             wins              black         white      avg cpu
+  gnugo-l1      2 66.67%       1 100.00%     1 50.00%      1.13
+  gnugo-l2      1 33.33%       1  50.00%     0  0.00%      1.32
+                               2  66.67%     1 33.33%
+
+  = Results =
+  game 0_1: gnugo-l2 beat gnugo-l1 B+8.5
+  game 0_0: gnugo-l1 beat gnugo-l2 B+33.5
+  game 0_3: gnugo-l1 beat gnugo-l2 W+2.5
+
+Use :ref:`quiet mode <quiet mode>` to turn this display off.
+
+
+.. _stopping competitions:
+
+Stopping competitions
+^^^^^^^^^^^^^^^^^^^^^
 
 Unless interrupted, the run will continue until the specified
 :setting:`number_of_games` have been played for each matchup (indefinitely if
 :setting:`number_of_games` is unset), or the limit specified by the
 :option:`--max-games <ringmaster --max-games>` command line option is reached.
 
-Use :kbd:`Ctrl-X` to stop a run. The ringmaster will wait for all games in
+Type :kbd:`Ctrl-X` to stop a run. The ringmaster will wait for all games in
 progress to complete, and then exit (the stop request won't be acknowledged on
 screen until the next game result comes in).
 
-It's also ok to stop a competition with :kbd:`Ctrl-C`; games in progress will
-be terminated immediately (assuming the engine processes are well-behaved),
-and the ringmaster will replay them as necessary if the competition is resumed
-later.
+It's also reasonable to stop a competition with :kbd:`Ctrl-C`; games in
+progress will be terminated immediately (assuming the engine processes are
+well-behaved). The partial games will be forgotten; the ringmaster will replay
+them as necessary if the competition is resumed later.
 
 You can also stop a competition by running the :program:`ringmaster`
 :action:`stop` action from a shell; like :kbd:`Ctrl-X`, this will be
 acknowledged when the next game result comes in, and the ringmaster will wait
 for games in progress to complete.
 
-.. contents:: Contents
-   :local:
 
-Players
-^^^^^^^
+Running players
+^^^^^^^^^^^^^^^
 
 The ringmaster requires the players to be standalone executables which speak
 |gtp| on their standard input and output streams.
@@ -52,7 +112,7 @@ settings in the control file.
 It launches a new engine subprocess for each game and waits for it to
 terminate as soon as the game is completed.
 
-.. tip:: to run players on a different computer to the ringmaster,
+.. tip:: To run players on a different computer to the ringmaster,
    specify a suitable :program:`ssh` command line in the :setting:`Player`
    definition.
 
@@ -156,8 +216,8 @@ standard output, and only errors and warnings to standard error.
 
 This mode is suitable for running in the background.
 
-:kbd:`Ctrl-X` still works in quiet mode to stop a run, if the ringmaster
-process is in the foreground.
+:kbd:`Ctrl-X` still works in quiet mode to stop a run gracefully, if the
+ringmaster process is in the foreground.
 
 
 .. _output files:
@@ -197,7 +257,7 @@ Competition state
 
 The competition :dfn:`state file` (:file:`{code}.state`) contains a
 machine-readable (but opaque) description of the competition's results; this
-allows resuming the competition, and also programatically :ref:`querying the
+allows resuming the competition, and also programmatically :ref:`querying the
 results`. It is rewritten after each game result is received, so that little
 information will be lost if the ringmaster stops ungracefully for any reason.
 
@@ -205,29 +265,25 @@ The :action:`reset` command line action deletes **all** competition output
 files, including game records and the state file.
 
 
-.. _simultaneous games:
+.. _logging:
 
-Simultaneous games
-^^^^^^^^^^^^^^^^^^
+Logging
+^^^^^^^
 
-The ringmaster can run more than one game at a time, if the
-:option:`--parallel <ringmaster --parallel>` command line option is specified.
+The ringmaster writes two log files: the :dfn:`event log` (:file:`{code}.log`)
+and the :dfn:`history file` (:file:`{code}.hist`).
 
-This can be useful to keep processor cores busy, or if the actual playing
-programs are running on different machines to the ringmaster.
+The event log has entries for competition runs starting and finishing and for
+games starting and finishing, including details of errors from games which
+fail. It may also include output from the players' :ref:`standard error
+streams <FIXME>`, depending on the :setting:`stderr_to_log` setting.
 
-Normally it makes no difference whether the ringmaster starts games in
-sequence or in parallel, but it does have an effect on the :ref:`Monte Carlo
-tuner`, as it will have less information each time it chooses a candidate
-player.
+The history file has entries for game results, and in tuning events it
+may have periodic descriptions of the tuner status.
 
-.. tip:: even if an engine is capable of using multiple threads, it may be
-   better to use parallel single-threaded games during development to get
-   reproducible results, or to be sure that system load does not affect play.
-
-.. tip:: when deciding how many games to run in parallel, remember to take
-   into account the amount of memory needed, as well as the number of
-   processor cores available.
+Also, if the :option:`--log-gtp <ringmaster --log-gtp>` command line option is
+passed, the ringmaster logs all |gtp| commands and responses. It writes a
+separate log file for each game, in the :file:`{code}.gtplogs` directory.
 
 
 Players' standard error
@@ -250,92 +306,4 @@ the Player setting :setting:`discard_stderr`. This can be used for players
 which like to send copious diagnostics to stderr, but if possible it is better
 to configure the player not to do that, so that any real error messages aren't
 hidden (eg with a command line option like ``fuego --quiet``).
-
-
-.. _cmdline:
-
-Command line interface
-^^^^^^^^^^^^^^^^^^^^^^
-
-.. program:: ringmaster
-
-.. index:: action; ringmaster
-
-The ringmaster expects two command line arguments: the pathname of the control
-file and an :dfn:`action`::
-
-  $ ringmaster [options] <code>.ctl [run|show|reset|check|report|stop]
-
-The control file must have extension :file:`.ctl`.
-
-The default action is :action:`!run`, so running a competition is normally a
-simple line like::
-
-  $ ringmaster competitions/test.ctl
-
-See :ref:`running competitions` above for details of how to stop the ringmaster.
-
-
-The following actions are available:
-
-.. action:: run
-
-  Runs the competition. If the competition has been run already, it continues
-  from where it left off.
-
-.. action:: show
-
-  Prints a :ref:`report <competition report file>` of the competition's
-  current status. It can be used for both running and stopped competitions.
-
-.. action:: reset
-
-  Cleans up the competition completely. This deletes all output files,
-  including the competition's :ref:`state file <competition state>`.
-
-.. action:: check
-
-  Runs a test invocation of the competition's players. This is the same as the
-  :ref:`startup checks`, except that any output the players send to their
-  standard error stream will be printed.
-
-.. action:: report
-
-  Rewrites the `competition report file`_ based on the current status. It can
-  be used for both running and stopped competitions.
-
-.. action:: stop
-
-  Tells a running ringmaster for the competition to stop as soon as the
-  current game(s) have completed.
-
-
-Command-line options:
-
-.. option:: --parallel <N>, -j <N>
-
-   Play N :ref:`simultaneous games <simultaneous games>`.
-
-.. option:: --quiet, -q
-
-   Disable the on-screen reporting.
-
-.. option:: --max-games <N>, -g <N>
-
-   Maximum number of games to play in the run; see :ref:`quiet mode <quiet
-   mode>` above.
-
-.. option:: --log-gtp
-
-   Log all |gtp| traffic.
-
-.. todo:: move the log-gtp para to the 'logging' section, and leave a
-   reference instead.
-
-If :option:`!--log-gtp` is set, the ringmaster logs all |gtp| commands and
-responses. It writes a separate log file for each game, in the
-:file:`{competition code}.gtplogs` directory.
-
-.. todo:: Doc exit status
-
 

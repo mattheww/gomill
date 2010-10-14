@@ -15,18 +15,20 @@ Ringmaster features include:
 - testing multiple pairings in one run
 - playing multiple games in parallel
 - displaying live results
-- engine configuration by command-line options or |gtp| commands
+- engine configuration by command line options or |gtp| commands
 - a protocol for per-move engine diagnostics in |sgf| output
-
-There is also experimental support for automatically tuning player parameters
-based on the game results.
+- automatically tuning player parameters based on game results
+  (**experimental**)
 
 .. contents:: Contents
    :local:
+   :backlinks: none
 
 
 Ringmaster example
 ------------------
+
+.. todo:: brief link to install docs at this point
 
 Create a file called :file:`demo.ctl`, with the following contents::
 
@@ -41,7 +43,9 @@ Create a file called :file:`demo.ctl`, with the following contents::
       }
 
   matchups = [
-      Matchup('gnugo-l1', 'gnugo-l2', number_of_games=5),
+      Matchup('gnugo-l1', 'gnugo-l2',
+              alternating=True,
+              number_of_games=5),
       ]
 
 (If you don't have :program:`gnugo` installed, change the Players to use a
@@ -52,9 +56,25 @@ Then run ::
   $ ringmaster demo.ctl
 
 The ringmaster will run five games between the two players, showing a summary
-of the results on screen, and then exit. It will create several files named
-like :file:`demo.{xxx}` in the same directory as :file:`demo.ctl`, including a
-:file:`demo.sgf` directory containing game records.
+of the results on screen, and then exit.
+
+The final display should be something like this::
+
+  playoff: demo
+
+  gnugo-l1 v gnugo-l2 (5/5 games)
+  board size: 9   komi: 7.5
+             wins              black        white      avg cpu
+  gnugo-l1      2 40.00%       1 33.33%     1 50.00%      1.23
+  gnugo-l2      3 60.00%       1 50.00%     2 66.67%      1.39
+                               2 40.00%     3 60.00%
+
+  player gnugo-l1: GNU Go:3.8
+  player gnugo-l2: GNU Go:3.8
+
+The ringmaster will create several files named like :file:`demo.{xxx}` in the
+same directory as :file:`demo.ctl`, including a :file:`demo.sgf` directory
+containing game records.
 
 
 Other tools

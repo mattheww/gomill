@@ -1,10 +1,12 @@
 Viewing results
 ---------------
 
-Once a run has completed, there are a number of ways to view its results.
+There are a number of ways to view the results of runs, whether completed or
+in progress.
 
 .. contents:: Contents
    :local:
+   :backlinks: none
 
 .. _competition report file:
 .. index:: report file
@@ -16,7 +18,31 @@ The competition :dfn:`report file` (:file:`{code}.report`) file is a plain
 text description of the competition results. This is similar to the live
 report that is displayed while the competition is running. It also includes
 descriptions of the players, and the contents of the competition's
-:setting:`description` setting.
+:setting:`description` setting. For example::
+
+  playoff: example
+
+  Testing GNU Go level 1 vs level 2, 2010-10-14
+
+  gnugo-l1 v gnugo-l2 (5/5 games)
+  board size: 9   komi: 7.5
+             wins              black        white      avg cpu
+  gnugo-l1      2 40.00%       1 33.33%     1 50.00%      1.23
+  gnugo-l2      3 60.00%       1 50.00%     2 66.67%      1.39
+                               2 40.00%     3 60.00%
+
+  player gnugo-l1: GNU Go:3.8
+  player gnugo-l2: GNU Go:3.8
+
+
+.. todo:: Mention void and unfinished games, and forfeits (ie, say what the
+   distinction is.
+
+.. todo:: explain CPU time calculation.
+
+.. todo:: say anything about player codes and matchup codes? And
+   describe_engine. Possibly a ^^^-level heading for player descriptions.
+
 
 The :action:`report` command line action rewrites the competition report file.
 This can be useful if you have changed descriptive text in the control file,
@@ -27,10 +53,6 @@ output.
 
 It's safe to run :action:`show` or :action:`report` on a competition which is
 currently in progress.
-
-
-.. todo:: some reference to sample scripts, results API.
-
 
 
 Game records
@@ -50,22 +72,12 @@ the comment section for individual moves: see :gtp:`gomill-explain_last_move`.
    matchup codes?
 
 
+Querying the results
+^^^^^^^^^^^^^^^^^^^^
+
+.. todo:: some reference to sample scripts, results API.
+
+
+
 .. index:: logging, event log, history file
-
-
-.. _logging:
-
-Logging
-^^^^^^^
-
-The ringmaster writes two log files: the :dfn:`event log` (:file:`{code}.log`)
-and the :dfn:`history file` (:file:`{code}.hist`).
-
-The event log has entries for competition runs starting and finishing and for
-games starting and finishing, including details of errors from games which
-fail. It may also include output from the players' :ref:`standard error
-streams <FIXME>`, depending on the :setting:`stderr_to_log` setting.
-
-The history file has entries for game results, and in tuning events it
-may have periodic descriptions of the tuner status.
 
