@@ -50,9 +50,10 @@ events).
 
 It may play multiple games in parallel; see :ref:`parallel-games` below.
 
-It normally displays a summary of the scores in each matchup (or of the tuning
-algorithm status), a list of games in progress, and a list of recent game
-results. Use :ref:`quiet mode <quiet mode>` to turn this display off.
+While the competition runs, it displays a summary of the scores in each
+matchup (or of the tuning algorithm status), a list of games in progress, and
+a list of recent game results. Use :ref:`quiet mode <quiet mode>` to turn this
+display off.
 
 Unless interrupted, the run will continue until the specified
 :setting:`number_of_games` have been played for each matchup (indefinitely if
@@ -182,6 +183,28 @@ The checks are as follows:
 - the engine accepts the :gtp:`clear_board` |gtp| command
 
 
+.. _quiet mode:
+
+.. index:: quiet mode
+
+Quiet mode
+^^^^^^^^^^
+
+The :option:`--quiet <ringmaster --quiet>` command line option makes the
+ringmaster run in :dfn:`quiet mode`. In this mode, it prints nothing to
+standard output, and only errors and warnings to standard error.
+
+This mode is suitable for running in the background.
+
+:kbd:`Ctrl-X` still works in quiet mode to stop a run, if the ringmaster
+process is in the foreground.
+
+
+Viewing competition results
+---------------------------
+
+.. todo:: some reference to sample scripts, results API.
+
 .. _output files:
 
 Output files
@@ -210,22 +233,10 @@ The full set of files that may be present in the competition directory is:
 ======================= =======================================================
 
 
-.. _quiet mode:
-
-Quiet mode
-^^^^^^^^^^
-
-
 Game records
 ^^^^^^^^^^^^
 
 .. todo:: link to explain_last_move in gtp-extensions section.
-
-
-
-
-Viewing competition results
----------------------------
 
 
 .. _control file:
@@ -320,7 +331,8 @@ Command-line options:
 
 .. option:: --max-games <N>, -g <N>
 
-   Maximum number of games to play in the run.
+   Maximum number of games to play in the run; see :ref:`quiet mode <quiet
+   mode>` above.
 
 .. option:: --log-gtp
 
@@ -334,4 +346,5 @@ responses. It writes a separate log file for each game, in the
 :file:`{competition code}.gtplogs` directory.
 
 .. todo:: Doc exit status
+
 
