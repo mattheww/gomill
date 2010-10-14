@@ -21,6 +21,9 @@ Ringmaster features include:
 There is also experimental support for automatically tuning player parameters
 based on the game results.
 
+.. contents:: Contents
+   :local:
+
 
 Ringmaster example
 ------------------
@@ -31,7 +34,6 @@ Create a file called :file:`demo.ctl`, with the following contents::
 
   board_size = 9
   komi = 7.5
-  record_games = True
 
   players = {
       'gnugo-l1' : Player('gnugo --mode=gtp --level=1'),
