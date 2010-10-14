@@ -205,6 +205,31 @@ The :action:`reset` command line action deletes **all** competition output
 files, including game records and the state file.
 
 
+.. _simultaneous games:
+
+Simultaneous games
+^^^^^^^^^^^^^^^^^^
+
+The ringmaster can run more than one game at a time, if the
+:option:`--parallel <ringmaster --parallel>` command line option is specified.
+
+This can be useful to keep processor cores busy, or if the actual playing
+programs are running on different machines to the ringmaster.
+
+Normally it makes no difference whether the ringmaster starts games in
+sequence or in parallel, but it does have an effect on the :ref:`Monte Carlo
+tuner`, as it will have less information each time it chooses a candidate
+player.
+
+.. tip:: even if an engine is capable of using multiple threads, it may be
+   better to use parallel single-threaded games during development to get
+   reproducible results, or to be sure that system load does not affect play.
+
+.. tip:: when deciding how many games to run in parallel, remember to take
+   into account the amount of memory needed, as well as the number of
+   processor cores available.
+
+
 Players' standard error
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -289,7 +314,7 @@ Command-line options:
 
 .. option:: --parallel <N>, -j <N>
 
-   Use multiple processes.
+   Play N :ref:`simultaneous games <simultaneous games>`.
 
 .. option:: --quiet, -q
 
