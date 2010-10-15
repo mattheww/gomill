@@ -1,10 +1,7 @@
 Viewing results
 ---------------
 
-There are a number of ways to view the results of runs, whether completed or
-in progress.
-
-.. contents:: Contents
+.. contents:: Page contents
    :local:
    :backlinks: none
 

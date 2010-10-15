@@ -3,8 +3,10 @@
 The control file
 ----------------
 
-.. contents:: Contents
+.. contents:: Page Contents
    :local:
+   :backlinks: none
+
 
 File format
 ^^^^^^^^^^^

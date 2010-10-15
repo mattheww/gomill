@@ -3,7 +3,7 @@
 Running competitions
 --------------------
 
-.. contents:: Contents
+.. contents:: Page contents
    :local:
    :backlinks: none
 
