@@ -42,8 +42,8 @@ Tuning events
    :maxdepth: 2
    :titlesonly:
 
-   ringmaster_cmdline
    competitions
    results
    settings
+   ringmaster_cmdline
 
