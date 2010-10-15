@@ -109,15 +109,14 @@ The following settings can be set at the top level of the control file:
 
   Bool (default True)
 
-  Controls whether the ringmaster writes |sgf| :ref:`game records <game
-  records>`.
+  Write |sgf| :ref:`game records <game records>`.
 
 .. setting:: stderr_to_log
 
   Bool (default True)
 
-  Controls whether players' standard error streams are redirected to the
-  :ref:`event log <logging>`. See :ref:`standard error`.
+  Redirect all players' standard error streams to the :ref:`event log
+  <logging>`. See :ref:`standard error`.
 
 .. setting:: players
 
@@ -225,8 +224,8 @@ parameters are:
 
   Bool (default False)
 
-  Controls whether the player's standard error stream is redirected to
-  :file:`/dev/null`. See :ref:`standard error`.
+  Redirect the player's standard error stream to :file:`/dev/null`. See
+  :ref:`standard error`.
 
   Example::
 
