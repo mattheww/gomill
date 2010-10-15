@@ -50,20 +50,23 @@ def test_bad_player(tc):
 
 def test_player_command(tc):
     comp = competitions.Competition('test')
+    comp.set_base_directory("/base")
     config = {
         'players' : {
             't1' : Player_config("test"),
             't2' : Player_config("/bin/test foo"),
             't3' : Player_config(["bin/test", "foo"]),
             't4' : Player_config("~/test foo"),
+            't5' : Player_config("~root"),
             }
         }
     comp.initialise_from_control_file(config)
     tc.assertEqual(comp.players['t1'].cmd_args, ["test"])
     tc.assertEqual(comp.players['t2'].cmd_args, ["/bin/test", "foo"])
-    tc.assertEqual(comp.players['t3'].cmd_args, ["bin/test", "foo"])
+    tc.assertEqual(comp.players['t3'].cmd_args, ["/base/bin/test", "foo"])
     tc.assertEqual(comp.players['t4'].cmd_args,
                    [os.path.expanduser("~") + "/test", "foo"])
+    tc.assertEqual(comp.players['t5'].cmd_args, ["~root"])
 
 def test_player_is_reliable_scorer(tc):
     comp = competitions.Competition('test')

@@ -234,7 +234,8 @@ class Competition(object):
 
         try:
             player.cmd_args = config['command']
-            player.cmd_args[0] = os.path.expanduser(player.cmd_args[0])
+            if '/' in player.cmd_args[0]:
+                player.cmd_args[0] = self.resolve_pathname(player.cmd_args[0])
         except Exception, e:
             raise ControlFileError("'command': %s" % e)
 
