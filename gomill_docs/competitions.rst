@@ -222,6 +222,8 @@ ringmaster process is in the foreground.
 
 .. _output files:
 
+.. _competition directory:
+
 Output files
 ^^^^^^^^^^^^
 
@@ -276,7 +278,7 @@ and the :dfn:`history file` (:file:`{code}.hist`).
 The event log has entries for competition runs starting and finishing and for
 games starting and finishing, including details of errors from games which
 fail. It may also include output from the players' :ref:`standard error
-streams <FIXME>`, depending on the :setting:`stderr_to_log` setting.
+streams <standard error>`, depending on the :setting:`stderr_to_log` setting.
 
 The history file has entries for game results, and in tuning events it
 may have periodic descriptions of the tuner status.
@@ -285,6 +287,8 @@ Also, if the :option:`--log-gtp <ringmaster --log-gtp>` command line option is
 passed, the ringmaster logs all |gtp| commands and responses. It writes a
 separate log file for each game, in the :file:`{code}.gtplogs` directory.
 
+
+.. _standard error:
 
 Players' standard error
 ^^^^^^^^^^^^^^^^^^^^^^^

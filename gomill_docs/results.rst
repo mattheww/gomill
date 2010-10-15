@@ -52,6 +52,8 @@ It's safe to run :action:`show` or :action:`report` on a competition which is
 currently in progress.
 
 
+.. _game records:
+
 Game records
 ^^^^^^^^^^^^
 

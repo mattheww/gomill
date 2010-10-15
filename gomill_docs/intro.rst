@@ -20,7 +20,7 @@ Ringmaster features include:
 - automatically tuning player parameters based on game results
   (**experimental**)
 
-.. contents:: Contents
+.. contents:: Page contents
    :local:
    :backlinks: none
 

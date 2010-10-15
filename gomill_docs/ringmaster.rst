@@ -38,6 +38,9 @@ Tuning events
   play.
 
 
+Using the ringmaster
+--------------------
+
 .. toctree::
    :maxdepth: 2
    :titlesonly:
