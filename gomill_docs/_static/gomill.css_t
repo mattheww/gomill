@@ -1,0 +1,3 @@
+@import url("default.css");
+
+p.topic-title {color: {{ theme_headtextcolor }};}
