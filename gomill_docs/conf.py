@@ -36,6 +36,7 @@ html_theme_options = {
     #'bgcolor'          : ,
     #'textcolor'        : ,
     'linkcolor'        : '#7c5f35',
+    'visitedlinkcolor' : '#7c5f35',
     #'headbgcolor'      : ,
     'headtextcolor'    : '#5c4320',
     #'headlinkcolor'    : ,
