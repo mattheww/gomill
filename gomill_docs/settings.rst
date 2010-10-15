@@ -19,8 +19,6 @@ File format
 Sample control file
 ^^^^^^^^^^^^^^^^^^^
 
-.. todo:: maybe it's 'all'?
-
 Here is a sample control file, illustrating most of the available settings::
 
   competition_type = 'playoff'
@@ -62,8 +60,13 @@ Here is a sample control file, illustrating most of the available settings::
       Matchup('gnugo-l1', 'fuego-5k', board_size=13,
               handicap=2, handicap_style='free',
               scorer='players', number_of_games=5),
+
       Matchup('gnugo-l2', 'fuego-5k', alternating=True,
               scorer='players'),
+
+      Matchup('gnugo-l1', 'gnugo-l2', alternating=True,
+              komi=0.5,
+              scorer='internal'),
       ]
 
 
@@ -118,15 +121,14 @@ The following settings can be set at the top level of the control file:
 
 .. setting:: players
 
-  Dictionary of :setting:`Player` definitions (see :ref:`player
-  configuration`).
+  Dictionary mapping identifiers to :setting:`Player` definitions (see
+  :ref:`player configuration`).
 
   This describes the |gtp| engines that can be used in the competition.
 
-  The dictionary keys must be identifiers. These identifiers are the
-  :dfn:`player codes`; they are used to identify the players in
-  :setting:`Matchup` definitions, and also appear in reports and the |sgf|
-  game records.
+  The dictionary keys are the :dfn:`player codes`; they are used to identify
+  the players in :setting:`Matchup` definitions, and also appear in reports
+  and the |sgf| game records.
 
   It's fine to have player definitions here which aren't used in any
   matchups. These definitions will be ignored, and no corresponding engines
@@ -181,6 +183,10 @@ parameters are:
   the :envvar:`PATH`. Otherwise it is handled as described in :ref:`file and
   directory names <file and directory names>`.
 
+  Example::
+
+    Player("~/src/fuego-svn/fuegomain/fuego --quiet")
+
 
 .. setting:: cwd
 
@@ -202,12 +208,10 @@ parameters are:
 
 .. setting:: environ
 
-   Dictionary of strings (default None)
+   Dictionary mapping strings to strings (default None)
 
    This specifies environment variables to be set in the player process, in
    addition to those inherited from the parent.
-
-   The dictionary keys and values are both strings.
 
    Note that there is no special handling in this case for values which happen
    to be file or directory names.
@@ -218,7 +222,31 @@ parameters are:
 
 
 .. setting:: discard_stderr
+
+  Bool (default False)
+
+  Controls whether the player's standard error stream is redirected to
+  :file:`/dev/null`. See :ref:`standard error`.
+
+  Example::
+
+    Player('mogo', discard_stderr=True)
+
+
 .. setting:: gtp_aliases
+
+  Dictionary mapping strings to strings (default None)
+
+  This is a map of |gtp| command names to command names, eg::
+
+    Player('fuego', gtp_aliases={'gomill-cpu_time' : 'cputime'})
+
+  When the ringmaster would normally send :gtp:`gomill-cpu_time`, it will send
+  :gtp:`cputime` instead.
+
+  The command names are case-sensitive.
+
+
 .. setting:: startup_gtp_commands
 .. setting:: is_reliable_scorer
 .. setting:: allow_claim
