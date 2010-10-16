@@ -179,6 +179,9 @@ class Cem_tuner(Competition):
             (i, self.batch_size) for i in xrange(self.samples_per_generation)
             )
 
+    # Can bump this to prevent people loading incompatible .status files.
+    status_format_version = 0
+
     def get_status(self):
         return {
             'generation'         : self.generation,

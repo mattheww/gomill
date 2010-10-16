@@ -364,7 +364,8 @@ class Ringmaster(object):
         competition_status = self.competition.get_status()
         status = {
             'void_game_count' : self.void_game_count,
-            'comp'         : competition_status,
+            'comp_vn'         : self.competition.status_format_version,
+            'comp'            : competition_status,
             }
         try:
             f = open(self.status_pathname + ".new", "wb")
@@ -380,16 +381,17 @@ class Ringmaster(object):
             f = open(self.status_pathname, "rb")
             status_format_version, status = pickle.load(f)
             f.close()
+            if (status_format_version != self.status_format_version or
+                status['comp_vn'] != self.competition.status_format_version):
+                raise RingmasterError("incompatible status file")
+            self.void_game_count = status['void_game_count']
+            self.games_in_progress = {}
+            self.games_to_replay = {}
+            competition_status = status['comp']
         except pickle.UnpicklingError:
             raise RingmasterError("corrupt status file")
         except Exception, e:
             raise RingmasterError("error reading status file: %s" % e)
-        if status_format_version != self.status_format_version:
-            raise RingmasterError("incompatible status file")
-        self.void_game_count = status['void_game_count']
-        self.games_in_progress = {}
-        self.games_to_replay = {}
-        competition_status = status['comp']
         try:
             self.competition.set_status(competition_status)
         except CompetitionError, e:

@@ -646,6 +646,9 @@ class Mcts_tuner(Competition):
         self.tree.new_root()
         self.opponent_description = None
 
+    # Can bump this to prevent people loading incompatible .status files.
+    status_format_version = 0
+
     def get_status(self):
         # path0 is stored for consistency check
         return {
