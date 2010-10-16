@@ -218,7 +218,7 @@ class Ringmaster(object):
         elif competition_type == "cem_tuner":
             from gomill import cem_tuners
             return cem_tuners.Cem_tuner
-        elif competition_type == "mcts_tuner":
+        elif competition_type == "mc_tuner":
             from gomill import mcts_tuners
             return mcts_tuners.Mcts_tuner
         else:
