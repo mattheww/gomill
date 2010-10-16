@@ -7,6 +7,8 @@ import random
 from textwrap import dedent
 
 from gomill import mcts_tuners
+from gomill.game_jobs import Game_job, Game_job_result
+from gomill.gtp_games import Game_result
 from gomill.mcts_tuners import Parameter_config
 from gomill.competitions import (
     Player_config, CompetitionError, ControlFileError)
@@ -290,6 +292,61 @@ def test_tree(tc):
     tc.assertEqual(pfp2([0, 4]), [3, 1])
     tc.assertEqual(pfp2([1, 0]), [1, 9])
     tc.assertEqual(pfp2([7, 7]), [7, 31])
+
+
+def test_play(tc):
+    comp = mcts_tuners.Mcts_tuner('mctstest')
+    config = default_config()
+    comp.initialise_from_control_file(config)
+    comp.set_clean_status()
+    tree = comp.tree
+    tc.assertEqual(comp.outstanding_simulations, {})
+
+    tc.assertEqual(tree.root.visits, 10)
+    tc.assertEqual(tree.root.wins, 5)
+    tc.assertEqual(sum(node.visits-10 for node in tree.root.children), 0)
+    tc.assertEqual(sum(node.wins-5 for node in tree.root.children), 0)
+
+    job1 = comp.get_game()
+    tc.assertIsInstance(job1, Game_job)
+    tc.assertEqual(job1.game_id, '0')
+    tc.assertEqual(job1.player_b.code, 'opp')
+    tc.assertEqual(job1.player_w.code, '#0')
+    tc.assertEqual(job1.board_size, 13)
+    tc.assertEqual(job1.komi, 7.5)
+    tc.assertEqual(job1.move_limit, 1000)
+    tc.assertEqual(job1.game_data, 0)
+    tc.assertEqual(job1.sgf_event, 'mctstest')
+    tc.assertItemsEqual(comp.outstanding_simulations.keys(), [0])
+
+    job2 = comp.get_game()
+    tc.assertIsInstance(job2, Game_job)
+    tc.assertEqual(job2.game_id, '1')
+    tc.assertEqual(job2.player_b.code, 'opp')
+    tc.assertEqual(job2.player_w.code, '#1')
+    tc.assertItemsEqual(comp.outstanding_simulations.keys(), [0, 1])
+
+    result1 = Game_result({'b' : 'opp', 'w' : '#1'}, 'w')
+    result1.sgf_result = "B+8.5"
+    response1 = Game_job_result()
+    response1.game_id = job1.game_id
+    response1.game_result = result1
+    response1.engine_names = {
+        'opp' : 'opp engine:v1.2.3',
+        '#0'  : 'candidate engine',
+        }
+    response1.engine_descriptions = {
+        'opp' : 'opp engine:v1.2.3',
+        '#0'  : 'candidate engine description',
+        }
+    response1.game_data = job1.game_data
+    comp.process_game_result(response1)
+    tc.assertItemsEqual(comp.outstanding_simulations.keys(), [1])
+
+    tc.assertEqual(tree.root.visits, 11)
+    tc.assertEqual(tree.root.wins, 6)
+    tc.assertEqual(sum(node.visits-10 for node in tree.root.children), 1)
+    tc.assertEqual(sum(node.wins-5 for node in tree.root.children), 1)
 
 
 
