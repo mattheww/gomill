@@ -103,25 +103,27 @@ Running players
 The ringmaster requires the players to be standalone executables which speak
 |gtp| on their standard input and output streams.
 
-It launches the executables itself, as detailed by the :setting:`Player`
-settings in the control file.
+It launches the executables itself, with command line arguments and other
+environment as detailed by the :setting:`Player` settings in the control file.
 
-.. todo:: Probably worth an explicit link here to the setting docs, and maybe
-   a brief summary of the sort of thing that can be configured.
+.. todo:: Make sure Player link works
 
-It launches a new engine subprocess for each game and waits for it to
-terminate as soon as the game is completed.
+It launches a new engine subprocess for each game and closes it when the game
+is terminated. It waits for the subprocess to exit before reporting the game
+result.
 
 .. tip:: To run players on a different computer to the ringmaster,
    specify a suitable :program:`ssh` command line in the :setting:`Player`
    definition.
 
-.. todo:: link to tedious docs about what happens if an engine fails
-   to launch, and exit status.
+.. todo:: link to tedious docs about what happens if an engine fails to
+   launch, and exit status. Maybe the wait-for-exit behaviour goes there.
 
 
-Games
-^^^^^
+.. _playing games:
+
+Playing games
+^^^^^^^^^^^^^
 
 .. index:: rules
 
@@ -129,6 +131,10 @@ The :setting:`board_size`, :setting:`komi`, :setting:`handicap`, and
 :setting:`handicap_style` settings control the details of the game. The
 ringmaster doesn't know or care what rule variant the players are using; it's
 up to you to make sure they agree with each other.
+
+Any :setting:`startup_gtp_commands` configured for a player will be sent
+before the :gtp:`boardsize` and :gtp:`clear_board` commands. Failure responses
+from these commands are ignored.
 
 Each game normally continues until both players pass in succession, or one
 player resigns.

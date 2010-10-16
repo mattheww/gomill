@@ -35,7 +35,7 @@ descriptions of the players, and the contents of the competition's
 .. todo:: Mention void and unfinished games, and forfeits (ie, say what the
    distinction is.
 
-.. todo:: explain CPU time calculation.
+.. todo:: explain CPU time calculation [see 'SGF output']
 
 .. todo:: say anything about player codes and matchup codes? And
    describe_engine. Possibly a ^^^-level heading for player descriptions.
@@ -69,6 +69,8 @@ the comment section for individual moves: see :gtp:`gomill-explain_last_move`.
 
 .. todo:: say that the filenames are game ids? or mention that they include
    matchup codes?
+
+.. todo:: mention gomill-describe_engine
 
 
 Querying the results

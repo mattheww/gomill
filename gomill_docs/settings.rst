@@ -107,13 +107,13 @@ The following settings can be set at the top level of the control file:
 
 .. setting:: record_games
 
-  Bool (default True)
+  Bool (default ``True``)
 
   Write |sgf| :ref:`game records <game records>`.
 
 .. setting:: stderr_to_log
 
-  Bool (default True)
+  Bool (default ``True``)
 
   Redirect all players' standard error streams to the :ref:`event log
   <logging>`. See :ref:`standard error`.
@@ -222,7 +222,7 @@ parameters are:
 
 .. setting:: discard_stderr
 
-  Bool (default False)
+  Bool (default ``False``)
 
   Redirect the player's standard error stream to :file:`/dev/null`. See
   :ref:`standard error`.
@@ -247,10 +247,44 @@ parameters are:
 
 
 .. setting:: startup_gtp_commands
+
+  List of strings, or list of sequences of strings (default None)
+
+  |gtp| commands to send at the beginning of each game. See :ref:`playing
+  games`.
+
+  Each command can be specified either as a single string or as a sequence of
+  strings (with each argument in a single string). For example, the following
+  are equivalent::
+
+    Player('fuego', startup_gtp_commands=[
+                        "uct_param_player ponder 0",
+                        "uct_param_player max_games 5000"])
+
+    Player('fuego', startup_gtp_commands=[
+                        ("uct_param_player", "ponder", "0"),
+                        ("uct_param_player", "max_games", "5000")])
+
 .. setting:: is_reliable_scorer
+
+  Bool (default ``True``)
+
+  If the :setting:`scorer` is ``players``, the ringmaster normally asks each
+  player that implements the :gtp:`final_score` |gtp| command to report the
+  game result. Setting :setting:`!is_reliable_scorer` to ``False`` for a
+  player causes that player never to be asked.
+
 .. setting:: allow_claim
 
-.. todo:: example of a function
+  Bool (default ``False``)
+
+  Permits the player to claim a win (using the |gtp| extension
+  :gtp:`gomill-genmove_ex claim`). See :ref:`claiming wins`.
+
+  .. todo:: check link
+
+
+.. todo:: example of a player-creating function (somewhere)
 
 
 .. _matchup configuration:
