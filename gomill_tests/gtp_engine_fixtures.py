@@ -126,6 +126,9 @@ class Test_player(object):
         else:
             return "pass"
 
+    def handle_fail(self, args):
+        raise GtpError("test player forced to fail")
+
     def get_handlers(self):
         return {
             'boardsize'   : self.handle_boardsize,
@@ -133,6 +136,7 @@ class Test_player(object):
             'komi'        : self.handle_komi,
             'play'        : self.handle_play,
             'genmove'     : self.handle_genmove,
+            'fail'        : self.handle_fail,
             }
 
 class Programmed_player(object):

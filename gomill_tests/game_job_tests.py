@@ -242,6 +242,13 @@ def test_game_job_stderr_cwd_env(tc):
     tc.assertIn('PATH', channel.requested_env)
     tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
 
+def test_game_job_gtp_aliases(tc):
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    gj = Game_job_fixture(tc)
+    gj.job.player_w.gtp_aliases = {'genmove': 'fail'}
+    result = gj.job.run()
+    tc.assertEqual(result.game_result.sgf_result, "B+F")
+
 def test_game_job_claim(tc):
     def handle_genmove_ex(args):
         tc.assertIn('claim', args)

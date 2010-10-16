@@ -142,3 +142,15 @@ def test_player_startup_gtp_commands(tc):
                        [("xyzzy", ["test"]),
                         ("foo", ["bar", "baz"])])
 
+def test_player_gtp_aliases(tc):
+    comp = competitions.Competition('test')
+    config = {
+        'players' : {
+            't1' : Player_config(
+                "test", gtp_aliases={'foo' : 'bar', 'baz' : 'quux'}),
+            }
+        }
+    comp.initialise_from_control_file(config)
+    tc.assertDictEqual(comp.players['t1'].gtp_aliases,
+                       {'foo' : 'bar', 'baz' : 'quux'})
+
