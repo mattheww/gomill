@@ -201,7 +201,7 @@ class Tree(object):
 
     def get_test_parameters(self):
         """Return a 'typical' optimiser_parameters."""
-        return [.5] * self.dimensions
+        return self.parameters_for_path([0])
 
     def describe_choice(self, choice):
         """Return a string describing a child's coordinates in its parent."""

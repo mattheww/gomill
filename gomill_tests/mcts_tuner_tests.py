@@ -127,6 +127,17 @@ def test_make_candidate(tc):
     raise ValueError("oops")
     """))
 
+def test_get_player_checks(tc):
+    comp = mcts_tuners.Mcts_tuner('mctstest')
+    config = default_config()
+    comp.initialise_from_control_file(config)
+    checks = comp.get_player_checks()
+    tc.assertEqual(len(checks), 2)
+    tc.assertEqual(checks[0].player.code, "candidate")
+    tc.assertEqual(checks[0].player.cmd_args, ['cand', str(1/24), '5.0'])
+    tc.assertEqual(checks[1].player.code, "opp")
+    tc.assertEqual(checks[1].player.cmd_args, ['test'])
+
 def test_linear_scale(tc):
     lsf = mcts_tuners.Linear_scale_fn(20.0, 30.0)
     tc.assertEqual(lsf(0.0), 20.0)
