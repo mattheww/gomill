@@ -510,6 +510,8 @@ def test_known_command(tc):
     controller = Gtp_controller(channel, 'kc test')
     tc.assertTrue(controller.known_command("test"))
     tc.assertFalse(controller.known_command("nonesuch"))
+    tc.assertTrue(controller.known_command("test"))
+    tc.assertFalse(controller.known_command("nonesuch"))
 
 def test_known_command_2(tc):
     # Checking that known_command caches its responses
@@ -550,6 +552,26 @@ def test_list_commands(tc):
         controller.list_commands(),
         ['error', 'fatal', 'known_command', 'list_commands',
          'multiline', 'protocol_version', 'quit', 'test', 'xyzzy'])
+
+def test_gtp_aliases(tc):
+    channel = gtp_engine_fixtures.get_test_channel()
+    controller = Gtp_controller(channel, 'alias test')
+    controller.set_gtp_aliases({
+        'aliased'  : 'test',
+        'aliased2' : 'nonesuch',
+        })
+    tc.assertIs(controller.known_command("test"), True)
+    tc.assertIs(controller.known_command("aliased"), True)
+    tc.assertIs(controller.known_command("nonesuch"), False)
+    tc.assertIs(controller.known_command("test"), True)
+    tc.assertIs(controller.known_command("aliased"), True)
+    tc.assertIs(controller.known_command("nonesuch"), False)
+    tc.assertEqual(controller.do_command("test"), "test response")
+    tc.assertEqual(controller.do_command("aliased"), "test response")
+    with tc.assertRaises(BadGtpResponse) as ar:
+        controller.do_command("aliased2")
+    tc.assertEqual(ar.exception.gtp_error_message, "unknown command")
+    tc.assertEqual(ar.exception.gtp_command, "nonesuch")
 
 
 def test_describe_engine(tc):

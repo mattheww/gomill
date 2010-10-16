@@ -529,6 +529,11 @@ class Gtp_controller(object):
         channel as 'bad' (this has no effect on future do_command() calls, but
         see safe_do_command() below).
 
+
+        This applies gtp_aliases (see below). Error messages (including
+        BadGtpResponse.gtp_command) will refer to the underlying command, not
+        the alias.
+
         """
         if self.channel_is_closed:
             raise StandardError("channel is closed")
@@ -589,12 +594,16 @@ class Gtp_controller(object):
 
         May propagate GtpChannelError (see do_command).
 
+        This does the right thing if gtp aliases have been set (but it doesn't
+        invalidate the cache if they're changed).
+
         """
         result = self.known_commands.get(command)
         if result is not None:
             return result
+        translated_command = self.gtp_aliases.get(command, command)
         try:
-            response = self.do_command("known_command", command)
+            response = self.do_command("known_command", translated_command)
         except BadGtpResponse:
             known = False
         else:
