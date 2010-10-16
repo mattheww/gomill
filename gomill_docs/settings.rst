@@ -477,7 +477,7 @@ The parameters are:
 
 .. setting:: handicap_style
 
-  String: ``"fixed"`` or ``"free"`` (default ``fixed``)
+  String: ``"fixed"`` or ``"free"`` (default ``"fixed"``)
 
   Determines whether the handicap stones are placed on prespecified points, or
   chosen by the Black player. See the :term:`GTP` specification for more
@@ -496,7 +496,7 @@ The parameters are:
 
 .. setting:: scorer
 
-  String: ``"players"`` or ``"internal"`` (default ``players``)
+  String: ``"players"`` or ``"internal"`` (default ``"players"``)
 
   Determines whether the game result is determined by the engines, or by the
   ringmaster. See :ref:`Scoring <scoring>` and :setting:`is_reliable_scorer`.
