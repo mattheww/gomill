@@ -358,6 +358,7 @@ def test_play(tc):
     tc.assertEqual(sum(node.wins-5 for node in comp2.tree.root.children), 1)
 
     config3 = default_config()
+    # changed split
     config3['parameters'][0] = Parameter_config(
         'resign_at',
         scale = float,
@@ -369,7 +370,22 @@ def test_play(tc):
     with tc.assertRaises(CompetitionError) as ar:
         comp3.set_status(status)
     tc.assertEqual(str(ar.exception),
-                   "stored tree is inconsistent with control file")
+                   "status file is inconsistent with control file")
+
+    config4 = default_config()
+    # changed upper bound
+    config4['parameters'][1] = Parameter_config(
+        'initial_wins',
+        scale = mcts_tuners.LINEAR(0, 200),
+        split = 10,
+        format = "iwins %d")
+    comp4 = mcts_tuners.Mcts_tuner('mctstest')
+    comp4.initialise_from_control_file(config4)
+    status = pickle.loads(pickle.dumps(comp.get_status()))
+    with tc.assertRaises(CompetitionError) as ar:
+        comp4.set_status(status)
+    tc.assertEqual(str(ar.exception),
+                   "status file is inconsistent with control file")
 
 
 def _disabled_test_tree_run(tc):

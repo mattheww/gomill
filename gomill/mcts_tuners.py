@@ -641,28 +641,34 @@ class Mcts_tuner(Competition):
     #   halt_on_next_failure    -- bool
     #  *opponent_description    -- string (or None)
 
-
     def set_clean_status(self):
         self.scheduler = competition_schedulers.Simple_scheduler()
         self.tree.new_root()
         self.opponent_description = None
 
     def get_status(self):
+        # path0 is stored for consistency check
         return {
             'scheduler' : self.scheduler,
             'tree_root' : self.tree.root,
             'opponent_description' : self.opponent_description,
+            'path0' : self.scale_parameters(self.tree.parameters_for_path([0])),
             }
 
     def set_status(self, status):
-        self.scheduler = status['scheduler']
-        self.scheduler.rollback()
         root = status['tree_root']
         try:
             self.tree.set_root(root)
         except ValueError:
             raise CompetitionError(
-                "stored tree is inconsistent with control file")
+                "status file is inconsistent with control file")
+        expected_path0 = self.scale_parameters(
+            self.tree.parameters_for_path([0]))
+        if status['path0'] != expected_path0:
+            raise CompetitionError(
+                "status file is inconsistent with control file")
+        self.scheduler = status['scheduler']
+        self.scheduler.rollback()
         self.opponent_description = status['opponent_description']
 
     def scale_parameters(self, optimiser_parameters):
