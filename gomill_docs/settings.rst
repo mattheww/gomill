@@ -8,24 +8,17 @@ The control file
    :backlinks: none
 
 
-File format
-^^^^^^^^^^^
-
-.. todo:: remember encoding stuff
-
-.. todo:: warn that unexpected assignments are ignored
-
-
 .. _sample control file:
 
 Sample control file
 ^^^^^^^^^^^^^^^^^^^
 
-Here is a sample control file, illustrating most of the available settings::
+Here is a sample control file, illustrating most of the available settings for
+a playoff::
 
   competition_type = 'playoff'
 
-  description = """\
+  description = """
   This is a sample configuration file.
 
   It illustrates most of the available settings for a playoff.
@@ -72,6 +65,84 @@ Here is a sample control file, illustrating most of the available settings::
       ]
 
 
+File format
+^^^^^^^^^^^
+
+The control file is a plain text configuration file.
+
+It is interpreted in the same way as a Python source file. See the
+:ref:`sample control file` above for an example of the syntax. See
+:ref:`FIXME` for a formal specification.
+
+The control file is made up of a series of top-level :dfn:`settings`, in the
+form of Python assignment statements: :samp:`{setting_name} = {value}`.
+
+Each top-level setting should begin on a new line, in the leftmost column of
+the file.
+
+Comments are introduced by the ``#`` character, and continue until the end of
+the line.
+
+The settings for use in playoffs are listed below. Note that
+:setting:`competition_type` must come first.
+
+.. caution:: while the ringmaster will give error messages for unacceptable
+   setting values, it will ignore attempts to set a nonexistent setting (this
+   is because you're allowed to define variables of your own in the control
+   file and use them in later setting definitions).
+
+If you wish, you can use arbitrary Python expressions in the control file; see
+:ref:`control file techniques` below.
+
+.. caution:: all Python code in the control file will be executed; a hostile
+   party with write access to a control file can cause the ringmaster to
+   execute arbitrary code. On a shared system, do not make the competition
+   directory or the control file world-writeable.
+
+
+Data types
+^^^^^^^^^^
+
+The following data types are used for values of settings:
+
+String
+  A literal string of characters in single or double quotes, eg ``'gnugo-l1'``
+  or ``"free"``.
+
+  Strings containing non-ascii characters should be encoded as UTF-8 (Python
+  unicode objects are also accepted).
+
+  .. todo:: add ref to encoding section, once it's written.
+
+  Strings can be broken over multiple lines by writing adjacent literals
+  separated only by whitespace; see the Player definitions in the example
+  above.
+
+  Backslash escapes can be used in strings, such as ``\n`` for a newline.
+  Alternatively, three (single or double) quotes can be used for a multi-line
+  string; see ``description`` in the example above.
+
+Identifier
+  An identifier is a (short) string made up of ASCII letters, numerals, and
+  the punctuation characters ``-!$%&*+-.:;<=>?^_~``.
+
+Boolean
+  A truth value, written as ``True`` or ``False``.
+
+Integer
+  A positive or negative integer, written as a decimal liteal, eg ``19`` or
+  ``-1``.
+
+List
+  A sequence of values of uniform type, written with square brackets separated
+  by commas, eg ``["max_playouts 3000", "initial_wins 5"]``. Lists can be
+  split over multiple lines at the commas.
+
+Dictionary
+  An explicit map of keys of uniform type to values of uniform type, written
+  with curly brackets, colons, and commas, eg ``{'p1' : True, 'p2' : False}``.
+  Dictionaries can be split over multiple lines at the commas or colons.
+
 .. _file and directory names:
 
 File and directory names
@@ -100,22 +171,26 @@ The following settings can be set at the top level of the control file:
   tuning event. This must be set on the first line in the control file
   (except for blank lines and comments).
 
+
 .. setting:: description
 
   String (default ``None``)
 
   A text description of the competition. This will be included in the
-  :ref:`competition report file <competition report file>`.
+  :ref:`competition report file <competition report file>`. Leading and
+  trailing whitespace is ignored.
+
 
 .. setting:: record_games
 
-  Bool (default ``True``)
+  Boolean (default ``True``)
 
   Write |sgf| :ref:`game records <game records>`.
 
+
 .. setting:: stderr_to_log
 
-  Bool (default ``True``)
+  Boolean (default ``True``)
 
   Redirect all players' standard error streams to the :ref:`event log
   <logging>`. See :ref:`standard error`.
@@ -144,6 +219,7 @@ The following settings can be set at the top level of the control file:
   matchups. These definitions will be ignored, and no corresponding engines
   will be run.
 
+
 .. setting:: matchups
 
   List of :setting:`Matchup` definitions (see :ref:`matchup
@@ -168,7 +244,7 @@ Player configuration
 ^^^^^^^^^^^^^^^^^^^^
 
 A Player definition has the same syntax as a Python function call:
-``Player([parameters])``. Apart from :setting:`!command`, the parameters
+:samp:`Player({parameters})`. Apart from :setting:`!command`, the parameters
 should be specified as keyword arguments (see :ref:`sample control file`).
 
 All parameters other than :setting:`!command` are optional.
@@ -181,8 +257,9 @@ The parameters are:
   String or list of strings
 
   This is the only required Player parameter. It can be specified either as
-  the first parameter, or using a keyword ``command="..."``. It specifies the
-  executable which will provide the player, and its command line arguments.
+  the first parameter, or using a keyword :samp:`command="{...}"`. It
+  specifies the executable which will provide the player, and its command line
+  arguments.
 
   The :setting:`!command` can be either a string or a list of strings. If it
   is a string, it is split using rules similar to a Unix shell's (see
@@ -236,7 +313,7 @@ The parameters are:
 
 .. setting:: discard_stderr
 
-  Bool (default ``False``)
+  Boolean (default ``False``)
 
   Redirect the player's standard error stream to :file:`/dev/null`. See
   :ref:`standard error`.
@@ -244,20 +321,6 @@ The parameters are:
   Example::
 
     Player('mogo', discard_stderr=True)
-
-
-.. setting:: gtp_aliases
-
-  Dictionary mapping strings to strings (default ``None``)
-
-  This is a map of |gtp| command names to command names, eg::
-
-    Player('fuego', gtp_aliases={'gomill-cpu_time' : 'cputime'})
-
-  When the ringmaster would normally send :gtp:`gomill-cpu_time`, it will send
-  :gtp:`cputime` instead.
-
-  The command names are case-sensitive.
 
 
 .. setting:: startup_gtp_commands
@@ -279,18 +342,35 @@ The parameters are:
                         ("uct_param_player", "ponder", "0"),
                         ("uct_param_player", "max_games", "5000")])
 
+
+.. setting:: gtp_aliases
+
+  Dictionary mapping strings to strings (default ``None``)
+
+  This is a map of |gtp| command names to command names, eg::
+
+    Player('fuego', gtp_aliases={'gomill-cpu_time' : 'cputime'})
+
+  When the ringmaster would normally send :gtp:`gomill-cpu_time`, it will send
+  :gtp:`cputime` instead.
+
+  The command names are case-sensitive. There is no mechanism for altering
+  arguments.
+
+
 .. setting:: is_reliable_scorer
 
-  Bool (default ``True``)
+  Boolean (default ``True``)
 
   If the :setting:`scorer` is ``players``, the ringmaster normally asks each
   player that implements the :gtp:`final_score` |gtp| command to report the
   game result. Setting :setting:`!is_reliable_scorer` to ``False`` for a
   player causes that player never to be asked.
 
+
 .. setting:: allow_claim
 
-  Bool (default ``False``)
+  Boolean (default ``False``)
 
   Permits the player to claim a win (using the |gtp| extension
   :gtp:`gomill-genmove_ex claim`). See :ref:`claiming wins`.
@@ -307,7 +387,7 @@ Matchup configuration
 ^^^^^^^^^^^^^^^^^^^^^
 
 A Matchup definition has the same syntax as a Python function call:
-``Matchup([parameters])``.
+:samp:`Matchup({parameters})`.
 
 The first two parameters should be the :ref:`player codes <player codes>` for
 the two players involved in the matchup. The remaining parameters should be
@@ -352,14 +432,14 @@ The parameters are:
   String
 
   A string used to describe the matchup in reports. By default, this has the
-  form ``<player code> vs <player code>``; you may wish to change it if you
+  form :samp:`{player code} vs {player code}`; you may wish to change it if you
   have more than one matchup between the same pair of players (perhaps with
   different komi or handicap).
 
 
 .. setting:: board_size
 
-  Int
+  Integer
 
   The size of Go board to use for the games (eg ``19`` for a 19x19 game). The
   ringmaster is willing to use board sizes from 2 to 25.
@@ -377,7 +457,7 @@ The parameters are:
 
 .. setting:: alternating
 
-  Bool (default ``False``)
+  Boolean (default ``False``)
 
   If this is ``True``, the players will swap colours in successive games.
   Otherwise, the first-named player always takes Black.
@@ -385,7 +465,7 @@ The parameters are:
 
 .. setting:: handicap
 
-  Int (default ``None``)
+  Integer (default ``None``)
 
   Number of handicap stones to give Black at the start of the game. See also
   :setting:`handicap_style`.
@@ -408,7 +488,7 @@ The parameters are:
 
 .. setting:: move_limit
 
-  Int (default ``1000``)
+  Integer (default ``1000``)
 
   Maximum number of moves to allow in a game. If this limit is reached, the
   game is stopped; see :ref:`playing games`.
@@ -424,7 +504,7 @@ The parameters are:
 
 .. setting:: number_of_games
 
-  Int (default ``None``)
+  Integer (default ``None``)
 
   The total number of games to play in the matchup. If you leave this unset,
   there will be no limit; see :ref:`stopping competitions`.
@@ -432,3 +512,17 @@ The parameters are:
   Changing :setting:`!number_of_games` to ``0`` provides a way to effectively
   disable a matchup in future runs, without forgetting its results.
 
+
+Changing control file settings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. todo:: write
+
+
+.. _control file techniques:
+
+Control file techniques
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. todo:: mention that values listed with default None can be reset to None by
+   explicitly assigning?

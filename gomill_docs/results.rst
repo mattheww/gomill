@@ -68,7 +68,7 @@ The ringmaster supports a protocol for engines to provide text to be placed in
 the comment section for individual moves: see :gtp:`gomill-explain_last_move`.
 
 .. todo:: say that the filenames are game ids? or mention that they include
-   matchup codes?
+   matchup codes? See 'SGF output' in ringmaster.txt.
 
 .. todo:: mention gomill-describe_engine
 
@@ -78,7 +78,4 @@ Querying the results
 
 .. todo:: some reference to sample scripts, results API.
 
-
-
-.. index:: logging, event log, history file
 

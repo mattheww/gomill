@@ -277,6 +277,12 @@ information will be lost if the ringmaster stops ungracefully for any reason.
 The :action:`reset` command line action deletes **all** competition output
 files, including game records and the state file.
 
+.. caution:: If the ringmaster loads a state file written by a hostile party,
+   it can be tricked into executing arbitrary code. On a shared system, do not
+   make the competition directory or the state file world-writeable.
+
+
+.. index:: logging, event log, history file
 
 .. _logging:
 

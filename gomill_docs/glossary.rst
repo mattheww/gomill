@@ -17,3 +17,15 @@ Glossary
   komi
     Additional points awarded to White in final scoring.
 
+  competition
+    FIXME
+
+  engine
+    FIXME
+
+  player
+    FIXME
+
+  matchup
+    FIXME
+
