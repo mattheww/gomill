@@ -101,7 +101,7 @@ Running players
 ^^^^^^^^^^^^^^^
 
 The ringmaster requires the players to be standalone executables which speak
-|gtp| on their standard input and output streams.
+:term:`GTP` version 2 on their standard input and output streams.
 
 It launches the executables itself, with command line arguments and other
 environment as detailed by the :setting:`Player` settings in the control file.
@@ -128,9 +128,9 @@ Playing games
 .. index:: rules
 
 The :setting:`board_size`, :setting:`komi`, :setting:`handicap`, and
-:setting:`handicap_style` settings control the details of the game. The
-ringmaster doesn't know or care what rule variant the players are using; it's
-up to you to make sure they agree with each other.
+:setting:`handicap_style` Matchup settings control the details of the game.
+The ringmaster doesn't know or care what rule variant the players are using;
+it's up to you to make sure they agree with each other.
 
 Any :setting:`startup_gtp_commands` configured for a player will be sent
 before the :gtp:`boardsize` and :gtp:`clear_board` commands. Failure responses
@@ -154,7 +154,8 @@ If one of the players returns any other |gtp| failure response (either to
 :gtp:`genmove`, it forfeits the game.
 
 If the game lasts longer than the configured :setting:`move_limit`, it is
-recorded as having an unknown result (with |sgf| result ``Void``).
+stopped at that point, and recorded as having an unknown result (with |sgf|
+result ``Void``).
 
 See also :ref:`claiming wins`.
 
@@ -162,19 +163,23 @@ See also :ref:`claiming wins`.
    boardsize or handicap forfeits or voids the game or what.
 
 
+.. _scoring:
+
 Scoring
 ^^^^^^^
 
 The ringmaster has two scoring methods: ``players`` (which is the default),
-and ``internal``. The :setting:`scorer` setting determines which is used.
+and ``internal``. The :setting:`scorer` Matchup setting determines which is
+used.
 
 When the ``players`` method is used, the players are asked to score the game
 using the |gtp| :gtp:`final_score` command. See also the
-:setting:`is_reliable_scorer` setting.
+:setting:`is_reliable_scorer` Player setting.
 
 When the ``internal`` method is used, the ringmaster scores the game itself,
 area-fashion. It assumes that all stones remaining on the board at the end of
-the game are alive. It doesn't apply any handicap stone compensation.
+the game are alive. It applies :setting:`komi`, but no handicap stone
+compensation.
 
 
 .. _startup checks:
@@ -191,7 +196,7 @@ stream from the engines is suppressed for these automatic startup checks.
 
 The :action:`check` command line action runs the same checks, but it leaves
 the engines' standard error going to the console (any
-:setting:`discard_stderr` settings are ignored).
+:setting:`discard_stderr` Player settings are ignored).
 
 For playoffs, only players listed in matchups are checked. If a player appears
 in more than one matchup, the board size and komi from its first matchup are
