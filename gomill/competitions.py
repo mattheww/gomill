@@ -160,7 +160,7 @@ class Competition(object):
 
     # List of Settings (subclasses can override, and should include these)
     global_settings = [
-        Setting('description', interpret_as_utf8_stripped, default=""),
+        Setting('description', interpret_as_utf8_stripped, default=None),
         ]
 
     def initialise_from_control_file(self, config):

@@ -41,7 +41,7 @@ def check_screen_report(tc, comp, expected):
 def check_short_report(tc, comp, expected_matchups, expected_players,
                        competition_name="testcomp"):
     """Check that a competition's short report is as expected."""
-    expected = ("playoff: %s\n\n\n%s\n%s\n" %
+    expected = ("playoff: %s\n\n%s\n%s\n" %
                 (competition_name, expected_matchups, expected_players))
 
     tc.assertMultiLineEqual(get_short_report(comp), expected)
@@ -172,7 +172,7 @@ def test_get_player_checks(tc):
 
 def test_play(tc):
     fx = Playoff_fixture(tc)
-    tc.assertEqual(fx.comp.description, "")
+    tc.assertIsNone(fx.comp.description)
 
     job1 = fx.comp.get_game()
     tc.assertIsInstance(job1, Game_job)

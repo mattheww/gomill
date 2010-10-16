@@ -549,7 +549,8 @@ class Playoff(Competition):
         def p(s):
             print >>out, s
         p("playoff: %s" % self.competition_code)
-        p(self.description)
+        if self.description:
+            p(self.description)
         p('')
         self.write_screen_report(out)
         self.write_ghost_report(out)

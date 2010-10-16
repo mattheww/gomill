@@ -384,7 +384,8 @@ class Cem_tuner(Competition):
         def p(s):
             print >>out, s
         p("CEM tuning event: %s" % self.competition_code)
-        p(self.description)
+        if self.description:
+            p(self.description)
         p("board size: %s" % self.board_size)
         p("komi: %s" % self.komi)
 
