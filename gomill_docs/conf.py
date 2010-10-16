@@ -12,7 +12,7 @@ version = '0.5'
 release = '0.5'
 unused_docs = []
 exclude_dirnames = ['.git']
-pygments_style = 'sphinx'
+pygments_style = 'borland'
 modindex_common_prefix = ['gomill.']
 
 # If true, the current module name will be prepended to all description
