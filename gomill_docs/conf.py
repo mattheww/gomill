@@ -47,7 +47,7 @@ html_theme_options = {
 html_static_path = ['_static']
 html_add_permalinks = False
 html_copy_source = False
-html_sidebars = {'**' : ['globaltoc.html', 'relations.html', 'searchbox.html']}
+html_sidebars = {'**' : ['wholetoc.html', 'relations.html', 'searchbox.html']}
 html_style = "gomill.css"
 
 #html_use_modindex = True
