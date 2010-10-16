@@ -28,24 +28,24 @@ a playoff::
   stderr_to_log = False
 
   players = {
-    # GNU Go level 1
-    'gnugo-l1' : Player("gnugo --mode=gtp --chinese-rules "
-                        "--capture-all-dead --level=1"),
+      # GNU Go level 1
+      'gnugo-l1' : Player("gnugo --mode=gtp --chinese-rules "
+                          "--capture-all-dead --level=1"),
 
-    # GNU Go level 2
-    'gnugo-l2' : Player("gnugo --mode=gtp --chinese-rules "
-                        "--capture-all-dead --level=2"),
+      # GNU Go level 2
+      'gnugo-l2' : Player("gnugo --mode=gtp --chinese-rules "
+                          "--capture-all-dead --level=2"),
 
-    # Fuego at 5000 playouts per move
-    'fuego-5k' : Player("fuego --quiet",
-                        startup_gtp_commands=[
-                            "go_param timelimit 999999",
-                            "uct_max_memory 350000000",
-                            "uct_param_search number_threads 1",
-                            "uct_param_player reuse_subtree 0",
-                            "uct_param_player ponder 0",
-                            "uct_param_player max_games 5000",
-                            ]),
+      # Fuego at 5000 playouts per move
+      'fuego-5k' : Player("fuego --quiet",
+                          startup_gtp_commands=[
+                              "go_param timelimit 999999",
+                              "uct_max_memory 350000000",
+                              "uct_param_search number_threads 1",
+                              "uct_param_player reuse_subtree 0",
+                              "uct_param_player ponder 0",
+                              "uct_param_player max_games 5000",
+                              ]),
       }
 
   board_size = 9
@@ -78,7 +78,8 @@ The control file is made up of a series of top-level :dfn:`settings`, in the
 form of Python assignment statements: :samp:`{setting_name} = {value}`.
 
 Each top-level setting should begin on a new line, in the leftmost column of
-the file.
+the file. Settings which use brackets of any kind can be split over multiple
+lines between elements (for example, lists can be split at the commas).
 
 Comments are introduced by the ``#`` character, and continue until the end of
 the line.
@@ -123,45 +124,54 @@ String
   string; see ``description`` in the example above.
 
 Identifier
-  An identifier is a (short) string made up of ASCII letters, numerals, and
-  the punctuation characters ``-!$%&*+-.:;<=>?^_~``.
+  A (short) string made up of any combination of ASCII letters, numerals, and
+  the punctuation characters ``- ! $ % & * + - . : ; < = > ? ^ _ ~``.
 
 Boolean
   A truth value, written as ``True`` or ``False``.
 
 Integer
-  A positive or negative integer, written as a decimal liteal, eg ``19`` or
-  ``-1``.
+  A whole number, written as a decimal literal, eg ``19`` or ``-1``.
+
+Float
+  A floating-point number, written as a decimal literal, eg ``6`` or ``6.0``
+  or ``6.5``.
 
 List
   A sequence of values of uniform type, written with square brackets separated
-  by commas, eg ``["max_playouts 3000", "initial_wins 5"]``. Lists can be
-  split over multiple lines at the commas.
+  by commas, eg ``["max_playouts 3000", "initial_wins 5"]``. An extra comma
+  after the last item is harmless.
 
 Dictionary
   An explicit map of keys of uniform type to values of uniform type, written
   with curly brackets, colons, and commas, eg ``{'p1' : True, 'p2' : False}``.
-  Dictionaries can be split over multiple lines at the commas or colons.
+  An extra comma after the last item is harmless.
+
 
 .. _file and directory names:
 
 File and directory names
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-When control file settings are file or directory names, non-absolute names are
+When setting values are file or directory names, non-absolute names are
 interpreted relative to the :ref:`competition directory <competition
 directory>`.
 
 If a file or directory name begins with ``~``, home directory expansion is
 applied (see :func:`os.path.expanduser`).
 
-  .. todo:: sort out best way to refer to Python functions.
+  .. todo:: sort out best way to refer to Python stdlib functions.
 
 
-Competition settings
-^^^^^^^^^^^^^^^^^^^^
+Playoff settings
+^^^^^^^^^^^^^^^^
 
-The following settings can be set at the top level of the control file:
+The following settings can be set at the top level of the control file, for
+competitions of type ``playoff``. See FIXME for tuning events.
+
+The only required settings are :setting:`competition_type`,
+:setting:`players`, and :setting:`matchups`.
+
 
 .. setting:: competition_type
 
@@ -205,11 +215,11 @@ The following settings can be set at the top level of the control file:
   Dictionary mapping identifiers to :setting:`Player` definitions (see
   :ref:`player configuration`).
 
-  This describes the |gtp| engines that can be used in the competition. If you
-  wish to use the same program with different settings, each combination of
-  settings must be given its own :setting:`!Player` definition.
-
-  .. todo:: ref fancy-function stuff here.
+  Describes the |gtp| engines that can be used in the competition. If you wish
+  to use the same program with different settings, each combination of
+  settings must be given its own :setting:`!Player` definition. See
+  :ref:`control file techniques` below for a compact way to define several
+  similar Players.
 
   The dictionary keys are the :dfn:`player codes`; they are used to identify
   the players in :setting:`Matchup` definitions, and also appear in reports
@@ -228,14 +238,9 @@ The following settings can be set at the top level of the control file:
   This defines which engines will play against each other, and the game
   settings they will use.
 
-In addition to these, all Matchup settings can be set at the top of the
-control file. These settings will be used for any matchups which don't
-explicitly override them.
-
-.. todo:: (except id and name). And player1 player2? Is 'Matchup settings'
-   defined? can we have a link?)
-
-.. todo:: explicitly say 'the required settings are...'?
+In addition to these, all Matchup settings (except :setting:`id` and
+:setting:`name`) can be set at the top of the control file. These settings
+will be used for any matchups which don't explicitly override them.
 
 
 .. _player configuration:
@@ -301,7 +306,7 @@ The parameters are:
   Dictionary mapping strings to strings (default ``None``)
 
   This specifies environment variables to be set in the player process, in
-  addition to those inherited from the parent.
+  addition to (or overriding) those inherited from the parent.
 
   Note that there is no special handling in this case for values which happen
   to be file or directory names.
@@ -378,9 +383,6 @@ The parameters are:
   .. todo:: check link
 
 
-.. todo:: example of a player-creating function (somewhere)
-
-
 .. _matchup configuration:
 
 Matchup configuration
@@ -404,8 +406,6 @@ matchups (either explictly or as defaults); the rest are all optional.
 .. caution:: a default :setting:`komi` or :setting:`alternating` setting will
    be applied even to handicap games.
 
-
-.. todo:: some kind of link for 'player codes'.
 
 The parameters are:
 
@@ -513,10 +513,42 @@ The parameters are:
   disable a matchup in future runs, without forgetting its results.
 
 
-Changing control file settings
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changing the control file between runs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. todo:: write
+Changing the control file between runs of the same competition (or after the
+final run) is allowed. For example, it's fine to increase a completed
+matchup's :setting:`number_of_games` and set the competition off again.
+
+The intention is that nothing surprising should happen if you change the
+control file; of course if you change settings which affect player behaviour
+then result summaries might not be meaningful.
+
+In particular:
+
+- if you change a player definition, the new definition will be used when
+  describing the player in reports; there'll be no record of the earlier
+  definition, or which games were played under it.
+
+- if you change a matchup definition, the new definition will be used when
+  describing the matchup in reports; there'll be no record of the earlier
+  definition, or which games were played under it.
+
+- if you change a matchup definition to have different players (ie, player
+  codes), the ringmaster will refuse to run the competition.
+
+- if you delete a matchup definition, results from that matchup won't be
+  displayed during future runs, but will be included (with some missing
+  information) in the :action:`report` and :action:`show` output.
+
+If you add a matchup definition, put it at the end of the list (or else
+explicitly specify the matchup ids).
+
+In practice, you shouldn't delete matchup definitions (if you don't want any
+more games to be played, set :setting:`number_of_games` to ``0``).
+
+If you change descriptive text, you can use the :action:`report` command line
+action to remake the report file.
 
 
 .. _control file techniques:
@@ -524,5 +556,42 @@ Changing control file settings
 Control file techniques
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-.. todo:: mention that values listed with default None can be reset to None by
-   explicitly assigning?
+As the control file is just Python code, it's possible to use less direct
+methods to specify the setting values.
+
+One convenient way to define a number of similar players is to define a
+function which returns a Player object. For example, the player definitions in
+the sample control file could be rewritten as follows::
+
+  def gnugo(level):
+      return Player("gnugo --mode=gtp --chinese-rules --capture-all-dead "
+                    "--level=%d" % level)
+
+  def fuego(playouts_per_move, additional_commands=[]):
+      commands = [
+          "go_param timelimit 999999",
+          "uct_max_memory 350000000",
+          "uct_param_search number_threads 1",
+          "uct_param_player reuse_subtree 0",
+          "uct_param_player ponder 0",
+          "uct_param_player max_games %d" % playouts_per_move,
+          ]
+      return Player("fuego --quiet",
+                    startup_gtp_commands=commands+additional_commands)
+
+  players = {
+      'gnugo-l1' : gnugo(level=1),
+      'gnugo-l2' : gnugo(level=2),
+      'fuego-5k' : fuego(playouts_per_move=5000)
+      }
+
+If you assign to a setting more than once, the final value is the one that
+counts. Settings specified above as having default ``None`` can be assigned
+the value ``None``, which will be equivalent to leaving them unset.
+
+Importing parts of the Python standard library (or other Python libraries that
+you have installed) is allowed.
+
+.. todo:: ref example in tuners docs, if there is one.
+
+
