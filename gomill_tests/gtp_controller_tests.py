@@ -573,6 +573,26 @@ def test_gtp_aliases(tc):
     tc.assertEqual(ar.exception.gtp_error_message, "unknown command")
     tc.assertEqual(ar.exception.gtp_command, "nonesuch")
 
+def test_gtp_aliases_safe(tc):
+    channel = gtp_engine_fixtures.get_test_channel()
+    controller = Gtp_controller(channel, 'alias test')
+    controller.set_gtp_aliases({
+        'aliased'  : 'test',
+        'aliased2' : 'nonesuch',
+        })
+    tc.assertIs(controller.safe_known_command("test"), True)
+    tc.assertIs(controller.safe_known_command("aliased"), True)
+    tc.assertIs(controller.safe_known_command("nonesuch"), False)
+    tc.assertIs(controller.safe_known_command("test"), True)
+    tc.assertIs(controller.safe_known_command("aliased"), True)
+    tc.assertIs(controller.safe_known_command("nonesuch"), False)
+    tc.assertEqual(controller.safe_do_command("test"), "test response")
+    tc.assertEqual(controller.safe_do_command("aliased"), "test response")
+    with tc.assertRaises(BadGtpResponse) as ar:
+        controller.safe_do_command("aliased2")
+    tc.assertEqual(ar.exception.gtp_error_message, "unknown command")
+    tc.assertEqual(ar.exception.gtp_command, "nonesuch")
+
 
 def test_describe_engine(tc):
     channel = gtp_engine_fixtures.get_test_channel()

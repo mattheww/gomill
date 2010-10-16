@@ -584,6 +584,21 @@ class Gtp_controller(object):
                 gtp_error_message=response)
         return response
 
+    def _known_command(self, command, do_command):
+        """Common implementation for known_command and safe_known_command."""
+        result = self.known_commands.get(command)
+        if result is not None:
+            return result
+        translated_command = self.gtp_aliases.get(command, command)
+        try:
+            response = do_command("known_command", translated_command)
+        except BadGtpResponse:
+            known = False
+        else:
+            known = (response == 'true')
+        self.known_commands[command] = known
+        return known
+
     def known_command(self, command):
         """Check whether 'command' is known by the engine.
 
@@ -598,18 +613,7 @@ class Gtp_controller(object):
         invalidate the cache if they're changed).
 
         """
-        result = self.known_commands.get(command)
-        if result is not None:
-            return result
-        translated_command = self.gtp_aliases.get(command, command)
-        try:
-            response = self.do_command("known_command", translated_command)
-        except BadGtpResponse:
-            known = False
-        else:
-            known = (response == 'true')
-        self.known_commands[command] = known
-        return known
+        return self._known_command(command, self.do_command)
 
     def check_protocol_version(self):
         """Check the engine's declared protocol version.
@@ -702,17 +706,7 @@ class Gtp_controller(object):
         the command to the engine.
 
         """
-        result = self.known_commands.get(command)
-        if result is not None:
-            return result
-        try:
-            response = self.safe_do_command("known_command", command)
-        except BadGtpResponse:
-            known = False
-        else:
-            known = (response == 'true')
-        self.known_commands[command] = known
-        return known
+        return self._known_command(command, self.safe_do_command)
 
     def safe_close(self):
         """Close the communication channel to the engine, avoiding exceptions.
