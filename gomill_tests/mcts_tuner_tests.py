@@ -5,6 +5,7 @@ from __future__ import with_statement, division
 from math import sqrt
 import random
 from textwrap import dedent
+import cPickle as pickle
 
 from gomill import mcts_tuners
 from gomill.game_jobs import Game_job, Game_job_result
@@ -296,8 +297,7 @@ def test_tree(tc):
 
 def test_play(tc):
     comp = mcts_tuners.Mcts_tuner('mctstest')
-    config = default_config()
-    comp.initialise_from_control_file(config)
+    comp.initialise_from_control_file(default_config())
     comp.set_clean_status()
     tree = comp.tree
     tc.assertEqual(comp.outstanding_simulations, {})
@@ -348,6 +348,28 @@ def test_play(tc):
     tc.assertEqual(sum(node.visits-10 for node in tree.root.children), 1)
     tc.assertEqual(sum(node.wins-5 for node in tree.root.children), 1)
 
+    comp2 = mcts_tuners.Mcts_tuner('mctstest')
+    comp2.initialise_from_control_file(default_config())
+    status = pickle.loads(pickle.dumps(comp.get_status()))
+    comp2.set_status(status)
+    tc.assertEqual(comp2.tree.root.visits, 11)
+    tc.assertEqual(comp2.tree.root.wins, 6)
+    tc.assertEqual(sum(node.visits-10 for node in comp2.tree.root.children), 1)
+    tc.assertEqual(sum(node.wins-5 for node in comp2.tree.root.children), 1)
+
+    config3 = default_config()
+    config3['parameters'][0] = Parameter_config(
+        'resign_at',
+        scale = float,
+        split = 11,
+        format = "rsn@ %.2f")
+    comp3 = mcts_tuners.Mcts_tuner('mctstest')
+    comp3.initialise_from_control_file(config3)
+    status = pickle.loads(pickle.dumps(comp.get_status()))
+    with tc.assertRaises(CompetitionError) as ar:
+        comp3.set_status(status)
+    tc.assertEqual(str(ar.exception),
+                   "stored tree is inconsistent with control file")
 
 
 def _disabled_test_tree_run(tc):
