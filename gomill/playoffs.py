@@ -117,9 +117,7 @@ class Playoff(Competition):
         return result
 
 
-    global_settings = [
-        Setting('description', interpret_as_utf8_stripped, default=""),
-        ]
+    global_settings = Competition.global_settings
 
     special_settings = [
         Setting('matchups', interpret_sequence),

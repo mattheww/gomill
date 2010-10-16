@@ -158,8 +158,10 @@ class Competition(object):
         """
         self.history_logger(s)
 
-    # List of Settings, for overriding in subclasses.
-    global_settings = []
+    # List of Settings (subclasses can override, and should include these)
+    global_settings = [
+        Setting('description', interpret_as_utf8_stripped, default=""),
+        ]
 
     def initialise_from_control_file(self, config):
         """Initialise competition data from the control file.
@@ -389,6 +391,8 @@ class Competition(object):
 
         This is used for the ringmaster's 'show' command.
 
+        It should include the competition's description attribute.
+
         It should end with a newline, but not have additional blank lines at
         the end.
 
@@ -403,6 +407,8 @@ class Competition(object):
         out -- writeable file-like object
 
         This is used for the ringmaster's 'report' command.
+
+        It should include the competition's description attribute.
 
         It should end with a newline.
 

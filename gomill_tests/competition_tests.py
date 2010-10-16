@@ -10,6 +10,15 @@ from gomill_tests import gomill_test_support
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
+def test_global_config(tc):
+    comp = competitions.Competition('test')
+    config = {
+        'description' : "\nsome\ndescription  ",
+        'players' : {},
+        }
+    comp.initialise_from_control_file(config)
+    tc.assertEqual(comp.description, "some\ndescription")
+
 def test_player_config(tc):
     comp = competitions.Competition('test')
     p1 = comp.game_jobs_player_from_config('pp', Player_config("cmd"))

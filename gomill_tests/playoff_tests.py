@@ -94,6 +94,7 @@ def default_config():
 def test_basic_config(tc):
     comp = playoffs.Playoff('test')
     config = default_config()
+    config['description'] = "default\nconfig"
     config['matchups'] = [
             Matchup_config(
                 't1',  't2', board_size=9, komi=0.5, alternating=True,
@@ -103,6 +104,8 @@ def test_basic_config(tc):
             Matchup_config('t1', 't2'),
             ]
     comp.initialise_from_control_file(config)
+    tc.assertEqual(comp.description, "default\nconfig")
+
     m0 = comp.get_matchup('0')
     m1 = comp.get_matchup('m1')
     m2 = comp.get_matchup('2')
@@ -169,6 +172,7 @@ def test_get_player_checks(tc):
 
 def test_play(tc):
     fx = Playoff_fixture(tc)
+    tc.assertEqual(fx.comp.description, "")
 
     job1 = fx.comp.get_game()
     tc.assertIsInstance(job1, Game_job)

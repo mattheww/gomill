@@ -95,14 +95,13 @@ class Cem_tuner(Competition):
         Competition.__init__(self, competition_code, **kwargs)
         self.seen_successful_game = False
 
-    global_settings = [
+    global_settings = Competition.global_settings + [
         Setting('board_size', competitions.interpret_board_size),
         Setting('komi', interpret_float),
         Setting('handicap', allow_none(interpret_int), default=None),
         Setting('handicap_style', interpret_enum('fixed', 'free'),
                 default='fixed'),
         Setting('move_limit', interpret_positive_int, default=1000),
-        Setting('description', interpret_as_utf8, default=""),
         Setting('scorer', interpret_enum('internal', 'players'),
                 default='players'),
         Setting('batch_size', interpret_positive_int),
