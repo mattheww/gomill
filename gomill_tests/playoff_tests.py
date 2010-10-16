@@ -154,6 +154,18 @@ def test_game_id_format(tc):
     fx = Playoff_fixture(tc, config)
     tc.assertEqual(fx.comp.get_game().game_id, '0_000')
 
+def test_get_player_checks(tc):
+    comp = playoffs.Playoff('testcomp')
+    config = default_config()
+    comp.initialise_from_control_file(config)
+    checks = comp.get_player_checks()
+    tc.assertEqual(len(checks), 2)
+    tc.assertEqual(checks[0].board_size, 13)
+    tc.assertEqual(checks[0].komi, 7.5)
+    tc.assertEqual(checks[0].player.code, "t1")
+    tc.assertEqual(checks[0].player.cmd_args, ['test1'])
+    tc.assertEqual(checks[1].player.code, "t2")
+    tc.assertEqual(checks[1].player.cmd_args, ['test2'])
 
 def test_play(tc):
     fx = Playoff_fixture(tc)
