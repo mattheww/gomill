@@ -497,14 +497,22 @@ Tree search
 
 As a further (and even more experimental) refinement, it's possible to arrange
 the candidates in the form of a tree and use the :term:`UCT` algorithm instead
-of plain :term:`UCB`.
+of plain :term:`UCB`. To do this, set the :setting:`max_depth` setting to a
+value greater than 1.
 
-To do this, set the :setting:`max_depth` setting to a value greater than 1. At
-each generation of the tree, the parameter space will be subdivided FIXME.
+Initially, this behaves as described in :ref:`the tuning algorithm`. But
+whenever a candidate is chosen for the second time, it is :dfn:`expanded`: a
+new generation of candidates is created and placed as that candidate's
+children in a tree structure.
 
+The new candidates are created by sampling their parent's 'division' of
+optimiser parameter space in the same way as the full space was sampled to
+make the first-generation candidates (so the number of children is again the
+product of the :setting:`split` settings). Their :math:`g_c` and :math:`w_c`
+values are initialised to :setting:`initial_visits` and
+:setting:`initial_wins` as usual.
 
-The mechanism for choosing a candidate is essentially the same as in
-:term:`UCB`, repeated at each level of the tree:
+Then one of these child candidates is selected using the usual formula, where
 
 - :math:`g_c` is now the number of games the child has played
 
@@ -512,15 +520,36 @@ The mechanism for choosing a candidate is essentially the same as in
 
 - :math:`g_p` is now the number of games the parent has played
 
+If :setting:`max_depth` is greater than 2, then when a second-generation
+candidate is chosen for the second time, it is expanded itself, and so on
+until :setting:`max_depth` is reached.
 
-.. todo:: finish this. Say each parameter is treated the same, and each is
-   split in each generation. Say the split is the same at each dimension. Say
-   it expands the tree on the second visit. Say it doesn't currently use
-   virtual losses, which isn't ideal if --parallel is high.
+Each time the tuner starts a new game, it walks down the tree using this
+formula to choose a child node at each level, until it reaches a 'leaf' node.
+
+Once a candidate has been expanded, it does not play any further games; only
+candidates which are 'leaf' nodes of the tree are used as players. The
+:math:`g_c` and :math:`w_c` values for non-leaf candidates count the games and
+wins played by the candidate's descendants, as well as by the candidate
+itself.
+
+The 'best' candidate is determined by walking down the tree and choosing the
+child with the most wins at each step (which may not end up with the leaf
+candidate with the most wins in the entire tree).
+
 
 .. note:: It isn't clear that using UCT for a continuous parameter space like
    this is a wise (or valid) thing to do. I suspect it needs some form of RAVE
    to perform well.
+
+
+.. caution:: If you use a high :option:`--parallel <ringmaster --parallel>`
+   value, note that the Monte Carlo tuner doesn't currently take any action to
+   prevent the same unpromising branch of the tree being explored by multiple
+   processes simultaneously, which might lead to odd results (particularly if
+   you stop the competition and restart it).
+
+
 
 
 Changing the control file between runs
@@ -539,8 +568,8 @@ Changing :setting:`make_candidate` is ok, though if this affects player
 behaviour it will probably be unhelpful.
 
 Changing :setting:`initial_wins` or :setting:`initial_visits` will have no
-effect if :setting:`max_depth` is 1; otherwise it will affect only
-newly-created tree nodes.
+effect if :setting:`max_depth` is 1; otherwise it will affect only candidates
+created in future.
 
 Changing the settings which control reporting, including :setting:`format`, is
 ok.
