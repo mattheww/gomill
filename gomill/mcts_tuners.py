@@ -685,7 +685,7 @@ class Mcts_tuner(Competition):
                 l.append(pspec.scale(v))
             except Exception:
                 raise CompetitionError(
-                    "error from scaler for %s\n%s" %
+                    "error from scale for %s\n%s" %
                     (pspec.code, compact_tracebacks.format_traceback(skip=1)))
         return tuple(l)
 

@@ -68,7 +68,7 @@ def test_parameter_config(tc):
     with tc.assertRaises(CompetitionError) as ar:
         comp.scale_parameters((0.5, None))
     tc.assertTracebackStringEqual(str(ar.exception), dedent("""\
-    error from scaler for initial_wins
+    error from scale for initial_wins
     TypeError: unsupported operand type(s) for *: 'NoneType' and 'float'
     traceback (most recent call last):
     mcts_tuners|__call__
