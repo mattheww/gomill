@@ -421,6 +421,9 @@ class Cem_tuner(Competition):
         job.handicap_is_free = (self.handicap_style == 'free')
         job.use_internal_scorer = (self.scorer == 'internal')
         job.sgf_event = self.competition_code
+        job.sgf_note = ("Candidate parameters: %s" %
+                        self.format_optimiser_parameters(
+                            self.sample_parameters[candidate_number]))
         return job
 
     def process_game_result(self, response):
@@ -467,8 +470,6 @@ class Cem_tuner(Competition):
 
         ordered_samples -- list of pairs (wins, candidate number)
         elite_count     -- number of samples to mark as elite
-
-        Returns a list of strings
 
         """
         result = []
