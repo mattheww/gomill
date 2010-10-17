@@ -60,7 +60,7 @@ settings. For example, the sample control file below creates 64 candidates.
 
 .. caution:: While the Monte Carlo tuner does not impose any limit on the
    number of parameters you use, unless the games are unusually rapid it may
-   be optimistic to try to tune more than two or three parameters at once.
+   be unreasonable to try to tune more than two or three parameters at once.
 
 Each candidate's engine parameters are passed to the :setting:`make_candidate`
 function, which returns a Player definition.
@@ -215,6 +215,21 @@ playoffs.
 The following additional settings are used (all those without a listed default
 are compulsory):
 
+.. setting:: candidate_colour
+
+  String: ``"b"`` or ``"w"``
+
+  The colour for the candidates to take in every game.
+
+
+.. setting:: opponent
+
+  Identifier
+
+  The :ref:`player code <player codes>` of the player to use as the
+  candidates' opponent.
+
+
 .. setting:: parameters
 
   List of :setting:`Parameter` definitions (see :ref:`parameter
@@ -252,21 +267,6 @@ are compulsory):
                       ])
 
 
-.. setting:: candidate_colour
-
-  String: ``"b"`` or ``"w"``
-
-  The colour for the candidates to take in every game.
-
-
-.. setting:: opponent
-
-  Identifier
-
-  The :ref:`player code <player codes>` of the player to use as the
-  candidates' opponent.
-
-
 .. setting:: exploration_coefficient
 
   Float
@@ -281,7 +281,7 @@ are compulsory):
 
   The number of games to initialise each candidate with. At the start of the
   event, the tuner will behave as if each candidate has already played this
-  many games.
+  many games. See :ref:`the tuning algorithm`.
 
 
 .. setting:: initial_wins
@@ -290,7 +290,7 @@ are compulsory):
 
   The number of wins to initialise each candidate with. At the start of the
   event, the tuner will behave as if each candidate has already won this many
-  games.
+  games. See :ref:`the tuning algorithm`.
 
   .. tip:: It's best to set :setting:`initial_wins` so that
      :setting:`initial_wins` / :setting:`initial_visits` is close to the
