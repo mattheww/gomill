@@ -456,8 +456,9 @@ To do this, set the :setting:`max_depth` setting to a value greater than 1. At
 each generation of the tree, the parameter space will be subdivided FIXME.
 
 .. todo:: finish this. Say each parameter is treated the same, and each is
-   split in each generation. Say the split is the same at each dimension.
-
+   split in each generation. Say the split is the same at each dimension. Say
+   it expands the tree on the second visit. Say it doesn't currently use
+   virtual losses, which isn't ideal if --parallel is high.
 
 .. note:: It isn't clear that using UCT for a continuous parameter space like
    this is a wise (or valid) thing to do. I suspect it needs some form of RAVE
@@ -467,5 +468,22 @@ each generation of the tree, the parameter space will be subdivided FIXME.
 Changing the control file between runs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. todo:: write
+In general, you shouldn't change the Parameter definitions or the settings
+which control the tuning algorithm between runs. The ringmaster will normally
+notice and refuse to start, but it's possible to fool it and so get
+meaningless results.
+
+Changing the :setting:`exploration_coefficient` is ok. Increasing
+:setting:`max_depth` is ok (decreasing it is ok too, but it won't stop the
+tuner exploring parts of the tree that it has already expanded).
+
+Changing :setting:`make_candidate` is ok, though if this affects player
+behaviour it will probably be unhelpful.
+
+Changing :setting:`initial_wins` or :setting:`initial_visits` will have no
+effect if :setting:`max_depth` is 1; otherwise it will affect only
+newly-created tree nodes.
+
+Changing the settings which control reporting, including :setting:`format`, is
+ok.
 
