@@ -469,6 +469,7 @@ There are three kinds of predefined scale which you can use in a
   Example::
 
     LOG(0.01, 1000)
+    LOG(1e2, 1e9, integer=True)
 
 
 .. index:: EXPLICIT
