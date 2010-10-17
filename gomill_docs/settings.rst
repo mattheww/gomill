@@ -153,8 +153,8 @@ Dictionary
 File and directory names
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-When setting values are file or directory names, non-absolute names are
-interpreted relative to the :ref:`competition directory <competition
+When values in the control file are file or directory names, non-absolute
+names are interpreted relative to the :ref:`competition directory <competition
 directory>`.
 
 If a file or directory name begins with ``~``, home directory expansion is
@@ -557,7 +557,7 @@ Control file techniques
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 As the control file is just Python code, it's possible to use less direct
-methods to specify the setting values.
+methods to specify the values of settings.
 
 One convenient way to define a number of similar players is to define a
 function which returns a Player object. For example, the player definitions in
