@@ -139,6 +139,23 @@ def test_basic_config(tc):
         ControlFileError, "not enough arguments",
         comp.matchup_from_config, Matchup_config(), {})
 
+def test_nonsense_matchup_config(tc):
+    comp = playoffs.Playoff('test')
+    config = default_config()
+    config['matchups'].append(99)
+    with tc.assertRaises(ControlFileError) as ar:
+        comp.initialise_from_control_file(config)
+    tc.assertMultiLineEqual(str(ar.exception), dedent("""\
+    'matchups': item 1: not a Matchup"""))
+
+def test_bad_matchup_config(tc):
+    comp = playoffs.Playoff('test')
+    config = default_config()
+    config['matchups'].append(Matchup_config())
+    with tc.assertRaises(ControlFileError) as ar:
+        comp.initialise_from_control_file(config)
+    tc.assertMultiLineEqual(str(ar.exception), dedent("""\
+    matchup entry 1: not enough arguments"""))
 
 def test_global_handicap_validation(tc):
     comp = playoffs.Playoff('testcomp')

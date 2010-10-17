@@ -120,7 +120,8 @@ class Playoff(Competition):
     global_settings = Competition.global_settings
 
     special_settings = [
-        Setting('matchups', interpret_sequence),
+        Setting('matchups',
+                interpret_sequence_of_quiet_configs(Matchup_config)),
         ]
 
     def matchup_from_config(self, matchup_config, matchup_defaults):
@@ -134,9 +135,6 @@ class Playoff(Competition):
         it).
 
         """
-        if not isinstance(matchup_config, Matchup_config):
-            raise ControlFileError("not a Matchup")
-
         arguments = matchup_config.resolve_arguments()
 
         matchup = Matchup()
