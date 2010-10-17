@@ -826,7 +826,7 @@ class Mcts_tuner(Competition):
                 games_played, self.number_of_games)
         print >>out
         best_simulation = self.tree.retrieve_best_parameter_simulation()
-        print >>out, "Best parameter vector: %s" % best_simulation.describe()
+        print >>out, "Best parameters: %s" % best_simulation.describe()
         print >>out
         self.tree.summarise(out, self.summary_spec)
 
