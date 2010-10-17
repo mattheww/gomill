@@ -222,11 +222,14 @@ class Playoff(Competition):
         self.matchup_list = []
         if not specials['matchups']:
             raise ControlFileError("matchups: empty list")
-        for i, matchup in enumerate(specials['matchups']):
+        for i, matchup_spec in enumerate(specials['matchups']):
             try:
-                m = self.matchup_from_config(matchup, matchup_defaults)
+                m = self.matchup_from_config(matchup_spec, matchup_defaults)
             except StandardError, e:
-                raise ControlFileError("matchup entry %d: %s" % (i, e))
+                code = matchup_spec.kwargs.get('id')
+                if code is None:
+                    code = i
+                raise ControlFileError("matchup %s: %s" % (code, e))
             if m.id is None:
                 m.id = str(i)
             if m.id in self.matchups:

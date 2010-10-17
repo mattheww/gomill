@@ -155,7 +155,7 @@ def test_bad_matchup_config(tc):
     with tc.assertRaises(ControlFileError) as ar:
         comp.initialise_from_control_file(config)
     tc.assertMultiLineEqual(str(ar.exception), dedent("""\
-    matchup entry 1: not enough arguments"""))
+    matchup 1: not enough arguments"""))
 
 def test_global_handicap_validation(tc):
     comp = playoffs.Playoff('testcomp')
