@@ -159,6 +159,11 @@ result ``Void``).
 
 See also :ref:`claiming wins`.
 
+.. note:: The ringmaster does not provide a game clock, and it does not
+   use any of the |gtp| time handling commands. Players should normally be
+   configured to use a fixed amount of computing power, independent of
+   wall-clock time.
+
 .. todo:: somewhere around here say whether failure response to commands like
    boardsize or handicap forfeits or voids the game or what.
 

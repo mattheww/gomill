@@ -16,8 +16,8 @@ Ringmaster features include:
 - playing multiple games in parallel
 - displaying live results
 - engine configuration by command line options or |gtp| commands
-- a protocol for per-move engine diagnostics in |sgf| output
-- automatically tuning player parameters based on game results
+- a protocol for including per-move engine diagnostics in |sgf| output
+- automatically tuning engine parameters based on game results
   (**experimental**)
 
 .. contents:: Page contents

@@ -8,3 +8,13 @@ tt.std-gtp span.pre {white-space: nowrap;}
 
 li.current > a {color: yellow;}
 
+div.tip {
+  background-color: #EEEEEE;
+  border: 1px solid #CCCCCC;
+}
+
+div.caution {
+  background-color: #EEEEEE;
+  border: 1px solid #A00000;
+}
+

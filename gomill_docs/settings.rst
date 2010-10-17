@@ -19,7 +19,7 @@ a playoff::
   competition_type = 'playoff'
 
   description = """
-  This is a sample configuration file.
+  This is a sample control file.
 
   It illustrates most of the available settings for a playoff.
   """
@@ -249,10 +249,14 @@ Player configuration
 ^^^^^^^^^^^^^^^^^^^^
 
 A Player definition has the same syntax as a Python function call:
-:samp:`Player({parameters})`. Apart from :setting:`!command`, the parameters
+:samp:`Player({parameters})`. Apart from :setting:`command`, the parameters
 should be specified as keyword arguments (see :ref:`sample control file`).
 
-All parameters other than :setting:`!command` are optional.
+All parameters other than :setting:`command` are optional.
+
+.. tip:: For results to be meaningful, you should normally configure players
+   to use a fixed amount of computing power, and pay no attention to the
+   amount of real time that passes.
 
 The parameters are:
 
@@ -564,8 +568,8 @@ function which returns a Player object. For example, the player definitions in
 the sample control file could be rewritten as follows::
 
   def gnugo(level):
-      return Player("gnugo --mode=gtp --chinese-rules --capture-all-dead "
-                    "--level=%d" % level)
+      return Player("gnugo --mode=gtp --chinese-rules "
+                    "--capture-all-dead --level=%d" % level)
 
   def fuego(playouts_per_move, additional_commands=[]):
       commands = [
@@ -576,8 +580,9 @@ the sample control file could be rewritten as follows::
           "uct_param_player ponder 0",
           "uct_param_player max_games %d" % playouts_per_move,
           ]
-      return Player("fuego --quiet",
-                    startup_gtp_commands=commands+additional_commands)
+      return Player(
+          "fuego --quiet",
+          startup_gtp_commands=commands+additional_commands)
 
   players = {
       'gnugo-l1' : gnugo(level=1),
