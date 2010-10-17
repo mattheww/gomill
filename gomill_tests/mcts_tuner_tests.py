@@ -364,6 +364,7 @@ def test_play(tc):
     tc.assertEqual(job1.move_limit, 1000)
     tc.assertEqual(job1.game_data, 0)
     tc.assertEqual(job1.sgf_event, 'mctstest')
+    tc.assertRegexpMatches(job1.sgf_note, '^Candidate parameters: rsn@ ')
     tc.assertItemsEqual(comp.outstanding_simulations.keys(), [0])
 
     job2 = comp.get_game()
@@ -374,7 +375,7 @@ def test_play(tc):
     tc.assertItemsEqual(comp.outstanding_simulations.keys(), [0, 1])
 
     result1 = Game_result({'b' : 'opp', 'w' : '#1'}, 'w')
-    result1.sgf_result = "B+8.5"
+    result1.sgf_result = "W+8.5"
     response1 = Game_job_result()
     response1.game_id = job1.game_id
     response1.game_result = result1
