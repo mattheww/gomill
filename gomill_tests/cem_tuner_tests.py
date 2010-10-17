@@ -118,3 +118,22 @@ def test_format_validation(tc):
     tc.assertRaisesRegexp(
         ControlFileError, "'format': invalid format string",
         comp.initialise_from_control_file, config)
+
+def test_make_candidate(tc):
+    comp = cem_tuners.Cem_tuner('cemtest')
+    config = default_config()
+    comp.initialise_from_control_file(config)
+    cand = comp.make_candidate('g0#1', (0.5, 23.0))
+    tc.assertEqual(cand.code, 'g0#1')
+    tc.assertListEqual(cand.cmd_args, ['cand', '0.5', '23.0'])
+    with tc.assertRaises(CompetitionError) as ar:
+        comp.make_candidate('g0#1', (-1, 23))
+    tc.assertTracebackStringEqual(str(ar.exception), dedent("""\
+    error from make_candidate()
+    ValueError: oops
+    traceback (most recent call last):
+    cem_tuner_tests|simple_make_candidate
+    failing line:
+    raise ValueError("oops")
+    """))
+
