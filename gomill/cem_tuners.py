@@ -84,6 +84,34 @@ def update_distribution(distribution, elites, step_size):
     return Distribution(new_distribution_parameters)
 
 
+parameter_settings = [
+    Setting('code', interpret_identifier),
+    Setting('initial_mean', interpret_float),
+    Setting('initial_variance', interpret_float),
+    Setting('transform', interpret_callable, default=float),
+    Setting('format', interpret_8bit_string, default=None),
+    ]
+
+class Parameter_config(Quiet_config):
+    """Parameter (ie, dimension) description for use in control files."""
+    # positional or keyword
+    positional_arguments = ('code',)
+    # keyword-only
+    keyword_arguments = tuple(setting.name for setting in parameter_settings
+                              if setting.name != 'code')
+
+class Parameter_spec(object):
+    """Internal description of a parameter spec from the configuration file.
+
+    Public attributes:
+      code             -- identifier
+      initial_mean     -- float
+      initial_variance -- float
+      transform        -- function float -> player parameter
+      format           -- string for use with '%'
+
+    """
+
 class Cem_tuner(Competition):
     """A Competition for parameter tuning using the cross-entropy method.
 
@@ -94,6 +122,13 @@ class Cem_tuner(Competition):
     def __init__(self, competition_code, **kwargs):
         Competition.__init__(self, competition_code, **kwargs)
         self.seen_successful_game = False
+
+    def control_file_globals(self):
+        result = Competition.control_file_globals(self)
+        result.update({
+            'Parameter' : Parameter_config,
+            })
+        return result
 
     global_settings = Competition.global_settings + [
         Setting('board_size', competitions.interpret_board_size),
@@ -113,12 +148,36 @@ class Cem_tuner(Competition):
 
     special_settings = [
         Setting('opponent', interpret_any),
-        Setting('initial_distribution', interpret_any),
-        Setting('convert_optimiser_parameters_to_engine_parameters',
-                interpret_callable),
-        Setting('format_parameters', interpret_callable),
+        Setting('parameters', interpret_sequence),
         Setting('make_candidate', interpret_callable),
         ]
+
+    def parameter_spec_from_config(self, parameter_config):
+        """Make a Parameter_spec from a Parameter_config.
+
+        Raises ControlFileError if there is an error in the configuration.
+
+        Returns a Parameter_spec with all attributes set.
+
+        """
+        if not isinstance(parameter_config, Parameter_config):
+            raise ControlFileError("not a Parameter")
+
+        arguments = parameter_config.resolve_arguments()
+        interpreted = load_settings(parameter_settings, arguments)
+        pspec = Parameter_spec()
+        for name, value in interpreted.iteritems():
+            setattr(pspec, name, value)
+        if pspec.initial_variance < 0.0:
+            raise ControlFileError("'initial_variance': must be nonnegative")
+        if pspec.format is None:
+            pspec.format = pspec.code + ":%s"
+        else:
+            try:
+                pspec.format % 0.5
+            except Exception:
+                raise ControlFileError("'format': invalid format string")
+        return pspec
 
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
@@ -137,21 +196,34 @@ class Cem_tuner(Competition):
             raise ControlFileError(str(e))
 
         try:
-            self.initial_distribution = Distribution(
-                specials['initial_distribution'])
-        except Exception:
-            raise ControlFileError("initial_distribution: invalid")
-
-        try:
             self.opponent = self.players[specials['opponent']]
         except KeyError:
             raise ControlFileError(
                 "opponent: unknown player %s" % specials['opponent'])
 
-        self.translate_parameters_fn = \
-            specials['convert_optimiser_parameters_to_engine_parameters']
-        self.format_parameters_fn = specials['format_parameters']
+        self.parameter_specs = []
+        if not specials['parameters']:
+            raise ControlFileError("parameters: empty list")
+        seen_codes = set()
+        for i, parameter_spec in enumerate(specials['parameters']):
+            try:
+                pspec = self.parameter_spec_from_config(parameter_spec)
+            except StandardError, e:
+                code = parameter_spec.get_key()
+                if code is None:
+                    code = i
+                raise ControlFileError("parameter %s: %s" % (code, e))
+            if pspec.code in seen_codes:
+                raise ControlFileError(
+                    "duplicate parameter code: %s" % pspec.code)
+            seen_codes.add(pspec.code)
+            self.parameter_specs.append(pspec)
+
         self.candidate_maker_fn = specials['make_candidate']
+
+        self.initial_distribution = Distribution(
+            [(pspec.initial_mean, pspec.initial_variance)
+             for pspec in self.parameter_specs])
 
 
     # State attributes (*: in persistent state):
@@ -211,34 +283,59 @@ class Cem_tuner(Competition):
         self.scheduler = competition_schedulers.Group_scheduler()
         self._set_scheduler_groups()
 
+    def transform_parameters(self, optimiser_parameters):
+        l = []
+        for pspec, v in zip(self.parameter_specs, optimiser_parameters):
+            try:
+                l.append(pspec.transform(v))
+            except Exception:
+                raise CompetitionError(
+                    "error from transform for %s\n%s" %
+                    (pspec.code, compact_tracebacks.format_traceback(skip=1)))
+        return tuple(l)
+
+    def format_engine_parameters(self, engine_parameters):
+        l = []
+        for pspec, v in zip(self.parameter_specs, engine_parameters):
+            try:
+                s = pspec.format % v
+            except Exception:
+                s = "[%s?%s]" % (pspec.code, v)
+            l.append(s)
+        return "; ".join(l)
+
+    def format_optimiser_parameters(self, optimiser_parameters):
+        return self.format_engine_parameters(self.transform_parameters(
+            optimiser_parameters))
+
     @staticmethod
     def make_candidate_code(generation, candidate_number):
         return "g%d#%d" % (generation, candidate_number)
 
-    def _make_candidate(self, candidate_code, optimiser_params):
+    def make_candidate(self, player_code, engine_parameters):
+        """Make a player using the specified engine parameters.
+
+        Returns a game_jobs.Player.
+
+        """
         try:
-            engine_parameters = self.translate_parameters_fn(optimiser_params)
+            candidate_config = self.candidate_maker_fn(*engine_parameters)
         except Exception:
             raise CompetitionError(
-                "error from user-defined parameter converter\n%s" %
-                compact_tracebacks.format_traceback(skip=1))
-        try:
-            candidate_config = self.candidate_maker_fn(engine_parameters)
-        except Exception:
-            raise CompetitionError(
-                "error from user-defined candidate function\n%s" %
+                "error from make_candidate()\n%s" %
                 compact_tracebacks.format_traceback(skip=1))
         if not isinstance(candidate_config, Player_config):
             raise CompetitionError(
-                "user-defined candidate function returned %r, not Player" %
+                "make_candidate() returned %r, not Player" %
                 candidate_config)
         try:
             candidate = self.game_jobs_player_from_config(
-                candidate_code, candidate_config)
+                player_code, candidate_config)
         except Exception, e:
             raise CompetitionError(
-                "error making candidate player\nparameters: %s\nerror: %s" %
-                (self.format_parameters(optimiser_params), e))
+                "bad player spec from make_candidate():\n"
+                "%s\nparameters were: %s" %
+                (e, self.format_engine_parameters(engine_parameters)))
         return candidate
 
     def prepare_candidates(self):
@@ -256,8 +353,9 @@ class Cem_tuner(Competition):
                 enumerate(self.sample_parameters):
             candidate_code = self.make_candidate_code(
                 self.generation, candidate_number)
+            engine_parameters = self.transform_parameters(optimiser_params)
             self.candidates.append(
-                self._make_candidate(candidate_code, optimiser_params))
+                self.make_candidate(candidate_code, engine_parameters))
 
     def finish_generation(self):
         """Process a generation's results and calculate the new distribution.
@@ -283,8 +381,9 @@ class Cem_tuner(Competition):
             self.distribution, elite_samples, self.step_size)
 
     def get_player_checks(self):
-        candidate = self._make_candidate(
-            'candidate', self.initial_distribution.get_sample())
+        engine_parameters = self.transform_parameters(
+            self.initial_distribution.get_sample())
+        candidate = self.make_candidate('candidate', engine_parameters)
         result = []
         for player in [candidate, self.opponent]:
             check = game_jobs.Player_check()
@@ -347,21 +446,15 @@ class Cem_tuner(Competition):
         return stop_competition, retry_game
 
 
-    def format_parameters(self, optimiser_parameters):
-        try:
-            return self.format_parameters_fn(optimiser_parameters)
-        except Exception:
-            return ("[error from user-defined parameter formatter]\n"
-                    "[optimiser parameters %s]" % optimiser_parameters)
-
     def format_distribution(self, distribution):
         """Pretty-print a distribution.
 
         Returns a string.
 
         """
-        return "%s\n%s" % (self.format_parameters(distribution.get_means()),
-                           distribution.format())
+        return "%s\n%s" % (
+            self.format_optimiser_parameters(distribution.get_means()),
+            distribution.format())
 
     def format_generation_results(self, ordered_samples, elite_count):
         """Pretty-print the results of a single generation.
@@ -379,7 +472,7 @@ class Cem_tuner(Competition):
                 "%s%s %s %3d" %
                 (self.make_candidate_code(self.generation, candidate_number),
                  "*" if i < elite_count else " ",
-                 self.format_parameters(opt_parameters),
+                 self.format_optimiser_parameters(opt_parameters),
                  wins))
         return "\n".join(result)
 

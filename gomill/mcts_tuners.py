@@ -713,7 +713,7 @@ class Mcts_tuner(Competition):
                 compact_tracebacks.format_traceback(skip=1))
         if not isinstance(candidate_config, Player_config):
             raise CompetitionError(
-                "user-defined candidate function returned %r, not Player" %
+                "make_candidate() returned %r, not Player" %
                 candidate_config)
         try:
             candidate = self.game_jobs_player_from_config(
