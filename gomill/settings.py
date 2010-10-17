@@ -231,18 +231,24 @@ class Setting(object):
     Instantiate with:
       setting name
       interpreter function
-      default value or type (optional)
+    optionally:
+      default value, or
+      defaultmaker -- callable creating the default value
 
     """
-    def __init__(self, name, interpreter, default=_nodefault):
+    def __init__(self, name, interpreter,
+                 default=_nodefault, defaultmaker=None):
         self.name = name
         self.interpreter = interpreter
-        if default is _nodefault:
-            self.has_default = False
-            self.default = None
-        else:
-            self.has_default = True
-            self.default = default
+        self.default = default
+        self.defaultmaker = defaultmaker
+
+    def get_default(self):
+        if self.default is not _nodefault:
+            return self.default
+        if self.defaultmaker is not None:
+            return self.defaultmaker()
+        raise ValueError
 
     def interpret(self, value):
         """Validate the value and normalise if necessary.
@@ -280,12 +286,9 @@ def load_settings(settings, config):
         try:
             v = config[setting.name]
         except KeyError:
-            if setting.has_default:
-                if callable(setting.default):
-                    v = setting.default()
-                else:
-                    v = setting.default
-            else:
+            try:
+                v = setting.get_default()
+            except ValueError:
                 raise ValueError("'%s' not specified" % setting.name)
         else:
             if isinstance(v, Config_proxy):

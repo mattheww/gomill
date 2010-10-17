@@ -45,8 +45,8 @@ _player_settings = [
     Setting('allow_claim', interpret_bool, default=False),
     Setting('gtp_aliases',
             interpret_map_of(interpret_8bit_string, interpret_8bit_string),
-            default=dict),
-    Setting('startup_gtp_commands', interpret_sequence, default=list),
+            defaultmaker=dict),
+    Setting('startup_gtp_commands', interpret_sequence, defaultmaker=list),
     Setting('discard_stderr', interpret_bool, default=False),
     ]
 
