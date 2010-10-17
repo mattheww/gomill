@@ -169,7 +169,7 @@ class Cem_tuner(Competition):
         for name, value in interpreted.iteritems():
             setattr(pspec, name, value)
         if pspec.initial_variance < 0.0:
-            raise ControlFileError("'initial_variance': must be nonnegative")
+            raise ValueError("'initial_variance': must be nonnegative")
         if pspec.format is None:
             pspec.format = pspec.code + ":%s"
         else:

@@ -1,5 +1,9 @@
 """Tests for cem_tuners.py"""
 
+from __future__ import with_statement, division
+
+from textwrap import dedent
+
 from gomill import cem_tuners
 from gomill.cem_tuners import Parameter_config
 from gomill.competitions import (
@@ -16,7 +20,8 @@ def simple_make_candidate(*args):
     return Player_config("cand " + " ".join(map(str, args)))
 
 def clip_axisb(f):
-    return max(0.0, max(100.0, f))
+    f = float(f)
+    return max(0.0, min(100.0, f))
 
 def default_config():
     return {
@@ -52,4 +57,36 @@ def test_parameter_config(tc):
     comp = cem_tuners.Cem_tuner('cemtest')
     config = default_config()
     comp.initialise_from_control_file(config)
-    # FIXME
+
+    tc.assertEqual(comp.initial_distribution.format(),
+                   " 0.50~1.00 50.00~1000.00")
+    tc.assertEqual(comp.format_engine_parameters((0.5, 23)),
+                   "axa 0.500; axb 23.0")
+    tc.assertEqual(comp.format_engine_parameters(('x', 23)),
+                   "[axisa?x]; axb 23.0")
+    tc.assertEqual(comp.format_optimiser_parameters((0.5, 500)),
+                   "axa 0.500; axb 100.0")
+
+    tc.assertEqual(comp.transform_parameters((0.5, 1e6)), (0.5, 100.0))
+    with tc.assertRaises(CompetitionError) as ar:
+        comp.transform_parameters((0.5, None))
+    tc.assertTracebackStringEqual(str(ar.exception), dedent("""\
+    error from transform for axisb
+    TypeError: float() argument must be a string or a number
+    traceback (most recent call last):
+    cem_tuner_tests|clip_axisb
+    failing line:
+    f = float(f)
+    """))
+
+    tc.assertRaisesRegexp(
+        ValueError, "'initial_variance': must be nonnegative",
+        comp.parameter_spec_from_config,
+        Parameter_config('pa1', initial_mean=0,
+                         initial_variance=-1, format="%s"))
+    tc.assertRaisesRegexp(
+        ControlFileError, "'format': invalid format string",
+        comp.parameter_spec_from_config,
+        Parameter_config('pa1', initial_mean=0, initial_variance=1,
+                         format="nopct"))
+
