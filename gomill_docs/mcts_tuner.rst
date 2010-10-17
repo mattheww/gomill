@@ -8,8 +8,8 @@ That is, it attempts to find the candidate which has the highest probability
 of beating the opponent, and arranges to 'spend' more games on the candidates
 which have the highest winning percentages so far.
 
-It does this using the :term:`UCB` algorithm (or, optionally, :term:`UCT`)
-which is familiar to Go programmers.
+It does this using a form of the :term:`UCB` algorithm (or, optionally,
+:term:`UCT`) which is familiar to Go programmers.
 
 .. caution:: As of Gomill |version|, the Monte Carlo tuner is still
    experimental. The control file settings may change in future. The reports
@@ -26,10 +26,9 @@ The parameter model
 The Monte Carlo tuner expects to work with one or more independent parameters.
 
 Internally, it models each parameter value as a floating point number in the
-range 0.0 to 1.0. It makes candidates with parameter values taken uniformly
-from this scale. Values from this range are known as :dfn:`optimiser
-parameters`. A number of :ref:`predefined scales <predefined scales>` are
-provided.
+range 0.0 to 1.0. It uses parameter values taken uniformly from this range to
+make the candidate players. Values from this range are known as
+:dfn:`optimiser parameters`.
 
 In practice, engine parameters might not be floating point numbers, their
 range is unlikely to be 0.0 to 1.0, and you may wish to use a non-uniform (eg,
@@ -37,26 +36,78 @@ logarithmic) scale for the candidates.
 
 To support this, each parameter has an associated :setting:`scale`. This is a
 function which maps an optimiser parameter to an :dfn:`engine parameter`
-(which can be of an arbitrary Python type).
+(which can be of an arbitrary Python type). A number of :ref:`predefined
+scales <predefined scales>` are provided.
 
-Each candidate's engine parameters are passed to the :setting:`make_candidate`
-function, which returns a Player definition.
+The candidate player definitions are based on these engine parameters.
 
 Reports, and the live display, are also based on engine parameters; see the
 :setting:`format` parameter setting.
 
+
+Candidates
+^^^^^^^^^^
+
+Each parameter also has a :setting:`split` setting (a smallish integer). This
+determines how many 'samples' of the parameter range are used to make
+candidate players.
+
+When there are multiple parameters, one candidate is made for each combination
+of these samples. So if there is only one parameter, the total number of
+candidates is just :setting:`split`, and if there are multiple parameters, the
+total number of candidates is the product of all the :setting:`split`
+settings. For example, the sample control file below creates 64 candidates.
+
 .. caution:: While the Monte Carlo tuner does not impose any limit on the
    number of parameters you use, unless the games are unusually rapid it may
-   be optimistic to try to tune more than two parameters at once.
+   be optimistic to try to tune more than two or three parameters at once.
 
+Each candidate's engine parameters are passed to the :setting:`make_candidate`
+function, which returns a Player definition.
+
+The samples are taken by dividing the optimiser parameter range into
+:setting:`split` divisions, and taking the centre of each division as the
+sample (so the end points of the range are not used). For example, if a
+parameter has a linear scale from 0.0 to 8.0, and :setting:`split` is 3, the
+samples will be 1.0, 4.0, and 7.0.
+
+
+.. _the tuning algorithm:
 
 The tuning algorithm
 ^^^^^^^^^^^^^^^^^^^^
 
-.. todo:: give an overview of the algorithm. Need to find a
-   reference so as to use its terminology. Explain about 'split'.
+Each time the tuner starts a new game, it chooses the candidate which gives
+the highest value to the following formula:
 
-.. todo:: say how the 'best parameter vector' is determined.
+.. math:: w_c/g_c + E \sqrt(log(g_p) / g_c)
+
+where
+
+- :math:`E` is the :setting:`exploration_coefficient`
+
+- :math:`g_c` is the number of games the candidate has played
+
+- :math:`w_c` is the number of games the candidate has won
+
+- :math:`g_p` is the total number of games played in the tuning event
+
+At the start of the tuning event, each candidate's :math:`g_c` is set to
+:setting:`initial_visits`, and :math:`w_c` is set to :setting:`initial_wins`.
+
+(:math:`w_c/g_c` is just the candidate's current win rate. :math:`E
+\sqrt(log(g_p) / g_c)` is known as the :dfn:`exploration term`; as more games
+are played, its value increases most rapidly for the least used candidates, so
+that unpromising candidates will eventually be reconsidered.)
+
+
+The tuner can be stopped at any time; after each game result, it reports the
+parameters of the current 'best' candidate.
+
+This is the candidate with the most *wins* (note that this may not be the one
+with the best win rate; it is usually the same as the candidate which has
+played the most games).
+
 
 
 Reporting
@@ -126,7 +177,7 @@ a Monte Carlo tuning event::
   candidate_colour = 'w'
   number_of_games = 10000
 
-  exploration_coefficient = 0.2
+  exploration_coefficient = 0.45
   initial_visits = 10
   initial_wins = 5
 
@@ -221,17 +272,14 @@ are compulsory):
   Float
 
   The coefficient of the exploration term in the :ref:`UCB` algorithm (eg
-  ``0.25``).
-
-  .. todo:: proper description in terminology of whatever reference we use?
-     Suggested range?
+  ``0.45``). See :ref:`the tuning algorithm`.
 
 
 .. setting:: initial_visits
 
   Positive integer
 
-  The number of visits to initialise each candidate with. At the start of the
+  The number of games to initialise each candidate with. At the start of the
   event, the tuner will behave as if each candidate has already played this
   many games.
 
@@ -340,9 +388,8 @@ The parameters are:
 
   Positive integer
 
-  The number of samples from this parameter to use to make candidates.
-
-  .. todo:: write properly after 'the tuning algorithm' is in
+  The number of samples from this parameter to use to make candidates. See
+  :ref:`the tuning algorithm`.
 
 
 .. setting:: format
@@ -454,6 +501,17 @@ of plain :term:`UCB`.
 
 To do this, set the :setting:`max_depth` setting to a value greater than 1. At
 each generation of the tree, the parameter space will be subdivided FIXME.
+
+
+The mechanism for choosing a candidate is essentially the same as in
+:term:`UCB`, repeated at each level of the tree:
+
+- :math:`g_c` is now the number of games the child has played
+
+- :math:`w_c` is now the number of games the child has won
+
+- :math:`g_p` is now the number of games the parent has played
+
 
 .. todo:: finish this. Say each parameter is treated the same, and each is
    split in each generation. Say the split is the same at each dimension. Say

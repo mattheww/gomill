@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 needs_sphinx = '1.0'
-extensions = ['sphinx.ext.todo']
+extensions = ['sphinx.ext.todo', 'sphinx.ext.pngmath']
 templates_path = ['_templates']
 source_suffix = '.rst'
 source_encoding = 'utf-8'
@@ -54,6 +54,8 @@ html_style = "gomill.css"
 #html_use_index = True
 html_show_sourcelink = False
 
+
+pngmath_use_preview = True
 
 todo_include_todos = True
 
