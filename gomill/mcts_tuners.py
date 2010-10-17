@@ -550,7 +550,8 @@ class Mcts_tuner(Competition):
 
     special_settings = [
         Setting('opponent', interpret_identifier),
-        Setting('parameters', interpret_sequence),
+        Setting('parameters',
+                interpret_sequence_of_quiet_configs(Parameter_config)),
         Setting('make_candidate', interpret_callable),
         ]
 
@@ -571,9 +572,6 @@ class Mcts_tuner(Competition):
         Returns a Parameter_spec with all attributes set.
 
         """
-        if not isinstance(parameter_config, Parameter_config):
-            raise ControlFileError("not a Parameter")
-
         arguments = parameter_config.resolve_arguments()
         interpreted = load_settings(parameter_settings, arguments)
         pspec = Parameter_spec()

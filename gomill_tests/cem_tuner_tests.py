@@ -90,6 +90,15 @@ def test_parameter_config(tc):
         Parameter_config('pa1', initial_mean=0, initial_variance=1,
                          format="nopct"))
 
+def test_nonsense_parameter_config(tc):
+    comp = cem_tuners.Cem_tuner('cemtest')
+    config = default_config()
+    config['parameters'].append(99)
+    with tc.assertRaises(ControlFileError) as ar:
+        comp.initialise_from_control_file(config)
+    tc.assertMultiLineEqual(str(ar.exception), dedent("""\
+    'parameters': item 2: not a Parameter"""))
+
 def test_transform_check(tc):
     comp = cem_tuners.Cem_tuner('cemtest')
     config = default_config()

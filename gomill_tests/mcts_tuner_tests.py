@@ -112,6 +112,24 @@ def test_bad_parameter_config(tc):
     parameter bad: 'scale': invalid parameters for LOG:
     lower bound is zero"""))
 
+def test_nonsense_parameter_config(tc):
+    comp = mcts_tuners.Mcts_tuner('mctstest')
+    config = default_config()
+    config['parameters'].append(99)
+    with tc.assertRaises(ControlFileError) as ar:
+        comp.initialise_from_control_file(config)
+    tc.assertMultiLineEqual(str(ar.exception), dedent("""\
+    'parameters': item 2: not a Parameter"""))
+
+def test_nocode_parameter_config(tc):
+    comp = mcts_tuners.Mcts_tuner('mctstest')
+    config = default_config()
+    config['parameters'].append(Parameter_config())
+    with tc.assertRaises(ControlFileError) as ar:
+        comp.initialise_from_control_file(config)
+    tc.assertMultiLineEqual(str(ar.exception), dedent("""\
+    parameter 2: 'code' not specified"""))
+
 def test_scale_check(tc):
     comp = mcts_tuners.Mcts_tuner('mctstest')
     config = default_config()

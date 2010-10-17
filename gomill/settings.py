@@ -12,6 +12,7 @@ __all__ = ['Setting', 'allow_none', 'load_settings', 'Config_proxy',
            'interpret_colour', 'interpret_enum', 'interpret_callable',
            'interpret_shlex_sequence',
            'interpret_sequence', 'interpret_sequence_of',
+           'interpret_sequence_of_quiet_configs',
            'interpret_map', 'interpret_map_of',
            'clean_string',
            ]
@@ -171,9 +172,20 @@ def interpret_sequence_of(item_interpreter):
     def interpreter(value):
         l = interpret_sequence(value)
         for i, v in enumerate(l):
-            l[i] = item_interpreter(v)
+            try:
+                l[i] = item_interpreter(v)
+            except ValueError, e:
+                raise ValueError("item %s: %s" % (i, e))
         return l
     return interpreter
+
+def interpret_sequence_of_quiet_configs(cls):
+    """Make an interpreter for sequences of a given Quiet_config."""
+    def interpret(v):
+        if not isinstance(v, cls):
+            raise ValueError("not a %s" % cls.get_type_name())
+        return v
+    return interpret_sequence_of(interpret)
 
 def interpret_map(m):
     """Interpret a map-like object.
@@ -339,10 +351,19 @@ class Quiet_config(object):
     positional_arguments = ()
     # These are keyword-only
     keyword_arguments = ()
+    # Used by interpret_sequence_of_quiet_configs
+    type_name = None
 
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
+
+    @classmethod
+    def get_type_name(cls):
+        """Return a name for the config type, for use in error messages."""
+        if cls.type_name is not None:
+            return cls.type_name
+        return cls.__name__.partition("_config")[0]
 
     def resolve_arguments(self):
         """Combine positional and keyword arguments.

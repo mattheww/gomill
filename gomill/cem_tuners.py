@@ -148,7 +148,8 @@ class Cem_tuner(Competition):
 
     special_settings = [
         Setting('opponent', interpret_identifier),
-        Setting('parameters', interpret_sequence),
+        Setting('parameters',
+                interpret_sequence_of_quiet_configs(Parameter_config)),
         Setting('make_candidate', interpret_callable),
         ]
 
