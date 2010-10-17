@@ -579,13 +579,19 @@ class Mcts_tuner(Competition):
         pspec = Parameter_spec()
         for name, value in interpreted.iteritems():
             setattr(pspec, name, value)
+        optimiser_param = 1.0/(pspec.split*2)
+        try:
+            scaled = pspec.scale(optimiser_param)
+        except Exception:
+            raise ValueError(
+                "error from scale (applied to %s)\n%s" %
+                (optimiser_param, compact_tracebacks.format_traceback(skip=1)))
         if pspec.format is None:
             pspec.format = pspec.code + ":%s"
-        else:
-            try:
-                pspec.format % 0.5
-            except Exception:
-                raise ControlFileError("'format': invalid format string")
+        try:
+            pspec.format % scaled
+        except Exception:
+            raise ControlFileError("'format': invalid format string")
         return pspec
 
     def initialise_from_control_file(self, config):

@@ -112,6 +112,35 @@ def test_bad_parameter_config(tc):
     parameter bad: 'scale': invalid parameters for LOG:
     lower bound is zero"""))
 
+def test_scale_check(tc):
+    comp = mcts_tuners.Mcts_tuner('mctstest')
+    config = default_config()
+    config['parameters'].append(
+        Parameter_config(
+            'bad',
+            scale = str.split,
+            split = 10))
+    with tc.assertRaises(ControlFileError) as ar:
+        comp.initialise_from_control_file(config)
+    tc.assertTracebackStringEqual(str(ar.exception), dedent("""\
+    parameter bad: error from scale (applied to 0.05)
+    TypeError: descriptor 'split' requires a 'str' object but received a 'float'
+    traceback (most recent call last):
+    """))
+
+def test_format_validation(tc):
+    comp = mcts_tuners.Mcts_tuner('mctstest')
+    config = default_config()
+    config['parameters'].append(
+        Parameter_config(
+            'bad',
+            scale = str,
+            split = 10,
+            format = "bad: %.2f"))
+    tc.assertRaisesRegexp(
+        ControlFileError, "'format': invalid format string",
+        comp.initialise_from_control_file, config)
+
 def test_make_candidate(tc):
     comp = mcts_tuners.Mcts_tuner('mctstest')
     config = default_config()

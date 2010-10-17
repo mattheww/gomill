@@ -37,7 +37,7 @@ def default_config():
                 'axisa',
                 initial_mean = 0.5,
                 initial_variance = 1.0,
-                format = "axa %.3f",),
+                format = "axa %.3f"),
             Parameter_config(
                 'axisb',
                 initial_mean = 50.0,
@@ -90,3 +90,31 @@ def test_parameter_config(tc):
         Parameter_config('pa1', initial_mean=0, initial_variance=1,
                          format="nopct"))
 
+def test_transform_check(tc):
+    comp = cem_tuners.Cem_tuner('cemtest')
+    config = default_config()
+    config['parameters'][0] = Parameter_config(
+        'axisa',
+        initial_mean = 0.5,
+        initial_variance = 1.0,
+        transform = str.split)
+    with tc.assertRaises(ControlFileError) as ar:
+        comp.initialise_from_control_file(config)
+    tc.assertTracebackStringEqual(str(ar.exception), dedent("""\
+    parameter axisa: error from transform (applied to initial_mean)
+    TypeError: descriptor 'split' requires a 'str' object but received a 'float'
+    traceback (most recent call last):
+    """))
+
+def test_format_validation(tc):
+    comp = cem_tuners.Cem_tuner('cemtest')
+    config = default_config()
+    config['parameters'][0] = Parameter_config(
+        'axisa',
+        initial_mean = 0.5,
+        initial_variance = 1.0,
+        transform = str,
+        format = "axa %f")
+    tc.assertRaisesRegexp(
+        ControlFileError, "'format': invalid format string",
+        comp.initialise_from_control_file, config)

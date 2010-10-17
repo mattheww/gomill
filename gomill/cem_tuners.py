@@ -170,13 +170,18 @@ class Cem_tuner(Competition):
             setattr(pspec, name, value)
         if pspec.initial_variance < 0.0:
             raise ValueError("'initial_variance': must be nonnegative")
+        try:
+            transformed = pspec.transform(pspec.initial_mean)
+        except Exception:
+            raise ValueError(
+                "error from transform (applied to initial_mean)\n%s" %
+                (compact_tracebacks.format_traceback(skip=1)))
         if pspec.format is None:
             pspec.format = pspec.code + ":%s"
-        else:
-            try:
-                pspec.format % 0.5
-            except Exception:
-                raise ControlFileError("'format': invalid format string")
+        try:
+            pspec.format % transformed
+        except Exception:
+            raise ControlFileError("'format': invalid format string")
         return pspec
 
     def initialise_from_control_file(self, config):
