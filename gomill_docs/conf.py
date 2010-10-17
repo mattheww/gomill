@@ -42,6 +42,8 @@ html_theme_options = {
     #'headlinkcolor'    : ,
     #'codebgcolor'      : ,
     #'codetextcolor'    : ,
+
+    'externalrefs'     : True,
     }
 
 html_static_path = ['_static']

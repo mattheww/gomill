@@ -100,6 +100,9 @@ At the start of the tuning event, each candidate's :math:`g_c` is set to
 are played, its value increases most rapidly for the least used candidates, so
 that unpromising candidates will eventually be reconsidered.)
 
+When more than one candidate has the highest value (for example, at the start
+of the event), one is chosen at random.
+
 
 The tuner can be stopped at any time; after each game result, it reports the
 parameters of the current 'best' candidate.
@@ -402,7 +405,10 @@ The parameters are:
 
   You can use any Python conversion specifier instead of ``%s``. For example,
   ``%.2f`` will format a floating point number to two decimal places. ``%s``
-  should be safe to use for all types of value. See FIXME for details.
+  should be safe to use for all types of value. See `string formatting
+  operations`__ for details.
+
+  .. __: http://docs.python.org/release/2.7/library/stdtypes.html#string-formatting-operations
 
   Format strings should be kept short, as screen space is limited.
 
