@@ -187,6 +187,24 @@ the game are alive. It applies :setting:`komi`, but no handicap stone
 compensation.
 
 
+.. _claiming wins:
+
+Claiming wins
+^^^^^^^^^^^^^
+
+The ringmaster supports a protocol to allow players to declare that they have
+won the game. This can save time if you're testing against opponents which
+don't resign.
+
+To support this, the player has to implement :gtp:`gomill-genmove_ex` and
+recognise the ``claim`` keyword.
+
+You must also set :setting:`allow_claim` ``True`` in the Player definition for
+this mechanism to be used.
+
+The |SGF| result of a claimed game will simply be ``B+`` or ``W+``.
+
+
 .. _startup checks:
 
 Startup checks

@@ -382,9 +382,7 @@ The parameters are:
   Boolean (default ``False``)
 
   Permits the player to claim a win (using the |gtp| extension
-  :gtp:`gomill-genmove_ex claim`). See :ref:`claiming wins`.
-
-  .. todo:: check link
+  :gtp:`gomill-genmove_ex`). See :ref:`claiming wins`.
 
 
 .. _matchup configuration:
