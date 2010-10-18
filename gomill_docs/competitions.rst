@@ -120,12 +120,12 @@ result.
    launch, and exit status. Maybe the wait-for-exit behaviour goes there.
 
 
+.. index:: rules, ko, superko
+
 .. _playing games:
 
 Playing games
 ^^^^^^^^^^^^^
-
-.. index:: rules
 
 The :setting:`board_size`, :setting:`komi`, :setting:`handicap`, and
 :setting:`handicap_style` Matchup settings control the details of the game.

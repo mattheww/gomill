@@ -17,6 +17,9 @@ Glossary
   komi
     Additional points awarded to White in final scoring.
 
+  superko
+    FIXME
+
   competition
     FIXME
 
@@ -27,5 +30,14 @@ Glossary
     FIXME
 
   matchup
+    FIXME
+
+  UCB
+    FIXME
+
+  UCT
+    FIXME
+
+  Bandit problem
     FIXME
 
