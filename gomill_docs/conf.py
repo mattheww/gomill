@@ -77,3 +77,13 @@ def setup(app):
     app.add_description_unit('gtp', 'gtp',
                              indextemplate='pair: %s; GTP command')
 
+
+# Undo undesirable sphinx code that auto-adds 'xref' class to literals 'True',
+# 'False', and 'None'.
+from sphinx.writers import html as html_mod
+def visit_literal(self, node):
+    self.body.append(self.starttag(node, 'tt', '',
+                                   CLASS='docutils literal'))
+    self.protect_literal_text += 1
+html_mod.HTMLTranslator.visit_literal = visit_literal
+
