@@ -7,6 +7,7 @@ Gomill
 
    intro
    ringmaster
+   gtp_extensions
    tuners
    glossary
 

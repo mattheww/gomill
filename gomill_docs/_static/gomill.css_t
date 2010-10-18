@@ -4,6 +4,8 @@ p.topic-title {color: {{ theme_headtextcolor }};}
 
 dl.setting dd > p:first-child {font-style: italic;}
 
+dl.gtp dd > p:first-child {font-style: italic;}
+
 tt.std-gtp span.pre {white-space: nowrap;}
 
 li.current > a {color: yellow;}
