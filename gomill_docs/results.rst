@@ -35,8 +35,6 @@ descriptions of the players, and the contents of the competition's
 .. todo:: Mention void and unfinished games, and forfeits (ie, say what the
    distinction is.
 
-.. todo:: explain CPU time calculation [see 'SGF output']
-
 .. todo:: say anything about player codes and matchup codes? And
    describe_engine. Possibly a ^^^-level heading for player descriptions.
 
@@ -67,10 +65,30 @@ are games which FIXME; see :ref:`FIXME`.)
 The ringmaster supports a protocol for engines to provide text to be placed in
 the comment section for individual moves: see :gtp:`gomill-explain_last_move`.
 
+The game record includes a description of the players in the root node comment
+[#]_. If an engine implements :gtp:`gomill-describe_engine`, its output is
+included.
+
 .. todo:: say that the filenames are game ids? or mention that they include
    matchup codes? See 'SGF output' in ringmaster.txt.
 
-.. todo:: mention gomill-describe_engine
+.. [#] The root node comment is used rather than the game comment because (in
+   my experience) |sgf| viewers tend to make it easier to see information
+   there.
+
+
+CPU time
+^^^^^^^^
+
+The reports and game records show the CPU time taken by the players, when
+available.
+
+If an engine implements the :gtp:`gomill-cpu_time` command, its output is
+used. Otherwise, the ringmaster uses the CPU time of the engine process that
+it created, as returned by the :c:func:`wait4()` system call (unfortunately,
+this may not be meaningful, if the engine's work isn't all done directly in
+that process).
+
 
 
 Querying the results
