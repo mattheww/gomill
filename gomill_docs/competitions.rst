@@ -104,20 +104,18 @@ The ringmaster requires the players to be standalone executables which speak
 :term:`GTP` version 2 on their standard input and output streams.
 
 It launches the executables itself, with command line arguments and other
-environment as detailed by the :setting:`Player` settings in the control file.
-
-.. todo:: Make sure Player link works
+environment as detailed by the :ref:`Player settings <player configuration>`
+in the control file.
 
 It launches a new engine subprocess for each game and closes it when the game
-is terminated. It waits for the subprocess to exit before reporting the game
-result.
+is terminated.
 
 .. tip:: To run players on a different computer to the ringmaster,
    specify a suitable :program:`ssh` command line in the :setting:`Player`
    definition.
 
-.. todo:: link to tedious docs about what happens if an engine fails to
-   launch, and exit status. Maybe the wait-for-exit behaviour goes there.
+See :ref:`engine errors` and :ref:`engine exit behaviour` for details of what
+happens if engines misbehave.
 
 
 .. index:: rules, ko, superko
@@ -163,9 +161,6 @@ See also :ref:`claiming wins`.
    use any of the |gtp| time handling commands. Players should normally be
    configured to use a fixed amount of computing power, independent of
    wall-clock time.
-
-.. todo:: somewhere around here say whether failure response to commands like
-   boardsize or handicap forfeits or voids the game or what.
 
 
 .. _scoring:

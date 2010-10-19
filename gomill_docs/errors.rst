@@ -10,6 +10,8 @@ bug.
    :backlinks: none
 
 
+.. _engine errors:
+
 Engine errors
 -------------
 
@@ -25,8 +27,18 @@ As an exception, if such an error happens after the game's result has been
 established (eg, if one player has already forfeited the game), the game is
 not treated as void.
 
-If an engine hangs, the ringmaster will just hang too (or, if in parallel
-mode, one worker process will).
+
+.. _engine exit behaviour:
+
+Engine exit behaviour
+---------------------
+
+Before reporting the game result, the ringmaster sends :gtp:`quit` to both
+engines, closes their input and output pipes, and waits for the subprocesses
+to exit.
+
+If an engine hangs (during the game or at exit), the ringmaster will just hang
+too (or, if in parallel mode, one worker process will).
 
 The exit status of engine subprocesses is ignored.
 
