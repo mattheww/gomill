@@ -492,12 +492,19 @@ There are three kinds of predefined scale which you can use in a
 Writing scale functions
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Put a line like ::
+The following Python functions might be useful: `abs`_, `min`_, `max`_,
+`round`_.
 
-  from math import sqrt, log, exp
+.. _abs: http://docs.python.org/release/2.7/library/functions.html#abs
+.. _min: http://docs.python.org/release/2.7/library/functions.html#min
+.. _max: http://docs.python.org/release/2.7/library/functions.html#max
+.. _round: http://docs.python.org/release/2.7/library/functions.html#round
 
-in the control file to access functions like :func:`sqrt`; see the `available
-functions`__.
+More functions are available from the `math`__ module. Put a line like ::
+
+  from math import log, exp, sqrt
+
+in the control file to use them.
 
 .. __: http://docs.python.org/release/2.7/library/math.html
 
