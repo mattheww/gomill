@@ -9,6 +9,7 @@ Gomill
    ringmaster
    gtp_extensions
    tuners
+   Error handling… <errors>
    glossary
 
 * :ref:`genindex`

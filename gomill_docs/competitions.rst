@@ -272,13 +272,13 @@ The full set of files that may be present in the competition directory is:
 
 ======================= =======================================================
 :file:`{code}.ctl`      the :ref:`control file <control file>`
-:file:`{code}.status`   the competition state file
-:file:`{code}.log`      the event log
-:file:`{code}.hist`     the history file
+:file:`{code}.status`   the :ref:`competition state <competition state>` file
+:file:`{code}.log`      the :ref:`event log <logging>`
+:file:`{code}.hist`     the :ref:`history file <logging>`
 :file:`{code}.report`   the :ref:`report file <competition report file>`
-:file:`{code}.cmd`      the remote control file
-:file:`{code}.games/`   |SGF| game records
-:file:`{code}.void/`    |SGF| game records for void games
+:file:`{code}.cmd`      the :ref:`remote control file <remote control file>`
+:file:`{code}.games/`   |SGF| :ref:`game records <game records>`
+:file:`{code}.void/`    |SGF| game records for :ref:`void games <void games>`
 :file:`{code}.gtplogs/` |GTP| logs
                         (from :option:`--log-gtp <ringmaster --log-gtp>`)
 ======================= =======================================================

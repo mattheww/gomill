@@ -60,7 +60,8 @@ The ringmaster writes an |sgf| record of each game it plays to the
 be disabled with the :setting:`record_games` setting.
 
 (You might also see game records in a :file:`{code}.void/` directory; these
-are games which FIXME; see :ref:`FIXME`.)
+are games which were abandoned due to software failure; see :ref:`void
+games`.)
 
 The ringmaster supports a protocol for engines to provide text to be placed in
 the comment section for individual moves: see :gtp:`gomill-explain_last_move`.
@@ -70,7 +71,7 @@ The game record includes a description of the players in the root node comment
 included.
 
 .. todo:: say that the filenames are game ids? or mention that they include
-   matchup codes? See 'SGF output' in ringmaster.txt.
+   matchup codes?
 
 .. [#] The root node comment is used rather than the game comment because (in
    my experience) |sgf| viewers tend to make it easier to see information
@@ -85,9 +86,9 @@ available.
 
 If an engine implements the :gtp:`gomill-cpu_time` command, its output is
 used. Otherwise, the ringmaster uses the CPU time of the engine process that
-it created, as returned by the :c:func:`wait4()` system call (unfortunately,
-this may not be meaningful, if the engine's work isn't all done directly in
-that process).
+it created, as returned by the :c:func:`wait4()` system call (user plus system
+time); unfortunately, this may not be meaningful, if the engine's work isn't
+all done directly in that process.
 
 
 

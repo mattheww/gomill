@@ -319,7 +319,7 @@ on the tuning algorithm.
   Positive integer (default None)
 
   If this is set, a detailed description of the :ref:`UCT` tree is written to
-  the history file periodically (after every
+  the :ref:`history file <logging>` periodically (after every
   :setting:`!log_tree_to_history_period` games).
 
 
