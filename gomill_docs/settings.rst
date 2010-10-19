@@ -113,8 +113,6 @@ String
   Strings containing non-ascii characters should be encoded as UTF-8 (Python
   unicode objects are also accepted).
 
-  .. todo:: add ref to encoding section, once it's written.
-
   Strings can be broken over multiple lines by writing adjacent literals
   separated only by whitespace; see the Player definitions in the example
   above.
@@ -594,7 +592,4 @@ the value ``None``, which will be equivalent to leaving them unset.
 
 Importing parts of the Python standard library (or other Python libraries that
 you have installed) is allowed.
-
-.. todo:: ref example in tuners docs, if there is one.
-
 

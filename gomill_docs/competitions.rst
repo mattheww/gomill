@@ -328,8 +328,6 @@ separate log file for each game, in the :file:`{code}.gtplogs` directory.
 Players' standard error
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-.. todo:: tedious?
-
 By default, the players' standard error streams are sent to the ringmaster's
 :ref:`event log <logging>`. All players write to the same log, so there's no
 direct indication of which messages came from which player (the log entries
