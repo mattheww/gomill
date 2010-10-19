@@ -20,3 +20,5 @@ div.caution {
   border: 1px solid #A00000;
 }
 
+abbr {border-bottom: none; cursor:help;}
+
