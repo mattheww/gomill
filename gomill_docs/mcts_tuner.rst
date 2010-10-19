@@ -112,30 +112,6 @@ with the best win rate; it is usually the same as the candidate which has
 played the most games).
 
 
-Reporting
-^^^^^^^^^
-
-Currently, there aren't any sophisticated reports.
-
-The standard report shows the candidates which have played most games; the
-:setting:`summary_spec` setting defines how many to show.
-
-In a line like::
-
-  (0,1) I: 0.01; F: 365.17                       0.537  70
-
-The ``(0,1)`` are the 'coordinates' of the candidate, ``I: 0.01; F: 365.17``
-are the engine parameters (identified using the :setting:`format` setting),
-``0.537`` is the win rate (including the :setting:`initial_wins` and
-:setting:`initial_visits`), and ``70`` is the number of games (excluding the
-:setting:`initial_visits`).
-
-Also, after every :setting:`log_tree_to_history_period` games, the status of
-all candidates is written to the :ref:`history file <logging>` (if
-:setting:`max_depth` > 1, the first two generations of candidates are
-written).
-
-
 .. _sample_mcts_control_file:
 
 Sample control file
@@ -511,6 +487,30 @@ There are three kinds of predefined scale which you can use in a
   .. note:: if :setting:`max_depth` is greater than 1,
      :setting:`split` ^ :setting:`max_depth` should equal the length of the
      list.
+
+
+Reporting
+^^^^^^^^^
+
+Currently, there aren't any sophisticated reports.
+
+The standard report shows the candidates which have played most games; the
+:setting:`summary_spec` setting defines how many to show.
+
+In a line like::
+
+  (0,1) I: 0.01; F: 365.17                       0.537  70
+
+The ``(0,1)`` are the 'coordinates' of the candidate, ``I: 0.01; F: 365.17``
+are the engine parameters (identified using the :setting:`format` setting),
+``0.537`` is the win rate (including the :setting:`initial_wins` and
+:setting:`initial_visits`), and ``70`` is the number of games (excluding the
+:setting:`initial_visits`).
+
+Also, after every :setting:`log_tree_to_history_period` games, the status of
+all candidates is written to the :ref:`history file <logging>` (if
+:setting:`max_depth` > 1, the first two generations of candidates are
+written).
 
 
 .. _tree search:
