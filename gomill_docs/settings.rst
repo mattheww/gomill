@@ -165,7 +165,11 @@ Playoff settings
 ^^^^^^^^^^^^^^^^
 
 The following settings can be set at the top level of the control file, for
-competitions of type ``playoff``. See FIXME for tuning events.
+competitions of type ``playoff``.
+
+For the differences in tuning events, See :ref:`The Monte Carlo tuner
+<mcts_control_file_settings>` and :ref:`The cross-entropy method tuner
+<cem_control_file_settings>`.
 
 The only required settings are :setting:`competition_type`,
 :setting:`players`, and :setting:`matchups`.

@@ -180,6 +180,7 @@ a Monte Carlo tuning event::
   log_tree_to_history_period = 200
 
 
+.. _mcts_control_file_settings:
 
 Control file settings
 ^^^^^^^^^^^^^^^^^^^^^
