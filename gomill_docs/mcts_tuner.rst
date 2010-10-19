@@ -489,6 +489,35 @@ There are three kinds of predefined scale which you can use in a
      list.
 
 
+Writing scale functions
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Put a line like ::
+
+  from math import sqrt, log, exp
+
+in the control file to access functions like :func:`sqrt`; see the `available
+functions`__.
+
+.. __: http://docs.python.org/release/2.7/library/math.html
+
+
+Dividing two integers with ``/`` gives a floating point number (that is,
+'Future division' is in effect).
+
+You can use scientific notation like ``1.3e-2`` to specify floating point
+numbers.
+
+Here are scale functions equivalent to ``LINEAR(3, 3000)`` and
+``LOG(3, 3000)``::
+
+    def scale_linear(f):
+        return 2997 * f + 3
+
+    def scale_log(f):
+        return exp(log(1000) * f) * 3
+
+
 Reporting
 ^^^^^^^^^
 
