@@ -10,6 +10,23 @@ bug.
    :backlinks: none
 
 
+Details of scoring
+------------------
+
+If :setting:`scorer` is ``players`` but neither engine is able to score
+(whether because :gtp:`final_score` isn't implemented, or it fails, or
+:setting:`is_reliable_scorer` is ``False``), the game result is reported as
+unknown (|sgf| result ``?``).
+
+If both engines are able to score but they disagree about the winner, the game
+result is reported as unknown. The engines' responses to :gtp:`final_score`
+are recorded in |sgf| file comments.
+
+If the engines agree about the winner but disagree about the winning margin,
+the |sgf| result is simply ``B+`` or ``W+``, and the engines' responses are
+recorded in |sgf| file comments.
+
+
 .. _engine errors:
 
 Engine errors
@@ -99,23 +116,6 @@ control file is on a network filesystem).
 
 It's fine to use :action:`show` and :action:`report`, or the results API,
 while a competition is running.
-
-
-Details of scoring
-------------------
-
-If :setting:`scorer` is ``players`` but neither engine is able to score
-(whether because :gtp:`final_score` isn't implemented, or it fails, or
-:setting:`is_reliable_scorer` is ``False``), the game result is reported as
-unknown (|sgf| result ``?``).
-
-If both engines are able to score but they disagree about the winner, the game
-result is reported as unknown. The engines' responses to :gtp:`final_score`
-are recorded in |sgf| file comments.
-
-If the engines agree about the winner but disagree about the winning margin,
-the |sgf| result is simply ``B+`` or ``W+``, and the engines' responses are
-recorded in |sgf| file comments.
 
 
 Signals and controlling terminal
