@@ -21,6 +21,63 @@ Nonetheless, the source files contain fairly detailed documentation, and the
 library can be used.
 
 
+Library overview
+----------------
+
+Generic support code
+
+- :mod:`compact_tracebacks`
+- :mod:`ascii_tables`
+- :mod:`job_manager`
+- :mod:`settings`
+
+
+Go-related support code
+
+- :mod:`gomill_common`
+- :mod:`ascii_boards`
+- :mod:`boards`
+- :mod:`handicap_layout`
+
+
+|sgf| support
+
+- :mod:`sgf_reader`
+- :mod:`sgf_writer`
+
+
+|gtp| controller side
+
+- :mod:`gtp_controller`
+- :mod:`gtp_games`
+
+
+|gtp| engine side
+
+- :mod:`gtp_engine`
+- :mod:`gtp_states`
+- :mod:`gtp_proxy`
+
+
+Competitions
+
+- :mod:`competition_schedulers`
+- :mod:`competitions`
+- :mod:`cem_tuners`
+- :mod:`mcts_tuners`
+- :mod:`playoffs`
+
+
+The Ringmaster
+
+- :mod:`game_jobs`
+- :mod:`terminal_input`
+- :mod:`ringmaster_presenters`
+- :mod:`ringmasters`
+- :mod:`ringmaster_command_line`
+
+
+
 .. _example scripts:
 
 The example scripts
