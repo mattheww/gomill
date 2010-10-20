@@ -92,10 +92,14 @@ time); unfortunately, this may not be meaningful, if the engine's work isn't
 all done directly in that process.
 
 
+.. _querying the results:
 
 Querying the results
 ^^^^^^^^^^^^^^^^^^^^
 
-.. todo:: some reference to sample scripts, results API.
+It's possible to write Python scripts which report on competition results.
 
+As of Gomill |version|, this library interface is not definitely stable, but
+the :script:`find_forfeits.py` example script and the docstrings of the last
+few methods in the :mod:`playoffs` module show how it can be used.
 

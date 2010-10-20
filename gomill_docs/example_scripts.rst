@@ -34,9 +34,8 @@ See the top of each script for further information.
 
   Finds the forfeited games from a playoff competition.
 
-  .. todo:: xref results API
-
-  This demonstrates the results API.
+  This demonstrates the library interface for :ref:`querying competition
+  results <querying the results>`.
 
 
 .. script:: gtp_test_player
