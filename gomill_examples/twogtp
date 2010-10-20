@@ -3,6 +3,8 @@
 
 This runs a single game between two local GTP engines and reports the result.
 
+This demonstrates the gtp_games module.
+
 """
 
 import shlex
