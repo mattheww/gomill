@@ -11,6 +11,7 @@ Gomill
    tuners
    Error handling… <errors>
    library
+   example_scripts
    glossary
 
 * :ref:`genindex`

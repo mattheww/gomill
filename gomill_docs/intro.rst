@@ -77,14 +77,18 @@ same directory as :file:`demo.ctl`, including a :file:`demo.sgf` directory
 containing game records.
 
 
-Other tools
------------
-
-.. todo:: refer to the page about them, brief summary here.
-
-
 The Python library
 ------------------
 
-.. todo:: say the API isn't stable as of Gomill |version|, refer to page about
-          it.
+Gomill is intended to be useful as a Python library, but as of Gomill
+|version| the API is not yet stable. See :doc:`library` for details.
+
+
+The Example scripts
+-------------------
+
+Some :doc:`example scripts <example_scripts>` are also included, as
+illustrations of the library interface and in some cases as tools useful in
+themselves.
+
+
