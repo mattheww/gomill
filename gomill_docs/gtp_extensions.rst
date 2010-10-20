@@ -87,7 +87,46 @@ The extensions used by the ringmaster are as follows:
     on this claim).
 
 
-.. the other extensions, not used by the ringmaster, are:
-.. - gomill-savesgf (kgs_proxy.py)
-.. - gomill-passthrough (proxies in general, I suppose)
+There is also an extension which is not used by the ringmaster:
+
+.. gtp:: gomill-savesgf
+
+  Arguments: filename, list of |sgf| properties
+
+  Write an |sgf| game record of the current game.
+
+  See the |gtp| specification's description of :gtp:`loadsgf` for the
+  interpretation of the ``filename`` argument.
+
+  The |sgf| properties should be specified in the form
+  :samp:`{PropIdent}={PropValue}`, eg ``RE=W+3.5``. Escape spaces in values
+  with ``\_``, backslashes with ``\\``. Encode non-ASCII characters in UTF-8.
+
+  These |sgf| properties should be added to the root node. The engine should
+  fill in any properties it can (at least ``AP``, ``SZ``, ``KM``, ``HA``, and
+  ``DT``). Explicitly-specified properties should override the engine's
+  defaults.
+
+  The intention is that engines which have 'comments' about their moves (as
+  for :gtp:`gomill-explain_last_move`) should include them in the game record.
+
+  Example::
+
+    gomill-savesgf xxx.sgf PB=testplayer PW=GNU\_Go:3.8 RE=W+3.5
+
+  .. note::
+
+    |gtp| engines aren't typically well placed to write game records, as they
+    don't have enough information to write the game metadata properly (which
+    is why :gtp:`gomill-savesgf` takes the |sgf| properties explicitly). It's
+    usually better for the controller to do it. See the :script:`kgs_proxy.py`
+    example script for an example of when this command might be useful.
+
+
+The :gtp:`gomill-explain_last_move`, :gtp:`gomill-genmove_ex`, and
+:gtp:`gomill-savesgf` commands are supported by the Gomill :mod:`gtp_states`
+module.
+
+.. The other extension is gomill-passthrough (used by proxies), but I don't
+   think it makes sense to document it as a generic extension
 

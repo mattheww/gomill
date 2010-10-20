@@ -60,7 +60,7 @@ See the top of each script for further information.
 
   A |gtp| engine proxy intended for use with `kgsGtp`_. This produces game
   records including the engine's commentary, if the engine supports
-  :gtp:`gomill-explain_last_move` and :gtp:`gomill-savesgf`.
+  :gtp:`gomill-savesgf`.
 
   .. _`kgsGtp`: http://senseis.xmp.net/?KgsGtp
 
