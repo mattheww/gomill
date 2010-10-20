@@ -16,6 +16,20 @@ See the top of each script for further information.
    or link to install docs for an explanation.
 
 
+.. script:: show_sgf.py
+
+  Prints an ASCII diagram of the position from an |sgf| file.
+
+  This demonstrates the :mod:`sgf_reader` and :mod:`ascii_boards` modules.
+
+
+.. script:: twogtp
+
+  A 'traditional' twogtp implementation.
+
+  This demonstrates the :mod:`gtp_games` module.
+
+
 .. script:: find_forfeits.py
 
   Finds the forfeited games from a playoff competition.
@@ -65,18 +79,4 @@ See the top of each script for further information.
 
   This demonstrates the :mod:`gtp_proxy` module, and may be independently
   useful.
-
-
-.. script:: show_sgf.py
-
-  Prints an ASCII diagram of the position from an |sgf| file.
-
-  This demonstrates the :mod:`sgf_reader` and :mod:`ascii_boards` modules.
-
-
-.. script:: twogtp
-
-  A 'traditional' twogtp implementation.
-
-  This demonstrates the :mod:`gtp_games` module.
 
