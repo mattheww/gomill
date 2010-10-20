@@ -42,7 +42,8 @@ See the top of each script for further information.
 
   A |gtp| engine intended for testing |gtp| controllers.
 
-  This demonstrates the engine-side |gtp| code.
+  This demonstrates the low-level engine-side |gtp| code (the
+  :mod:`gtp_engine` module).
 
 
 .. script:: gtp_stateful_player
