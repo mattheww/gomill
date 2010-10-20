@@ -77,6 +77,9 @@ def setup(app):
     app.add_description_unit('gtp', 'gtp',
                              indextemplate='pair: %s; GTP command')
 
+    app.add_description_unit('script', 'script',
+                             indextemplate='pair: %s; example script')
+
 
 # Undo undesirable sphinx code that auto-adds 'xref' class to literals 'True',
 # 'False', and 'None'.

@@ -10,6 +10,7 @@ Gomill
    gtp_extensions
    tuners
    Error handling… <errors>
+   library
    glossary
 
 * :ref:`genindex`

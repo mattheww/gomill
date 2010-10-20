@@ -88,5 +88,6 @@ The extensions used by the ringmaster are as follows:
 
 
 .. the other extensions, not used by the ringmaster, are:
-.. - gomill-savesgf
-.. - gomill-passthrough
+.. - gomill-savesgf (kgs_proxy.py)
+.. - gomill-passthrough (proxies in general, I suppose)
+
