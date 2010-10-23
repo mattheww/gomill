@@ -91,6 +91,15 @@ def setup(app):
     app.add_object_type('ce-setting', 'ce-setting',
                         indextemplate='pair: %s; cross-entropy tuner setting')
 
+    app.add_crossref_type('setting-cls', 'setting-cls',
+                          indextemplate='single: %s')
+
+    app.add_crossref_type('mc-setting-cls', 'mc-setting-cls',
+                          indextemplate='single: %s')
+
+    app.add_crossref_type('ce-setting-cls', 'ce-setting-cls',
+                          indextemplate='single: %s')
+
 
 # Undo undesirable sphinx code that auto-adds 'xref' class to literals 'True',
 # 'False', and 'None'.

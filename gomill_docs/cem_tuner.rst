@@ -170,29 +170,29 @@ The following additional settings are used (they are all compulsory):
 
 .. ce-setting:: parameters
 
-  List of :ce-setting:`Parameter` definitions (see :ref:`ce parameter
+  List of :ce-setting-cls:`Parameter` definitions (see :ref:`ce parameter
   configuration`).
 
   Describes the parameters that the tuner will work with. See :ref:`ce
   parameter model` for more details.
 
-  The order of the parameter definitions is used for the arguments to
-  :ce-setting:`make_candidate`, and whenever parameters are described in
-  reports or game records.
+  The order of the :ce-setting-cls:`Parameter` definitions is used for the
+  arguments to :ce-setting:`make_candidate`, and whenever parameters are
+  described in reports or game records.
 
 
 .. ce-setting:: make_candidate
 
   Python function
 
-  Function to create a Player from its engine parameters.
+  Function to create a :setting-cls:`Player` from its engine parameters.
 
-  This function is passed one argument for each candidate Parameter, and must
-  return a Player definition. Each argument is the output of the corresponding
-  Parameter's :ce-setting:`transform`.
+  This function is passed one argument for each candidate parameter, and must
+  return a :setting-cls:`Player` definition. Each argument is the output of
+  the corresponding Parameter's :ce-setting:`transform`.
 
   The function will typically use its arguments to construct command line
-  options or |gtp| commands for the Player. For example::
+  options or |gtp| commands for the player. For example::
 
     def make_candidate(param1, param2):
         return Player(["goplayer", "--param1", str(param1),
@@ -254,11 +254,14 @@ The following additional settings are used (they are all compulsory):
 Parameter configuration
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-A Parameter definition has the same syntax as a Python function call:
-:samp:`Parameter({arguments})`. Apart from :ce-setting:`!code`, the arguments
-should be specified using keyword form (see :ref:`sample_cem_control_file`).
+.. ce-setting-cls:: Parameter
 
-The parameters are:
+A :ce-setting-cls:`!Parameter` definition has the same syntax as a Python
+function call: :samp:`Parameter({arguments})`. Apart from :ce-setting:`!code`,
+the arguments should be specified using keyword form (see
+:ref:`sample_cem_control_file`).
+
+The arguments are:
 
 
 .. ce-setting:: code

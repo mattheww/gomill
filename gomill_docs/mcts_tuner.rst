@@ -65,7 +65,8 @@ settings. For example, the sample control file below creates 64 candidates.
    be unreasonable to try to tune more than two or three parameters at once.
 
 Each candidate's engine parameters are passed to the
-:mc-setting:`make_candidate` function, which returns a Player definition.
+:mc-setting:`make_candidate` function, which returns a :setting-cls:`Player`
+definition.
 
 The samples are taken by dividing the optimiser parameter range into
 :mc-setting:`split` divisions, and taking the centre of each division as the
@@ -234,29 +235,29 @@ are compulsory):
 
 .. mc-setting:: parameters
 
-  List of :mc-setting:`Parameter` definitions (see :ref:`mc parameter
+  List of :mc-setting-cls:`Parameter` definitions (see :ref:`mc parameter
   configuration`).
 
   Describes the parameter space that the tuner will work in. See :ref:`The
   parameter model` for more details.
 
-  The order of the parameter definitions is used for the arguments to
-  :mc-setting:`make_candidate`, and whenever parameters are described in
-  reports or game records.
+  The order of the :mc-setting-cls:`Parameter` definitions is used for the
+  arguments to :mc-setting:`make_candidate`, and whenever parameters are
+  described in reports or game records.
 
 
 .. mc-setting:: make_candidate
 
   Python function
 
-  Function to create a Player from its engine parameters.
+  Function to create a :setting-cls:`Player` from its engine parameters.
 
-  This function is passed one argument for each candidate Parameter, and must
-  return a Player definition. Each argument is the output of the corresponding
-  Parameter's :mc-setting:`scale`.
+  This function is passed one argument for each candidate parameter, and must
+  return a :setting-cls:`Player` definition. Each argument is the output of
+  the corresponding :mc-setting-cls:`Parameter`'s :mc-setting:`scale`.
 
   The function will typically use its arguments to construct command line
-  options or |gtp| commands for the Player. For example::
+  options or |gtp| commands for the player. For example::
 
     def make_candidate(param1, param2):
         return Player(["goplayer", "--param1", str(param1),
@@ -342,13 +343,16 @@ on the tuning algorithm.
 Parameter configuration
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-A Parameter definition has the same syntax as a Python function call:
-:samp:`Parameter({arguments})`. Apart from :mc-setting:`!code`, the arguments
-should be specified using keyword form (see :ref:`sample_mcts_control_file`).
+.. mc-setting-cls:: Parameter
 
-All parameters other than :mc-setting:`format` are required.
+A :mc-setting-cls:`!Parameter` definition has the same syntax as a Python
+function call: :samp:`Parameter({arguments})`. Apart from :mc-setting:`!code`,
+the arguments should be specified using keyword form (see
+:ref:`sample_mcts_control_file`).
 
-The parameters are:
+All arguments other than :mc-setting:`format` are required.
+
+The arguments are:
 
 
 .. mc-setting:: code
@@ -620,10 +624,10 @@ candidate with the most wins in the entire tree).
 Changing the control file between runs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In general, you shouldn't change the Parameter definitions or the settings
-which control the tuning algorithm between runs. The ringmaster will normally
-notice and refuse to start, but it's possible to fool it and so get
-meaningless results.
+In general, you shouldn't change the :mc-setting-cls:`Parameter` definitions
+or the settings which control the tuning algorithm between runs. The
+ringmaster will normally notice and refuse to start, but it's possible to fool
+it and so get meaningless results.
 
 Changing the :mc-setting:`exploration_coefficient` is ok. Increasing
 :mc-setting:`max_depth` is ok (decreasing it is ok too, but it won't stop the

@@ -110,8 +110,8 @@ in the control file.
 It launches a new engine subprocess for each game and closes it when the game
 is terminated.
 
-.. tip:: To run players on a different computer to the ringmaster,
-   specify a suitable :program:`ssh` command line in the :setting:`Player`
+.. tip:: To run players on a different computer to the ringmaster, specify a
+   suitable :program:`ssh` command line in the :setting-cls:`Player`
    definition.
 
 See :ref:`engine errors` and :ref:`engine exit behaviour` for details of what
@@ -174,7 +174,7 @@ used.
 
 When the ``players`` method is used, the players are asked to score the game
 using the |gtp| :gtp:`final_score` command. See also the
-:setting:`is_reliable_scorer` Player setting.
+:setting:`is_reliable_scorer` player setting.
 
 When the ``internal`` method is used, the ringmaster scores the game itself,
 area-fashion. It assumes that all stones remaining on the board at the end of
@@ -194,8 +194,8 @@ don't resign.
 To support this, the player has to implement :gtp:`gomill-genmove_ex` and
 recognise the ``claim`` keyword.
 
-You must also set :setting:`allow_claim` ``True`` in the Player definition for
-this mechanism to be used.
+You must also set :setting:`allow_claim` ``True`` in the :setting-cls:`Player`
+definition for this mechanism to be used.
 
 The |SGF| result of a claimed game will simply be ``B+`` or ``W+``.
 
@@ -214,7 +214,7 @@ stream from the engines is suppressed for these automatic startup checks.
 
 The :action:`check` command line action runs the same checks, but it leaves
 the engines' standard error going to the console (any
-:setting:`discard_stderr` Player settings are ignored).
+:setting:`discard_stderr` player settings are ignored).
 
 For playoffs, only players listed in matchups are checked. If a player appears
 in more than one matchup, the board size and komi from its first matchup are
@@ -339,7 +339,7 @@ useful in :ref:`quiet mode`, or if you redirect the ringmaster's standard
 error.
 
 You can send standard error for a particular player to :file:`/dev/null` using
-the Player setting :setting:`discard_stderr`. This can be used for players
+the player setting :setting:`discard_stderr`. This can be used for players
 which like to send copious diagnostics to stderr, but if possible it is better
 to configure the player not to do that, so that any real error messages aren't
 hidden (eg with a command line option like ``fuego --quiet``).

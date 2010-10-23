@@ -217,18 +217,18 @@ The only required settings are :setting:`competition_type`,
 
 .. setting:: players
 
-  Dictionary mapping identifiers to :setting:`Player` definitions (see
+  Dictionary mapping identifiers to :setting-cls:`Player` definitions (see
   :ref:`player configuration`).
 
   Describes the |gtp| engines that can be used in the competition. If you wish
   to use the same program with different settings, each combination of
-  settings must be given its own :setting:`!Player` definition. See
+  settings must be given its own :setting-cls:`Player` definition. See
   :ref:`control file techniques` below for a compact way to define several
   similar Players.
 
   The dictionary keys are the :dfn:`player codes`; they are used to identify
-  the players in :setting:`Matchup` definitions, and also appear in reports
-  and the |sgf| game records.
+  the players in :setting-cls:`Matchup` definitions, and also appear in
+  reports and the |sgf| game records.
 
   It's fine to have player definitions here which aren't used in any
   matchups. These definitions will be ignored, and no corresponding engines
@@ -237,13 +237,13 @@ The only required settings are :setting:`competition_type`,
 
 .. setting:: matchups
 
-  List of :setting:`Matchup` definitions (see :ref:`matchup
+  List of :setting-cls:`Matchup` definitions (see :ref:`matchup
   configuration`).
 
   This defines which engines will play against each other, and the game
   settings they will use.
 
-In addition to these, all Matchup settings (except :setting:`id` and
+In addition to these, all matchup settings (except :setting:`id` and
 :setting:`name`) can be set at the top of the control file. These settings
 will be used for any matchups which don't explicitly override them.
 
@@ -253,9 +253,12 @@ will be used for any matchups which don't explicitly override them.
 Player configuration
 ^^^^^^^^^^^^^^^^^^^^
 
-A Player definition has the same syntax as a Python function call:
-:samp:`Player({parameters})`. Apart from :setting:`command`, the parameters
-should be specified as keyword arguments (see :ref:`sample control file`).
+.. setting-cls:: Player
+
+A :setting-cls:`!Player` definition has the same syntax as a Python function
+call: :samp:`Player({parameters})`. Apart from :setting:`command`, the
+parameters should be specified as keyword arguments (see :ref:`sample control
+file`).
 
 All parameters other than :setting:`command` are optional.
 
@@ -270,10 +273,10 @@ The parameters are:
 
   String or list of strings
 
-  This is the only required Player parameter. It can be specified either as
-  the first parameter, or using a keyword :samp:`command="{...}"`. It
-  specifies the executable which will provide the player, and its command line
-  arguments.
+  This is the only required :setting-cls:`Player` parameter. It can be
+  specified either as the first parameter, or using a keyword
+  :samp:`command="{...}"`. It specifies the executable which will provide the
+  player, and its command line arguments.
 
   The :setting:`!command` can be either a string or a list of strings. If it
   is a string, it is split using rules similar to a Unix shell's (see
@@ -395,8 +398,10 @@ The parameters are:
 Matchup configuration
 ^^^^^^^^^^^^^^^^^^^^^
 
-A Matchup definition has the same syntax as a Python function call:
-:samp:`Matchup({parameters})`.
+.. setting-cls:: Matchup
+
+A :setting-cls:`!Matchup` definition has the same syntax as a Python function
+call: :samp:`Matchup({parameters})`.
 
 The first two parameters should be the :ref:`player codes <player codes>` for
 the two players involved in the matchup. The remaining parameters should be
@@ -404,7 +409,7 @@ specified as keyword arguments. For example::
 
   Matchup('gnugo-l1', 'fuego-5k', board_size=13, komi=6)
 
-Defaults for Matchup settings (other than :setting:`id` and :setting:`name`)
+Defaults for matchup settings (other than :setting:`id` and :setting:`name`)
 can be specified at the top level of the control file.
 
 The :setting:`board_size` and :setting:`komi` parameters must be given for all
@@ -530,26 +535,27 @@ then result summaries might not be meaningful.
 
 In particular:
 
-- if you change a player definition, the new definition will be used when
-  describing the player in reports; there'll be no record of the earlier
-  definition, or which games were played under it.
+- if you change a :setting-cls:`Player` definition, the new definition will be
+  used when describing the player in reports; there'll be no record of the
+  earlier definition, or which games were played under it.
 
-- if you change a matchup definition, the new definition will be used when
-  describing the matchup in reports; there'll be no record of the earlier
-  definition, or which games were played under it.
+- if you change a :setting-cls:`Matchup` definition, the new definition will
+  be used when describing the matchup in reports; there'll be no record of the
+  earlier definition, or which games were played under it.
 
-- if you change a matchup definition to have different players (ie, player
-  codes), the ringmaster will refuse to run the competition.
+- if you change a :setting-cls:`Matchup` definition to have different players
+  (ie, player codes), the ringmaster will refuse to run the competition.
 
-- if you delete a matchup definition, results from that matchup won't be
-  displayed during future runs, but will be included (with some missing
-  information) in the :action:`report` and :action:`show` output.
+- if you delete a :setting-cls:`Matchup` definition, results from that matchup
+  won't be displayed during future runs, but will be included (with some
+  missing information) in the :action:`report` and :action:`show` output.
 
-If you add a matchup definition, put it at the end of the list (or else
-explicitly specify the matchup ids).
+If you add a :setting-cls:`Matchup` definition, put it at the end of the list
+(or else explicitly specify the matchup ids).
 
-In practice, you shouldn't delete matchup definitions (if you don't want any
-more games to be played, set :setting:`number_of_games` to ``0``).
+In practice, you shouldn't delete :setting-cls:`Matchup` definitions (if you
+don't want any more games to be played, set :setting:`number_of_games` to
+``0``).
 
 If you change descriptive text, you can use the :action:`report` command line
 action to remake the report file.
@@ -564,8 +570,8 @@ As the control file is just Python code, it's possible to use less direct
 methods to specify the values of settings.
 
 One convenient way to define a number of similar players is to define a
-function which returns a Player object. For example, the player definitions in
-the sample control file could be rewritten as follows::
+function which returns a :setting-cls:`Player` object. For example, the player
+definitions in the sample control file could be rewritten as follows::
 
   def gnugo(level):
       return Player("gnugo --mode=gtp --chinese-rules "
