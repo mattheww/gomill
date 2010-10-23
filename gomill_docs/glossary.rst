@@ -26,38 +26,72 @@ Glossary
   jigo
     A tied game (after komi is taken into account).
 
+
   komi
     Additional points awarded to White in final scoring.
 
 
+  simple ko
+    A Go rule prohibiting repetition of the immediately-preceding position.
+
+
   superko
-    FIXME
+    A Go rule prohibiting repetition of preceding positions.
 
-
-  competition
-    FIXME
+    There are several possible variants of the superko rule. Gomill does not
+    enforce any of them.
 
 
   engine
-    FIXME
+    A program implementing the 'playing' side of the |GTP| protocol.
+
+    The |GTP| protocol can be seen as a client-server protocol, with the
+    engine as the server.
 
 
   player
-    FIXME
+    A running |GTP| engine, with a particular configuration.
+
+
+  competition
+    An 'event' consisting of multiple games managed by the Gomill ringmaster
+    (either a playoff or a tuning event).
+
+
+  playoff
+    A competition comprising many games played between fixed pairings of
+    players.
 
 
   matchup
-    FIXME
+    A pairing of players in a playoff, together with its settings (board size,
+    komi, handicap, and so on)
 
 
-  UCB
-    FIXME
-
-
-  UCT
-    FIXME
+  tuning event
+    A competition in which the ringmaster runs an algorithm for adjusting
+    player parameters to try to find the values which give strongest play.
 
 
   Bandit problem
-    FIXME
+    A problem in which an agent has to repeatedly choose between actions whose
+    value is initially unknown, trading off time spent on the action with the
+    best estimated value against time spent evaluating other actions.
+
+    See http://en.wikipedia.org/wiki/Multi-armed_bandit
+
+
+  UCB
+    Upper Confidence Bound algorithms
+
+    A family of algorithms for addressing bandit problems.
+
+
+  UCT
+    Upper Confidence bounds applied to Trees.
+
+    A variant of UCB for bandit problems in which the actions are arranged in
+    the form of a tree.
+
+    See http://senseis.xmp.net/?UCT.
 
