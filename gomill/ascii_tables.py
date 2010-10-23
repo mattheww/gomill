@@ -26,7 +26,7 @@ class Column_spec(object):
         return s + " " * self.right_padding
 
 class Table(object):
-    """Render tablular output.
+    """Render tabular output.
 
     Normal use:
 
