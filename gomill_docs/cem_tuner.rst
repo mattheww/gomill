@@ -1,8 +1,16 @@
+.. |ce| replace:: :ref:`[CE] <ce_paper>`
+
 The cross-entropy tuner
 -----------------------
 
 The cross-entropy tuner uses the :dfn:`cross-entropy method` described in
-[CE]_.
+|ce|:
+
+.. _ce_paper:
+
+| [CE] G.M.J-B. Chaslot, M.H.M Winands, I. Szita, and H.J. van den Herik.
+| Cross-entropy for Monte-Carlo Tree Search. ICGA Journal, 31(3):145-156.
+| http://www.personeel.unimaas.nl/g-chaslot/papers/crossmcICGA.pdf
 
 .. caution:: The cross-entropy tuner is experimental. It can take a very large
    number of games to converge.
@@ -16,7 +24,7 @@ The cross-entropy tuner uses the :dfn:`cross-entropy method` described in
 The tuning algorithm
 ^^^^^^^^^^^^^^^^^^^^
 
-The algorithm is not described in detail in this documentation. See [CE]_
+The algorithm is not described in detail in this documentation. See |ce|
 section 3 for the description. The tuner always uses a Gaussian distribution.
 The improvement suggested in section 5 is not implemented.
 
@@ -30,7 +38,7 @@ The parameter values taken from the Gaussian distribution are floating-point
 numbers known as :dfn:`optimiser parameters`.
 
 These parameters can be transformed before being used to construct the
-candidate (see 3.3 *Normalising Parameters* in [CE]_). The transformed values
+candidate (see 3.3 *Normalising Parameters* in |ce|). The transformed values
 are known as :dfn:`engine parameters`. The transformation is implemented using
 a Python :ce-setting:`transform` function defined in the control file.
 
@@ -202,7 +210,7 @@ The following additional settings are used (they are all compulsory):
   Positive integer
 
   The number of times to repeat the tuning algorithm (*number of iterations*
-  or *T* in the terminology of [CE]_).
+  or *T* in the terminology of |ce|).
 
 
 .. ce-setting:: samples_per_generation
@@ -210,7 +218,7 @@ The following additional settings are used (they are all compulsory):
   Positive integer
 
   The number of candidates to make in each generation (*population_size* or
-  *N* in the terminology of [CE]_).
+  *N* in the terminology of |ce|).
 
 
 .. ce-setting:: batch_size
@@ -225,7 +233,7 @@ The following additional settings are used (they are all compulsory):
   Float between 0.0 and 1.0
 
   The proportion of candidates to select from each generation as 'elite' (the
-  *selection ratio* or *ρ* in the terminology of [CE]_). A value between 0.01
+  *selection ratio* or *ρ* in the terminology of |ce|). A value between 0.01
   and 0.1 is recommended.
 
 
@@ -235,7 +243,7 @@ The following additional settings are used (they are all compulsory):
   Float between 0.0 and 1.0
 
   The rate at which to update the distribution parameters between generations
-  (*α* in the terminology of [CE]_).
+  (*α* in the terminology of |ce|).
 
   .. caution:: I can't find anywhere in the paper the value they used for
      this, so I don't know what to recommend.
@@ -368,12 +376,4 @@ Some settings can safely be changed between runs of the same tuning event:
 
 :ce-setting:`format`
   safe to change
-
-
-
-.. [CE]
-   G.M.J-B. Chaslot, M.H.M Winands, I. Szita, and H.J. van den Herik.
-   Cross-entropy for Monte-Carlo Tree Search. ICGA Journal, 31(3):145-156.
-   http://www.personeel.unimaas.nl/g-chaslot/papers/crossmcICGA.pdf
-
 
