@@ -53,6 +53,15 @@ def default_config():
         'make_candidate' : simple_make_candidate,
         }
 
+def test_bad_komi(tc):
+    comp = mcts_tuners.Mcts_tuner('mctstest')
+    config = default_config()
+    config['komi'] = 6
+    with tc.assertRaises(ControlFileError) as ar:
+        comp.initialise_from_control_file(config)
+    tc.assertEqual(str(ar.exception),
+                   "komi: must be fractional to prevent jigos")
+
 def test_parameter_config(tc):
     comp = mcts_tuners.Mcts_tuner('mctstest')
     config = default_config()
