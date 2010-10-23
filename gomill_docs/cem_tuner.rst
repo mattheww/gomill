@@ -30,11 +30,11 @@ numbers known as :dfn:`optimiser parameters`.
 These parameters can be transformed before being used to construct the
 candidate (see 3.3 'Normalising Parameters in [CE]_). The transformed values
 are known as :dfn:`engine parameters`. The transformation is implemented using
-a Python :setting:`transform` function defined in the control file.
+a Python :ce-setting:`transform` function defined in the control file.
 
-Reports show engine parameters (see the :setting:`format` parameter setting),
-together with the mean and variance of the corresponding optimiser parameter
-distribution in the form :samp:`{mean}~{variance}`.
+Reports show engine parameters (see the :ce-setting:`format` parameter
+setting), together with the mean and variance of the corresponding optimiser
+parameter distribution in the form :samp:`{mean}~{variance}`.
 
 
 .. _the cem tuning algorithm:

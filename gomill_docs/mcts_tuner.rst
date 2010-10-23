@@ -34,42 +34,42 @@ In practice, engine parameters might not be floating point numbers, their
 range is unlikely to be 0.0 to 1.0, and you may wish to use a non-uniform (eg,
 logarithmic) scale for the candidates.
 
-To support this, each parameter has an associated :setting:`scale`. This is a
-function which maps an optimiser parameter to an :dfn:`engine parameter`
+To support this, each parameter has an associated :mc-setting:`scale`. This is
+a function which maps an optimiser parameter to an :dfn:`engine parameter`
 (which can be of an arbitrary Python type). A number of :ref:`predefined
 scales <predefined scales>` are provided.
 
 The candidate player definitions are based on these engine parameters.
 
 Reports, and the live display, are also based on engine parameters; see the
-:setting:`format` parameter setting.
+:mc-setting:`format` parameter setting.
 
 
 Candidates
 ^^^^^^^^^^
 
-Each parameter also has a :setting:`split` setting (a smallish integer). This
-determines how many 'samples' of the parameter range are used to make
+Each parameter also has a :mc-setting:`split` setting (a smallish integer).
+This determines how many 'samples' of the parameter range are used to make
 candidate players.
 
 When there are multiple parameters, one candidate is made for each combination
 of these samples. So if there is only one parameter, the total number of
-candidates is just :setting:`split`, and if there are multiple parameters, the
-total number of candidates is the product of all the :setting:`split`
+candidates is just :mc-setting:`split`, and if there are multiple parameters,
+the total number of candidates is the product of all the :mc-setting:`split`
 settings. For example, the sample control file below creates 64 candidates.
 
 .. caution:: While the Monte Carlo tuner does not impose any limit on the
    number of parameters you use, unless the games are unusually rapid it may
    be unreasonable to try to tune more than two or three parameters at once.
 
-Each candidate's engine parameters are passed to the :setting:`make_candidate`
-function, which returns a Player definition.
+Each candidate's engine parameters are passed to the
+:mc-setting:`make_candidate` function, which returns a Player definition.
 
 The samples are taken by dividing the optimiser parameter range into
-:setting:`split` divisions, and taking the centre of each division as the
+:mc-setting:`split` divisions, and taking the centre of each division as the
 sample (so the end points of the range are not used). For example, if a
-parameter has a linear scale from 0.0 to 8.0, and :setting:`split` is 3, the
-samples will be 1.0, 4.0, and 7.0.
+parameter has a linear scale from 0.0 to 8.0, and :mc-setting:`split` is 3,
+the samples will be 1.0, 4.0, and 7.0.
 
 
 .. _the mcts tuning algorithm:
@@ -84,7 +84,7 @@ the highest value to the following formula:
 
 where
 
-- :math:`E` is the :setting:`exploration_coefficient`
+- :math:`E` is the :mc-setting:`exploration_coefficient`
 
 - :math:`g_c` is the number of games the candidate has played
 
@@ -93,7 +93,8 @@ where
 - :math:`g_p` is the total number of games played in the tuning event
 
 At the start of the tuning event, each candidate's :math:`g_c` is set to
-:setting:`initial_visits`, and :math:`w_c` is set to :setting:`initial_wins`.
+:mc-setting:`initial_visits`, and :math:`w_c` is set to
+:mc-setting:`initial_wins`.
 
 (:math:`w_c/g_c` is just the candidate's current win rate. :math:`E
 \sqrt(log(g_p) / g_c)` is known as the :dfn:`exploration term`; as more games
@@ -214,14 +215,14 @@ playoffs.
 The following additional settings are used (all those without a listed default
 are compulsory):
 
-.. setting:: candidate_colour
+.. mc-setting:: candidate_colour
 
   String: ``"b"`` or ``"w"``
 
   The colour for the candidates to take in every game.
 
 
-.. setting:: opponent
+.. mc-setting:: opponent
 
   Identifier
 
@@ -229,20 +230,20 @@ are compulsory):
   candidates' opponent.
 
 
-.. setting:: parameters
+.. mc-setting:: parameters
 
-  List of :setting:`Parameter` definitions (see :ref:`parameter
+  List of :mc-setting:`Parameter` definitions (see :ref:`parameter
   configuration`).
 
   Describes the parameter space that the tuner will work in. See :ref:`The
   parameter model` for more details.
 
   The order of the parameter definitions is used for the arguments to
-  :setting:`make_candidate`, and whenever parameters are described in reports
-  or game records.
+  :mc-setting:`make_candidate`, and whenever parameters are described in
+  reports or game records.
 
 
-.. setting:: make_candidate
+.. mc-setting:: make_candidate
 
   Python function
 
@@ -250,7 +251,7 @@ are compulsory):
 
   This function is passed one argument for each candidate Parameter, and must
   return a Player definition. Each argument is the output of the corresponding
-  Parameter's :setting:`scale`.
+  Parameter's :mc-setting:`scale`.
 
   The function will typically use its arguments to construct command line
   options or |gtp| commands for the Player. For example::
@@ -266,7 +267,7 @@ are compulsory):
                       ])
 
 
-.. setting:: exploration_coefficient
+.. mc-setting:: exploration_coefficient
 
   Float
 
@@ -274,7 +275,7 @@ are compulsory):
   ``0.45``). See :ref:`The tuning algorithm <the mcts tuning algorithm>`.
 
 
-.. setting:: initial_visits
+.. mc-setting:: initial_visits
 
   Positive integer
 
@@ -283,7 +284,7 @@ are compulsory):
   many games. See :ref:`The tuning algorithm <the mcts tuning algorithm>`.
 
 
-.. setting:: initial_wins
+.. mc-setting:: initial_wins
 
   Positive integer
 
@@ -291,12 +292,12 @@ are compulsory):
   event, the tuner will behave as if each candidate has already won this many
   games. See :ref:`The tuning algorithm <the mcts tuning algorithm>`.
 
-  .. tip:: It's best to set :setting:`initial_wins` so that
-     :setting:`initial_wins` / :setting:`initial_visits` is close to the
+  .. tip:: It's best to set :mc-setting:`initial_wins` so that
+     :mc-setting:`initial_wins` / :mc-setting:`initial_visits` is close to the
      typical candidate's expected win rate.
 
 
-.. setting:: max_depth
+.. mc-setting:: max_depth
 
   Positive integer
 
@@ -306,28 +307,28 @@ are compulsory):
 The remaining settings only affect reporting and logging; they have no effect
 on the tuning algorithm.
 
-.. setting:: summary_spec
+.. mc-setting:: summary_spec
 
   List of integers (default [30])
 
   Number of candidates to describe in the runtime display and reports (the
   candidates with most visits are described).
 
-  (This list should have :setting:`max_depth` elements; if
-  :setting:`max_depth` is greater than 1, it specifies how many candidates to
-  show from each level of the tree, starting with the highest.)
+  (This list should have :mc-setting:`max_depth` elements; if
+  :mc-setting:`max_depth` is greater than 1, it specifies how many candidates
+  to show from each level of the tree, starting with the highest.)
 
 
-.. setting:: log_tree_to_history_period
+.. mc-setting:: log_tree_to_history_period
 
   Positive integer (default None)
 
   If this is set, a detailed description of the :ref:`UCT` tree is written to
   the :ref:`history file <logging>` periodically (after every
-  :setting:`!log_tree_to_history_period` games).
+  :mc-setting:`!log_tree_to_history_period` games).
 
 
-.. setting:: number_of_running_simulations_to_show
+.. mc-setting:: number_of_running_simulations_to_show
 
   Positive integer (default 12)
 
@@ -340,23 +341,23 @@ Parameter configuration
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 A Parameter definition has the same syntax as a Python function call:
-:samp:`Parameter({arguments})`. Apart from :setting:`!code`, the arguments
+:samp:`Parameter({arguments})`. Apart from :mc-setting:`!code`, the arguments
 should be specified using keyword form (see :ref:`sample_mcts_control_file`).
 
-All parameters other than :setting:`format` are required.
+All parameters other than :mc-setting:`format` are required.
 
 The parameters are:
 
 
-.. setting:: code
+.. mc-setting:: code
 
   Identifier
 
   A short string used to identify the parameter. This is used in error
-  messages, and in the default for :setting:`format`.
+  messages, and in the default for :mc-setting:`format`.
 
 
-.. setting:: scale
+.. mc-setting:: scale
 
   Python function
 
@@ -383,7 +384,7 @@ The parameters are:
 
 
 
-.. setting:: split
+.. mc-setting:: split
 
   Positive integer
 
@@ -391,7 +392,7 @@ The parameters are:
   :ref:`The tuning algorithm <the mcts tuning algorithm>`.
 
 
-.. setting:: format
+.. mc-setting:: format
 
   String (default :samp:`"{parameter_code}: %s"`)
 
@@ -432,7 +433,7 @@ Predefined scales
 ^^^^^^^^^^^^^^^^^
 
 There are three kinds of predefined scale which you can use in a
-:setting:`scale` definition:
+:mc-setting:`scale` definition:
 
 .. index:: LINEAR
 
@@ -479,8 +480,8 @@ There are three kinds of predefined scale which you can use in a
 .. object:: EXPLICIT
 
   This scale makes the engine parameters take values from an explicitly
-  specified list. You should normally use this with :setting:`split` equal to
-  the length of the list.
+  specified list. You should normally use this with :mc-setting:`split` equal
+  to the length of the list.
 
   Examples::
 
@@ -488,9 +489,8 @@ There are three kinds of predefined scale which you can use in a
     EXPLICIT(['low', 'medium', 'high'])
 
 
-  .. note:: if :setting:`max_depth` is greater than 1,
-     :setting:`split` ^ :setting:`max_depth` should equal the length of the
-     list.
+  .. note:: if :mc-setting:`max_depth` is greater than 1, :mc-setting:`split`
+     ^ :mc-setting:`max_depth` should equal the length of the list.
 
 
 Writing scale functions
@@ -535,21 +535,21 @@ Reporting
 Currently, there aren't any sophisticated reports.
 
 The standard report shows the candidates which have played most games; the
-:setting:`summary_spec` setting defines how many to show.
+:mc-setting:`summary_spec` setting defines how many to show.
 
 In a line like::
 
   (0,1) I: 0.01; F: 365.17                       0.537  70
 
 The ``(0,1)`` are the 'coordinates' of the candidate, ``I: 0.01; F: 365.17``
-are the engine parameters (identified using the :setting:`format` setting),
-``0.537`` is the win rate (including the :setting:`initial_wins` and
-:setting:`initial_visits`), and ``70`` is the number of games (excluding the
-:setting:`initial_visits`).
+are the engine parameters (identified using the :mc-setting:`format` setting),
+``0.537`` is the win rate (including the :mc-setting:`initial_wins` and
+:mc-setting:`initial_visits`), and ``70`` is the number of games (excluding
+the :mc-setting:`initial_visits`).
 
-Also, after every :setting:`log_tree_to_history_period` games, the status of
-all candidates is written to the :ref:`history file <logging>` (if
-:setting:`max_depth` > 1, the first two generations of candidates are
+Also, after every :mc-setting:`log_tree_to_history_period` games, the status
+of all candidates is written to the :ref:`history file <logging>` (if
+:mc-setting:`max_depth` > 1, the first two generations of candidates are
 written).
 
 
@@ -560,7 +560,7 @@ Tree search
 
 As a further (and even more experimental) refinement, it's possible to arrange
 the candidates in the form of a tree and use the :term:`UCT` algorithm instead
-of plain :term:`UCB`. To do this, set the :setting:`max_depth` setting to a
+of plain :term:`UCB`. To do this, set the :mc-setting:`max_depth` setting to a
 value greater than 1.
 
 Initially, this behaves as described in :ref:`The tuning algorithm <the mcts
@@ -571,9 +571,9 @@ that candidate's children in a tree structure.
 The new candidates are created by sampling their parent's 'division' of
 optimiser parameter space in the same way as the full space was sampled to
 make the first-generation candidates (so the number of children is again the
-product of the :setting:`split` settings). Their :math:`g_c` and :math:`w_c`
-values are initialised to :setting:`initial_visits` and
-:setting:`initial_wins` as usual.
+product of the :mc-setting:`split` settings). Their :math:`g_c` and :math:`w_c`
+values are initialised to :mc-setting:`initial_visits` and
+:mc-setting:`initial_wins` as usual.
 
 Then one of these child candidates is selected using the usual formula, where
 
@@ -583,9 +583,9 @@ Then one of these child candidates is selected using the usual formula, where
 
 - :math:`g_p` is now the number of games the parent has played
 
-If :setting:`max_depth` is greater than 2, then when a second-generation
+If :mc-setting:`max_depth` is greater than 2, then when a second-generation
 candidate is chosen for the second time, it is expanded itself, and so on
-until :setting:`max_depth` is reached.
+until :mc-setting:`max_depth` is reached.
 
 Each time the tuner starts a new game, it walks down the tree using this
 formula to choose a child node at each level, until it reaches a 'leaf' node.
@@ -623,17 +623,17 @@ which control the tuning algorithm between runs. The ringmaster will normally
 notice and refuse to start, but it's possible to fool it and so get
 meaningless results.
 
-Changing the :setting:`exploration_coefficient` is ok. Increasing
-:setting:`max_depth` is ok (decreasing it is ok too, but it won't stop the
+Changing the :mc-setting:`exploration_coefficient` is ok. Increasing
+:mc-setting:`max_depth` is ok (decreasing it is ok too, but it won't stop the
 tuner exploring parts of the tree that it has already expanded).
 
-Changing :setting:`make_candidate` is ok, though if this affects player
+Changing :mc-setting:`make_candidate` is ok, though if this affects player
 behaviour it will probably be unhelpful.
 
-Changing :setting:`initial_wins` or :setting:`initial_visits` will have no
-effect if :setting:`max_depth` is 1; otherwise it will affect only candidates
-created in future.
+Changing :mc-setting:`initial_wins` or :mc-setting:`initial_visits` will have
+no effect if :mc-setting:`max_depth` is 1; otherwise it will affect only
+candidates created in future.
 
-Changing the settings which control reporting, including :setting:`format`, is
-ok.
+Changing the settings which control reporting, including :mc-setting:`format`,
+is ok.
 

@@ -71,14 +71,23 @@ def setup(app):
     app.add_description_unit('action', 'action',
                              indextemplate='pair: %s; ringmaster action')
 
-    app.add_description_unit('setting', 'setting',
-                             indextemplate='pair: %s; control file setting')
-
     app.add_description_unit('gtp', 'gtp',
                              indextemplate='pair: %s; GTP command')
 
     app.add_description_unit('script', 'script',
                              indextemplate='pair: %s; example script')
+
+    app.add_description_unit(
+        'setting', 'setting',
+        indextemplate='pair: %s; control file setting')
+
+    app.add_description_unit(
+        'mc-setting', 'mc-setting',
+        indextemplate='pair: %s; Monte Carlo tuner setting')
+
+    app.add_description_unit(
+        'ce-setting', 'ce-setting',
+        indextemplate='pair: %s; cross-entropy tuner setting')
 
 
 # Undo undesirable sphinx code that auto-adds 'xref' class to literals 'True',
