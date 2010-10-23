@@ -340,21 +340,34 @@ After each generation, the details of the candidates are written to the
 with a ``*``.
 
 
+Changing the control file between runs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. todo::
+Some settings can safely be changed between runs of the same tuning event:
 
-  Changing settings in the middle of a run::
+:ce-setting:`batch_size`
+  safe to increase
 
-     batch_size -- safe to increase
-     samples_per_generation -- not safe
-     number_of_generations -- safe
-     elite_proportion -- safe
-     step_size -- safe
+:ce-setting:`samples_per_generation`
+  not safe to change
 
-     format_parameters -- safe
-     convert_optimiser_parameters_to_engine_parameters -- not safe
-     make_candidate -- not safe
-                       (but ok if you're changing non-play-affecting options)
+:ce-setting:`number_of_generations`
+  safe to change
+
+:ce-setting:`elite_proportion`
+  safe to change
+
+:ce-setting:`step_size`
+  safe to change
+
+:ce-setting:`make_candidate`
+  safe to change, but don't alter play-affecting options
+
+:ce-setting:`transform`
+  not safe to change
+
+:ce-setting:`format`
+  safe to change
 
 
 
