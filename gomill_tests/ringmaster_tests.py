@@ -171,7 +171,7 @@ def test_process_response(tc):
         ["warningtest"])
     tc.assertListEqual(
         fx.messages('results'),
-        ["game 0_000: p2 beat p1 W+"])
+        ["game 0_000: p2 beat p1 W+1.5"])
     tc.assertEqual(fx.ringmaster.competition.get_matchup_results('0'),
                    [('0_000', response.game_result)])
     tc.assertEqual(fx.get_log(),

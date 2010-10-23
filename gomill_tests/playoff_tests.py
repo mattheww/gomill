@@ -285,6 +285,32 @@ def test_play_many(tc):
     tc.assertEqual(len(comp2.get_matchup_results('0')), 6)
     check_screen_report(tc, comp2, get_screen_report(fx.comp))
 
+def test_jigo_reporting(tc):
+    fx = Playoff_fixture(tc)
+
+    def winner(i):
+        if i in (0, 3):
+            return 'b'
+        elif i in (2, 4):
+            return 'w'
+        else:
+            return None
+    jobs = [fx.comp.get_game() for _ in range(8)]
+    for i in range(6):
+        response = fake_response(jobs[i], winner(i))
+        fx.comp.process_game_result(response)
+
+    fx.check_screen_report(dedent("""\
+    t1 v t2 (6 games)
+    unknown results: 2 33.33%
+    board size: 13   komi: 7.5
+         wins              black        white
+    t1      1 16.67%       1 33.33%     0  0.00%
+    t2      3 50.00%       1 33.33%     2 66.67%
+                           2 33.33%     2 33.33%
+    """))
+
+
 def test_matchup_change(tc):
     fx = Playoff_fixture(tc)
 
