@@ -137,10 +137,10 @@ from these commands are ignored.
 Each game normally continues until both players pass in succession, or one
 player resigns.
 
-The ringmaster rejects moves to occupied points, and moves forbidden by simple
-ko, as illegal. It doesn't reject self-capture moves, and it doesn't enforce
-any kind of :term:`superko` rule. If the ringmaster rejects a move, the engine
-that tried to play it loses the game by forfeit.
+The ringmaster rejects moves to occupied points, and moves forbidden by
+:term:`simple ko`, as illegal. It doesn't reject self-capture moves, and it
+doesn't enforce any kind of :term:`superko` rule. If the ringmaster rejects a
+move, the engine that tried to play it loses the game by forfeit.
 
 If one of the players rejects a move as illegal (ie, with the |gtp| failure
 response ``illegal move``), the ringmaster assumes its opponent really has
