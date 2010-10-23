@@ -238,6 +238,7 @@ class Cem_tuner(Competition):
     #  *sample_parameters -- optimiser_params
     #                        (list indexed by candidate number)
     #  *wins              -- number of games won
+    #                        half a point for a game with no winner
     #                        (list indexed by candidate number)
     #   candidates        -- Players (code attribute is the candidate code)
     #                        (list indexed by candidate number)
@@ -433,9 +434,11 @@ class Cem_tuner(Competition):
         gr = response.game_result
         assert candidate_code in (gr.player_b, gr.player_w)
 
-        # Counting no-result as loss for the candidate
+        # Counting jigo or no-result as half a point for the candidate
         if gr.winning_player == candidate_code:
             self.wins[candidate_number] += 1
+        elif gr.winning_player is None:
+            self.wins[candidate_number] += 0.5
 
         if self.scheduler.all_fixed():
             self.finish_generation()

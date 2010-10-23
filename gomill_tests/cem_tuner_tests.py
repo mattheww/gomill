@@ -202,3 +202,15 @@ def test_play(tc):
     comp2.set_status(status)
     tc.assertEqual(comp2.wins, [1, 0, 0, 0])
 
+    result2 = Game_result({'b' : 'g0#1', 'w' : 'opp'}, None)
+    result2.set_jigo()
+    response2 = Game_job_result()
+    response2.game_id = job2.game_id
+    response2.game_result = result2
+    response2.engine_names = response1.engine_names
+    response2.engine_descriptions = response1.engine_descriptions
+    response2.game_data = job2.game_data
+    comp.process_game_result(response2)
+
+    tc.assertEqual(comp.wins, [1, 0.5, 0, 0])
+
