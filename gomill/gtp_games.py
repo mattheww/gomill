@@ -28,6 +28,7 @@ class Game_result(object):
       winning_player      -- player code or None
       losing_player       -- player code or None
       sgf_result          -- string describing the game's result (for sgf RE)
+      is_jigo             -- bool
       is_forfeit          -- bool
       detail              -- additional information (string or None)
       cpu_times           -- map player code -> float or None or '?'.
@@ -47,6 +48,7 @@ class Game_result(object):
         self.player_w = players['w']
         self.winning_colour = winning_colour
         self.winning_player = players.get(winning_colour)
+        self.is_jigo = False
         self.is_forfeit = False
         if winning_colour is None:
             self.sgf_result = "?"
@@ -77,6 +79,11 @@ class Game_result(object):
          ) = state
         self.players = {'b' : self.player_b, 'w' : self.player_w}
         self.winning_player = self.players.get(self.winning_colour)
+        self.is_jigo = (self.sgf_result == "0")
+
+    def set_jigo(self):
+        self.sgf_result = "0"
+        self.is_jigo = True
 
     @property
     def losing_colour(self):
@@ -618,7 +625,7 @@ class Game(object):
             assert self.passed_out
             if self.winner is None:
                 if self.margin == 0:
-                    result.sgf_result = "0"
+                    result.set_jigo()
                 elif self.scorers_disagreed:
                     result.detail = "players disagreed"
                 else:

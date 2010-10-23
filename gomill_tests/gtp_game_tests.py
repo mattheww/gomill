@@ -19,7 +19,8 @@ def make_tests(suite):
 class Game_fixture(test_framework.Fixture):
     """Fixture managing a Gtp_game.
 
-    Instantiate with the player objects (defaults to a Test_player)
+    Instantiate with the player objects (defaults to a Test_player) and
+    optionally komi.
 
     attributes:
       game         -- Gtp_game
@@ -33,10 +34,10 @@ class Game_fixture(test_framework.Fixture):
       player_w     -- player object
 
     """
-    def __init__(self, tc, player_b=None, player_w=None):
+    def __init__(self, tc, player_b=None, player_w=None, komi=0.0):
         self.tc = tc
         self.board_size = 9
-        game = gtp_games.Game(board_size=self.board_size)
+        game = gtp_games.Game(board_size=self.board_size, komi=komi)
         game.set_player_code('b', 'one')
         game.set_player_code('w', 'two')
         if player_b is None:
@@ -118,12 +119,14 @@ def test_game(tc):
     tc.assertEqual(fx.game.result.losing_player, 'two')
     tc.assertEqual(fx.game.result.sgf_result, "B+18")
     tc.assertFalse(fx.game.result.is_forfeit)
+    tc.assertIs(fx.game.result.is_jigo, False)
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.describe(), "one beat two B+18")
     result2 = pickle.loads(pickle.dumps(fx.game.result))
     tc.assertEqual(result2.describe(), "one beat two B+18")
     tc.assertEqual(result2.player_b, 'one')
     tc.assertEqual(result2.player_w, 'two')
+    tc.assertIs(result2.is_jigo, False)
     tc.assertDictEqual(fx.game.result.cpu_times, {'one' : None, 'two' : None})
     tc.assertListEqual(fx.game.moves, [
         ('b', (0, 4), None), ('w', (0, 6), None),
@@ -166,12 +169,39 @@ def test_unscored_game(tc):
     tc.assertIsNone(fx.game.result.losing_player)
     tc.assertEqual(fx.game.result.sgf_result, "?")
     tc.assertFalse(fx.game.result.is_forfeit)
+    tc.assertIs(fx.game.result.is_jigo, False)
     tc.assertEqual(fx.game.result.detail, "no score reported")
     tc.assertEqual(fx.game.result.describe(),
                    "one vs two ? (no score reported)")
     result2 = pickle.loads(pickle.dumps(fx.game.result))
     tc.assertEqual(result2.describe(), "one vs two ? (no score reported)")
+    tc.assertIs(result2.is_jigo, False)
 
+def test_jigo(tc):
+    fx = Game_fixture(tc, komi=18.0)
+    fx.game.use_internal_scorer()
+    fx.game.ready()
+    tc.assertIsNone(fx.game.result)
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertIsNone(fx.game.describe_late_errors())
+    tc.assertDictEqual(fx.game.result.players, {'b' : 'one', 'w' : 'two'})
+    tc.assertEqual(fx.game.result.player_b, 'one')
+    tc.assertEqual(fx.game.result.player_w, 'two')
+    tc.assertEqual(fx.game.result.winning_colour, None)
+    tc.assertEqual(fx.game.result.losing_colour, None)
+    tc.assertEqual(fx.game.result.winning_player, None)
+    tc.assertEqual(fx.game.result.losing_player, None)
+    tc.assertEqual(fx.game.result.sgf_result, "0")
+    tc.assertIs(fx.game.result.is_forfeit, False)
+    tc.assertIs(fx.game.result.is_jigo, True)
+    tc.assertIsNone(fx.game.result.detail)
+    tc.assertEqual(fx.game.result.describe(), "one vs two 0")
+    result2 = pickle.loads(pickle.dumps(fx.game.result))
+    tc.assertEqual(result2.describe(), "one vs two 0")
+    tc.assertEqual(result2.player_b, 'one')
+    tc.assertEqual(result2.player_w, 'two')
+    tc.assertIs(result2.is_jigo, True)
 
 def test_players_score_agree(tc):
     fx = Game_fixture(tc)
