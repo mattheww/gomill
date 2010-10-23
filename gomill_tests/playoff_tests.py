@@ -299,15 +299,24 @@ def test_jigo_reporting(tc):
     for i in range(6):
         response = fake_response(jobs[i], winner(i))
         fx.comp.process_game_result(response)
-
     fx.check_screen_report(dedent("""\
     t1 v t2 (6 games)
-    unknown results: 2 33.33%
     board size: 13   komi: 7.5
          wins              black        white
-    t1      1 16.67%       1 33.33%     0  0.00%
-    t2      3 50.00%       1 33.33%     2 66.67%
-                           2 33.33%     2 33.33%
+    t1      2 33.33%       2 66.67%     1  33.33%
+    t2      4 66.67%       2 66.67%     3 100.00%
+                           3 50.00%     3  50.00%
+    """))
+
+    response = fake_response(jobs[6], None)
+    fx.comp.process_game_result(response)
+    fx.check_screen_report(dedent("""\
+    t1 v t2 (7 games)
+    board size: 13   komi: 7.5
+         wins              black          white
+    t1    2.5 35.71%       2.5 62.50%     1.5 50.00%
+    t2    4.5 64.29%       2.5 83.33%     3.5 87.50%
+                           3.5 50.00%     3.5 50.00%
     """))
 
 

@@ -12,6 +12,9 @@ from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError, ControlFileError)
 from gomill.settings import *
 
+# FIXME
+from gtp_games import format_float
+
 
 class Matchup(object):
     """Internal description of a matchup from the configuration file.
@@ -411,11 +414,14 @@ class Playoff(Competition):
         total = len(results)
         assert total != 0
 
+        js = jigo_scores = 0.5 * sum(r.is_jigo for r in results)
+        unknown = sum(r.winning_player is None and not r.is_jigo
+                      for r in results)
+
         player_x = matchup.p1
         player_y = matchup.p2
-        x_wins = sum(r.winning_player == player_x for r in results)
-        y_wins = sum(r.winning_player == player_y for r in results)
-        unknown = sum(r.winning_player is None for r in results)
+        x_wins = sum(r.winning_player == player_x for r in results) + js
+        y_wins = sum(r.winning_player == player_y for r in results) + js
 
         xb_played = sum(r.player_b == player_x for r in results)
         xw_played = sum(r.player_w == player_x for r in results)
@@ -438,20 +444,20 @@ class Playoff(Competition):
             y_colour = 'black'
         else:
             alternating = True
-            b_wins = sum(r.winning_colour == 'b' for r in results)
-            w_wins = sum(r.winning_colour == 'w' for r in results)
+            b_wins = sum(r.winning_colour == 'b' for r in results) + js
+            w_wins = sum(r.winning_colour == 'w' for r in results) + js
             xb_wins = sum(
                 r.winning_player == player_x and r.winning_colour == 'b'
-                for r in results)
+                for r in results) + js
             xw_wins = sum(
                 r.winning_player == player_x and r.winning_colour == 'w'
-                for r in results)
+                for r in results) + js
             yb_wins = sum(
                 r.winning_player == player_y and r.winning_colour == 'b'
-                for r in results)
+                for r in results) + js
             yw_wins = sum(
                 r.winning_player == player_y and r.winning_colour == 'w'
-                for r in results)
+                for r in results) + js
 
         x_times = [r.cpu_times[player_x] for r in results]
         x_known_times = [t for t in x_times if t is not None and t != '?']
@@ -466,11 +472,6 @@ class Playoff(Competition):
         else:
             y_avg_time_s = "   ----"
 
-        if matchup.number_of_games is None:
-            played_s = "%d" % total
-        else:
-            played_s = "%d/%d" % (total, matchup.number_of_games)
-        p("%s (%s games)" % (matchup.name, played_s))
         def pct(n, baseline):
             if baseline == 0:
                 if n == 0:
@@ -478,6 +479,13 @@ class Playoff(Competition):
                 else:
                     return "??"
             return "%.2f%%" % (100 * n/baseline)
+        ff = format_float
+
+        if matchup.number_of_games is None:
+            played_s = "%d" % total
+        else:
+            played_s = "%d/%d" % (total, matchup.number_of_games)
+        p("%s (%s games)" % (matchup.name, played_s))
         if unknown > 0:
             p("unknown results: %d %s" % (unknown, pct(unknown, total)))
 
@@ -490,7 +498,7 @@ class Playoff(Competition):
 
         t.add_heading("wins")
         i = t.add_column(align='right')
-        t.set_column_values(i, [x_wins, y_wins])
+        t.set_column_values(i, [ff(x_wins), ff(y_wins)])
 
         t.add_heading("") # overall pct
         i = t.add_column(align='right')
@@ -500,7 +508,7 @@ class Playoff(Competition):
             t.columns[i].right_padding = 7
             t.add_heading("black", span=2)
             i = t.add_column(align='left')
-            t.set_column_values(i, [xb_wins, yb_wins, b_wins])
+            t.set_column_values(i, [ff(xb_wins), ff(yb_wins), ff(b_wins)])
             i = t.add_column(align='right', right_padding=5)
             t.set_column_values(i, [pct(xb_wins, xb_played),
                                     pct(yb_wins, yb_played),
@@ -508,7 +516,7 @@ class Playoff(Competition):
 
             t.add_heading("white", span=2)
             i = t.add_column(align='left')
-            t.set_column_values(i, [xw_wins, yw_wins, w_wins])
+            t.set_column_values(i, [ff(xw_wins), ff(yw_wins), ff(w_wins)])
             i = t.add_column(align='right', right_padding=3)
             t.set_column_values(i, [pct(xw_wins, xw_played),
                                     pct(yw_wins, yw_played),

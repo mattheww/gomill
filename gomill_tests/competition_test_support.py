@@ -16,7 +16,7 @@ def fake_response(job, winner):
     result = gtp_games.Game_result(players, winner)
     response = game_jobs.Game_job_result()
     if winner is None:
-        result.sgf_result = "0"
+        result.set_jigo()
     else:
         result.sgf_result += "1.5"
     response.game_id = job.game_id
