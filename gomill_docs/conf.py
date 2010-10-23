@@ -74,31 +74,40 @@ rst_epilog = """
 
 def setup(app):
     app.add_object_type('action', 'action',
-                        indextemplate='pair: %s; ringmaster action')
+                        indextemplate='pair: %s; ringmaster action',
+                        objname="Ringmaster action")
 
     app.add_object_type('gtp', 'gtp',
-                        indextemplate='pair: %s; GTP command')
+                        indextemplate='pair: %s; GTP command',
+                        objname="GTP command")
 
     app.add_object_type('script', 'script',
-                        indextemplate='pair: %s; example script')
+                        indextemplate='pair: %s; example script',
+                        objname="Example script")
 
     app.add_object_type('setting', 'setting',
-                        indextemplate='pair: %s; control file setting')
+                        indextemplate='pair: %s; control file setting',
+                        objname="Control file setting")
 
     app.add_object_type('mc-setting', 'mc-setting',
-                        indextemplate='pair: %s; Monte Carlo tuner setting')
+                        indextemplate='pair: %s; Monte Carlo tuner setting',
+                        objname="Monte Carlo tuner setting")
 
     app.add_object_type('ce-setting', 'ce-setting',
-                        indextemplate='pair: %s; cross-entropy tuner setting')
+                        indextemplate='pair: %s; cross-entropy tuner setting',
+                        objname="Cross-entropy tuner setting")
 
     app.add_crossref_type('setting-cls', 'setting-cls',
-                          indextemplate='single: %s')
+                          indextemplate='single: %s',
+                          objname="Control file object")
 
     app.add_crossref_type('mc-setting-cls', 'mc-setting-cls',
-                          indextemplate='single: %s')
+                          indextemplate='single: %s',
+                           objname="Control file object")
 
     app.add_crossref_type('ce-setting-cls', 'ce-setting-cls',
-                          indextemplate='single: %s')
+                          indextemplate='single: %s',
+                          objname="Control file object")
 
 
 # Undo undesirable sphinx code that auto-adds 'xref' class to literals 'True',
