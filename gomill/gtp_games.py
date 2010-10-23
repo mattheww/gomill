@@ -103,7 +103,10 @@ class Game_result(object):
             s = "%s beat %s " % (self.winning_player, self.losing_player)
         else:
             s = "%s vs %s " % (self.players['b'], self.players['w'])
-        s += self.sgf_result
+        if self.is_jigo:
+            s += "jigo"
+        else:
+            s += self.sgf_result
         if self.detail is not None:
             s += " (%s)" % self.detail
         return s
