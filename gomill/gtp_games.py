@@ -2,13 +2,13 @@
 
 import os
 
+from gomill.gomill_utils import *
 from gomill.gomill_common import *
 from gomill import gtp_controller
 from gomill import handicap_layout
 from gomill import boards
 from gomill import sgf_writer
 from gomill.gtp_controller import BadGtpResponse, GtpChannelError
-from gomill.gomill_utils import format_float
 
 class Game_result(object):
     """Description of a game result.

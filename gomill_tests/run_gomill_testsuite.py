@@ -6,6 +6,7 @@ from optparse import OptionParser
 from gomill_tests.test_framework import unittest2
 
 test_modules = [
+    'gomill_utils_tests',
     'gomill_common_tests',
     'board_tests',
     'sgf_writer_tests',

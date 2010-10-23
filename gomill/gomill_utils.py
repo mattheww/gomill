@@ -7,7 +7,7 @@ functions.
 
 """
 
-__all__ = ["format_float"]
+__all__ = ["format_float", "sanitise_utf8"]
 
 def format_float(f):
     """Format a Python float in a friendly way.
@@ -21,3 +21,27 @@ def format_float(f):
     else:
         return str(f)
 
+def sanitise_utf8(s):
+    """Ensure an 8-bit string is utf-8.
+
+    s -- 8-bit string (or None)
+
+    Returns the sanitised string. If the string was already valid utf-8, returns
+    the same object.
+
+    This replaces bad characters with ascii question marks (I don't want to use
+    a unicode replacement character, because if this function is doing anything
+    then it's likely that there's a non-unicode setup involved somewhere, so it
+    probably wouldn't be helpful).
+
+    """
+    if s is None:
+        return None
+    try:
+        u = s.decode("utf-8")
+    except UnicodeDecodeError:
+        return (s.decode("utf-8", 'replace')
+                .replace(u"\ufffd", u"?")
+                .encode("utf-8"))
+    else:
+        return s

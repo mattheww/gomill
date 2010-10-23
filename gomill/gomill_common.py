@@ -8,7 +8,7 @@ functions.
 """
 
 __all__ = ["opponent_of", "format_vertex", "format_vertex_list",
-           "coords_from_vertex", "sanitise_utf8"]
+           "coords_from_vertex"]
 
 _opponents = {"b":"w", "w":"b"}
 def opponent_of(colour):
@@ -77,28 +77,3 @@ def coords_from_vertex(vertex, board_size):
         raise ValueError("vertex is off board: '%s'" % s)
     return row, col
 
-
-def sanitise_utf8(s):
-    """Ensure an 8-bit string is utf-8.
-
-    s -- 8-bit string (or None)
-
-    Returns the sanitised string. If the string was already valid utf-8, returns
-    the same object.
-
-    This replaces bad characters with ascii question marks (I don't want to use
-    a unicode replacement character, because if this function is doing anything
-    then it's likely that there's a non-unicode setup involved somewhere, so it
-    probably wouldn't be helpful).
-
-    """
-    if s is None:
-        return None
-    try:
-        u = s.decode("utf-8")
-    except UnicodeDecodeError:
-        return (s.decode("utf-8", 'replace')
-                .replace(u"\ufffd", u"?")
-                .encode("utf-8"))
-    else:
-        return s

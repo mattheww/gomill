@@ -49,11 +49,3 @@ def test_coords_from_vertex(tc):
     tc.assertRaises(ValueError, cv, "A-3", 9)
     tc.assertRaises(ValueError, cv, None, 9)
 
-def test_sanitise_utf8(tc):
-    su = gomill_common.sanitise_utf8
-    tc.assertIsNone(su(None))
-    tc.assertEqual(su(""), "")
-    tc.assertEqual(su("hello world"), "hello world")
-    s = u"test \N{POUND SIGN}".encode("utf-8")
-    tc.assertIs(su(s), s)
-    tc.assertEqual(su(u"test \N{POUND SIGN}".encode("latin1")), "test ?")

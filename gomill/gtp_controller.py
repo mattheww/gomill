@@ -10,6 +10,7 @@ import re
 import signal
 import subprocess
 
+from gomill.gomill_utils import *
 from gomill.gomill_common import *
 
 
