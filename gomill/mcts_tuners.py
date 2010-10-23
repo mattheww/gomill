@@ -595,6 +595,9 @@ class Mcts_tuner(Competition):
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
 
+        if self.komi == int(self.komi):
+            raise ControlFileError("komi: must be fractional to prevent jigos")
+
         competitions.validate_handicap(
             self.handicap, self.handicap_style, self.board_size)
 

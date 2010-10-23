@@ -204,6 +204,9 @@ may be specified as top-level settings (as usual, :setting:`board_size` and
 - :setting:`scorer`
 - :setting:`number_of_games`
 
+:setting:`komi` must be fractional, as the tuning algorithm doesn't currently
+support :term:`jigos <jigo>`.
+
 All other competition settings may be present, with the same meaning as for
 playoffs.
 
