@@ -168,7 +168,7 @@ The following settings can be set at the top level of the control file, for
 competitions of type ``playoff``.
 
 For the differences in tuning events, See :ref:`The Monte Carlo tuner
-<mcts_control_file_settings>` and :ref:`The cross-entropy method tuner
+<mcts_control_file_settings>` and :ref:`The cross-entropy tuner
 <cem_control_file_settings>`.
 
 The only required settings are :setting:`competition_type`,
@@ -177,11 +177,11 @@ The only required settings are :setting:`competition_type`,
 
 .. setting:: competition_type
 
-  String: ``"playoff"``, ``"mc_tuner"``, or ``"cem_tuner"``
+  String: ``"playoff"``, ``"mc_tuner"``, or ``"ce_tuner"``
 
   Determines whether the competition is a playoff or a specific kind of
   tuning event. This must be set on the first line in the control file
-  (except for blank lines and comments).
+  (not counting for blank lines and comments).
 
 
 .. setting:: description

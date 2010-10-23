@@ -72,7 +72,7 @@ parameter has a linear scale from 0.0 to 8.0, and :setting:`split` is 3, the
 samples will be 1.0, 4.0, and 7.0.
 
 
-.. _the tuning algorithm:
+.. _the mcts tuning algorithm:
 
 The tuning algorithm
 ^^^^^^^^^^^^^^^^^^^^
@@ -271,7 +271,7 @@ are compulsory):
   Float
 
   The coefficient of the exploration term in the :ref:`UCB` algorithm (eg
-  ``0.45``). See :ref:`the tuning algorithm`.
+  ``0.45``). See :ref:`The tuning algorithm <the mcts tuning algorithm>`.
 
 
 .. setting:: initial_visits
@@ -280,7 +280,7 @@ are compulsory):
 
   The number of games to initialise each candidate with. At the start of the
   event, the tuner will behave as if each candidate has already played this
-  many games. See :ref:`the tuning algorithm`.
+  many games. See :ref:`The tuning algorithm <the mcts tuning algorithm>`.
 
 
 .. setting:: initial_wins
@@ -289,7 +289,7 @@ are compulsory):
 
   The number of wins to initialise each candidate with. At the start of the
   event, the tuner will behave as if each candidate has already won this many
-  games. See :ref:`the tuning algorithm`.
+  games. See :ref:`The tuning algorithm <the mcts tuning algorithm>`.
 
   .. tip:: It's best to set :setting:`initial_wins` so that
      :setting:`initial_wins` / :setting:`initial_visits` is close to the
@@ -388,7 +388,7 @@ The parameters are:
   Positive integer
 
   The number of samples from this parameter to use to make candidates. See
-  :ref:`the tuning algorithm`.
+  :ref:`The tuning algorithm <the mcts tuning algorithm>`.
 
 
 .. setting:: format
@@ -563,10 +563,10 @@ the candidates in the form of a tree and use the :term:`UCT` algorithm instead
 of plain :term:`UCB`. To do this, set the :setting:`max_depth` setting to a
 value greater than 1.
 
-Initially, this behaves as described in :ref:`the tuning algorithm`. But
-whenever a candidate is chosen for the second time, it is :dfn:`expanded`: a
-new generation of candidates is created and placed as that candidate's
-children in a tree structure.
+Initially, this behaves as described in :ref:`The tuning algorithm <the mcts
+tuning algorithm>`. But whenever a candidate is chosen for the second time, it
+is :dfn:`expanded`: a new generation of candidates is created and placed as
+that candidate's children in a tree structure.
 
 The new candidates are created by sampling their parent's 'division' of
 optimiser parameter space in the same way as the full space was sampled to

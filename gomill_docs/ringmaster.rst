@@ -38,7 +38,7 @@ Tuning events
   play.
 
   There are two types of tuning event, :doc:`Monte Carlo <mcts_tuner>` and
-  :doc:`cross-entropy method <cem_tuner>`.
+  :doc:`cross-entropy <cem_tuner>`.
 
 
 Using the ringmaster

@@ -215,7 +215,7 @@ class Ringmaster(object):
         if competition_type == "playoff":
             from gomill import playoffs
             return playoffs.Playoff
-        elif competition_type == "cem_tuner":
+        elif competition_type == "ce_tuner":
             from gomill import cem_tuners
             return cem_tuners.Cem_tuner
         elif competition_type == "mc_tuner":
