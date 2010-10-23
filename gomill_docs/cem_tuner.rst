@@ -1,5 +1,5 @@
 The cross-entropy tuner
-=======================
+-----------------------
 
 The cross-entropy tuner uses the :dfn:`cross-entropy method` described in
 [CE]_.
@@ -28,7 +28,7 @@ The parameter values taken from the Gaussian distribution are floating-point
 numbers known as :dfn:`optimiser parameters`.
 
 These parameters can be transformed before being used to construct the
-candidate (see 3.3 'Normalising Parameters in [CE]_). The transformed values
+candidate (see 3.3 *Normalising Parameters* in [CE]_). The transformed values
 are known as :dfn:`engine parameters`. The transformation is implemented using
 a Python :ce-setting:`transform` function defined in the control file.
 
@@ -105,12 +105,100 @@ a cross-entropy tuning event::
   opponent = 'gnugo-l10'
   candidate_colour = 'w'
 
-  batch_size = 10
-  samples_per_generation = 100
   number_of_generations = 5
+  samples_per_generation = 100
+  batch_size = 10
   elite_proportion = 0.1
   step_size = 0.8
 
+
+
+.. _cem_control_file_settings:
+
+Control file settings
+^^^^^^^^^^^^^^^^^^^^^
+
+The control file settings are similar to those used in playoffs.
+
+The :setting:`competition_type` setting must have the value ``"ce_tuner"``.
+
+The :setting:`players` dictionary must be present as usual, but it is used
+only to define the opponent.
+
+The :setting:`matchups` setting is not used. The following matchup settings
+may be specified as top-level settings (as usual, :setting:`board_size` and
+:setting:`komi` are compulsory):
+
+- :setting:`board_size`
+- :setting:`komi`
+- :setting:`handicap`
+- :setting:`handicap_style`
+- :setting:`move_limit`
+- :setting:`scorer`
+
+All other competition settings may be present, with the same meaning as for
+playoffs.
+
+
+The following additional settings are used (they are all compulsory):
+
+
+.. ce-setting:: number_of_generations
+
+  Positive integer
+
+  The number of times to repeat the tuning algorithm (*number of iterations*
+  or *T* in the terminology of [CE]_).
+
+
+.. ce-setting:: samples_per_generation
+
+  Positive integer
+
+  The number of candidates to make in each generation (*population_size* or
+  *N* in the terminology of [CE]_).
+
+
+.. ce-setting:: batch_size
+
+  Positive integer
+
+  The number of games played by each candidate.
+
+
+.. ce-setting:: elite_proportion
+
+  Float between 0.0 and 1.0
+
+  The proportion of candidates to select from each generation as 'elite' (the
+  *selection ratio* or *ρ* in the terminology of [CE]_). A value between 0.01
+  and 0.1 is recommended.
+
+
+
+.. ce-setting:: step_size
+
+  Float between 0.0 and 1.0
+
+  The rate at which to update the distribution parameters between generations
+  (*α* in the terminology of [CE]_).
+
+  .. caution:: I can't find anywhere in the paper the value they used for
+     this, so I don't know what to recommend.
+
+
+
+Reporting
+^^^^^^^^^
+
+Currently, there aren't any sophisticated reports.
+
+The standard report shows the parameters of the current Gaussian distribution,
+and the number of wins for each candidate in the current generation.
+
+After each generation, the details of the candidates are written to the
+:ref:`history file <logging>`. The candidates selected as elite are marked
+with a ``*``.
 
 
 
@@ -136,16 +224,4 @@ a cross-entropy tuning event::
    Cross-entropy for Monte-Carlo Tree Search. ICGA Journal, 31(3):145-156.
    http://www.personeel.unimaas.nl/g-chaslot/papers/crossmcICGA.pdf
 
-
-Reporting
-^^^^^^^^^
-
-Currently, there aren't any sophisticated reports.
-
-The standard report shows the parameters of the current Gaussian distribution,
-and the number of wins for each candidate in the current generation.
-
-After each generation, the details of the candidates are written to the
-:ref:`history file <logging>`. The candidates selected as elite are marked
-with a ``*``.
 
