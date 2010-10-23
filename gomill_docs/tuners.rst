@@ -14,11 +14,8 @@ At present, all tuning events work by playing games between different
 candidate always takes the same colour. The komi and any handicap can be
 specified as usual.
 
-.. todo:: need to clearly say what a candidate is, what candidate parameters
-   are. Will need to distinguish 'engine parameters' from 'optimiser
-   parameters'?
-
-.. todo:: say something about using Python functions to define candidates?
+There are currently two types of tuning event, which are documented
+independently.
 
 
 Specific tuners
