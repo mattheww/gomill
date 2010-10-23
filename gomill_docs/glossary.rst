@@ -14,6 +14,9 @@ Glossary
     .. todo:: brief description and link
 
 
+  jigo
+    A tied game (after komi is taken into account).
+
   komi
     Additional points awarded to White in final scoring.
 

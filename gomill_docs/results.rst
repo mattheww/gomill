@@ -31,10 +31,11 @@ descriptions of the players, and the contents of the competition's
   player gnugo-l1: GNU Go:3.8
   player gnugo-l2: GNU Go:3.8
 
-If any games have been lost by forfeit, a count will be shown for each player.
-If any games have unknown results (because they could not be scored, or
-reached the :setting:`move_limit`), a count will be shown for each matchup.
-:ref:`void games` are not shown in these reports.
+Any :term:`jigos <jigo>` are counted as half a point for each player. If any
+games have been lost by forfeit, a count will be shown for each player. If any
+games have unknown results (because they could not be scored, or reached the
+:setting:`move_limit`), a count will be shown for each matchup. :ref:`void
+games` are not shown in these reports.
 
 .. todo:: say anything about player codes and matchup codes? And
    describe_engine. Possibly a ^^^-level heading for player descriptions.
