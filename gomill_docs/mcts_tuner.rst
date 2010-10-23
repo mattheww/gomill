@@ -20,6 +20,8 @@ It does this using a form of the :term:`UCB` algorithm (or, optionally,
    :backlinks: none
 
 
+.. _mc parameter model:
+
 The parameter model
 ^^^^^^^^^^^^^^^^^^^
 
@@ -232,7 +234,7 @@ are compulsory):
 
 .. mc-setting:: parameters
 
-  List of :mc-setting:`Parameter` definitions (see :ref:`parameter
+  List of :mc-setting:`Parameter` definitions (see :ref:`mc parameter
   configuration`).
 
   Describes the parameter space that the tuner will work in. See :ref:`The
@@ -335,7 +337,7 @@ on the tuning algorithm.
   The maximum number of games in progress to describe on the runtime display.
 
 
-.. _parameter configuration:
+.. _mc parameter configuration:
 
 Parameter configuration
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -361,8 +363,8 @@ The parameters are:
 
   Python function
 
-  Function mapping an optimiser parameter to an :dfn:`engine parameter`; see
-  :ref:`The parameter model`.
+  Function mapping an optimiser parameter to an engine parameter; see :ref:`mc
+  parameter model`.
 
   Although this can be defined explicitly, in most cases you should be able
   to use one of the :ref:`predefined scales <predefined scales>`.

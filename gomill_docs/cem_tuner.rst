@@ -21,6 +21,8 @@ section 3 for the description. The tuner always uses a Gaussian distribution.
 The improvement suggested in section 5 is not implemented.
 
 
+.. _ce parameter model:
+
 The parameter model
 ^^^^^^^^^^^^^^^^^^^
 
@@ -143,6 +145,58 @@ playoffs.
 The following additional settings are used (they are all compulsory):
 
 
+.. ce-setting:: candidate_colour
+
+  String: ``"b"`` or ``"w"``
+
+  The colour for the candidates to take in every game.
+
+
+.. ce-setting:: opponent
+
+  Identifier
+
+  The :ref:`player code <player codes>` of the player to use as the
+  candidates' opponent.
+
+
+.. ce-setting:: parameters
+
+  List of :ce-setting:`Parameter` definitions (see :ref:`ce parameter
+  configuration`).
+
+  Describes the parameters that the tuner will work with. See :ref:`ce
+  parameter model` for more details.
+
+  The order of the parameter definitions is used for the arguments to
+  :ce-setting:`make_candidate`, and whenever parameters are described in
+  reports or game records.
+
+
+.. ce-setting:: make_candidate
+
+  Python function
+
+  Function to create a Player from its engine parameters.
+
+  This function is passed one argument for each candidate Parameter, and must
+  return a Player definition. Each argument is the output of the corresponding
+  Parameter's :ce-setting:`transform`.
+
+  The function will typically use its arguments to construct command line
+  options or |gtp| commands for the Player. For example::
+
+    def make_candidate(param1, param2):
+        return Player(["goplayer", "--param1", str(param1),
+                       "--param2", str(param2)])
+
+    def make_candidate(param1, param2):
+        return Player("goplayer", startup_gtp_commands=[
+                       ["param1", str(param1)],
+                       ["param2", str(param2)],
+                      ])
+
+
 .. ce-setting:: number_of_generations
 
   Positive integer
@@ -185,6 +239,91 @@ The following additional settings are used (they are all compulsory):
 
   .. caution:: I can't find anywhere in the paper the value they used for
      this, so I don't know what to recommend.
+
+
+.. _ce parameter configuration:
+
+Parameter configuration
+^^^^^^^^^^^^^^^^^^^^^^^
+
+A Parameter definition has the same syntax as a Python function call:
+:samp:`Parameter({arguments})`. Apart from :ce-setting:`!code`, the arguments
+should be specified using keyword form (see :ref:`sample_cem_control_file`).
+
+The parameters are:
+
+
+.. ce-setting:: code
+
+  Identifier
+
+  A short string used to identify the parameter. This is used in error
+  messages, and in the default for :ce-setting:`format`.
+
+
+.. ce-setting:: initial_mean
+
+  Float
+
+  The mean value for the parameter in the first generation's distribution.
+
+
+.. ce-setting:: initial_variance
+
+  Float >= 0
+
+  The variance for the parameter in the first generation's distribution.
+
+
+.. ce-setting:: transform
+
+  Python function (default identity)
+
+  Function mapping an optimiser parameter to an engine parameter; see :ref:`ce
+  parameter model`.
+
+  Examples::
+
+    def exp_10(f):
+        return 10.0**f
+
+    Parameter('p1', initial_mean = …, initial_variance = …,
+              transform = scale_exp_10)
+
+  If the :ce-setting:`!transform` is not specified, the optimiser parameter is
+  used directly as the engine parameter.
+
+
+.. ce-setting:: format
+
+  String (default :samp:`"{parameter_code}: %s"`)
+
+  Format string used to display the parameter value. This should include a
+  short abbreviation to indicate which parameter is being displayed, and also
+  contain ``%s``, which will be replaced with the engine parameter value.
+
+  You can use any Python conversion specifier instead of ``%s``. For example,
+  ``%.2f`` will format a floating point number to two decimal places. ``%s``
+  should be safe to use for all types of value. See `string formatting
+  operations`__ for details.
+
+  .. __: http://docs.python.org/release/2.7/library/stdtypes.html#string-formatting-operations
+
+  Format strings should be kept short, as screen space is limited.
+
+  Examples::
+
+    Parameter('parameter_1', split = 8,
+              scale = LINEAR(-1.0, 1.0),
+              format = "p1: %.2f")
+
+    Parameter('parameter_2', split = 8,
+              scale = LOG(10, 10000, integer=True),
+              format = "p2: %d")
+
+    Parameter('parameter_3', split = 3,
+              scale = EXPLICIT(['low', 'medium', 'high']),
+              format = "p3: %s")
 
 
 
