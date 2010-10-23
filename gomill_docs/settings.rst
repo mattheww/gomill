@@ -71,11 +71,12 @@ File format
 The control file is a plain text configuration file.
 
 It is interpreted in the same way as a Python source file. See the
-:ref:`sample control file` above for an example of the syntax. See
-:ref:`FIXME` for a formal specification.
+:ref:`sample control file` above for an example of the syntax.
+
+  .. __: http://docs.python.org/release/2.7/reference/index.html
 
 The control file is made up of a series of top-level :dfn:`settings`, in the
-form of Python assignment statements: :samp:`{setting_name} = {value}`.
+form of assignment statements: :samp:`{setting_name} = {value}`.
 
 Each top-level setting should begin on a new line, in the leftmost column of
 the file. Settings which use brackets of any kind can be split over multiple
@@ -83,6 +84,9 @@ lines between elements (for example, lists can be split at the commas).
 
 Comments are introduced by the ``#`` character, and continue until the end of
 the line.
+
+See :ref:`data types` below for the representation of values. See the `Python
+language reference`__ for a formal specification.
 
 The settings for use in playoffs are listed below. Note that
 :setting:`competition_type` must come first.
@@ -100,6 +104,7 @@ If you wish, you can use arbitrary Python expressions in the control file; see
    execute arbitrary code. On a shared system, do not make the competition
    directory or the control file world-writeable.
 
+.. _data types:
 
 Data types
 ^^^^^^^^^^
