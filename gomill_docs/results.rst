@@ -37,7 +37,7 @@ games have unknown results (because they could not be scored, or reached the
 :setting:`move_limit`), a count will be shown for each matchup. :ref:`void
 games` are not shown in these reports.
 
-.. todo:: say anything about player codes and matchup codes? And
+.. todo:: say something about matchup ids/names? Also
    describe_engine. Possibly a ^^^-level heading for player descriptions.
 
 
@@ -61,6 +61,9 @@ The ringmaster writes an |sgf| record of each game it plays to the
 :file:`{code}.games/` directory (which it will create if necessary). This can
 be disabled with the :setting:`record_games` setting.
 
+The filename is based on the game's :ref:`id <game id>` (which includes the
+:setting:`matchup id <id>`).
+
 (You might also see game records in a :file:`{code}.void/` directory; these
 are games which were abandoned due to software failure; see :ref:`void
 games`.)
@@ -71,9 +74,6 @@ the comment section for individual moves: see :gtp:`gomill-explain_last_move`.
 The game record includes a description of the players in the root node comment
 [#]_. If an engine implements :gtp:`gomill-describe_engine`, its output is
 included.
-
-.. todo:: say that the filenames are game ids? or mention that they include
-   matchup codes?
 
 .. [#] The root node comment is used rather than the game comment because (in
    my experience) |sgf| viewers tend to make it easier to see information

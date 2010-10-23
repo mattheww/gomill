@@ -419,16 +419,13 @@ The parameters are:
   Identifier
 
   A short string (usually one to three characters) which is used to identify
-  the matchup. Matchup ids appear in the game ids (and so in the |sgf|
-  filenames), and are used in the result-retrieval API.
+  the matchup. Matchup ids appear in the :ref:`game ids <game id>` (and so in
+  the |sgf| filenames), and are used in the :ref:`result-retrieval API
+  <querying the results>`.
 
   If this is left unspecified, the matchup id will be the index of the matchup
   in the :setting:`matchups` list (formatted as a decimal string, starting
   from ``"0"``).
-
-
-  .. todo:: look at this para again once the things it talks about are or are
-     not documented.
 
 
 .. setting:: name

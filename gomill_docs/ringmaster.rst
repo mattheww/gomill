@@ -24,7 +24,7 @@ off.
 .. index:: competition type
 
 The ringmaster supports a number of different :dfn:`competition types`.
-Currently, two types of competition are supported:
+Currently, three types of competition are supported:
 
 .. index:: playoff, matchup
 
@@ -36,6 +36,9 @@ Tuning events
   In a :ref:`tuning event <tuners>`, the ringmaster runs an algorithm for
   adjusting player parameters to try to find the values which give strongest
   play.
+
+  There are two types of tuning event, :doc:`Monte Carlo <mcts_tuner>` and
+  :doc:`cross-entropy method <cem_tuner>`.
 
 
 Using the ringmaster
