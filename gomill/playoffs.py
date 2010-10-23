@@ -11,9 +11,7 @@ from gomill import competition_schedulers
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError, ControlFileError)
 from gomill.settings import *
-
-# FIXME
-from gtp_games import format_float
+from gomill.gomill_utils import format_float
 
 
 class Matchup(object):

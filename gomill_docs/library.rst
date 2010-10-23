@@ -26,6 +26,7 @@ Library overview
 
 Generic support code
 
+- :mod:`gomill_utils`
 - :mod:`compact_tracebacks`
 - :mod:`ascii_tables`
 - :mod:`job_manager`

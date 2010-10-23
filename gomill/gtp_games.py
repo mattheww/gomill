@@ -8,13 +8,7 @@ from gomill import handicap_layout
 from gomill import boards
 from gomill import sgf_writer
 from gomill.gtp_controller import BadGtpResponse, GtpChannelError
-
-def format_float(f):
-    """Format a Python float in a friendly way."""
-    if f == int(f):
-        return str(int(f))
-    else:
-        return str(f)
+from gomill.gomill_utils import format_float
 
 class Game_result(object):
     """Description of a game result.
