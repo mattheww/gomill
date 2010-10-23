@@ -95,6 +95,7 @@ def test_get_job(tc):
     tc.assertEqual(job.handicap, None)
     tc.assertIs(job.handicap_is_free, False)
     tc.assertIs(job.use_internal_scorer, True)
+    tc.assertEqual(job.sgf_game_name, 'test 0_000')
     tc.assertEqual(job.sgf_event, 'test')
     tc.assertIsNone(job.gtp_log_pathname)
     tc.assertIsNone(job.sgf_filename)

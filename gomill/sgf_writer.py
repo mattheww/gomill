@@ -14,6 +14,7 @@ friendly_idents = {
     'black-player' : 'PB',
     'white-player' : 'PW',
     'result'       : 'RE',
+    'game-name'    : 'GN',
     'event'        : 'EV',
     'round'        : 'RO',
     'game-comment' : 'GC',

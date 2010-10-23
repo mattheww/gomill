@@ -103,7 +103,8 @@ class Game_job(object):
       use_internal_scorer -- bool (default True)
       sgf_filename        -- filename for the SGF file
       sgf_dirname         -- directory pathname for the SGF file
-      void_sgf_dirhname   -- directory pathname for the SGF file for void games
+      void_sgf_dirname    -- directory pathname for the SGF file for void games
+      sgf_game_name       -- string to show as SGF Game Name (default game_id)
       sgf_event           -- string to show as SGF EVent
       sgf_note            -- multiline string to put into SGF root comment
       gtp_log_pathname    -- pathname to use for the GTP log
@@ -138,6 +139,7 @@ class Game_job(object):
         self.sgf_filename = None
         self.sgf_dirname = None
         self.void_sgf_dirname = None
+        self.sgf_game_name = None
         self.sgf_event = None
         self.sgf_note = None
         self.use_internal_scorer = True
@@ -256,6 +258,10 @@ class Game_job(object):
         w_player = game.players['w']
         notes = []
         sgf_game = game.make_sgf(game_end_message)
+        if self.sgf_game_name is not None:
+            sgf_game.set('game-name', self.sgf_game_name)
+        else:
+            sgf_game.set('game-name', self.game_id)
         if self.sgf_event is not None:
             sgf_game.set('event', self.sgf_event)
             notes.append("Event: %s" % self.sgf_event)

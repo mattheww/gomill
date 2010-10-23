@@ -323,6 +323,7 @@ class Competition(object):
 
         The Game_job is incomplete in the following ways (which are left to the
         ringmaster to finish off):
+         - sgf_game_name isn't set
          - sgf_filename, sgf_dirname and void_sgf_dirname aren't set
          - gtp_log_pathname isn't set
          - the Players' stderr_pathname isn't set; instead they have a

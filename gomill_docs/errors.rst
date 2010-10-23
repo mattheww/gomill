@@ -16,8 +16,8 @@ Game identification
 -------------------
 
 Each game is identified using a short string (the :dfn:`game_id`). This is
-used in the |sgf| :ref:`game record <game records>` filename, the :ref:`log
-files <logging>`, the live display, and so on.
+used in the |sgf| :ref:`game record <game records>` filename and game name
+(``GN``), the :ref:`log files <logging>`, the live display, and so on.
 
 For playoffs, game ids are made up from the :setting:`matchup id <id>` and the
 number of the game within the matchup; for example, the first game played

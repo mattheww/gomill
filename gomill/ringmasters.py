@@ -506,6 +506,7 @@ class Ringmaster(object):
         job -- incomplete Game_job, as returned by Competition.get_game()
 
         """
+        job.sgf_game_name = "%s %s" % (self.competition_code, job.game_id)
         if self.record_games:
             job.sgf_filename = self.get_sgf_filename(job.game_id)
             job.sgf_dirname = self.sgf_dir_pathname

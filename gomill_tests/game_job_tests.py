@@ -78,6 +78,7 @@ def test_game_job(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     gj = Game_job_fixture(tc)
     gj.job.game_data = 'gamedata'
+    gj.job.sgf_game_name = "gjt 0_000"
     gj.job.sgf_event = "game_job_tests"
     gj.job.sgf_note = "test sgf_note\non two lines"
     result = gj.job.run()
@@ -103,9 +104,9 @@ def test_game_job(tc):
     on two lines
     Black one one
     White two two]
-    CA[utf-8]DT[***]EV[game_job_tests]FF[4]GM[1]KM[7.5]PB[one]PW[two]
-    RE[B+10.5]SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge]
-    ;B[ed];W[gd];B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];W[tt]
+    CA[utf-8]DT[***]EV[game_job_tests]FF[4]GM[1]GN[gjt 0_000]KM[7.5]PB[one]
+    PW[two]RE[B+10.5]SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee]
+    ;W[ge];B[ed];W[gd];B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];W[tt]
     C[one beat two B+10.5])
     """))
 
