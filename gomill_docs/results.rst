@@ -41,7 +41,7 @@ If there is more than one matchup between the same pair of players, use the
 matchup :setting:`name` setting to distinguish them.
 
 The player descriptions at the end of the report are obtained using the |gtp|
-:gtp:`name` and :gtp:`version` commands, or using
+:gtp:`!name` and :gtp:`!version` commands, or using
 :gtp:`gomill-describe_engine` if the engine provides it.
 
 The :action:`report` command line action rewrites the competition report file.
@@ -91,7 +91,7 @@ available.
 
 If an engine implements the :gtp:`gomill-cpu_time` command, its output is
 used. Otherwise, the ringmaster uses the CPU time of the engine process that
-it created, as returned by the :c:func:`wait4()` system call (user plus system
+it created, as returned by the :c:func:`!wait4()` system call (user plus system
 time); unfortunately, this may not be meaningful, if the engine's work isn't
 all done directly in that process.
 
@@ -105,5 +105,5 @@ It's possible to write Python scripts which report on competition results.
 
 As of Gomill |version|, this library interface is not definitely stable, but
 the :script:`find_forfeits.py` example script and the docstrings of the last
-few methods in the :mod:`playoffs` module show how it can be used.
+few methods in the :mod:`!playoffs` module show how it can be used.
 

@@ -239,7 +239,7 @@ are compulsory):
   configuration`).
 
   Describes the parameter space that the tuner will work in. See :ref:`The
-  parameter model` for more details.
+  parameter model <mc parameter model>` for more details.
 
   The order of the :mc-setting-cls:`Parameter` definitions is used for the
   arguments to :mc-setting:`make_candidate`, and whenever parameters are
@@ -274,7 +274,7 @@ are compulsory):
 
   Float
 
-  The coefficient of the exploration term in the :ref:`UCB` algorithm (eg
+  The coefficient of the exploration term in the :term:`UCB` algorithm (eg
   ``0.45``). See :ref:`The tuning algorithm <the mcts tuning algorithm>`.
 
 
@@ -326,7 +326,7 @@ on the tuning algorithm.
 
   Positive integer (default None)
 
-  If this is set, a detailed description of the :ref:`UCT` tree is written to
+  If this is set, a detailed description of the :term:`UCT` tree is written to
   the :ref:`history file <logging>` periodically (after every
   :mc-setting:`!log_tree_to_history_period` games).
 

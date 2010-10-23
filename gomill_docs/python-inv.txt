@@ -3,3 +3,4 @@
 # Version: 2.7
 os.path.expanduser function library/os.path.html
 shlex.split function library/shlex.html
+termios mod library/termios.html

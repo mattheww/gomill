@@ -14,7 +14,7 @@ Pairings
 When a competition is run, the ringmaster will launch one or more games
 between pairs of players.
 
-For playoffs, the pairings are determined by the :setting:`matchup`
+For playoffs, the pairings are determined by the :setting-cls:`Matchup`
 descriptions in the control file. If there is more than one matchup specified,
 the ringmaster prefers to start games from the matchup which has played fewest
 games.
@@ -34,9 +34,9 @@ This can be useful to keep processor cores busy, or if the actual playing
 programs are running on different machines to the ringmaster.
 
 Normally it makes no difference whether the ringmaster starts games in
-sequence or in parallel, but it does have an effect on the :ref:`Monte Carlo
-tuner`, as it will have less information each time it chooses a candidate
-player.
+sequence or in parallel, but it does have an effect on the :doc:`Monte Carlo
+tuner <mcts_tuner>`, as it will have less information each time it chooses a
+candidate player.
 
 .. tip:: Even if an engine is capable of using multiple threads, it may be
    better to use parallel single-threaded games during development to get
@@ -131,7 +131,7 @@ The ringmaster doesn't know or care what rule variant the players are using;
 it's up to you to make sure they agree with each other.
 
 Any :setting:`startup_gtp_commands` configured for a player will be sent
-before the :gtp:`boardsize` and :gtp:`clear_board` commands. Failure responses
+before the :gtp:`!boardsize` and :gtp:`!clear_board` commands. Failure responses
 from these commands are ignored.
 
 Each game normally continues until both players pass in succession, or one
@@ -148,8 +148,8 @@ played an illegal move and so should forfeit the game (this is convenient if
 you're testing an experimental engine against an established one).
 
 If one of the players returns any other |gtp| failure response (either to
-:gtp:`genmove` or to :gtp:`play`), or an uninterpretable response to
-:gtp:`genmove`, it forfeits the game.
+:gtp:`!genmove` or to :gtp:`!play`), or an uninterpretable response to
+:gtp:`!genmove`, it forfeits the game.
 
 If the game lasts longer than the configured :setting:`move_limit`, it is
 stopped at that point, and recorded as having an unknown result (with |sgf|
@@ -173,7 +173,7 @@ and ``internal``. The :setting:`scorer` Matchup setting determines which is
 used.
 
 When the ``players`` method is used, the players are asked to score the game
-using the |gtp| :gtp:`final_score` command. See also the
+using the |gtp| :gtp:`!final_score` command. See also the
 :setting:`is_reliable_scorer` player setting.
 
 When the ``internal`` method is used, the ringmaster scores the game itself,
@@ -226,10 +226,10 @@ The checks are as follows:
 
 - the engine subprocess starts, and replies to |gtp| commands
 - the engine reports |gtp| protocol version 2 (if it supports
-  :gtp:`protocol_version` at all)
+  :gtp:`!protocol_version` at all)
 - the engine accepts any :setting:`startup_gtp_commands`
 - the engine accepts the required board size and komi
-- the engine accepts the :gtp:`clear_board` |gtp| command
+- the engine accepts the :gtp:`!clear_board` |gtp| command
 
 
 .. _quiet mode:
@@ -335,8 +335,8 @@ for games starting and completing may help).
 
 If the competition setting :setting:`stderr_to_log` is False, the engines'
 standard error streams are left unchanged from the ringmaster's. This is only
-useful in :ref:`quiet mode`, or if you redirect the ringmaster's standard
-error.
+useful in :ref:`quiet mode <quiet mode>`, or if you redirect the ringmaster's
+standard error.
 
 You can send standard error for a particular player to :file:`/dev/null` using
 the player setting :setting:`discard_stderr`. This can be used for players

@@ -20,14 +20,14 @@ See the top of each script for further information.
 
   Prints an ASCII diagram of the position from an |sgf| file.
 
-  This demonstrates the :mod:`sgf_reader` and :mod:`ascii_boards` modules.
+  This demonstrates the :mod:`!sgf_reader` and :mod:`!ascii_boards` modules.
 
 
 .. script:: twogtp
 
   A 'traditional' twogtp implementation.
 
-  This demonstrates the :mod:`gtp_games` module.
+  This demonstrates the :mod:`!gtp_games` module.
 
 
 .. script:: find_forfeits.py
@@ -43,16 +43,16 @@ See the top of each script for further information.
   A |gtp| engine intended for testing |gtp| controllers.
 
   This demonstrates the low-level engine-side |gtp| code (the
-  :mod:`gtp_engine` module).
+  :mod:`!gtp_engine` module).
 
 
 .. script:: gtp_stateful_player
 
   A |gtp| engine which maintains the board position.
 
-  This demonstrates the :mod:`gtp_states` module, which can be used to make a
+  This demonstrates the :mod:`!gtp_states` module, which can be used to make a
   |gtp| engine from a stateless move-generating program, or to add commands
-  like :gtp:`undo` and :gtp:`loadsgf` to an engine which doesn't natively
+  like :gtp:`!undo` and :gtp:`!loadsgf` to an engine which doesn't natively
   support them.
 
 
@@ -64,7 +64,7 @@ See the top of each script for further information.
 
   .. _`kgsGtp`: http://senseis.xmp.net/?KgsGtp
 
-  This demonstrates the :mod:`gtp_proxy` module, and may be independently
+  This demonstrates the :mod:`!gtp_proxy` module, and may be independently
   useful.
 
 
@@ -77,6 +77,6 @@ See the top of each script for further information.
   .. _`Mogo`: http://www.lri.fr/~gelly/MoGo_Download.htm
   .. _`Quarry`: http://home.gna.org/quarry/
 
-  This demonstrates the :mod:`gtp_proxy` module, and may be independently
+  This demonstrates the :mod:`!gtp_proxy` module, and may be independently
   useful.
 

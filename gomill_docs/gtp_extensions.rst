@@ -25,7 +25,7 @@ The extensions used by the ringmaster are as follows:
   If no information is available, return an empty string.
 
   The behaviour of this command is unspecified if a command changing the board
-  state (eg :gtp:`play` or :gtp:`undo`) has occurred since the engine last
+  state (eg :gtp:`!play` or :gtp:`!undo`) has occurred since the engine last
   generated a move.
 
 
@@ -34,7 +34,7 @@ The extensions used by the ringmaster are as follows:
   Arguments: none
 
   Return a string with a description of the engine's configuration. This
-  should repeat the information from the :gtp:`name` and :gtp:`version`
+  should repeat the information from the :gtp:`!name` and :gtp:`!version`
   commands. Controllers should expect the response to take multiple lines.
 
   The intention is that |gtp| controllers which produce game records should
@@ -66,22 +66,22 @@ The extensions used by the ringmaster are as follows:
 
   Arguments: colour, list of keywords
 
-  This is a variant of the standard :gtp:`genmove` command. Each keyword
+  This is a variant of the standard :gtp:`!genmove` command. Each keyword
   indicates a permitted (or desired) variation of behaviour. For example::
 
     gomill-genmove_ex b claim
 
   If :gtp:`!gomill-genmove_ex` is sent without any arguments (ie, no colour is
   specified), the engine should return a list of the keywords it supports (one
-  per line, like :gtp:`list_commands`).
+  per line, like :gtp:`!list_commands`).
 
   Engines must ignore keywords they do not support. :gtp:`!gomill-genmove_ex`
-  with no keywords is exactly equivalent to :gtp:`genmove`.
+  with no keywords is exactly equivalent to :gtp:`!genmove`.
 
   The following keywords are currently defined:
 
   ``claim``
-    In addition to the usual responses to :gtp:`genmove`, the engine may also
+    In addition to the usual responses to :gtp:`!genmove`, the engine may also
     return ``claim``, which indicates that the engine believes it is certain
     to win the game (the engine must not assume that the controller will act
     on this claim).
@@ -95,7 +95,7 @@ There is also an extension which is not used by the ringmaster:
 
   Write an |sgf| game record of the current game.
 
-  See the |gtp| specification's description of :gtp:`loadsgf` for the
+  See the |gtp| specification's description of :gtp:`!loadsgf` for the
   interpretation of the ``filename`` argument.
 
   The |sgf| properties should be specified in the form
@@ -118,13 +118,13 @@ There is also an extension which is not used by the ringmaster:
 
     |gtp| engines aren't typically well placed to write game records, as they
     don't have enough information to write the game metadata properly (which
-    is why :gtp:`gomill-savesgf` takes the |sgf| properties explicitly). It's
+    is why :gtp:`!gomill-savesgf` takes the |sgf| properties explicitly). It's
     usually better for the controller to do it. See the :script:`kgs_proxy.py`
     example script for an example of when this command might be useful.
 
 
 The :gtp:`gomill-explain_last_move`, :gtp:`gomill-genmove_ex`, and
-:gtp:`gomill-savesgf` commands are supported by the Gomill :mod:`gtp_states`
+:gtp:`gomill-savesgf` commands are supported by the Gomill :mod:`!gtp_states`
 module.
 
 .. The other extension is gomill-passthrough (used by proxies), but I don't

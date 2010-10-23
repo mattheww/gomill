@@ -29,12 +29,12 @@ Details of scoring
 ------------------
 
 If :setting:`scorer` is ``players`` but neither engine is able to score
-(whether because :gtp:`final_score` isn't implemented, or it fails, or
+(whether because :gtp:`!final_score` isn't implemented, or it fails, or
 :setting:`is_reliable_scorer` is ``False``), the game result is reported as
 unknown (|sgf| result ``?``).
 
 If both engines are able to score but they disagree about the winner, the game
-result is reported as unknown. The engines' responses to :gtp:`final_score`
+result is reported as unknown. The engines' responses to :gtp:`!final_score`
 are recorded in |sgf| file comments.
 
 If the engines agree about the winner but disagree about the winning margin,
@@ -48,7 +48,7 @@ Engine errors
 -------------
 
 If an engine returns a |gtp| failure response to any of the commands which set
-up the game (eg :gtp:`boardsize` or :gtp:`fixed_handicap`), the game is
+up the game (eg :gtp:`!boardsize` or :gtp:`!fixed_handicap`), the game is
 treated as :ref:`void <void games>`.
 
 If an engine fails to start, exits unexpectedly, or produces a |gtp| response
@@ -65,7 +65,7 @@ not treated as void.
 Engine exit behaviour
 ---------------------
 
-Before reporting the game result, the ringmaster sends :gtp:`quit` to both
+Before reporting the game result, the ringmaster sends :gtp:`!quit` to both
 engines, closes their input and output pipes, and waits for the subprocesses
 to exit.
 
@@ -125,7 +125,7 @@ In parallel mode, outstanding games will be allowed to complete.
 Preventing simultaneous runs
 ----------------------------
 
-If :c:func:`flock()` is available, the ringmaster will detect attempts to run
+If :c:func:`!flock()` is available, the ringmaster will detect attempts to run
 a competition which is already running (but this probably won't work if the
 control file is on a network filesystem).
 
@@ -146,7 +146,7 @@ from their controlling terminal or ignore the signal, they should exit
 cleanly in response.
 
 Running the ringmaster in the background (including using :kbd:`Ctrl-Z`)
-should work properly (you probably want :ref:`quiet mode`).
+should work properly (you probably want :ref:`quiet mode <quiet mode>`).
 
 
 .. _remote control file:
@@ -167,8 +167,8 @@ terminal and report output in UTF-8.
 
 Non-ASCII characters in the control file must be encoded in UTF-8.
 
-|GTP| engines may return UTF-8 characters in in response to :gtp:`name`,
-:gtp:`version`, :gtp:`gomill-describe_engine`, or
+|GTP| engines may return UTF-8 characters in in response to :gtp:`!name`,
+:gtp:`!version`, :gtp:`gomill-describe_engine`, or
 :gtp:`gomill-explain_last_move`.
 
 In practice, non-ASCII characters from |GTP| engines will normally be passed

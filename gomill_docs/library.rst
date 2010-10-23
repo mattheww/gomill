@@ -26,54 +26,54 @@ Library overview
 
 Generic support code
 
-- :mod:`gomill_utils`
-- :mod:`compact_tracebacks`
-- :mod:`ascii_tables`
-- :mod:`job_manager`
-- :mod:`settings`
+- :mod:`!gomill_utils`
+- :mod:`!compact_tracebacks`
+- :mod:`!ascii_tables`
+- :mod:`!job_manager`
+- :mod:`!settings`
 
 
 Go-related support code
 
-- :mod:`gomill_common`
-- :mod:`ascii_boards`
-- :mod:`boards`
-- :mod:`handicap_layout`
+- :mod:`!gomill_common`
+- :mod:`!ascii_boards`
+- :mod:`!boards`
+- :mod:`!handicap_layout`
 
 
 |sgf| support
 
-- :mod:`sgf_reader`
-- :mod:`sgf_writer`
+- :mod:`!sgf_reader`
+- :mod:`!sgf_writer`
 
 
 |gtp| controller side
 
-- :mod:`gtp_controller`
-- :mod:`gtp_games`
+- :mod:`!gtp_controller`
+- :mod:`!gtp_games`
 
 
 |gtp| engine side
 
-- :mod:`gtp_engine`
-- :mod:`gtp_states`
-- :mod:`gtp_proxy`
+- :mod:`!gtp_engine`
+- :mod:`!gtp_states`
+- :mod:`!gtp_proxy`
 
 
 Competitions
 
-- :mod:`competition_schedulers`
-- :mod:`competitions`
-- :mod:`cem_tuners`
-- :mod:`mcts_tuners`
-- :mod:`playoffs`
+- :mod:`!competition_schedulers`
+- :mod:`!competitions`
+- :mod:`!cem_tuners`
+- :mod:`!mcts_tuners`
+- :mod:`!playoffs`
 
 
 The Ringmaster
 
-- :mod:`game_jobs`
-- :mod:`terminal_input`
-- :mod:`ringmaster_presenters`
-- :mod:`ringmasters`
-- :mod:`ringmaster_command_line`
+- :mod:`!game_jobs`
+- :mod:`!terminal_input`
+- :mod:`!ringmaster_presenters`
+- :mod:`!ringmasters`
+- :mod:`!ringmaster_command_line`
 

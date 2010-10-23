@@ -287,7 +287,7 @@ The parameters are:
   remainder as its arguments.
 
   If the executable name does not contain a ``/``, it is searched for on the
-  the :envvar:`PATH`. Otherwise it is handled as described in :ref:`file and
+  the :envvar:`!PATH`. Otherwise it is handled as described in :ref:`file and
   directory names <file and directory names>`.
 
   Example::
@@ -369,7 +369,7 @@ The parameters are:
     Player('fuego', gtp_aliases={'gomill-cpu_time' : 'cputime'})
 
   When the ringmaster would normally send :gtp:`gomill-cpu_time`, it will send
-  :gtp:`cputime` instead.
+  :gtp:`!cputime` instead.
 
   The command names are case-sensitive. There is no mechanism for altering
   arguments.
@@ -380,7 +380,7 @@ The parameters are:
   Boolean (default ``True``)
 
   If the :setting:`scorer` is ``players``, the ringmaster normally asks each
-  player that implements the :gtp:`final_score` |gtp| command to report the
+  player that implements the :gtp:`!final_score` |gtp| command to report the
   game result. Setting :setting:`!is_reliable_scorer` to ``False`` for a
   player causes that player never to be asked.
 
