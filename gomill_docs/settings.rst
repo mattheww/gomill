@@ -163,8 +163,6 @@ directory>`.
 If a file or directory name begins with ``~``, home directory expansion is
 applied (see :func:`os.path.expanduser`).
 
-  .. todo:: sort out best way to refer to Python stdlib functions.
-
 
 Playoff settings
 ^^^^^^^^^^^^^^^^

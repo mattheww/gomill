@@ -1,0 +1,5 @@
+# Sphinx inventory version 1
+# Project: Python
+# Version: 2.7
+os.path.expanduser function library/os.path.html
+shlex.split function library/shlex.html

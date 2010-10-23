@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 needs_sphinx = '1.0'
-extensions = ['sphinx.ext.todo', 'sphinx.ext.pngmath']
+extensions = ['sphinx.ext.todo', 'sphinx.ext.pngmath', 'sphinx.ext.intersphinx']
 templates_path = ['_templates']
 source_suffix = '.rst'
 source_encoding = 'utf-8'
@@ -14,6 +14,7 @@ unused_docs = []
 exclude_dirnames = ['.git']
 pygments_style = 'borland'
 modindex_common_prefix = ['gomill.']
+
 
 # If true, the current module name will be prepended to all description
 # unit titles (such as .. function::).
@@ -60,6 +61,10 @@ html_show_sourcelink = False
 pngmath_use_preview = True
 
 todo_include_todos = True
+
+
+intersphinx_mapping = {'python': ('http://docs.python.org/2.7',
+                                  'python-inv.txt')}
 
 
 rst_epilog = """
