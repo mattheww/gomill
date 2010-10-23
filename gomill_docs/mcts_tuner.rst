@@ -1,7 +1,7 @@
 .. index:: monte carlo tuner
 
 The Monte Carlo tuner
-=====================
+---------------------
 
 The Monte Carlo tuner treats the tuning event as a :term:`bandit problem`.
 That is, it attempts to find the candidate which has the highest probability
