@@ -37,9 +37,12 @@ games have unknown results (because they could not be scored, or reached the
 :setting:`move_limit`), a count will be shown for each matchup. :ref:`void
 games` are not shown in these reports.
 
-.. todo:: say something about matchup ids/names? Also
-   describe_engine. Possibly a ^^^-level heading for player descriptions.
+If there is more than one matchup between the same pair of players, use the
+matchup :setting:`name` setting to distinguish them.
 
+The player descriptions at the end of the report are obtained using the |gtp|
+:gtp:`name` and :gtp:`version` commands, or using
+:gtp:`gomill-describe_engine` if the engine provides it.
 
 The :action:`report` command line action rewrites the competition report file.
 This can be useful if you have changed descriptive text in the control file,
