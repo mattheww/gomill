@@ -3,3 +3,4 @@ recursive-exclude examples *.pyc
 recursive-include gomill_tests *
 recursive-exclude gomill_tests *.pyc
 recursive-include docs *
+include test_installed_gomill.py
