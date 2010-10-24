@@ -49,7 +49,7 @@ def compare_diagrams(d1, d2):
 
 
 traceback_line_re = re.compile(
-    r"  (?:[a-x0-9_]+/)*([a-z0-9_]+)\.py:[0-9]+ \(([a-z0-9_]+)\)")
+    r"  (?:/?[a-z0-9_]+/)*([a-z0-9_]+)\.py:[0-9]+ \(([a-z0-9_]+)\)")
 
 class Gomill_testcase_mixin(object):
     """TestCase mixin adding support for gomill-specific types.
