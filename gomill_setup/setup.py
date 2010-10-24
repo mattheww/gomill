@@ -45,4 +45,6 @@ setup(name='gomill',
           "Topic :: Software Development :: Libraries :: Python Modules",
           ],
       keywords="go baduk weiqi",
+      license="MIT",
+      platform="POSIX",
       )
