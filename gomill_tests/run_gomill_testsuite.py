@@ -3,8 +3,6 @@
 import sys
 from optparse import OptionParser
 
-from gomill_tests.test_framework import unittest2
-
 test_modules = [
     'gomill_utils_tests',
     'gomill_common_tests',
@@ -79,7 +77,28 @@ def run(argv):
         module_name = None
     run_testsuite(module_name, options.failfast, not options.nobuffer)
 
+def import_unittest():
+    """Import unittest2 into global scope.
+
+    Raises NameError if it isn't available.
+
+    Call this before using the functions in this module other than main().
+
+    """
+    global unittest2
+    try:
+        from gomill_tests.test_framework import unittest2
+    except ImportError, e:
+        if hasattr(e, 'unittest2_missing'):
+            raise NameError("unittest2")
+        raise
+
 def main():
+    try:
+        import_unittest()
+    except NameError:
+        sys.exit("gomill_tests: requires either Python 2.7 or "
+                 "the 'unittest2' package")
     run(sys.argv[1:])
 
 if __name__ == "__main__":

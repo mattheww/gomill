@@ -5,7 +5,11 @@ import sys
 if sys.version_info >= (2, 7):
     import unittest as unittest2
 else:
-    import unittest2
+    try:
+        import unittest2
+    except ImportError, e:
+        e.unittest2_missing = True
+        raise
 
 # This makes TestResult ignore lines from this module in tracebacks
 __unittest = True
