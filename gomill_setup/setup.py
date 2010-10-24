@@ -16,6 +16,6 @@ setup(name='gomill',
       author="Matthew Woodcraft",
       author_email="matthew@woodcraft.me.uk",
       packages=['gomill'],
-      scripts=['scripts/ringmaster'],
+      scripts=['ringmaster'],
       cmdclass=cmdclass,
       )
