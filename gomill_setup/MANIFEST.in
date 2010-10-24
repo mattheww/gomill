@@ -1,2 +1,5 @@
-recursive-include examples *.py
+recursive-include examples *
+recursive-exclude examples *.pyc
+recursive-include gomill_tests *
+recursive-exclude gomill_tests *.pyc
 recursive-include docs *
