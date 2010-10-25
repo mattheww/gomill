@@ -6,8 +6,6 @@ from distutils import dir_util
 from distutils.core import setup, Command
 
 VERSION = "0.5"
-PACKAGES = ['gomill']
-SCRIPTS = ['ringmaster']
 
 
 try:
@@ -64,7 +62,7 @@ class uninstall(Command):
         files_to_remove = []
         dirs_to_remove = []
 
-        for script in SCRIPTS:
+        for script in self.distribution.scripts:
             pathname = find_script(script)
             if pathname is None:
                 self.warn("could not find script '%s'" % script)
@@ -78,7 +76,7 @@ class uninstall(Command):
         here = os.path.dirname(os.path.realpath(__file__))
         sys.path = [s for s in sys.path if os.path.realpath(s) != here]
 
-        for package in PACKAGES:
+        for package in self.distribution.packages:
             pathname = find_package(package)
             if pathname == here:
                 # belt and braces
@@ -118,8 +116,8 @@ setup(name='gomill',
       long_description=LONG_DESCRIPTION,
       author="Matthew Woodcraft",
       author_email="matthew@woodcraft.me.uk",
-      packages=PACKAGES,
-      scripts=SCRIPTS,
+      packages=['gomill'],
+      scripts=['ringmaster'],
       cmdclass=cmdclass,
       classifiers=[
           "Development Status :: 4 - Beta",
