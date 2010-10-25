@@ -1,16 +1,109 @@
-from distutils.core import setup
+import glob
+import imp
+import os
+import sys
+from distutils import dir_util
+from distutils.core import setup, Command
+
+VERSION = "0.5"
+PACKAGES = ['gomill']
+SCRIPTS = ['ringmaster']
+
 
 try:
     from sphinx.setup_command import BuildDoc
 except ImportError:
     BuildDoc = None
 
-if BuildDoc:
-    cmdclass = {'build_sphinx' : BuildDoc}
-else:
-    cmdclass = {}
+cmdclass = {}
 
-long_description = """\
+if BuildDoc:
+    cmdclass['build_sphinx'] = BuildDoc
+
+
+
+def find_script(name):
+    mode = os.F_OK | os.X_OK
+    for dirname in os.environ.get('PATH', os.defpath).split(os.pathsep):
+        if dirname == '':
+            continue
+        pathname = os.path.join(dirname, name)
+        if os.path.exists(pathname) and os.access(pathname, mode):
+            return pathname
+    return None
+
+def check_script(pathname):
+    s = open(pathname).read()
+    return 'from gomill import' in s
+
+def find_package(name):
+    try:
+        f, pathname, _ = imp.find_module(name)
+    except ImportError:
+        return None
+    if not isinstance(pathname, str):
+        return None
+    return os.path.realpath(pathname)
+
+def find_egg_info(package, pathname):
+    dirname = os.path.dirname(pathname)
+    return glob.glob(os.path.join(dirname, "%s-*.egg-info" % package))
+
+
+class uninstall(Command):
+    description = "uninstall the currently available version"
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        files_to_remove = []
+        dirs_to_remove = []
+
+        for script in SCRIPTS:
+            pathname = find_script(script)
+            if pathname is None:
+                self.warn("could not find script '%s'" % script)
+                continue
+            if check_script(pathname):
+                files_to_remove.append(pathname)
+            else:
+                self.warn("'%s' does not appear to be a gomill script; "
+                          "not removing" % pathname)
+
+        here = os.path.dirname(os.path.realpath(__file__))
+        sys.path = [s for s in sys.path if os.path.realpath(s) != here]
+
+        for package in PACKAGES:
+            pathname = find_package(package)
+            if pathname == here:
+                # belt and braces
+                pathname = None
+            if pathname is None:
+                self.warn("could not find package '%s'" % package)
+                continue
+            dirs_to_remove.append(pathname)
+            egg_infos = find_egg_info(package, pathname)
+            if len(egg_infos) > 1:
+                self.warn("multiple .egg-info files; not removing any:\n%s"
+                          % "\n".join(egg_infos))
+                egg_info_pathname = None
+            elif len(egg_infos) == 1:
+                files_to_remove.append(egg_infos[0])
+
+        for pathname in files_to_remove:
+            self.execute(os.remove, (pathname,), "removing '%s'" % pathname)
+        for pathname in dirs_to_remove:
+            dir_util.remove_tree(pathname, dry_run=self.dry_run)
+
+cmdclass['uninstall'] = uninstall
+
+
+LONG_DESCRIPTION = """\
 Gomill is a suite of tools, and a Python library, for use in developing and
 testing Go-playing programs. It is based around the Go Text Protocol (GTP) and
 the Smart Game Format (SGF).
@@ -20,13 +113,13 @@ and keeps track of the results.
 """
 
 setup(name='gomill',
-      version="0.5",
+      version=VERSION,
       description="Go programming toolkit",
-      long_description=long_description,
+      long_description=LONG_DESCRIPTION,
       author="Matthew Woodcraft",
       author_email="matthew@woodcraft.me.uk",
-      packages=['gomill'],
-      scripts=['ringmaster'],
+      packages=PACKAGES,
+      scripts=SCRIPTS,
       cmdclass=cmdclass,
       classifiers=[
           "Development Status :: 4 - Beta",
