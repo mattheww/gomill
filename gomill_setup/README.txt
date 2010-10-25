@@ -58,7 +58,7 @@ and the ringmaster executable onto the executable PATH.
 
 To install, first change to the distribution directory, then:
 
- - to install for the system as a whole, run
+ - to install for the system as a whole, run (as a sufficiently privileged user)
 
      python setup.py install
 
@@ -68,6 +68,7 @@ To install, first change to the distribution directory, then:
      python setup.py install --user
 
 
+Pass --dry-run to see what these will do.
 See http://docs.python.org/2.7/install/ for more information.
 
 
@@ -79,7 +80,7 @@ To remove an installed version of gomill, run
   python setup.py uninstall
 
 (This uses the Python module search path and the executable PATH to find the
-files to remove.)
+files to remove; pass --dry-run to see what it will do.)
 
 
 Tests
