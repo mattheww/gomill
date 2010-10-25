@@ -46,5 +46,5 @@ setup(name='gomill',
           ],
       keywords="go baduk weiqi",
       license="MIT",
-      platform="POSIX",
+      platforms="POSIX",
       )
