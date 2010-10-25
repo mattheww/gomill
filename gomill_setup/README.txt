@@ -63,12 +63,23 @@ To install, first change to the distribution directory, then:
      python setup.py install
 
 
- - to install for the current user only, run
+ - to install for the current user only (Python 2.6 or 2.7), run
 
      python setup.py install --user
 
 
 See http://docs.python.org/2.7/install/ for more information.
+
+
+Uninstallation
+--------------
+
+To remove an installed version of gomill, run
+
+  python setup.py uninstall
+
+(This uses the Python module search path and the executable PATH to find the
+files to remove.)
 
 
 Tests
