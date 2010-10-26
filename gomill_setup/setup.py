@@ -105,6 +105,8 @@ class uninstall(Command):
 cmdclass['uninstall'] = uninstall
 
 
+GOMILL_URL = "http://mjw.woodcraft.me.uk/gomill/"
+
 LONG_DESCRIPTION = """\
 Gomill is a suite of tools, and a Python library, for use in developing and
 testing Go-playing programs. It is based around the Go Text Protocol (GTP) and
@@ -116,6 +118,8 @@ and keeps track of the results.
 
 setup(name='gomill',
       version=VERSION,
+      url=GOMILL_URL,
+      download_url="%sdownload/gomill-%s.tar.gz" % (GOMILL_URL, VERSION),
       description="Go programming toolkit",
       long_description=LONG_DESCRIPTION,
       author="Matthew Woodcraft",
