@@ -177,6 +177,10 @@ def test_game_id_format(tc):
 def test_get_player_checks(tc):
     comp = playoffs.Playoff('testcomp')
     config = default_config()
+    config['players']['t3'] = Player_config("test3")
+    config['matchups'].append(
+        Matchup_config('t1', 't3', number_of_games=0),
+        ),
     comp.initialise_from_control_file(config)
     checks = comp.get_player_checks()
     tc.assertEqual(len(checks), 2)

@@ -216,8 +216,9 @@ The :action:`check` command line action runs the same checks, but it leaves
 the engines' standard error going to the console (any
 :setting:`discard_stderr` player settings are ignored).
 
-For playoffs, only players listed in matchups are checked. If a player appears
-in more than one matchup, the board size and komi from its first matchup are
+For playoffs, only players listed in matchups are checked (and matchups with
+:setting:`number_of_games` set to ``0`` are ignored). If a player appears in
+more than one matchup, the board size and komi from its first matchup are
 used.
 
 For tuning events, the opponent and one sample candidate are checked.

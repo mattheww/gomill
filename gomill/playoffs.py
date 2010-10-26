@@ -331,6 +331,8 @@ class Playoff(Competition):
         # the player appears in.
         used_players = {}
         for m in reversed(self.matchup_list):
+            if m.number_of_games == 0:
+                continue
             used_players[m.p1] = m
             used_players[m.p2] = m
         result = []
