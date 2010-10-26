@@ -116,8 +116,8 @@ will be scheduled from the current state of the MCTS tree (and the original
 game number will be skipped). If two game results in a row are void, the run
 will be halted.
 
-For CEM tuning events, any other void game will be replayed; if it fails
-again, the run will be halted.
+For cross-entropy tuning events, any other void game will be replayed; if it
+fails again, the run will be halted.
 
 In parallel mode, outstanding games will be allowed to complete.
 
