@@ -330,6 +330,8 @@ def check_player(player_check, discard_stderr=False):
 
     Raises CheckFailed if the player doesn't pass the checks.
 
+    Returns a list of warning messages.
+
     Currently checks:
      - any explicitly specified cwd exists and is a directory
      - the engine subprocess starts, and replies to GTP commands
@@ -364,10 +366,11 @@ def check_player(player_check, discard_stderr=False):
         controller.do_command("boardsize", str(player_check.board_size))
         controller.do_command("clear_board")
         controller.do_command("komi", str(player_check.komi))
-        controller.do_command("quit")
-        controller.close()
+        controller.safe_close()
     except (GtpChannelError, BadGtpResponse), e:
         raise CheckFailed(str(e))
+    else:
+        return controller.retrieve_error_messages()
     finally:
         try:
             if stderr is not None:

@@ -715,11 +715,17 @@ class Ringmaster(object):
         except CompetitionError, e:
             raise RingmasterError(e)
         for check in to_check:
+            if not discard_stderr:
+                print "checking player %s" % check.player.code
             try:
-                game_jobs.check_player(check, discard_stderr)
+                msgs = game_jobs.check_player(check, discard_stderr)
             except game_jobs.CheckFailed, e:
                 print "player %s failed startup check:\n%s" % (
                     check.player.code, e)
                 return False
+            else:
+                if not discard_stderr:
+                    for msg in msgs:
+                        print msg
         return True
 
