@@ -4,10 +4,12 @@ Gomill
 Gomill is a suite of tools, and a Python library, for use in developing and
 testing Go-playing programs.
 
-The documentation is distributed separately in HTML form, as
-gomill-docs-x.y.tar.gz .
+Updated versions of gomill will be made available at
+http://mjw.woodcraft.me.uk/gomill/
 
-FIXME: web link here?
+The documentation is distributed separately in HTML form. It can be downloaded
+from the above web site, or viewed online at
+http://mjw.woodcraft.me.uk/gomill/docs/
 
 
 Contents
@@ -158,9 +160,10 @@ SOFTWARE.
 Contact
 -------
 
-I will put any updates at
-http://mjw.woodcraft.me.uk/FIXME
+Please send any bug reports, suggestions, patches, questions &c to
 
-Matthew Woodcraft, 2010-10-24
+Matthew Woodcraft
 matthew@woodcraft.me.uk
 
+
+                                                                mjw 2010-10-26
