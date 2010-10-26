@@ -143,7 +143,7 @@ setup(name='gomill',
           "Topic :: Games/Entertainment :: Board Games",
           "Topic :: Software Development :: Libraries :: Python Modules",
           ],
-      keywords="go baduk weiqi",
+      keywords="go,baduk,weiqi",
       license="MIT",
       platforms="POSIX",
       )
