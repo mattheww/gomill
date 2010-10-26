@@ -12,6 +12,7 @@ Gomill
    Error handling… <errors>
    library
    example_scripts
+   licence
    glossary
 
 * :ref:`genindex`
