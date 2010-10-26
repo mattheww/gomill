@@ -347,7 +347,7 @@ def check_player(player_check, discard_stderr=False):
         raise CheckFailed("bad working directory: %s" % player.cwd)
 
     if discard_stderr:
-        stderr = open("/dev/null", "w")
+        stderr = open(os.devnull, "w")
     else:
         stderr = None
     try:
