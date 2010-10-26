@@ -12,6 +12,7 @@ Gomill
    Error handling… <errors>
    library
    example_scripts
+   contact
    licence
    glossary
 
