@@ -11,9 +11,9 @@ API.
 
 See the top of each script for further information.
 
-
-.. todo:: after install docs are written, say something about how to run them,
-   or link to install docs for an explanation.
+See :ref:`running the example scripts <running the example scripts>` for notes
+on making the :mod:`!gomill` package available for use with the example
+scripts.
 
 
 .. script:: show_sgf.py

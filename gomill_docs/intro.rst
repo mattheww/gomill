@@ -28,8 +28,6 @@ Ringmaster features include:
 Ringmaster example
 ------------------
 
-.. todo:: brief link to install docs at this point
-
 Create a file called :file:`demo.ctl`, with the following contents::
 
   competition_type = 'playoff'
@@ -57,6 +55,9 @@ Then run ::
 
 The ringmaster will run five games between the two players, showing a summary
 of the results on screen, and then exit.
+
+(If the ringmaster is not already installed, see :doc:`install` for
+instructions.)
 
 The final display should be something like this::
 

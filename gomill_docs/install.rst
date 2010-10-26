@@ -98,6 +98,8 @@ the distribution directory and run ::
   python test_installed_gomill.py
 
 
+.. _running the example scripts:
+
 Running the example scripts
 ---------------------------
 
