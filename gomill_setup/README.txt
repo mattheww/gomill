@@ -4,7 +4,7 @@ Gomill
 Gomill is a suite of tools, and a Python library, for use in developing and
 testing Go-playing programs.
 
-Updated versions of gomill will be made available at
+Updated versions of Gomill will be made available at
 http://mjw.woodcraft.me.uk/gomill/
 
 The documentation is distributed separately in HTML form. It can be downloaded
@@ -34,8 +34,8 @@ Gomill requires Python 2.5, 2.6, or 2.7.
 For Python 2.5 only, the --parallel feature requires the external
 `multiprocessing` package [1].
 
-Gomill should run on any modern unix-like system. FIXME: Say something about
-windows?
+Gomill is intended to run on any modern Unix-like system. FIXME: Say something
+about windows?
 
 [1] http://pypi.python.org/pypi/multiprocessing
 
@@ -44,18 +44,18 @@ Running the ringmaster
 ----------------------
 
 The ringmaster executable in the distribution directory can be run directly
-without any further installation; it will use the copy of the gomill package
+without any further installation; it will use the copy of the Gomill package
 in the distribution directory.
 
 A symbolic link to the ringmaster executable will also work, but if you move
-the executable elsewhere it will not be able to find the gomill package unless
+the executable elsewhere it will not be able to find the Gomill package unless
 the package is installed.
 
 
 Installation
 ------------
 
-Installing gomill puts the gomill package onto the Python module search path,
+Installing Gomill puts the gomill package onto the Python module search path,
 and the ringmaster executable onto the executable PATH.
 
 To install, first change to the distribution directory, then:
@@ -77,7 +77,7 @@ See http://docs.python.org/2.7/install/ for more information.
 Uninstallation
 --------------
 
-To remove an installed version of gomill, run
+To remove an installed version of Gomill, run
 
   python setup.py uninstall
 
@@ -85,8 +85,8 @@ To remove an installed version of gomill, run
 files to remove; pass --dry-run to see what it will do.)
 
 
-Tests
------
+Running the test suite
+----------------------
 
 To run the testsuite against the distributed gomill package, change to the
 distribution directory and run
@@ -100,8 +100,8 @@ distribution directory and run
   python test_installed_gomill.py
 
 
-The example scripts
--------------------
+Running the example scripts
+---------------------------
 
 To run the example scripts, it is simplest to install the gomill package
 first.
