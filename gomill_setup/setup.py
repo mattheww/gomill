@@ -91,7 +91,11 @@ class uninstall(Command):
                           % "\n".join(egg_infos))
                 egg_info_pathname = None
             elif len(egg_infos) == 1:
-                files_to_remove.append(egg_infos[0])
+                pathname = egg_infos[0]
+                if os.path.isdir(pathname):
+                    dirs_to_remove.append(pathname)
+                else:
+                    files_to_remove.append()
 
         for pathname in files_to_remove:
             self.execute(os.remove, (pathname,), "removing '%s'" % pathname)
