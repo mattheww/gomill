@@ -164,5 +164,8 @@ Please send any bug reports, suggestions, patches, questions &c to
 Matthew Woodcraft
 matthew@woodcraft.me.uk
 
+I'm particularly interested in hearing about any GTP engines (even buggy ones)
+which don't work with the ringmaster.
+
 
                                                                 mjw 2010-10-26
