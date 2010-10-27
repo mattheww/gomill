@@ -82,11 +82,11 @@ class Game_fixture(test_framework.Fixture):
 
         """
         def handle_final_score_b(args):
-            if isinstance(b_score, Exception):
+            if b_score is Exception:
                 raise b_score
             return b_score
         def handle_final_score_w(args):
-            if isinstance(w_score, Exception):
+            if w_score is Exception:
                 raise w_score
             return w_score
         if b_score is not None:
@@ -124,6 +124,7 @@ def test_game(tc):
     tc.assertEqual(fx.game.result.describe(), "one beat two B+18")
     result2 = pickle.loads(pickle.dumps(fx.game.result))
     tc.assertEqual(result2.describe(), "one beat two B+18")
+    tc.assertEqual(fx.game.describe_scoring(), "one beat two B+18")
     tc.assertEqual(result2.player_b, 'one')
     tc.assertEqual(result2.player_w, 'two')
     tc.assertIs(result2.is_jigo, False)
@@ -199,6 +200,7 @@ def test_jigo(tc):
     tc.assertIs(fx.game.result.is_jigo, True)
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.describe(), "one vs two jigo")
+    tc.assertEqual(fx.game.describe_scoring(), "one vs two jigo")
     result2 = pickle.loads(pickle.dumps(fx.game.result))
     tc.assertEqual(result2.describe(), "one vs two jigo")
     tc.assertEqual(result2.player_b, 'one')
@@ -237,6 +239,10 @@ def test_players_score_disagree_one_no_margin(tc):
     fx.run_score_test("b+", "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "?")
     tc.assertEqual(fx.game.result.detail, "players disagreed")
+    tc.assertEqual(fx.game.describe_scoring(),
+                   "one vs two ? (players disagreed)\n"
+                   "one final_score: b+\n"
+                   "two final_score: W+4")
 
 def test_players_score_disagree_one_jigo(tc):
     fx = Game_fixture(tc)
@@ -244,6 +250,10 @@ def test_players_score_disagree_one_jigo(tc):
     tc.assertEqual(fx.game.result.sgf_result, "?")
     tc.assertEqual(fx.game.result.detail, "players disagreed")
     tc.assertIsNone(fx.game.result.winning_colour)
+    tc.assertEqual(fx.game.describe_scoring(),
+                   "one vs two ? (players disagreed)\n"
+                   "one final_score: 0\n"
+                   "two final_score: W+4")
 
 def test_players_score_disagree_equal_margin(tc):
     # check equal margin in both directions doesn't confuse it
@@ -252,6 +262,10 @@ def test_players_score_disagree_equal_margin(tc):
     tc.assertEqual(fx.game.result.sgf_result, "?")
     tc.assertEqual(fx.game.result.detail, "players disagreed")
     tc.assertIsNone(fx.game.result.winning_colour)
+    tc.assertEqual(fx.game.describe_scoring(),
+                   "one vs two ? (players disagreed)\n"
+                   "one final_score: b+4\n"
+                   "two final_score: W+4")
 
 def test_players_score_one_unreliable(tc):
     fx = Game_fixture(tc)
@@ -259,6 +273,7 @@ def test_players_score_one_unreliable(tc):
     tc.assertEqual(fx.game.result.sgf_result, "W+4")
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.winning_colour, 'w')
+    tc.assertEqual(fx.game.describe_scoring(), "two beat one W+4")
 
 def test_players_score_one_cannot_score(tc):
     fx = Game_fixture(tc)
@@ -266,6 +281,7 @@ def test_players_score_one_cannot_score(tc):
     tc.assertEqual(fx.game.result.sgf_result, "W+4")
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.winning_colour, 'w')
+    tc.assertEqual(fx.game.describe_scoring(), "two beat one W+4")
 
 def test_players_score_one_fails(tc):
     fx = Game_fixture(tc)
@@ -273,20 +289,29 @@ def test_players_score_one_fails(tc):
     tc.assertEqual(fx.game.result.sgf_result, "W+4")
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.winning_colour, 'w')
+    tc.assertEqual(fx.game.describe_scoring(), "two beat one W+4")
 
 def test_players_score_one_illformed(tc):
     fx = Game_fixture(tc)
-    fx.run_score_test("black wins", "W+4")
-    tc.assertEqual(fx.game.result.sgf_result, "W+4")
+    fx.run_score_test("black wins", "W+4.5")
+    tc.assertEqual(fx.game.result.sgf_result, "W+4.5")
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.winning_colour, 'w')
+    tc.assertEqual(fx.game.describe_scoring(),
+                   "two beat one W+4.5\n"
+                   "one final_score: black wins\n"
+                   "two final_score: W+4.5")
 
 def test_players_score_agree_except_margin(tc):
     fx = Game_fixture(tc)
-    fx.run_score_test("b+3", "B+4")
+    fx.run_score_test("b+3", "B+4.0")
     tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.detail, "unknown margin")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
+    tc.assertEqual(fx.game.describe_scoring(),
+                   "one beat two B+ (unknown margin)\n"
+                   "one final_score: b+3\n"
+                   "two final_score: B+4.0")
 
 def test_players_score_agree_one_no_margin(tc):
     fx = Game_fixture(tc)
@@ -294,6 +319,10 @@ def test_players_score_agree_one_no_margin(tc):
     tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.detail, "unknown margin")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
+    tc.assertEqual(fx.game.describe_scoring(),
+                   "one beat two B+ (unknown margin)\n"
+                   "one final_score: b+3\n"
+                   "two final_score: B+")
 
 def test_players_score_agree_one_illformed_margin(tc):
     fx = Game_fixture(tc)
@@ -301,6 +330,10 @@ def test_players_score_agree_one_illformed_margin(tc):
     tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.detail, "unknown margin")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
+    tc.assertEqual(fx.game.describe_scoring(),
+                   "one beat two B+ (unknown margin)\n"
+                   "one final_score: b+3\n"
+                   "two final_score: B+a")
 
 def test_players_score_agree_margin_zero(tc):
     fx = Game_fixture(tc)
@@ -308,6 +341,10 @@ def test_players_score_agree_margin_zero(tc):
     tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.detail, "unknown margin")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
+    tc.assertEqual(fx.game.describe_scoring(),
+                   "one beat two B+ (unknown margin)\n"
+                   "one final_score: b+0\n"
+                   "two final_score: B+0")
 
 
 
@@ -333,6 +370,7 @@ def test_claim(tc):
     tc.assertEqual(fx.game.result.winning_player, 'one')
     tc.assertFalse(fx.game.result.is_forfeit)
     tc.assertEqual(fx.game.result.describe(), "one beat two B+ (claim)")
+    tc.assertEqual(fx.game.describe_scoring(), "one beat two B+ (claim)")
     fx.check_moves([
         ('b', 'E1'), ('w', 'G1'),
         ('b', 'E2'), ('w', 'G2'),
