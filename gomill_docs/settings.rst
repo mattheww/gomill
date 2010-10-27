@@ -53,7 +53,7 @@ a playoff::
 
   matchups = [
       Matchup('gnugo-l1', 'fuego-5k', board_size=13,
-              handicap=2, handicap_style='free',
+              handicap=2, handicap_style='free', komi=0,
               scorer='players', number_of_games=5),
 
       Matchup('gnugo-l2', 'fuego-5k', alternating=True,
