@@ -5,8 +5,6 @@ Gomill is a suite of tools, and a Python library, for use in developing and
 testing Go-playing programs. It is based around the Go Text Protocol
 (:term:`GTP`) and the Smart Game Format (:term:`SGF`).
 
-.. todo: refs for GTP and SGF.
-
 The principal tool is the :dfn:`ringmaster`, which plays programs against each
 other and keeps track of the results.
 
