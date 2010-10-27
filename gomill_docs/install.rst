@@ -18,8 +18,6 @@ requires the external `multiprocessing`__ package.
 
 Gomill is intended to run on any modern Unix-like system.
 
-.. todo:: Say something about windows?
-
 
 Obtaining Gomill
 ----------------

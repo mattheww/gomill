@@ -34,8 +34,7 @@ Gomill requires Python 2.5, 2.6, or 2.7.
 For Python 2.5 only, the --parallel feature requires the external
 `multiprocessing` package [1].
 
-Gomill is intended to run on any modern Unix-like system. FIXME: Say something
-about windows?
+Gomill is intended to run on any modern Unix-like system.
 
 [1] http://pypi.python.org/pypi/multiprocessing
 
