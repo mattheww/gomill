@@ -413,7 +413,7 @@ Defaults for matchup settings (other than :setting:`id` and :setting:`name`)
 can be specified at the top level of the control file.
 
 The :setting:`board_size` and :setting:`komi` parameters must be given for all
-matchups (either explictly or as defaults); the rest are all optional.
+matchups (either explicitly or as defaults); the rest are all optional.
 
 .. caution:: a default :setting:`komi` or :setting:`alternating` setting will
    be applied even to handicap games.
