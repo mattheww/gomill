@@ -96,6 +96,10 @@ void game that had at least one move played. These are placed in the
 A void game will normally be replayed, with the same game id (the details
 depend on the competition type; see below).
 
+(Note that void games aren't the same thing as games whose |sgf| result is
+``Void``, which the ringmaster uses for games which exceed the
+:setting:`move_limit`.)
+
 
 Halting competitions due to errors
 ----------------------------------
