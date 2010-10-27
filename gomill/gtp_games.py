@@ -696,12 +696,17 @@ class Game(object):
         """Return a multiline string describing the game's scoring."""
         if self.result is None:
             return ""
+        def normalise_score(s):
+            s = s.upper()
+            if s.endswith(".0"):
+                s = s[:-2]
+            return s
         l = [self.result.describe()]
         sgf_result = self.result.sgf_result
         score_b = self.player_scores['b']
         score_w = self.player_scores['w']
-        if ((score_b is not None and score_b.upper() != sgf_result) or
-            (score_w is not None and score_w.upper() != sgf_result)):
+        if ((score_b is not None and normalise_score(score_b) != sgf_result) or
+            (score_w is not None and normalise_score(score_w) != sgf_result)):
             for colour, score in (('b', score_b), ('w', score_w)):
                 if score is not None:
                     l.append("%s final_score: %s" %

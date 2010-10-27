@@ -173,6 +173,8 @@ def test_unscored_game(tc):
     tc.assertEqual(fx.game.result.detail, "no score reported")
     tc.assertEqual(fx.game.result.describe(),
                    "one vs two ? (no score reported)")
+    tc.assertEqual(fx.game.describe_scoring(),
+                   "one vs two ? (no score reported)")
     result2 = pickle.loads(pickle.dumps(fx.game.result))
     tc.assertEqual(result2.describe(), "one vs two ? (no score reported)")
     tc.assertIs(result2.is_jigo, False)
@@ -205,10 +207,11 @@ def test_jigo(tc):
 
 def test_players_score_agree(tc):
     fx = Game_fixture(tc)
-    fx.run_score_test("b+3", "B+3")
+    fx.run_score_test("b+3", "B+3.0")
     tc.assertEqual(fx.game.result.sgf_result, "B+3")
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.winning_colour, 'b')
+    tc.assertEqual(fx.game.describe_scoring(), "one beat two B+3")
 
 def test_players_score_agree_draw(tc):
     fx = Game_fixture(tc)
@@ -216,20 +219,24 @@ def test_players_score_agree_draw(tc):
     tc.assertEqual(fx.game.result.sgf_result, "0")
     tc.assertIsNone(fx.game.result.detail)
     tc.assertIsNone(fx.game.result.winning_colour)
+    tc.assertEqual(fx.game.describe_scoring(), "one vs two jigo")
 
 def test_players_score_disagree(tc):
     fx = Game_fixture(tc)
-    fx.run_score_test("b+3", "W+4")
+    fx.run_score_test("b+3.0", "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "?")
     tc.assertEqual(fx.game.result.detail, "players disagreed")
     tc.assertIsNone(fx.game.result.winning_colour)
+    tc.assertEqual(fx.game.describe_scoring(),
+                   "one vs two ? (players disagreed)\n"
+                   "one final_score: b+3.0\n"
+                   "two final_score: W+4")
 
 def test_players_score_disagree_one_no_margin(tc):
     fx = Game_fixture(tc)
     fx.run_score_test("b+", "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "?")
     tc.assertEqual(fx.game.result.detail, "players disagreed")
-    tc.assertIsNone(fx.game.result.winning_colour)
 
 def test_players_score_disagree_one_jigo(tc):
     fx = Game_fixture(tc)
