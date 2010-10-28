@@ -37,7 +37,7 @@ The parameter model
 The parameter values taken from the Gaussian distribution are floating-point
 numbers known as :dfn:`optimiser parameters`.
 
-These parameters can be transformed before being used to construct the
+These parameters can be transformed before being used to configure the
 candidate (see 3.3 *Normalising Parameters* in |ce|). The transformed values
 are known as :dfn:`engine parameters`. The transformation is implemented using
 a Python :ce-setting:`transform` function defined in the control file.
@@ -261,6 +261,9 @@ function call: :samp:`Parameter({arguments})`. Apart from :ce-setting:`!code`,
 the arguments should be specified using keyword form (see
 :ref:`sample_cem_control_file`).
 
+The :ce-setting:`code`, :ce-setting:`initial_mean`, and
+:ce-setting:`initial_variance` arguments are required.
+
 The arguments are:
 
 
@@ -299,7 +302,7 @@ The arguments are:
         return 10.0**f
 
     Parameter('p1', initial_mean = …, initial_variance = …,
-              transform = scale_exp_10)
+              transform = exp_10)
 
   If the :ce-setting:`!transform` is not specified, the optimiser parameter is
   used directly as the engine parameter.
@@ -324,18 +327,13 @@ The arguments are:
 
   Examples::
 
-    Parameter('parameter_1', split = 8,
-              scale = LINEAR(-1.0, 1.0),
+    Parameter('parameter_1',
+              initial_mean = 0.0, initial_variance = 1.0,
               format = "p1: %.2f")
 
-    Parameter('parameter_2', split = 8,
-              scale = LOG(10, 10000, integer=True),
+    Parameter('parameter_2',
+              initial_mean = 5000, initial_variance = 250000,
               format = "p2: %d")
-
-    Parameter('parameter_3', split = 3,
-              scale = EXPLICIT(['low', 'medium', 'high']),
-              format = "p3: %s")
-
 
 
 Reporting
@@ -354,7 +352,8 @@ with a ``*``.
 Changing the control file between runs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Some settings can safely be changed between runs of the same tuning event:
+Some settings can safely be changed between runs of the same cross-entropy
+tuning event:
 
 :ce-setting:`batch_size`
   safe to increase

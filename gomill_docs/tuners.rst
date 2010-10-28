@@ -4,7 +4,7 @@ Tuning events
 =============
 
 A :dfn:`tuning event` is a form of :term:`competition` in which the ringmaster
-runs an algorithm for adjusting engine parameters to try to find the values
+runs an algorithm which adjusts engine parameters to try to find the values
 which give strongest play.
 
 .. index:: opponent

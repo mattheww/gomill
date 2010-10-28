@@ -25,7 +25,8 @@ It does this using a form of the :term:`UCB` algorithm (or, optionally,
 The parameter model
 ^^^^^^^^^^^^^^^^^^^
 
-The Monte Carlo tuner expects to work with one or more independent parameters.
+The Monte Carlo tuner expects to work with one or more independent player
+parameters.
 
 Internally, it models each parameter value as a floating point number in the
 range 0.0 to 1.0. It uses parameter values taken uniformly from this range to
@@ -41,7 +42,7 @@ a function which maps an optimiser parameter to an :dfn:`engine parameter`
 (which can be of an arbitrary Python type). A number of :ref:`predefined
 scales <predefined scales>` are provided.
 
-The candidate player definitions are based on these engine parameters.
+The candidate players are configured using these engine parameters.
 
 Reports, and the live display, are also based on engine parameters; see the
 :mc-setting:`format` parameter setting.
@@ -72,7 +73,8 @@ The samples are taken by dividing the optimiser parameter range into
 :mc-setting:`split` divisions, and taking the centre of each division as the
 sample (so the end points of the range are not used). For example, if a
 parameter has a linear scale from 0.0 to 8.0, and :mc-setting:`split` is 3,
-the samples will be 1.0, 4.0, and 7.0.
+the samples (after translation to engine parameters) will be 1.0, 4.0, and
+7.0.
 
 
 .. _the mcts tuning algorithm:
@@ -109,11 +111,9 @@ of the event), one is chosen at random.
 
 
 The tuner can be stopped at any time; after each game result, it reports the
-parameters of the current 'best' candidate.
-
-This is the candidate with the most *wins* (note that this may not be the one
-with the best win rate; it is usually the same as the candidate which has
-played the most games).
+parameters of the current 'best' candidate. This is the candidate with the
+most *wins* (note that this may not be the one with the best win rate; it is
+usually the same as the candidate which has played the most games).
 
 
 .. _sample_mcts_control_file:
@@ -302,7 +302,7 @@ are compulsory):
 
 .. mc-setting:: max_depth
 
-  Positive integer
+  Positive integer (default 1)
 
   See :ref:`tree search` below.
 
@@ -502,22 +502,14 @@ There are three kinds of predefined scale which you can use in a
 Writing scale functions
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The following Python functions might be useful: `abs`_, `min`_, `max`_,
-`round`_.
+The following built-in Python functions might be useful: :func:`abs`,
+:func:`min`, :func:`max`, :func:`round`.
 
-.. _abs: http://docs.python.org/release/2.7/library/functions.html#abs
-.. _min: http://docs.python.org/release/2.7/library/functions.html#min
-.. _max: http://docs.python.org/release/2.7/library/functions.html#max
-.. _round: http://docs.python.org/release/2.7/library/functions.html#round
-
-More functions are available from the `math`__ module. Put a line like ::
+More functions are available from the :mod:`math` module. Put a line like ::
 
   from math import log, exp, sqrt
 
 in the control file to use them.
-
-.. __: http://docs.python.org/release/2.7/library/math.html
-
 
 Dividing two integers with ``/`` gives a floating point number (that is,
 'Future division' is in effect).

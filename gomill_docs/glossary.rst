@@ -42,6 +42,13 @@ Glossary
     enforce any of them.
 
 
+  controller
+    A program implementing the 'referee' side of the |GTP| protocol.
+
+    The |GTP| protocol can be seen as a client-server protocol, with the
+    controller as the client.
+
+
   engine
     A program implementing the 'playing' side of the |GTP| protocol.
 
@@ -69,7 +76,7 @@ Glossary
 
 
   tuning event
-    A competition in which the ringmaster runs an algorithm for adjusting
+    A competition in which the ringmaster runs an algorithm which adjusts
     player parameters to try to find the values which give strongest play.
 
 

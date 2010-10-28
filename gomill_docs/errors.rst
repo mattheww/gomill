@@ -15,9 +15,10 @@ bug.
 Game identification
 -------------------
 
-Each game is identified using a short string (the :dfn:`game_id`). This is
-used in the |sgf| :ref:`game record <game records>` filename and game name
-(``GN``), the :ref:`log files <logging>`, the live display, and so on.
+Each game played in a competition is identified using a short string (the
+:dfn:`game_id`). This is used in the |sgf| :ref:`game record <game records>`
+filename and game name (``GN``), the :ref:`log files <logging>`, the live
+display, and so on.
 
 For playoffs, game ids are made up from the :setting:`matchup id <id>` and the
 number of the game within the matchup; for example, the first game played
@@ -28,7 +29,7 @@ might be ``0_0`` or ``0_000`` (depending on the value of
 Details of scoring
 ------------------
 
-If :setting:`scorer` is ``players`` but neither engine is able to score
+If :setting:`scorer` is ``"players"`` but neither engine is able to score
 (whether because :gtp:`!final_score` isn't implemented, or it fails, or
 :setting:`is_reliable_scorer` is ``False``), the game result is reported as
 unknown (|sgf| result ``?``).
@@ -56,8 +57,8 @@ which is ill-formed at the protocol level, the game is treated as :ref:`void
 <void games>`.
 
 As an exception, if such an error happens after the game's result has been
-established (eg, if one player has already forfeited the game), the game is
-not treated as void.
+established (in particular, if one player has already forfeited the game), the
+game is not treated as void.
 
 
 .. _engine exit behaviour:
@@ -97,7 +98,7 @@ A void game will normally be replayed, with the same game id (the details
 depend on the competition type; see below).
 
 (Note that void games aren't the same thing as games whose |sgf| result is
-``Void``, which the ringmaster uses for games which exceed the
+``Void``; the ringmaster uses that result for games which exceed the
 :setting:`move_limit`.)
 
 
@@ -115,13 +116,13 @@ or if two games in a row for the same matchup are void.
 For tuning events, a run is halted immediately if the first game to finish is
 void.
 
-For Monte Carlo tuning events, other void games will be ignored: a new game
-will be scheduled from the current state of the MCTS tree (and the original
-game number will be skipped). If two game results in a row are void, the run
-will be halted.
+Otherwise, in Monte Carlo tuning events a void game will be ignored: a new
+game will be scheduled from the current state of the MCTS tree (and the
+original game number will be skipped). If two game results in a row are void,
+the run will be halted.
 
-For cross-entropy tuning events, any other void game will be replayed; if it
-fails again, the run will be halted.
+In cross-entropy tuning events a void game will be replayed; if it fails
+again, the run will be halted.
 
 In parallel mode, outstanding games will be allowed to complete.
 
