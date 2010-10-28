@@ -9,7 +9,7 @@ http://mjw.woodcraft.me.uk/gomill/
 
 The documentation is distributed separately in HTML form. It can be downloaded
 from the above web site, or viewed online at
-http://mjw.woodcraft.me.uk/gomill/docs/
+http://mjw.woodcraft.me.uk/gomill/doc/
 
 
 Contents

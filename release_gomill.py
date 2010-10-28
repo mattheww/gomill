@@ -105,13 +105,13 @@ def make_sphinx(version, logfile, html_files_to_remove):
     htmlpath = os.path.join("build", "sphinx", "html")
     for filename in html_files_to_remove:
         os.remove(os.path.join(htmlpath, filename))
-    os.rename(htmlpath, "gomill-docs-%s" % version)
+    os.rename(htmlpath, "gomill-doc-%s" % version)
     try:
-        check_call(("tar -czf gomill-docs-%s.tar.gz gomill-docs-%s" %
+        check_call(("tar -czf gomill-doc-%s.tar.gz gomill-doc-%s" %
                     (version, version)).split())
     except CalledProcessError:
-        raise Failure("tarring up gomill-docs failed")
-    return "gomill-docs-%s.tar.gz" % version
+        raise Failure("tarring up gomill-doc failed")
+    return "gomill-doc-%s.tar.gz" % version
 
 def do_release(tag, config_pathname):
     config_dir = os.path.abspath(os.path.dirname(config_pathname))

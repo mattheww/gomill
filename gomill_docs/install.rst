@@ -27,7 +27,7 @@ Gomill is distributed as a pure-Python source archive,
 http://mjw.woodcraft.me.uk/gomill/.
 
 This documentation is distributed separately as
-:file:`gomill-docs-{version}.tar.gz`.
+:file:`gomill-doc-{version}.tar.gz`.
 
 Once you have downloaded the source archive, extract it using a command like
 :samp:`tar -xzf gomill-{version}.tar.gz`. This will create a directory named
