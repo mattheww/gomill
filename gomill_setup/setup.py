@@ -95,7 +95,7 @@ class uninstall(Command):
                 if os.path.isdir(pathname):
                     dirs_to_remove.append(pathname)
                 else:
-                    files_to_remove.append()
+                    files_to_remove.append(pathname)
 
         for pathname in files_to_remove:
             self.execute(os.remove, (pathname,), "removing '%s'" % pathname)
