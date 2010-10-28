@@ -51,7 +51,8 @@ Installing
 ----------
 
 Installing Gomill puts the :mod:`!gomill` package onto the Python module
-search path, and the ringmaster executable onto the executable :envvar:`PATH`.
+search path, and the ringmaster executable onto the executable
+:envvar:`!PATH`.
 
 To install, first change to the distribution directory, then:
 
@@ -76,7 +77,7 @@ To remove an installed version of Gomill, run ::
 
   python setup.py uninstall
 
-(This uses the Python module search path and the executable :envvar:`PATH` to
+(This uses the Python module search path and the executable :envvar:`!PATH` to
 find the files to remove; pass :option:`!--dry-run` to see what it will do.)
 
 
