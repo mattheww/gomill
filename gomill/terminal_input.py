@@ -28,7 +28,6 @@ class Terminal_reader(object):
             return
         try:
             self.tty = open("/dev/tty", "w+")
-            # Check this is available
             os.tcgetpgrp(self.tty.fileno())
             self.clean_tcattr = termios.tcgetattr(self.tty)
             iflag, oflag, cflag, lflag, ispeed, ospeed, cc = self.clean_tcattr
