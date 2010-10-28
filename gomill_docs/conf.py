@@ -15,10 +15,6 @@ exclude_dirnames = ['.git']
 pygments_style = 'borland'
 modindex_common_prefix = ['gomill.']
 
-# If true, the current module name will be prepended to all description
-# unit titles (such as .. function::).
-#add_module_names = True
-
 html_theme = 'default'
 html_theme_options = {
     'nosidebar'     : False,
@@ -51,16 +47,11 @@ html_add_permalinks = False
 html_copy_source = False
 html_sidebars = {'**' : ['wholetoc.html', 'relations.html', 'searchbox.html']}
 html_style = "gomill.css"
-
-#html_use_modindex = True
-#html_use_index = True
 html_show_sourcelink = False
-
 
 pngmath_use_preview = True
 
 todo_include_todos = True
-
 
 intersphinx_mapping = {'python': ('http://docs.python.org/2.7',
                                   'python-inv.txt')}
