@@ -15,7 +15,6 @@ exclude_dirnames = ['.git']
 pygments_style = 'borland'
 modindex_common_prefix = ['gomill.']
 
-
 # If true, the current module name will be prepended to all description
 # unit titles (such as .. function::).
 #add_module_names = True

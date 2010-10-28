@@ -35,11 +35,11 @@ programs are running on different machines to the ringmaster.
 
 Normally it makes no difference whether the ringmaster starts games in
 sequence or in parallel, but it does have an effect on the :doc:`Monte Carlo
-tuner <mcts_tuner>`, as it will have less information each time it chooses a
-candidate player.
+tuner <mcts_tuner>`, as in parallel mode it will have less information each
+time it chooses a candidate player.
 
 .. tip:: Even if an engine is capable of using multiple threads, it may be
-   better to use parallel single-threaded games during development to get
+   better to use a single-threaded configuration during development to get
    reproducible results, or to be sure that system load does not affect play.
 
 .. tip:: When deciding how many games to run in parallel, remember to take
@@ -77,7 +77,7 @@ Use :ref:`quiet mode <quiet mode>` to turn this display off.
 Stopping competitions
 ^^^^^^^^^^^^^^^^^^^^^
 
-Unless interrupted, the run will continue until the specified
+Unless interrupted, a playoff run will continue until the specified
 :setting:`number_of_games` have been played for each matchup (indefinitely if
 :setting:`number_of_games` is unset), or the limit specified by the
 :option:`--max-games <ringmaster --max-games>` command line option is reached.
@@ -91,26 +91,26 @@ progress will be terminated immediately (assuming the engine processes are
 well-behaved). The partial games will be forgotten; the ringmaster will replay
 them as necessary if the competition is resumed later.
 
-You can also stop a competition by running the :program:`ringmaster`
-:action:`stop` action from a shell; like :kbd:`Ctrl-X`, this will be
-acknowledged when the next game result comes in, and the ringmaster will wait
-for games in progress to complete.
+You can also stop a competition by running the command line :action:`stop`
+action from a shell; like :kbd:`Ctrl-X`, this will be acknowledged when the
+next game result comes in, and the ringmaster will wait for games in progress
+to complete.
 
 
 Running players
 ^^^^^^^^^^^^^^^
 
-The ringmaster requires the players to be standalone executables which speak
-:term:`GTP` version 2 on their standard input and output streams.
+The ringmaster requires the player engines to be standalone executables which
+speak :term:`GTP` version 2 on their standard input and output streams.
 
 It launches the executables itself, with command line arguments and other
-environment as detailed by the :ref:`Player settings <player configuration>`
+environment as detailed by the :ref:`player settings <player configuration>`
 in the control file.
 
 It launches a new engine subprocess for each game and closes it when the game
 is terminated.
 
-.. tip:: To run players on a different computer to the ringmaster, specify a
+.. tip:: To run a player on a different computer to the ringmaster, specify a
    suitable :program:`ssh` command line in the :setting-cls:`Player`
    definition.
 
@@ -126,7 +126,7 @@ Playing games
 ^^^^^^^^^^^^^
 
 The :setting:`board_size`, :setting:`komi`, :setting:`handicap`, and
-:setting:`handicap_style` Matchup settings control the details of the game.
+:setting:`handicap_style` matchup settings control the details of the game.
 The ringmaster doesn't know or care what rule variant the players are using;
 it's up to you to make sure they agree with each other.
 
@@ -140,7 +140,7 @@ player resigns.
 The ringmaster rejects moves to occupied points, and moves forbidden by
 :term:`simple ko`, as illegal. It doesn't reject self-capture moves, and it
 doesn't enforce any kind of :term:`superko` rule. If the ringmaster rejects a
-move, the engine that tried to play it loses the game by forfeit.
+move, the player that tried to make it loses the game by forfeit.
 
 If one of the players rejects a move as illegal (ie, with the |gtp| failure
 response ``illegal move``), the ringmaster assumes its opponent really has
@@ -169,7 +169,7 @@ Scoring
 ^^^^^^^
 
 The ringmaster has two scoring methods: ``players`` (which is the default),
-and ``internal``. The :setting:`scorer` Matchup setting determines which is
+and ``internal``. The :setting:`scorer` matchup setting determines which is
 used.
 
 When the ``players`` method is used, the players are asked to score the game
@@ -261,8 +261,8 @@ Output files
 
 The ringmaster writes a number of files, which it places in the directory
 which contains the control file (the :dfn:`competition directory`). The
-basename (the part before the file extension) of each file is the same as the
-control file (:file:`{code}` in the table below).
+basename (the part before the file extension) of each file is the same as in
+the control file (:file:`{code}` in the table below).
 
 The full set of files that may be present in the competition directory is:
 
@@ -288,10 +288,11 @@ Competition state
 .. index:: state file
 
 The competition :dfn:`state file` (:file:`{code}.state`) contains a
-machine-readable (but opaque) description of the competition's results; this
-allows resuming the competition, and also programmatically :ref:`querying the
-results`. It is rewritten after each game result is received, so that little
-information will be lost if the ringmaster stops ungracefully for any reason.
+machine-readable description of the competition's results; this allows
+resuming the competition, and also programmatically :ref:`querying the results
+<querying the results>`. It is rewritten after each game result is received,
+so that little information will be lost if the ringmaster stops ungracefully
+for any reason.
 
 The :action:`reset` command line action deletes **all** competition output
 files, including game records and the state file.
@@ -334,7 +335,7 @@ By default, the players' standard error streams are sent to the ringmaster's
 direct indication of which messages came from which player (the log entries
 for games starting and completing may help).
 
-If the competition setting :setting:`stderr_to_log` is False, the engines'
+If the competition setting :setting:`stderr_to_log` is False, the players'
 standard error streams are left unchanged from the ringmaster's. This is only
 useful in :ref:`quiet mode <quiet mode>`, or if you redirect the ringmaster's
 standard error.

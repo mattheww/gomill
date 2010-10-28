@@ -31,7 +31,7 @@ descriptions of the players, and the contents of the competition's
   player gnugo-l1: GNU Go:3.8
   player gnugo-l2: GNU Go:3.8
 
-Any :term:`jigos <jigo>` are counted as half a point for each player. If any
+Any :term:`jigos <jigo>` are counted as half a win for each player. If any
 games have been lost by forfeit, a count will be shown for each player. If any
 games have unknown results (because they could not be scored, or reached the
 :setting:`move_limit`), a count will be shown for each matchup. :ref:`void
@@ -44,15 +44,16 @@ The player descriptions at the end of the report are obtained using the |gtp|
 :gtp:`!name` and :gtp:`!version` commands, or using
 :gtp:`gomill-describe_engine` if the engine provides it.
 
-The :action:`report` command line action rewrites the competition report file.
-This can be useful if you have changed descriptive text in the control file,
-or if a run stopped ungracefully and didn't write the report.
+The report file is written automatically at the end of each run. The
+:action:`report` command line action forces it to be rewritten; this can be
+useful if you have changed descriptive text in the control file, or if a run
+stopped ungracefully.
 
 The :action:`show` command line action prints the same report to standard
 output.
 
 It's safe to run :action:`show` or :action:`report` on a competition which is
-currently in progress.
+currently being run.
 
 
 .. _game records:
@@ -101,7 +102,8 @@ all done directly in that process.
 Querying the results
 ^^^^^^^^^^^^^^^^^^^^
 
-It's possible to write Python scripts which report on competition results.
+It's possible to write Python scripts to process competition results,
+interpreting a competition's :ref:`state file <competition state>`.
 
 As of Gomill |version|, this library interface is not definitely stable, but
 the :script:`find_forfeits.py` example script and the docstrings of the last

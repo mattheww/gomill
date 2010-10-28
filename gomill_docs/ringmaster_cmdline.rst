@@ -54,7 +54,7 @@ The following actions are available:
 .. action:: report
 
   Rewrites the :ref:`competition report file <competition report file>` based
-  on the current status. It can be used for both running and stopped
+  on the current status. This can be used for both running and stopped
   competitions.
 
 .. action:: stop

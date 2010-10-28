@@ -20,7 +20,7 @@ The extensions used by the ringmaster are as follows:
   The intention is that |gtp| controllers which produce game records should
   use this command to write a comment associated with the move.
 
-  Any non-ascii characters in the response should be encoded as UTF-8.
+  Any non-ASCII characters in the response should be encoded as UTF-8.
 
   If no information is available, return an empty string.
 
@@ -44,7 +44,7 @@ The extensions used by the ringmaster are as follows:
   parameters which affect gameplay. If the engine plays reproducibly given the
   seed of a random number generator, the response should include that seed.
 
-  Any non-ascii characters in the response should be encoded as UTF-8.
+  Any non-ASCII characters in the response should be encoded as UTF-8.
 
 
 .. gtp:: gomill-cpu_time
@@ -95,7 +95,7 @@ There is also an extension which is not used by the ringmaster:
 
   Write an |sgf| game record of the current game.
 
-  See the |gtp| specification's description of :gtp:`!loadsgf` for the
+  See the :term:`GTP` specification's description of :gtp:`!loadsgf` for the
   interpretation of the ``filename`` argument.
 
   The |sgf| properties should be specified in the form
@@ -117,10 +117,11 @@ There is also an extension which is not used by the ringmaster:
   .. note::
 
     |gtp| engines aren't typically well placed to write game records, as they
-    don't have enough information to write the game metadata properly (which
-    is why :gtp:`!gomill-savesgf` takes the |sgf| properties explicitly). It's
-    usually better for the controller to do it. See the :script:`kgs_proxy.py`
-    example script for an example of when this command might be useful.
+    don't have enough information to write the game metadata properly (this is
+    why :gtp:`!gomill-savesgf` has to take the |sgf| properties explicitly).
+    It's usually better for the controller to do it. See the
+    :script:`kgs_proxy.py` example script for an example of when this command
+    might be useful.
 
 
 The :gtp:`gomill-explain_last_move`, :gtp:`gomill-genmove_ex`, and

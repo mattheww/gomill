@@ -59,7 +59,7 @@ a playoff::
       Matchup('gnugo-l2', 'fuego-5k', alternating=True,
               scorer='players'),
 
-      Matchup('gnugo-l1', 'gnugo-l2', alternating=True,
+      Matchup('gnugo-l1', 'gnugo-l2',
               komi=0.5,
               scorer='internal'),
       ]
@@ -115,12 +115,12 @@ String
   A literal string of characters in single or double quotes, eg ``'gnugo-l1'``
   or ``"free"``.
 
-  Strings containing non-ascii characters should be encoded as UTF-8 (Python
+  Strings containing non-ASCII characters should be encoded as UTF-8 (Python
   unicode objects are also accepted).
 
   Strings can be broken over multiple lines by writing adjacent literals
-  separated only by whitespace; see the Player definitions in the example
-  above.
+  separated only by whitespace; see the :setting-cls:`Player` definitions in
+  the example above.
 
   Backslash escapes can be used in strings, such as ``\n`` for a newline.
   Alternatively, three (single or double) quotes can be used for a multi-line
@@ -182,9 +182,9 @@ The only required settings are :setting:`competition_type`,
 
   String: ``"playoff"``, ``"mc_tuner"``, or ``"ce_tuner"``
 
-  Determines whether the competition is a playoff or a specific kind of
-  tuning event. This must be set on the first line in the control file
-  (not counting for blank lines and comments).
+  Determines whether the competition is a playoff or a specific kind of tuning
+  event. This must be set on the first line in the control file (not counting
+  blank lines and comments).
 
 
 .. setting:: description
@@ -256,32 +256,33 @@ Player configuration
 .. setting-cls:: Player
 
 A :setting-cls:`!Player` definition has the same syntax as a Python function
-call: :samp:`Player({parameters})`. Apart from :setting:`command`, the
-parameters should be specified as keyword arguments (see :ref:`sample control
+call: :samp:`Player({arguments})`. Apart from :setting:`command`, the
+arguments should be specified using keyword form (see :ref:`sample control
 file`).
 
-All parameters other than :setting:`command` are optional.
+All arguments other than :setting:`command` are optional.
 
 .. tip:: For results to be meaningful, you should normally configure players
-   to use a fixed amount of computing power, and pay no attention to the
-   amount of real time that passes.
+   to use a fixed amount of computing power, paying no attention to the amount
+   of real time that passes.
 
-The parameters are:
+The arguments are:
 
 
 .. setting:: command
 
   String or list of strings
 
-  This is the only required :setting-cls:`Player` parameter. It can be
-  specified either as the first parameter, or using a keyword
+  This is the only required :setting-cls:`Player` arguments. It can be
+  specified either as the first argument, or using a keyword
   :samp:`command="{...}"`. It specifies the executable which will provide the
   player, and its command line arguments.
 
+  The player subprocess is executed directly, not run via a shell.
+
   The :setting:`!command` can be either a string or a list of strings. If it
   is a string, it is split using rules similar to a Unix shell's (see
-  :func:`shlex.split`). (But note that the player subprocess is always executed
-  directly, not run via a shell.)
+  :func:`shlex.split`).
 
   In either case, the first element is taken as the executable name and the
   remainder as its arguments.
@@ -301,8 +302,8 @@ The parameters are:
 
   The working directory for the player.
 
-  If this is left unset, the player's working directory will be the current
-  working directory when the ringmaster was launched (which may not be the
+  If this is left unset, the player's working directory will be the working
+  directory from when the ringmaster was launched (which may not be the
   competition directory). Use ``cwd="."`` to specify the competition
   directory.
 
@@ -318,7 +319,7 @@ The parameters are:
   Dictionary mapping strings to strings (default ``None``)
 
   This specifies environment variables to be set in the player process, in
-  addition to (or overriding) those inherited from the parent.
+  addition to (or overriding) those inherited from its parent.
 
   Note that there is no special handling in this case for values which happen
   to be file or directory names.
@@ -342,12 +343,12 @@ The parameters are:
 
 .. setting:: startup_gtp_commands
 
-  List of strings, or list of sequences of strings (default ``None``)
+  List of strings, or list of lists of strings (default ``None``)
 
   |gtp| commands to send at the beginning of each game. See :ref:`playing
   games`.
 
-  Each command can be specified either as a single string or as a sequence of
+  Each command can be specified either as a single string or as a list of
   strings (with each argument in a single string). For example, the following
   are equivalent::
 
@@ -356,8 +357,8 @@ The parameters are:
                         "uct_param_player max_games 5000"])
 
     Player('fuego', startup_gtp_commands=[
-                        ("uct_param_player", "ponder", "0"),
-                        ("uct_param_player", "max_games", "5000")])
+                        ["uct_param_player", "ponder", "0"],
+                        ["uct_param_player", "max_games", "5000"]])
 
 
 .. setting:: gtp_aliases
@@ -379,10 +380,10 @@ The parameters are:
 
   Boolean (default ``True``)
 
-  If the :setting:`scorer` is ``players``, the ringmaster normally asks each
-  player that implements the :gtp:`!final_score` |gtp| command to report the
-  game result. Setting :setting:`!is_reliable_scorer` to ``False`` for a
-  player causes that player never to be asked.
+  If the :setting:`scorer` setting is ``players``, the ringmaster normally
+  asks each player that implements the :gtp:`!final_score` |gtp| command to
+  report the game result. Setting :setting:`!is_reliable_scorer` to ``False``
+  for a player causes that player never to be asked.
 
 
 .. setting:: allow_claim
@@ -401,25 +402,25 @@ Matchup configuration
 .. setting-cls:: Matchup
 
 A :setting-cls:`!Matchup` definition has the same syntax as a Python function
-call: :samp:`Matchup({parameters})`.
+call: :samp:`Matchup({arguments})`.
 
-The first two parameters should be the :ref:`player codes <player codes>` for
-the two players involved in the matchup. The remaining parameters should be
-specified as keyword arguments. For example::
+The first two arguments should be the :ref:`player codes <player codes>` for
+the two players involved in the matchup. The remaining arguments should be
+specified in keyword form. For example::
 
   Matchup('gnugo-l1', 'fuego-5k', board_size=13, komi=6)
 
 Defaults for matchup settings (other than :setting:`id` and :setting:`name`)
 can be specified at the top level of the control file.
 
-The :setting:`board_size` and :setting:`komi` parameters must be given for all
+The :setting:`board_size` and :setting:`komi` arguments must be given for all
 matchups (either explicitly or as defaults); the rest are all optional.
 
 .. caution:: a default :setting:`komi` or :setting:`alternating` setting will
    be applied even to handicap games.
 
 
-The parameters are:
+The arguments are:
 
 
 .. setting:: id
@@ -479,7 +480,7 @@ The parameters are:
   Number of handicap stones to give Black at the start of the game. See also
   :setting:`handicap_style`.
 
-  See the :term:`GTP` specification for the rules about what handicap values
+  See the `GTP specification`_ for the rules about what handicap values
   are permitted for different board sizes (in particular, values less than 2
   are never allowed).
 
@@ -489,10 +490,12 @@ The parameters are:
   String: ``"fixed"`` or ``"free"`` (default ``"fixed"``)
 
   Determines whether the handicap stones are placed on prespecified points, or
-  chosen by the Black player. See the :term:`GTP` specification for more
-  details.
+  chosen by the Black player. See the `GTP specification`_ for more details.
 
   This is ignored if :setting:`handicap` is unset.
+
+  .. _GTP specification: http://www.lysator.liu.se/~gunnar/gtp/gtp2-spec-draft2/gtp2-spec.html#SECTION00051000000000000000
+
 
 
 .. setting:: move_limit
