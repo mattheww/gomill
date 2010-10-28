@@ -43,11 +43,11 @@ Running the ringmaster
 ----------------------
 
 The ringmaster executable in the distribution directory can be run directly
-without any further installation; it will use the copy of the Gomill package
+without any further installation; it will use the copy of the gomill package
 in the distribution directory.
 
 A symbolic link to the ringmaster executable will also work, but if you move
-the executable elsewhere it will not be able to find the Gomill package unless
+the executable elsewhere it will not be able to find the gomill package unless
 the package is installed.
 
 
