@@ -114,7 +114,15 @@ the Smart Game Format (SGF).
 
 The principal tool is the ringmaster, which plays programs against each other
 and keeps track of the results.
-"""
+
+There is also experimental support for automatically tuning program parameters.
+
+Download: http://mjw.woodcraft.me.uk/gomill/download/gomill-%(VERSION)s.tar.gz
+
+Documentation: http://mjw.woodcraft.me.uk/gomill/download/gomill-doc-%(VERSION)s.tar.gz
+
+Online Documentation: http://mjw.woodcraft.me.uk/gomill/doc/%(VERSION)s/
+""" % vars()
 
 setup(name='gomill',
       version=VERSION,
@@ -143,7 +151,7 @@ setup(name='gomill',
           "Topic :: Games/Entertainment :: Board Games",
           "Topic :: Software Development :: Libraries :: Python Modules",
           ],
-      keywords="go,baduk,weiqi",
+      keywords="go,baduk,weiqi,gtp,sgf",
       license="MIT",
       platforms="POSIX",
       )
