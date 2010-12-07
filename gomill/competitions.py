@@ -258,7 +258,7 @@ class Competition(object):
                         words = interpret_8bit_string(v).split()
                     else:
                         words = list(v)
-                    if not all(gtp_controller.is_well_formed_gtp_word(word)
+                    if not max(gtp_controller.is_well_formed_gtp_word(word)
                                for word in words):
                         raise StandardError
                 except Exception:

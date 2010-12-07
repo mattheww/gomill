@@ -146,7 +146,7 @@ _command_id_re = re.compile(r"^-?[0-9]+")
 
 def _preprocess_line(s):
     """Clean up an input line and normalise whitespace."""
-    s = s.partition("#")[0]
+    s = s.split("#")[0]
     s = _remove_controls_re.sub("", s)
     s = _normalise_whitespace_re.sub(" ", s)
     return s

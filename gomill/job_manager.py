@@ -162,6 +162,8 @@ class In_process_job_manager(Job_manager):
                 break
             try:
                 response = job.run()
+            except KeyboardInterrupt:
+                raise
             except Exception, e:
                 if isinstance(e, JobFailed):
                     msg = str(e)

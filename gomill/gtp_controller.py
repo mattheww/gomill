@@ -452,9 +452,9 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             # sure it isn't still running.
             # Even if there were errors closing the pipes, it's most likely that
             # the subprocesses has exited.
-            pid, exit_status, rusage = os.wait4(self.subprocess.pid, 0)
+            pid, exit_status = os.waitpid(self.subprocess.pid, 0)
             self.exit_status = exit_status
-            self.resource_usage = rusage
+            self.resource_usage = None
         except EnvironmentError, e:
             errors.append(str(e))
         if errors:
@@ -783,9 +783,9 @@ def describe_engine(controller, default="unknown"):
         if version.lower().startswith(name.lower()):
             version = version[len(name):].lstrip()
         # For MoGo's stupidly long version string
-        a, b, c = version.partition(". Please read http:")
-        if b:
-            return a
+        #a, b, c = version.partition(". Please read http:")
+        #if b:
+        #    return a
         return version
 
     try:

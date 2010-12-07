@@ -1,6 +1,7 @@
 """Run competitions using GTP."""
 
-from __future__ import division, with_statement
+#from __future__ import division, with_statement
+from __future__ import division
 
 import cPickle as pickle
 import datetime
@@ -66,10 +67,10 @@ class Ringmaster(object):
 
     """
     # Can bump this to prevent people loading incompatible .status files.
-    status_format_version = 0
+    status_format_version = "2010-12-07_2.4"
 
     # For --version command
-    public_version = "gomill ringmaster v0.5"
+    public_version = "gomill ringmaster v0.5 for Python 2.4"
 
     def __init__(self, control_pathname):
         """Instantiate and initialise a Ringmaster.
@@ -112,8 +113,9 @@ class Ringmaster(object):
     def _read_control_file(self):
         """Return the contents of the control file as an 8-bit string."""
         try:
-            with open(self.control_pathname) as f:
-                return f.read()
+            return open(self.control_pathname).read()
+            #with open(self.control_pathname) as f:
+            #    return f.read()
         except EnvironmentError, e:
             raise RingmasterError("failed to read control file:\n%s" % e)
 

@@ -2,7 +2,7 @@
 
 from __future__ import division
 
-from collections import defaultdict
+from gomill.collections import defaultdict
 
 from gomill import ascii_tables
 from gomill import game_jobs

@@ -65,15 +65,16 @@ class Terminal_reader(object):
         except EnvironmentError:
             return False
         try:
-            seen_ctrl_x = False
-            while True:
-                c = os.read(self.tty.fileno(), 1)
-                if not c:
-                    break
-                if c == "\x18":
-                    seen_ctrl_x = True
-        except EnvironmentError:
-            seen_ctrl_x = False
+            try:
+                seen_ctrl_x = False
+                while True:
+                    c = os.read(self.tty.fileno(), 1)
+                    if not c:
+                        break
+                    if c == "\x18":
+                        seen_ctrl_x = True
+            except EnvironmentError:
+                seen_ctrl_x = False
         finally:
             termios.tcsetattr(self.tty, termios.TCSANOW, self.clean_tcattr)
         return seen_ctrl_x

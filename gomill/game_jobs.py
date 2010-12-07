@@ -352,25 +352,26 @@ def check_player(player_check, discard_stderr=False):
         stderr = None
     try:
         try:
-            channel = gtp_controller.Subprocess_gtp_channel(
-                player.cmd_args,
-                env=player.make_environ(), cwd=player.cwd, stderr=stderr)
-        except GtpChannelError, e:
-            raise GtpChannelError(
-                "error starting subprocess for %s:\n%s" % (player.code, e))
-        controller = gtp_controller.Gtp_controller(channel, player.code)
-        controller.set_gtp_aliases(player.gtp_aliases)
-        controller.check_protocol_version()
-        for command, arguments in player.startup_gtp_commands:
-            controller.do_command(command, *arguments)
-        controller.do_command("boardsize", str(player_check.board_size))
-        controller.do_command("clear_board")
-        controller.do_command("komi", str(player_check.komi))
-        controller.safe_close()
-    except (GtpChannelError, BadGtpResponse), e:
-        raise CheckFailed(str(e))
-    else:
-        return controller.retrieve_error_messages()
+            try:
+                channel = gtp_controller.Subprocess_gtp_channel(
+                    player.cmd_args,
+                    env=player.make_environ(), cwd=player.cwd, stderr=stderr)
+            except GtpChannelError, e:
+                raise GtpChannelError(
+                    "error starting subprocess for %s:\n%s" % (player.code, e))
+            controller = gtp_controller.Gtp_controller(channel, player.code)
+            controller.set_gtp_aliases(player.gtp_aliases)
+            controller.check_protocol_version()
+            for command, arguments in player.startup_gtp_commands:
+                controller.do_command(command, *arguments)
+            controller.do_command("boardsize", str(player_check.board_size))
+            controller.do_command("clear_board")
+            controller.do_command("komi", str(player_check.komi))
+            controller.safe_close()
+        except (GtpChannelError, BadGtpResponse), e:
+            raise CheckFailed(str(e))
+        else:
+            return controller.retrieve_error_messages()
     finally:
         try:
             if stderr is not None:

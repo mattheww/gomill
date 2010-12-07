@@ -4,7 +4,7 @@ This is designed for screen or text-file output, using a fixed-width font.
 
 """
 
-from collections import defaultdict
+from gomill.collections import defaultdict
 
 class Column_spec(object):
     """Details of a table column.
