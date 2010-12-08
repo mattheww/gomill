@@ -17,8 +17,6 @@ file and an :dfn:`action`::
   ringmaster [options] <code>.ctl report
   ringmaster [options] <code>.ctl stop
 
-The control file must have extension :file:`.ctl`.
-
 The default action is :action:`!run`, so running a competition is normally a
 simple line like::
 

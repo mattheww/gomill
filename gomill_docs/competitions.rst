@@ -261,8 +261,8 @@ Output files
 
 The ringmaster writes a number of files, which it places in the directory
 which contains the control file (the :dfn:`competition directory`). The
-basename (the part before the file extension) of each file is the same as in
-the control file (:file:`{code}` in the table below).
+filename stem (the part before the filename extension) of each file is the
+same as in the control file (:file:`{code}` in the table below).
 
 The full set of files that may be present in the competition directory is:
 
@@ -278,6 +278,9 @@ The full set of files that may be present in the competition directory is:
 :file:`{code}.gtplogs/` |GTP| logs
                         (from :option:`--log-gtp <ringmaster --log-gtp>`)
 ======================= =======================================================
+
+The recommended filename extension for the control file is :file:`.ctl`, but
+other extensions are allowed (except those listed in the table above).
 
 
 .. _competition state:

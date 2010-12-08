@@ -94,8 +94,6 @@ def run(argv, ringmaster_class):
     except KeyError:
         parser.error("no such command: %s" % command)
     ctl_pathname = args[0]
-    if not ctl_pathname.endswith(".ctl"):
-        parser.error("not a .ctl file")
     try:
         if not os.path.exists(ctl_pathname):
             raise RingmasterError("control file %s not found" % ctl_pathname)

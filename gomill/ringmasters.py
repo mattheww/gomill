@@ -92,7 +92,10 @@ class Ringmaster(object):
 
         self.control_pathname = control_pathname
         self.base_directory, control_filename = os.path.split(control_pathname)
-        self.competition_code = os.path.splitext(control_filename)[0]
+        self.competition_code, ext = os.path.splitext(control_filename)
+        if ext in (".log", ".status", ".cmd", ".hist",
+                   ".report", ".games", ".void", ".gtplogs"):
+            raise RingmasterError("forbidden control file extension: %s" % ext)
         stem = os.path.join(self.base_directory, self.competition_code)
         self.log_pathname = stem + ".log"
         self.status_pathname = stem + ".status"

@@ -104,6 +104,8 @@ If you wish, you can use arbitrary Python expressions in the control file; see
    execute arbitrary code. On a shared system, do not make the competition
    directory or the control file world-writeable.
 
+The recommended filename extension for the control file is :file:`.ctl`.
+
 .. _data types:
 
 Data types
