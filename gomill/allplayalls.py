@@ -28,8 +28,8 @@ class Competitor_spec(object):
     """Internal description of a competitor spec from the configuration file.
 
     Public attributes:
-      player           -- player code
-      letter           -- short string (may be more than one letter)
+      player      -- player code
+      short_code  -- eg 'A' or 'ZZ'
 
     """
 
@@ -77,8 +77,15 @@ class Allplayall(playoffs.Playoff):
         if cspec.player not in self.players:
             raise ControlFileError("unknown player %s" % cspec.player)
 
-        # FIXME: cope with > 26 candidates
-        cspec.letter = chr(ord('A') + i)
+        def let(n):
+            return chr(ord('A') + n)
+        if i < 26:
+            cspec.short_code = let(i)
+        elif i < 26*27:
+            n, m = divmod(i, 26)
+            cspec.short_code = let(n-1) + let(m)
+        else:
+            raise ValueError("too many competitors")
         return cspec
 
     def initialise_from_control_file(self, config):
@@ -128,16 +135,16 @@ class Allplayall(playoffs.Playoff):
 
     def write_screen_report(self, out):
         t = ascii_tables.Table(row_count=len(self.competitors))
-        t.add_heading("") # player letter
+        t.add_heading("") # player short_code
         i = t.add_column(align='left')
-        t.set_column_values(i, (c.letter for c in self.competitors))
+        t.set_column_values(i, (c.short_code for c in self.competitors))
 
         t.add_heading("") # player code
         i = t.add_column(align='left')
         t.set_column_values(i, (c.player for c in self.competitors))
 
         for c2_i, c2 in enumerate(self.competitors):
-            t.add_heading(" " + c2.letter)
+            t.add_heading(" " + c2.short_code)
             i = t.add_column(align='left')
             column_values = []
             for c1_i, c1 in enumerate(self.competitors):
