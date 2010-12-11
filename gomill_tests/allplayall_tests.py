@@ -33,7 +33,7 @@ def test_default_config(tc):
     config = default_config()
     comp.initialise_from_control_file(config)
     tc.assertListEqual(comp.get_matchup_ids(),
-                       ['0v1', '0v2', '1v0', '1v2', '2v0', '2v1'])
+                       ['0v1', '0v2', '1v2'])
     m1v2 = comp.get_matchup('1v2')
     tc.assertEqual(m1v2.p1, 't2')
     tc.assertEqual(m1v2.p2, 't3')

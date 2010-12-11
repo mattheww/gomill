@@ -57,9 +57,7 @@ class Allplayall(playoffs.Playoff):
             raise ControlFileError("competitors: empty list")
 
         for c1_i, c1 in enumerate(specials['competitors']):
-            for c2_i, c2 in enumerate(specials['competitors']):
-                if c1_i == c2_i:
-                    continue
+            for c2_i, c2 in list(enumerate(specials['competitors']))[c1_i+1:]:
                 ms = playoffs.Matchup_config(c1, c2)
                 try:
                     m = self.matchup_from_config(ms, matchup_defaults)
