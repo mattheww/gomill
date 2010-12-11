@@ -66,10 +66,12 @@ class Allplayall(playoffs.Playoff):
         if not specials['competitors']:
             raise ControlFileError("competitors: empty list")
 
-        competitors = []
+        self.competitors = []
         for i, competitor_spec in enumerate(specials['competitors']):
             try:
                 c = competitor_spec.resolve_arguments()
+                # FIXME: cope with > 26 candidates
+                c['letter'] = chr(ord('A') + i)
                 if 'player' not in c:
                     raise ValueError("player not specified")
             except StandardError, e:
@@ -77,14 +79,14 @@ class Allplayall(playoffs.Playoff):
                 if code is None:
                     code = i
                 raise ControlFileError("competitor %s: %s" % (code, e))
-            competitors.append(c)
+            self.competitors.append(c)
 
         # map matchup_id -> Matchup
         self.matchups = {}
         # Matchups in order of definition
         self.matchup_list = []
-        for c1_i, c1 in enumerate(competitors):
-            for c2_i, c2 in list(enumerate(competitors))[c1_i+1:]:
+        for c1_i, c1 in enumerate(self.competitors):
+            for c2_i, c2 in list(enumerate(self.competitors))[c1_i+1:]:
                 ms = playoffs.Matchup_config(c1['player'], c2['player'])
                 try:
                     m = self.matchup_from_config(ms, matchup_defaults)
@@ -94,3 +96,47 @@ class Allplayall(playoffs.Playoff):
                 m.id = "%dv%d" % (c1_i, c2_i)
                 self.matchups[m.id] = m
                 self.matchup_list.append(m)
+
+    def write_screen_report(self, out):
+        print >>out, " "*12,
+        for c in self.competitors:
+            print >>out, (" %s " % c['letter']),
+        print >>out
+        for c1_i, c1 in enumerate(self.competitors):
+            print >>out, "%s %-10s" % (c1['letter'], c1['player']),
+            for c2_i, c2 in enumerate(self.competitors):
+                if c2_i == c1_i:
+                    print >>out, "   ",
+                    continue
+                if c1_i < c2_i:
+                    matchup_id = "%dv%d" % (c1_i, c2_i)
+                    matchup = self.matchups[matchup_id]
+                    player_x = matchup.p1
+                    player_y = matchup.p2
+                else:
+                    matchup_id = "%dv%d" % (c2_i, c1_i)
+                    matchup = self.matchups[matchup_id]
+                    player_x = matchup.p2
+                    player_y = matchup.p1
+
+                results = [t[1] for t in self.results[matchup.id]]
+                js = jigo_scores = 0.5 * sum(r.is_jigo for r in results)
+                x_wins = sum(r.winning_player == player_x for r in results) + js
+                y_wins = sum(r.winning_player == player_y for r in results) + js
+                print >>out, "%d-%d" % (x_wins, y_wins),
+            print >>out
+
+    def write_short_report(self, out):
+        def p(s):
+            print >>out, s
+        p("playoff: %s" % self.competition_code)
+        if self.description:
+            p(self.description)
+        p('')
+        self.write_screen_report(out)
+        p('')
+        playoffs.Playoff.write_screen_report(self, out)
+        p('')
+        for code, description in sorted(self.engine_descriptions.items()):
+            p("player %s: %s" % (code, description))
+        p('')
