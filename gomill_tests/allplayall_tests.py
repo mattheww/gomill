@@ -4,6 +4,7 @@ from gomill import competitions
 from gomill import allplayalls
 from gomill.competitions import (
     Player_config, NoGameAvailable, CompetitionError, ControlFileError)
+from gomill.allplayalls import Competitor_config
 
 from gomill_tests import gomill_test_support
 
@@ -20,8 +21,8 @@ def default_config():
         'board_size' : 13,
         'komi' : 7.5,
         'competitors' : [
-            't1',
-            't2',
+            Competitor_config('t1'),
+            Competitor_config('t2'),
             't3',
             ],
         }

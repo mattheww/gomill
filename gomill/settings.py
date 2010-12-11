@@ -179,11 +179,20 @@ def interpret_sequence_of(item_interpreter):
         return l
     return interpreter
 
-def interpret_sequence_of_quiet_configs(cls):
-    """Make an interpreter for sequences of a given Quiet_config."""
+def interpret_sequence_of_quiet_configs(cls, allow_simple_values=False):
+    """Make an interpreter for sequences of a given Quiet_config.
+
+    If 'allow_simple_values' is true, any value which isn't an instance of 'cls'
+    will be used (as a single positional parameter) to instantiate a 'cls'
+    instance.
+
+    """
     def interpret(v):
         if not isinstance(v, cls):
-            raise ValueError("not a %s" % cls.get_type_name())
+            if allow_simple_values:
+                v = cls(v)
+            else:
+                raise ValueError("not a %s" % cls.get_type_name())
         return v
     return interpret_sequence_of(interpret)
 
