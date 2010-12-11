@@ -1,5 +1,6 @@
 """Competitions for all-play-all tournaments."""
 
+from gomill import ascii_tables
 from gomill import competitions
 from gomill import playoffs
 from gomill.competitions import (
@@ -98,15 +99,22 @@ class Allplayall(playoffs.Playoff):
                 self.matchup_list.append(m)
 
     def write_screen_report(self, out):
-        print >>out, " "*12,
-        for c in self.competitors:
-            print >>out, (" %s " % c['letter']),
-        print >>out
-        for c1_i, c1 in enumerate(self.competitors):
-            print >>out, "%s %-10s" % (c1['letter'], c1['player']),
-            for c2_i, c2 in enumerate(self.competitors):
-                if c2_i == c1_i:
-                    print >>out, "   ",
+        t = ascii_tables.Table(row_count=len(self.competitors))
+        t.add_heading("") # player letter
+        i = t.add_column(align='left')
+        t.set_column_values(i, (c['letter'] for c in self.competitors))
+
+        t.add_heading("") # player code
+        i = t.add_column(align='left')
+        t.set_column_values(i, (c['player'] for c in self.competitors))
+
+        for c2_i, c2 in enumerate(self.competitors):
+            t.add_heading(" " + c2['letter'])
+            i = t.add_column(align='left')
+            column_values = []
+            for c1_i, c1 in enumerate(self.competitors):
+                if c1_i == c2_i:
+                    column_values.append("")
                     continue
                 if c1_i < c2_i:
                     matchup_id = "%dv%d" % (c1_i, c2_i)
@@ -118,13 +126,13 @@ class Allplayall(playoffs.Playoff):
                     matchup = self.matchups[matchup_id]
                     player_x = matchup.p2
                     player_y = matchup.p1
-
-                results = [t[1] for t in self.results[matchup.id]]
+                results = [r[1] for r in self.results[matchup.id]]
                 js = jigo_scores = 0.5 * sum(r.is_jigo for r in results)
                 x_wins = sum(r.winning_player == player_x for r in results) + js
                 y_wins = sum(r.winning_player == player_y for r in results) + js
-                print >>out, "%d-%d" % (x_wins, y_wins),
-            print >>out
+                column_values.append("%d-%d" % (x_wins, y_wins))
+            t.set_column_values(i, column_values)
+        print >>out, "\n".join(t.render())
 
     def write_short_report(self, out):
         def p(s):
