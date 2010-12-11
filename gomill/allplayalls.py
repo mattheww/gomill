@@ -37,8 +37,8 @@ class Competitor_spec(object):
 class Allplayall(playoffs.Playoff):
     """A Competition in which each player repeatedly plays each other player.
 
-    The game ids are like 0v1_2, where 0 and 1 are the competitor numbers and 2
-    is the game number between those two competitors.
+    The game ids are like AvB_2, where A and B are the competitor short_codes
+    and 2 is the game number between those two competitors.
 
     """
     def __init__(self, competition_code, **kwargs):
@@ -88,6 +88,10 @@ class Allplayall(playoffs.Playoff):
             raise ValueError("too many competitors")
         return cspec
 
+    @staticmethod
+    def _get_matchup_id(c1, c2):
+        return "%sv%s" % (c1.short_code, c2.short_code)
+
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
 
@@ -129,7 +133,7 @@ class Allplayall(playoffs.Playoff):
                 except StandardError, e:
                     raise ControlFileError("%s v %s: %s" %
                                            (c1.player, c2.player, e))
-                m.id = "%dv%d" % (c1_i, c2_i)
+                m.id = self._get_matchup_id(c1, c2)
                 self.matchups[m.id] = m
                 self.matchup_list.append(m)
 
@@ -152,12 +156,12 @@ class Allplayall(playoffs.Playoff):
                     column_values.append("")
                     continue
                 if c1_i < c2_i:
-                    matchup_id = "%dv%d" % (c1_i, c2_i)
+                    matchup_id = self._get_matchup_id(c1, c2)
                     matchup = self.matchups[matchup_id]
                     player_x = matchup.p1
                     player_y = matchup.p2
                 else:
-                    matchup_id = "%dv%d" % (c2_i, c1_i)
+                    matchup_id = self._get_matchup_id(c2, c1)
                     matchup = self.matchups[matchup_id]
                     player_x = matchup.p2
                     player_y = matchup.p1
