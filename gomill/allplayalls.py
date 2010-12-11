@@ -24,6 +24,16 @@ class Competitor_config(Quiet_config):
     # keyword-only
     keyword_arguments = ()
 
+class Competitor_spec(object):
+    """Internal description of a competitor spec from the configuration file.
+
+    Public attributes:
+      player           -- player code
+      letter           -- short string (may be more than one letter)
+
+    """
+
+
 class Allplayall(playoffs.Playoff):
     """A Competition in which each player repeatedly plays each other player.
 
@@ -48,6 +58,29 @@ class Allplayall(playoffs.Playoff):
                     Competitor_config, allow_simple_values=True)),
         ]
 
+    def competitor_spec_from_config(self, i, competitor_config):
+        """Make a Competitor_spec from a Competitor_config.
+
+        i -- ordinal number of the competitor.
+
+        Raises ControlFileError if there is an error in the configuration.
+
+        Returns a Competitor_spec with all attributes set.
+
+        """
+        arguments = competitor_config.resolve_arguments()
+        cspec = Competitor_spec()
+
+        if 'player' not in arguments:
+            raise ValueError("player not specified")
+        cspec.player = arguments['player']
+        if cspec.player not in self.players:
+            raise ControlFileError("unknown player %s" % cspec.player)
+
+        # FIXME: cope with > 26 candidates
+        cspec.letter = chr(ord('A') + i)
+        return cspec
+
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
 
@@ -66,21 +99,16 @@ class Allplayall(playoffs.Playoff):
 
         if not specials['competitors']:
             raise ControlFileError("competitors: empty list")
-
         self.competitors = []
         for i, competitor_spec in enumerate(specials['competitors']):
             try:
-                c = competitor_spec.resolve_arguments()
-                # FIXME: cope with > 26 candidates
-                c['letter'] = chr(ord('A') + i)
-                if 'player' not in c:
-                    raise ValueError("player not specified")
+                cspec = self.competitor_spec_from_config(i, competitor_spec)
             except StandardError, e:
                 code = competitor_spec.get_key()
                 if code is None:
                     code = i
                 raise ControlFileError("competitor %s: %s" % (code, e))
-            self.competitors.append(c)
+            self.competitors.append(cspec)
 
         # map matchup_id -> Matchup
         self.matchups = {}
@@ -88,12 +116,12 @@ class Allplayall(playoffs.Playoff):
         self.matchup_list = []
         for c1_i, c1 in enumerate(self.competitors):
             for c2_i, c2 in list(enumerate(self.competitors))[c1_i+1:]:
-                ms = playoffs.Matchup_config(c1['player'], c2['player'])
+                ms = playoffs.Matchup_config(c1.player, c2.player)
                 try:
                     m = self.matchup_from_config(ms, matchup_defaults)
                 except StandardError, e:
                     raise ControlFileError("%s v %s: %s" %
-                                           (c1['player'], c2['player'], e))
+                                           (c1.player, c2.player, e))
                 m.id = "%dv%d" % (c1_i, c2_i)
                 self.matchups[m.id] = m
                 self.matchup_list.append(m)
@@ -102,14 +130,14 @@ class Allplayall(playoffs.Playoff):
         t = ascii_tables.Table(row_count=len(self.competitors))
         t.add_heading("") # player letter
         i = t.add_column(align='left')
-        t.set_column_values(i, (c['letter'] for c in self.competitors))
+        t.set_column_values(i, (c.letter for c in self.competitors))
 
         t.add_heading("") # player code
         i = t.add_column(align='left')
-        t.set_column_values(i, (c['player'] for c in self.competitors))
+        t.set_column_values(i, (c.player for c in self.competitors))
 
         for c2_i, c2 in enumerate(self.competitors):
-            t.add_heading(" " + c2['letter'])
+            t.add_heading(" " + c2.letter)
             i = t.add_column(align='left')
             column_values = []
             for c1_i, c1 in enumerate(self.competitors):
