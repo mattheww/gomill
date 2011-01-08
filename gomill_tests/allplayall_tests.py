@@ -167,12 +167,14 @@ def test_play(tc):
 
     response1 = fake_response(job1, 'b')
     fx.comp.process_game_result(response1)
+    response2 = fake_response(job2, None)
+    fx.comp.process_game_result(response2)
 
     expected_grid = dedent("""\
-          A   B   C
-    A t1     1-0 0-0
-    B t2 0-1     0-0
-    C t3 0-0 0-0
+          A       B   C
+    A t1         1-0 0.5-0.5
+    B t2 0-1         0-0
+    C t3 0.5-0.5 0-0
     """)
     expected_matchups = dedent("""\
     t1 v t2 (1 games)
@@ -180,10 +182,18 @@ def test_play(tc):
          wins
     t1      1 100.00%   (black)
     t2      0   0.00%   (white)
+
+    t1 v t3 (1 games)
+    board size: 13   komi: 7.5
+         wins
+    t1    0.5 50.00%   (black)
+    t3    0.5 50.00%   (white)
     """)
     expected_players = dedent("""\
     player t1: t1 engine:v1.2.3
     player t2: t2 engine
+    testdescription
+    player t3: t3 engine
     testdescription
     """)
     fx.check_screen_report(expected_grid)

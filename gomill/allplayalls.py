@@ -6,6 +6,7 @@ from gomill import playoffs
 from gomill.competitions import (
     Competition, CompetitionError, ControlFileError)
 from gomill.settings import *
+from gomill.gomill_utils import format_float
 
 
 matchup_settings = [
@@ -174,7 +175,8 @@ class Allplayall(playoffs.Playoff):
                 js = jigo_scores = 0.5 * sum(r.is_jigo for r in results)
                 x_wins = sum(r.winning_player == player_x for r in results) + js
                 y_wins = sum(r.winning_player == player_y for r in results) + js
-                column_values.append("%d-%d" % (x_wins, y_wins))
+                column_values.append(
+                    "%s-%s" % (format_float(x_wins), format_float(y_wins)))
             t.set_column_values(i, column_values)
         print >>out, "\n".join(t.render())
 
