@@ -165,21 +165,7 @@ def test_play(tc):
     tc.assertEqual(job2.player_b.code, 't1')
     tc.assertEqual(job2.player_w.code, 't3')
 
-    # FIXME: Use fake_response?
-    result1 = Game_result({'b' : 't1', 'w' : 't2'}, 'b')
-    result1.sgf_result = "B+8.5"
-    response1 = Game_job_result()
-    response1.game_id = job1.game_id
-    response1.game_result = result1
-    response1.engine_names = {
-        't1' : 't1 engine:v1.2.3',
-        't2' : 't2 engine',
-        }
-    response1.engine_descriptions = {
-        't1' : 't1 engine:v1.2.3',
-        't2' : 't2 engine\ntest \xc2\xa3description',
-        }
-    response1.game_data = job1.game_data
+    response1 = fake_response(job1, 'b')
     fx.comp.process_game_result(response1)
 
     expected_grid = dedent("""\
@@ -198,10 +184,12 @@ def test_play(tc):
     expected_players = dedent("""\
     player t1: t1 engine:v1.2.3
     player t2: t2 engine
-    test \xc2\xa3description
+    testdescription
     """)
     fx.check_screen_report(expected_grid)
     fx.check_short_report(expected_grid, expected_matchups, expected_players)
 
-    tc.assertListEqual(fx.comp.get_matchup_results('AvB'), [('AvB_0', result1)])
-
+    avb_results = fx.comp.get_matchup_results('AvB')
+    tc.assertEqual(len(avb_results), 1)
+    tc.assertEqual(avb_results[0][0], 'AvB_0')
+    tc.assertEqual(avb_results[0][1].describe(), 't1 beat t2 B+1.5')
