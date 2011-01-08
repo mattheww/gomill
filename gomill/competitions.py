@@ -452,3 +452,25 @@ def validate_handicap(handicap, handicap_style, board_size):
             "%s handicap out of range for board size %d" %
             (handicap_style, board_size))
 
+
+## Helper functions
+
+def leading_zero_template(ceiling):
+    """Return a template suitable for formatting numbers less than 'ceiling'.
+
+    ceiling -- int or None
+
+    Returns a string suitable for Python %-formatting numbers from 0 to
+    ceiling-1, with leading zeros so that the strings have constant length.
+
+    If ceiling is None, there will be no leading zeros.
+
+    That is, the result is either '%d' or '%0Nd' for some N.
+
+    """
+    if ceiling is None:
+        return "%d"
+    else:
+        zeros = len(str(ceiling-1))
+        return "%%0%dd" % zeros
+

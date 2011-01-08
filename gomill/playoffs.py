@@ -184,12 +184,8 @@ class Playoff(Competition):
             event_description = "%s (%s)" % (self.competition_code, name)
         matchup.name = name
         matchup.event_description = event_description
-
-        if matchup.number_of_games is None:
-            matchup._game_id_template = "%s_%d"
-        else:
-            zeros = len(str(matchup.number_of_games-1))
-            matchup._game_id_template = "%%s_%%0%dd" % zeros
+        matchup._game_id_template = ("%s_" +
+            competitions.leading_zero_template(matchup.number_of_games))
 
         return matchup
 
