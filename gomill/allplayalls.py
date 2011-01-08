@@ -143,6 +143,22 @@ class Allplayall(playoffs.Playoff):
                 self.matchups[m.id] = m
                 self.matchup_list.append(m)
 
+    def get_status(self):
+        result = playoffs.Playoff.get_status(self)
+        result['competitors'] = [c.player for c in self.competitors]
+        return result
+
+    def set_status(self, status):
+        expected_competitors = status['competitors']
+        if len(self.competitors) < len(expected_competitors):
+            raise CompetitionError(
+                "competitor has been removed from control file")
+        if ([c.player for c in self.competitors[:len(expected_competitors)]] !=
+            expected_competitors):
+            raise CompetitionError(
+                "competitors have changed in the control file")
+        playoffs.Playoff.set_status(self, status)
+
     def write_screen_report(self, out):
         t = ascii_tables.Table(row_count=len(self.competitors))
         t.add_heading("") # player short_code

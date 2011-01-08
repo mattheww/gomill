@@ -234,3 +234,35 @@ def test_play_many(tc):
     check_screen_report(
         tc, comp2, competition_test_support.get_screen_report(fx.comp))
 
+def test_competitor_change(tc):
+    fx = Allplayall_fixture(tc)
+    status = pickle.loads(pickle.dumps(fx.comp.get_status()))
+
+    config2 = default_config()
+    del config2['competitors'][2]
+    comp2 = allplayalls.Allplayall('testcomp')
+    comp2.initialise_from_control_file(config2)
+    with tc.assertRaises(CompetitionError) as ar:
+        comp2.set_status(status)
+    tc.assertEqual(
+        str(ar.exception),
+        "competitor has been removed from control file")
+
+    config3 = default_config()
+    config3['players']['t4'] = Player_config("test4")
+    config3['competitors'][2] = 't4'
+    comp3 = allplayalls.Allplayall('testcomp')
+    comp3.initialise_from_control_file(config3)
+    with tc.assertRaises(CompetitionError) as ar:
+        comp3.set_status(status)
+    tc.assertEqual(
+        str(ar.exception),
+        "competitors have changed in the control file")
+
+    config4 = default_config()
+    config4['players']['t4'] = Player_config("test4")
+    config4['competitors'].append('t4')
+    comp4 = allplayalls.Allplayall('testcomp')
+    comp4.initialise_from_control_file(config4)
+    comp4.set_status(status)
+
