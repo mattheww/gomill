@@ -1,6 +1,7 @@
 """Tests for allplayalls.py"""
 
 from textwrap import dedent
+import cPickle as pickle
 
 from gomill import competitions
 from gomill import allplayalls
@@ -203,3 +204,33 @@ def test_play(tc):
     tc.assertEqual(len(avb_results), 1)
     tc.assertEqual(avb_results[0][0], 'AvB_0')
     tc.assertEqual(avb_results[0][1].describe(), 't1 beat t2 B+1.5')
+
+def test_play_many(tc):
+    fx = Allplayall_fixture(tc)
+
+    jobs = [fx.comp.get_game() for _ in xrange(57)]
+    for i in xrange(57):
+        response = fake_response(jobs[i], 'b')
+        fx.comp.process_game_result(response)
+
+    fx.check_screen_report(dedent("""\
+          A    B    C
+    A t1      10-9 10-9
+    B t2 9-10      10-9
+    C t3 9-10 9-10
+    """))
+
+    tc.assertEqual(len(fx.comp.get_matchup_results('AvB')), 19)
+
+    comp2 = allplayalls.Allplayall('testcomp')
+    comp2.initialise_from_control_file(default_config())
+    status = pickle.loads(pickle.dumps(fx.comp.get_status()))
+    comp2.set_status(status)
+
+    jobs2 = [comp2.get_game() for _ in range(4)]
+    tc.assertListEqual([job.game_id for job in jobs2],
+                       ['AvB_19', 'AvC_19', 'BvC_19', 'AvB_20'])
+    tc.assertEqual(len(comp2.get_matchup_results('AvB')), 19)
+    check_screen_report(
+        tc, comp2, competition_test_support.get_screen_report(fx.comp))
+
