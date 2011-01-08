@@ -111,6 +111,7 @@ class Allplayall(playoffs.Playoff):
         if not specials['competitors']:
             raise ControlFileError("competitors: empty list")
         self.competitors = []
+        seen_competitors = set()
         for i, competitor_spec in enumerate(specials['competitors']):
             try:
                 cspec = self.competitor_spec_from_config(i, competitor_spec)
@@ -119,6 +120,10 @@ class Allplayall(playoffs.Playoff):
                 if code is None:
                     code = i
                 raise ControlFileError("competitor %s: %s" % (code, e))
+            if cspec.player in seen_competitors:
+                raise ControlFileError("duplicate competitor: %s"
+                                       % cspec.player)
+            seen_competitors.add(cspec.player)
             self.competitors.append(cspec)
 
         # map matchup_id -> Matchup

@@ -70,3 +70,11 @@ def test_basic_config(tc):
     tc.assertIs(mBvC.handicap, None)
     tc.assertEqual(mBvC.handicap_style, 'fixed')
 
+def test_duplicate_player(tc):
+    comp = allplayalls.Allplayall('test')
+    config = default_config()
+    config['competitors'].append('t2')
+    tc.assertRaisesRegexp(
+        ControlFileError, "duplicate competitor: t2",
+        comp.initialise_from_control_file, config)
+
