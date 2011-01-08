@@ -7,9 +7,35 @@ from gomill.competitions import (
 from gomill.allplayalls import Competitor_config
 
 from gomill_tests import gomill_test_support
+from gomill_tests import test_framework
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
+
+
+class Allplayall_fixture(test_framework.Fixture):
+    """Fixture setting up a Allplayall.
+
+    attributes:
+      comp       -- Allplayall
+
+    """
+    def __init__(self, tc, config=None):
+        if config is None:
+            config = default_config()
+        self.tc = tc
+        self.comp = allplayalls.Allplayall('testcomp')
+        self.comp.initialise_from_control_file(config)
+        self.comp.set_clean_status()
+
+    def check_screen_report(self, expected):
+        """Check that the screen report is as expected."""
+        check_screen_report(self.tc, self.comp, expected)
+
+    def check_short_report(self, *args, **kwargs):
+        """Check that the short report is as expected."""
+        check_short_report(self.tc, self.comp, *args, **kwargs)
+
 
 def default_config():
     return {
@@ -78,3 +104,8 @@ def test_duplicate_player(tc):
         ControlFileError, "duplicate competitor: t2",
         comp.initialise_from_control_file, config)
 
+def test_game_id_format(tc):
+    config = default_config()
+    config['number_of_games'] = 1000
+    fx = Allplayall_fixture(tc, config)
+    tc.assertEqual(fx.comp.get_game().game_id, 'AvB_000')
