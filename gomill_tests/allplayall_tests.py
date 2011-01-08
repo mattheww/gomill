@@ -99,7 +99,7 @@ def test_basic_config(tc):
     config['komi'] = 0.5
     config['move_limit'] = 200
     config['scorer'] = 'internal'
-    config['number_of_games'] = 20
+    config['rounds'] = 20
     comp.initialise_from_control_file(config)
     tc.assertEqual(comp.description, "default\nconfig")
     mBvC = comp.get_matchup('BvC')
@@ -124,7 +124,7 @@ def test_duplicate_player(tc):
 
 def test_game_id_format(tc):
     config = default_config()
-    config['number_of_games'] = 1000
+    config['rounds'] = 1000
     fx = Allplayall_fixture(tc, config)
     tc.assertEqual(fx.comp.get_game().game_id, 'AvB_000')
 
@@ -209,7 +209,7 @@ def test_play(tc):
 
 def test_play_many(tc):
     config = default_config()
-    config['number_of_games'] = 30
+    config['rounds'] = 30
     fx = Allplayall_fixture(tc, config)
 
     jobs = [fx.comp.get_game() for _ in xrange(57)]

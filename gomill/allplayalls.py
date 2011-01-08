@@ -15,7 +15,7 @@ matchup_settings = [
     Setting('move_limit', interpret_positive_int, default=1000),
     Setting('scorer', interpret_enum('internal', 'players'),
             default='players'),
-    Setting('number_of_games', allow_none(interpret_int), default=None),
+    Setting('rounds', allow_none(interpret_int), default=None),
     ]
 
 class Competitor_config(Quiet_config):
@@ -100,6 +100,7 @@ class Allplayall(playoffs.Playoff):
             matchup_defaults = load_settings(matchup_settings, config)
         except ValueError, e:
             raise ControlFileError(str(e))
+        matchup_defaults['number_of_games'] = matchup_defaults.pop('rounds')
         matchup_defaults['handicap'] = None
         matchup_defaults['handicap_style'] = 'fixed'
         matchup_defaults['alternating'] = True
@@ -169,11 +170,11 @@ class Allplayall(playoffs.Playoff):
         Returns None if no limit has been set.
 
         """
-        number_of_games = self.matchup_list[0].number_of_games
-        if number_of_games is None:
+        rounds = self.matchup_list[0].number_of_games
+        if rounds is None:
             return None
         n = len(self.competitors)
-        return number_of_games * n * (n-1) // 2
+        return rounds * n * (n-1) // 2
 
     def write_screen_report(self, out):
         expected = self.count_games_expected()
