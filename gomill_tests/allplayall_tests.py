@@ -24,8 +24,7 @@ def check_short_report(tc, comp,
                        expected_grid, expected_matchups, expected_players,
                        competition_name="testcomp"):
     """Check that an allplayall's short report is as expected."""
-    # FIXME: 'playoff'
-    expected = ("playoff: %s\n\n%s\n%s\n%s\n" %
+    expected = ("allplayall: %s\n\n%s\n%s\n%s\n" %
                 (competition_name, expected_grid,
                  expected_matchups, expected_players))
     tc.assertMultiLineEqual(competition_test_support.get_short_report(comp),

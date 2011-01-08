@@ -181,7 +181,7 @@ class Allplayall(playoffs.Playoff):
     def write_short_report(self, out):
         def p(s):
             print >>out, s
-        p("playoff: %s" % self.competition_code)
+        p("allplayall: %s" % self.competition_code)
         if self.description:
             p(self.description)
         p('')
