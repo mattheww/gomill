@@ -159,7 +159,31 @@ class Allplayall(playoffs.Playoff):
                 "competitors have changed in the control file")
         playoffs.Playoff.set_status(self, status)
 
+    def count_games_played(self):
+        """Return the total number of games completed."""
+        return sum(len(l) for l in self.results.values())
+
+    def count_games_expected(self):
+        """Return the total number of games required.
+
+        Returns None if no limit has been set.
+
+        """
+        number_of_games = self.matchup_list[0].number_of_games
+        if number_of_games is None:
+            return None
+        n = len(self.competitors)
+        return number_of_games * n * (n-1) // 2
+
     def write_screen_report(self, out):
+        expected = self.count_games_expected()
+        if expected is not None:
+            print >>out, "%d/%d games played" % (
+                self.count_games_played(), expected)
+        else:
+            print >>out, "%d games played" % self.count_games_played()
+        print >>out
+
         t = ascii_tables.Table(row_count=len(self.competitors))
         t.add_heading("") # player short_code
         i = t.add_column(align='left')

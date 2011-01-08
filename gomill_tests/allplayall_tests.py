@@ -172,6 +172,8 @@ def test_play(tc):
     fx.comp.process_game_result(response2)
 
     expected_grid = dedent("""\
+    2 games played
+
           A       B   C
     A t1         1-0 0.5-0.5
     B t2 0-1         0-0
@@ -206,7 +208,9 @@ def test_play(tc):
     tc.assertEqual(avb_results[0][1].describe(), 't1 beat t2 B+1.5')
 
 def test_play_many(tc):
-    fx = Allplayall_fixture(tc)
+    config = default_config()
+    config['number_of_games'] = 30
+    fx = Allplayall_fixture(tc, config)
 
     jobs = [fx.comp.get_game() for _ in xrange(57)]
     for i in xrange(57):
@@ -214,6 +218,8 @@ def test_play_many(tc):
         fx.comp.process_game_result(response)
 
     fx.check_screen_report(dedent("""\
+    57/90 games played
+
           A    B    C
     A t1      10-9 10-9
     B t2 9-10      10-9
@@ -223,7 +229,7 @@ def test_play_many(tc):
     tc.assertEqual(len(fx.comp.get_matchup_results('AvB')), 19)
 
     comp2 = allplayalls.Allplayall('testcomp')
-    comp2.initialise_from_control_file(default_config())
+    comp2.initialise_from_control_file(config)
     status = pickle.loads(pickle.dumps(fx.comp.get_status()))
     comp2.set_status(status)
 
