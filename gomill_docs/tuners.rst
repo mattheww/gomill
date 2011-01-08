@@ -1,3 +1,5 @@
+.. index:: tuning event
+
 .. _tuners:
 
 Tuning events

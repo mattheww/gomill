@@ -62,11 +62,18 @@ Glossary
 
   competition
     An 'event' consisting of multiple games managed by the Gomill ringmaster
-    (either a playoff or a tuning event).
+    (either a tournament or a tuning event).
 
+  tournament
+    A competition in which the ringmaster plays games between predefined
+    players, to compare their strengths.
 
   playoff
-    A competition comprising many games played between fixed pairings of
+    A tournament comprising many games played between fixed pairings of
+    players.
+
+  all-play-all
+    A tournament in which games are played between all pairings from a list of
     players.
 
 
