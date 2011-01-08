@@ -1,5 +1,7 @@
 """Test support code for testing Competitions and Ringmasters."""
 
+from cStringIO import StringIO
+
 from gomill import game_jobs
 from gomill import gtp_games
 
@@ -33,4 +35,20 @@ def fake_response(job, winner):
     response.warnings = []
     response.log_entries = []
     return response
+
+def get_screen_report(comp):
+    """Retrieve a competition's screen report."""
+    out = StringIO()
+    comp.write_screen_report(out)
+    return out.getvalue()
+
+def get_short_report(comp):
+    """Retrieve a competition's short report."""
+    out = StringIO()
+    comp.write_short_report(out)
+    return out.getvalue()
+
+def check_screen_report(tc, comp, expected):
+    """Check that a competition's screen report is as expected."""
+    tc.assertMultiLineEqual(get_screen_report(comp), expected)
 

@@ -4,7 +4,6 @@ from __future__ import with_statement
 
 from textwrap import dedent
 import cPickle as pickle
-from cStringIO import StringIO
 
 from gomill import competitions
 from gomill import playoffs
@@ -14,37 +13,23 @@ from gomill.competitions import (
     Player_config, NoGameAvailable, CompetitionError, ControlFileError)
 from gomill.playoffs import Matchup_config
 
+from gomill_tests import competition_test_support
 from gomill_tests import gomill_test_support
 from gomill_tests import test_framework
-from gomill_tests.competition_test_support import fake_response
+from gomill_tests.competition_test_support import (
+    fake_response, check_screen_report)
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
-def get_screen_report(comp):
-    """Retrieve a competition's screen report."""
-    out = StringIO()
-    comp.write_screen_report(out)
-    return out.getvalue()
-
-def get_short_report(comp):
-    """Retrieve a competition's short report."""
-    out = StringIO()
-    comp.write_short_report(out)
-    return out.getvalue()
-
-def check_screen_report(tc, comp, expected):
-    """Check that a competition's screen report is as expected."""
-    tc.assertMultiLineEqual(get_screen_report(comp), expected)
-
 def check_short_report(tc, comp, expected_matchups, expected_players,
                        competition_name="testcomp"):
-    """Check that a competition's short report is as expected."""
+    """Check that a playoff's short report is as expected."""
     expected = ("playoff: %s\n\n%s\n%s\n" %
                 (competition_name, expected_matchups, expected_players))
-
-    tc.assertMultiLineEqual(get_short_report(comp), expected)
+    tc.assertMultiLineEqual(competition_test_support.get_short_report(comp),
+                            expected)
 
 expected_fake_players = dedent("""\
     player t1: t1 engine
@@ -287,7 +272,8 @@ def test_play_many(tc):
     tc.assertListEqual([job.game_id for job in jobs2],
                        ['0_1', '0_5', '0_8', '0_9'])
     tc.assertEqual(len(comp2.get_matchup_results('0')), 6)
-    check_screen_report(tc, comp2, get_screen_report(fx.comp))
+    check_screen_report(
+        tc, comp2, competition_test_support.get_screen_report(fx.comp))
 
 def test_jigo_reporting(tc):
     fx = Playoff_fixture(tc)
