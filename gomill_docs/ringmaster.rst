@@ -73,6 +73,6 @@ Using the ringmaster
 
    competitions
    results
-   settings
    ringmaster_cmdline
+   settings
 

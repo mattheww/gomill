@@ -13,15 +13,14 @@ The control file
 Sample control file
 ^^^^^^^^^^^^^^^^^^^
 
-Here is a sample control file, illustrating most of the available settings for
-a playoff tournament::
+Here is a sample control file for a playoff tournament::
 
   competition_type = 'playoff'
 
   description = """
   This is a sample control file.
 
-  It illustrates most of the available settings for a playoff.
+  It illustrates player definitions, common settings, and game settings.
   """
 
   record_games = True
@@ -57,7 +56,7 @@ a playoff tournament::
               scorer='players', number_of_games=5),
 
       Matchup('gnugo-l2', 'fuego-5k', alternating=True,
-              scorer='players'),
+              scorer='players', move_limit=200),
 
       Matchup('gnugo-l1', 'gnugo-l2',
               komi=0.5,
@@ -165,6 +164,8 @@ directory>`.
 If a file or directory name begins with ``~``, home directory expansion is
 applied (see :func:`os.path.expanduser`).
 
+
+.. _common settings:
 
 Common settings
 ^^^^^^^^^^^^^^^
@@ -375,6 +376,78 @@ The arguments are:
 
   Permits the player to claim a win (using the |gtp| extension
   :gtp:`gomill-genmove_ex`). See :ref:`claiming wins`.
+
+
+.. _game settings:
+
+Game settings
+^^^^^^^^^^^^^
+
+The following settings describe how a particular game is to be played.
+
+.. todo:: explain where they can appear (ie, that it depends on competition
+   type).
+
+
+.. setting:: board_size
+
+  Integer
+
+  The size of Go board to use for the game (eg ``19`` for a 19x19 game). The
+  ringmaster is willing to use board sizes from 2 to 25.
+
+
+.. setting:: komi
+
+  Float
+
+  The :term:`komi` to use for the game. You can specify any floating-point
+  value, and it will be passed on to the |gtp| engines unchanged, but normally
+  only integer or half-integer values will be useful. Negative values are
+  allowed.
+
+
+.. setting:: handicap
+
+  Integer (default ``None``)
+
+  The number of handicap stones to give Black at the start of the game. See
+  also :setting:`handicap_style`.
+
+  See the `GTP specification`_ for the rules about what handicap values
+  are permitted for different board sizes (in particular, values less than 2
+  are never allowed).
+
+
+.. setting:: handicap_style
+
+  String: ``"fixed"`` or ``"free"`` (default ``"fixed"``)
+
+  Determines whether the handicap stones are placed on prespecified points, or
+  chosen by the Black player. See the `GTP specification`_ for more details.
+
+  This is ignored if :setting:`handicap` is unset.
+
+  .. _GTP specification: http://www.lysator.liu.se/~gunnar/gtp/gtp2-spec-draft2/gtp2-spec.html#SECTION00051000000000000000
+
+
+
+.. setting:: move_limit
+
+  Integer (default ``1000``)
+
+  The maximum number of moves to allow in a game. If this limit is reached,
+  the game is stopped; see :ref:`playing games`.
+
+
+.. setting:: scorer
+
+  String: ``"players"`` or ``"internal"`` (default ``"players"``)
+
+  Determines whether the game result is determined by the engines, or by the
+  ringmaster. See :ref:`Scoring <scoring>` and :setting:`is_reliable_scorer`.
+
+
 
 
 

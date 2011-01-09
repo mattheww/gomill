@@ -10,19 +10,47 @@ pairings of players (:dfn:`matchups`). Each matchup is treated independently.
    treated independently'?
 
 
+.. _sample_playoff_control_file:
+
+Sample control file
+^^^^^^^^^^^^^^^^^^^
+
+Here is a sample control file, illustrating how matchups are specified::
+
+  competition_type = 'playoff'
+
+  players = {
+      'gnugo-l1' : Player("gnugo --mode=gtp --chinese-rules "
+                          "--capture-all-dead --level=1"),
+
+      'gnugo-l2' : Player("gnugo --mode=gtp --chinese-rules "
+                          "--capture-all-dead --level=2"),
+      }
+
+  board_size = 9
+  komi = 6
+
+  matchups = [
+      Matchup('gnugo-l1', 'gnugo-l2', board_size=13,
+              handicap=2, handicap_style='free', komi=0,
+              scorer='players', number_of_games=5),
+
+      Matchup('gnugo-l1', 'gnugo-l2', alternating=True,
+              scorer='players', move_limit=200),
+
+      Matchup('gnugo-l1', 'gnugo-l2',
+              komi=0.5,
+              scorer='internal'),
+      ]
+
+
 Playoff settings
 ^^^^^^^^^^^^^^^^
 
 The following settings can be set at the top level of the control file, for
-competitions of type ``playoff``.
+competitions of type ``playoff``:
 
-For the differences in tuning events, See :ref:`The Monte Carlo tuner
-<mcts_control_file_settings>` and :ref:`The cross-entropy tuner
-<cem_control_file_settings>`.
-
-The only required settings are :setting:`competition_type`,
-:setting:`players`, and :setting:`matchups`.
-
+All :ref:`common settings <common settings>`.
 
 .. setting:: matchups
 
@@ -32,9 +60,13 @@ The only required settings are :setting:`competition_type`,
   This defines which engines will play against each other, and the game
   settings they will use.
 
-In addition to these, all matchup settings (except :setting:`id` and
-:setting:`name`) can be set at the top of the control file. These settings
-will be used for any matchups which don't explicitly override them.
+All :ref:`game settings <game settings>`, :setting:`alternating`, and
+:setting:`number_of_games`; these will be used for any matchups which don't
+explicitly override them.
+
+The only required settings are :setting:`competition_type`,
+:setting:`players`, and :setting:`matchups`.
+
 
 
 .. _matchup configuration:
@@ -90,71 +122,12 @@ The arguments are:
   different komi or handicap).
 
 
-.. setting:: board_size
-
-  Integer
-
-  The size of Go board to use for the games (eg ``19`` for a 19x19 game). The
-  ringmaster is willing to use board sizes from 2 to 25.
-
-
-.. setting:: komi
-
-  Float
-
-  The :term:`komi` to use for the games. You can specify any floating-point
-  value, and it will be passed on to the |gtp| engines unchanged, but
-  normally only integer or half-integer values will be useful. Negative
-  values are allowed.
-
-
 .. setting:: alternating
 
   Boolean (default ``False``)
 
   If this is ``True``, the players will swap colours in successive games.
   Otherwise, the first-named player always takes Black.
-
-
-.. setting:: handicap
-
-  Integer (default ``None``)
-
-  Number of handicap stones to give Black at the start of the game. See also
-  :setting:`handicap_style`.
-
-  See the `GTP specification`_ for the rules about what handicap values
-  are permitted for different board sizes (in particular, values less than 2
-  are never allowed).
-
-
-.. setting:: handicap_style
-
-  String: ``"fixed"`` or ``"free"`` (default ``"fixed"``)
-
-  Determines whether the handicap stones are placed on prespecified points, or
-  chosen by the Black player. See the `GTP specification`_ for more details.
-
-  This is ignored if :setting:`handicap` is unset.
-
-  .. _GTP specification: http://www.lysator.liu.se/~gunnar/gtp/gtp2-spec-draft2/gtp2-spec.html#SECTION00051000000000000000
-
-
-
-.. setting:: move_limit
-
-  Integer (default ``1000``)
-
-  Maximum number of moves to allow in a game. If this limit is reached, the
-  game is stopped; see :ref:`playing games`.
-
-
-.. setting:: scorer
-
-  String: ``"players"`` or ``"internal"`` (default ``"players"``)
-
-  Determines whether the game result is determined by the engines, or by the
-  ringmaster. See :ref:`Scoring <scoring>` and :setting:`is_reliable_scorer`.
 
 
 .. setting:: number_of_games
@@ -166,3 +139,9 @@ The arguments are:
 
   Changing :setting:`!number_of_games` to ``0`` provides a way to effectively
   disable a matchup in future runs, without forgetting its results.
+
+
+All :ref:`game settings <game settings>` can also be used as Matchup
+arguments.
+
+
