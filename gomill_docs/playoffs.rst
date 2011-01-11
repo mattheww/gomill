@@ -3,11 +3,14 @@
 Playoff tournaments
 -------------------
 
-In a playoff tournament, the control file explicitly describes one or more
+In a playoff tournament the control file explicitly describes one or more
 pairings of players (:dfn:`matchups`). Each matchup is treated independently.
 
 .. todo:: rough mention of what can be configured in a matchup? Expand on 'is
    treated independently'?
+
+.. todo:: say that not all players from players dict have to appear in matchup
+   definitions?
 
 
 .. _sample_playoff_control_file:
@@ -52,6 +55,10 @@ competitions of type ``playoff``:
 
 All :ref:`common settings <common settings>`.
 
+All :ref:`game settings <game settings>`, :setting:`alternating`, and
+:setting:`number_of_games`; these will be used for any matchups which don't
+explicitly override them.
+
 .. setting:: matchups
 
   List of :setting-cls:`Matchup` definitions (see :ref:`matchup
@@ -59,10 +66,6 @@ All :ref:`common settings <common settings>`.
 
   This defines which engines will play against each other, and the game
   settings they will use.
-
-All :ref:`game settings <game settings>`, :setting:`alternating`, and
-:setting:`number_of_games`; these will be used for any matchups which don't
-explicitly override them.
 
 The only required settings are :setting:`competition_type`,
 :setting:`players`, and :setting:`matchups`.
