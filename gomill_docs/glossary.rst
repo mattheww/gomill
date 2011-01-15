@@ -57,7 +57,7 @@ Glossary
 
 
   player
-    A running |GTP| engine, with a particular configuration.
+    A |GTP| engine, together with a particular configuration.
 
 
   competition
