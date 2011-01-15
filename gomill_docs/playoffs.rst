@@ -150,3 +150,27 @@ All :ref:`game settings <game settings>` can also be used as Matchup
 arguments.
 
 
+Changing the control file between runs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you change a :pl-setting-cls:`Matchup` definition, the new definition will
+be used when describing the matchup in reports; there'll be no record of the
+earlier definition, or which games were played under it.
+
+If you change a :pl-setting-cls:`Matchup` definition to have different players
+(ie, player codes), the ringmaster will refuse to run the competition.
+
+If you delete a :pl-setting-cls:`Matchup` definition, results from that
+matchup won't be displayed during future runs, but will be included (with some
+missing information) in the :action:`report` and :action:`show` output.
+
+If you add a :pl-setting-cls:`Matchup` definition, put it at the end of the
+list (or else explicitly specify the matchup ids).
+
+It's safe to increase or decrease a matchup's :pl-setting:`number_of_games`.
+If more games have been played than the new limit, they will not be forgotten.
+
+In practice, you shouldn't delete :pl-setting-cls:`Matchup` definitions (if
+you don't want any more games to be played, set :pl-setting:`number_of_games`
+to ``0``).
+

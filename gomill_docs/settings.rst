@@ -455,40 +455,23 @@ Changing the control file between runs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Changing the control file between runs of the same competition (or after the
-final run) is allowed. For example, it's fine to increase a completed
-matchup's :pl-setting:`number_of_games` and set the competition off again.
+final run) is allowed. For example, in a playoff tournament it's fine to
+increase a completed matchup's :pl-setting:`number_of_games` and set the
+competition off again.
 
 The intention is that nothing surprising should happen if you change the
 control file; of course if you change settings which affect player behaviour
 then result summaries might not be meaningful.
 
-In particular:
-
-- if you change a :setting-cls:`Player` definition, the new definition will be
-  used when describing the player in reports; there'll be no record of the
-  earlier definition, or which games were played under it.
-
-- if you change a :pl-setting-cls:`Matchup` definition, the new definition
-  will be used when describing the matchup in reports; there'll be no record
-  of the earlier definition, or which games were played under it.
-
-- if you change a :pl-setting-cls:`Matchup` definition to have different
-  players (ie, player codes), the ringmaster will refuse to run the
-  competition.
-
-- if you delete a :pl-setting-cls:`Matchup` definition, results from that
-  matchup won't be displayed during future runs, but will be included (with
-  some missing information) in the :action:`report` and :action:`show` output.
-
-If you add a :pl-setting-cls:`Matchup` definition, put it at the end of the
-list (or else explicitly specify the matchup ids).
-
-In practice, you shouldn't delete :pl-setting-cls:`Matchup` definitions (if
-you don't want any more games to be played, set :pl-setting:`number_of_games`
-to ``0``).
+In particular, if you change a :setting-cls:`Player` definition, the new
+definition will be used when describing the player in reports; there'll be no
+record of the earlier definition, or which games were played under it.
 
 If you change descriptive text, you can use the :action:`report` command line
 action to remake the report file.
+
+The documentation for each competition type has more detail on what it is safe
+to change.
 
 
 .. _control file techniques:
