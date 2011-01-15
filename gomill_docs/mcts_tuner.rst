@@ -3,6 +3,8 @@
 The Monte Carlo tuner
 ^^^^^^^^^^^^^^^^^^^^^
 
+:setting:`competition_type` string: ``"mc_tuner"``.
+
 The Monte Carlo tuner treats the tuning event as a :term:`bandit problem`.
 That is, it attempts to find the candidate which has the highest probability
 of beating the opponent, and arranges to 'spend' more games on the candidates
@@ -195,9 +197,8 @@ Control file settings
 
 The following settings can be set at the top level of the control file:
 
-All :ref:`common settings <common settings>` (:setting:`competition_type` must
-have the value ``"mc_tuner"``; the :setting:`players` dictionary is required,
-though it is used only to define the opponent).
+All :ref:`common settings <common settings>` (the :setting:`players`
+dictionary is required, though it is used only to define the opponent).
 
 The following game settings (only :setting:`!board_size` and :setting:`!komi`
 are required):

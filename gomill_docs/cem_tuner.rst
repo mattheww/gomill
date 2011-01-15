@@ -3,6 +3,8 @@
 The cross-entropy tuner
 ^^^^^^^^^^^^^^^^^^^^^^^
 
+:setting:`competition_type` string: ``"ce_tuner"``.
+
 The cross-entropy tuner uses the :dfn:`cross-entropy method` described in
 |ce|:
 
@@ -130,9 +132,8 @@ Control file settings
 
 The following settings can be set at the top level of the control file:
 
-All :ref:`common settings <common settings>` (:setting:`competition_type` must
-have the value ``"ce_tuner"``; the :setting:`players` dictionary is required,
-though it is used only to define the opponent).
+All :ref:`common settings <common settings>` (the :setting:`players`
+dictionary is required, though it is used only to define the opponent).
 
 The following game settings (only :setting:`!board_size` and :setting:`!komi`
 are required):

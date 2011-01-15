@@ -3,6 +3,8 @@
 Playoff tournaments
 ^^^^^^^^^^^^^^^^^^^
 
+:setting:`competition_type` string: ``"playoff"``.
+
 In a playoff tournament the control file explicitly describes one or more
 pairings of players (:dfn:`matchups`).
 
@@ -59,8 +61,7 @@ Control file settings
 
 The following settings can be set at the top level of the control file:
 
-All :ref:`common settings <common settings>` (:setting:`competition_type` must
-have the value ``"playoff"``).
+All :ref:`common settings <common settings>`.
 
 All :ref:`game settings <game settings>`, and the matchup settings
 :pl-setting:`alternating` and :pl-setting:`number_of_games` described below;

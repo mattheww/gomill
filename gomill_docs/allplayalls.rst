@@ -3,6 +3,8 @@
 All-play-all tournaments
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
+:setting:`competition_type` string: ``"allplayall"``.
+
 In an all-play-all tournament the control file lists a number of players (the
 :dfn:`competitors`), and games are played between each possible pairing.
 
@@ -56,8 +58,7 @@ Control file settings
 
 The following settings can be set at the top level of the control file:
 
-All :ref:`common settings <common settings>` (:setting:`competition_type` must
-have the value ``"allplayall"``).
+All :ref:`common settings <common settings>`.
 
 The following game settings: :setting:`board_size`, :setting:`komi`,
 :setting:`move_limit`, :setting:`scorer`.
