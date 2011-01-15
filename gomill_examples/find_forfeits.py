@@ -1,6 +1,7 @@
-"""Find forfeited games in playoff results.
+"""Find forfeited games in tournament results.
 
-This demonstrates retrieving and processing playoff results.
+This demonstrates retrieving and processing results from a playoff or
+all-play-all tournament.
 
 """
 
@@ -15,8 +16,8 @@ def show_result(matchup, result, filename):
         matchup.name, result.losing_player, filename)
 
 def find_forfeits(ringmaster):
-    if ringmaster.competition_type != 'playoff':
-        raise RingmasterError("not a playoff")
+    if ringmaster.competition_type not in ('playoff', 'allplayall'):
+        raise RingmasterError("not a tournament")
     if not ringmaster.status_file_exists():
         raise RingmasterError("no status file")
     ringmaster.load_status()
@@ -32,7 +33,7 @@ def find_forfeits(ringmaster):
 
 
 _description = """\
-Read results of a playoff and show all forfeited games.
+Read results of a tournament and show all forfeited games.
 """
 
 def main(argv):
