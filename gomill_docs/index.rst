@@ -2,14 +2,11 @@ Gomill
 ======
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :titlesonly:
 
    intro
    ringmaster
-   settings
-   competition_types
-   Error handling… <errors>
    gtp_extensions
    library
    example_scripts

@@ -1,7 +1,7 @@
 .. index:: all-play-all
 
 All-play-all tournaments
-------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 In an all-play-all tournament the control file lists a number of players (the
 :dfn:`competitors`), and games are played between each possible pairing.
@@ -25,7 +25,7 @@ each pairing (indefinitely, if :aa-setting:`rounds` is unset).
 .. _sample_allplayall_control_file:
 
 Sample control file
-^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""
 
 Here is a sample control file::
 
@@ -52,7 +52,7 @@ Here is a sample control file::
 .. _allplayall_control_file_settings:
 
 Control file settings
-^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""
 
 The following settings can be set at the top level of the control file:
 
@@ -85,7 +85,7 @@ The only required settings are :setting:`competition_type`,
 
 
 Results
-^^^^^^^
+"""""""
 
 The tournament results are summarised in a grid, for example::
 
@@ -107,7 +107,7 @@ results grid).
 
 
 Changing the control file between runs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""""""""""""""""""
 
 You can add new players to the end of the :aa-setting:`competitors` list
 between runs, but you may not remove or reorder competitors.

@@ -3,7 +3,7 @@
 .. _competition types:
 
 Competition types
-=================
+-----------------
 
 The ringmaster supports a number of different :dfn:`competition types`. These
 are divided into :dfn:`tournaments` and :dfn:`tuning events`.
@@ -19,7 +19,7 @@ are divided into :dfn:`tournaments` and :dfn:`tuning events`.
 .. _tournaments:
 
 Tournaments
------------
+^^^^^^^^^^^
 
 A :dfn:`tournament` is a form of competition in which the ringmaster plays
 games between predefined players, in order to compare their strengths.
@@ -28,11 +28,11 @@ games between predefined players, in order to compare their strengths.
 There are currently two types of tournament:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :titlesonly:
 
-   playoffs
-   allplayalls
+   Playoff <playoffs>
+   All-play-all <allplayalls>
 
 
 .. index:: tuning event
@@ -40,7 +40,7 @@ There are currently two types of tournament:
 .. _tuners:
 
 Tuning events
--------------
+^^^^^^^^^^^^^
 
 A :dfn:`tuning event` is a form of competition in which the ringmaster runs an
 algorithm which adjusts engine parameters to try to find the values which give
@@ -56,9 +56,9 @@ specified as usual.
 There are currently two tuning algorithms:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :titlesonly:
 
-   mcts_tuner
-   cem_tuner
+   Monte Carlo <mcts_tuner>
+   Cross-entropy <cem_tuner>
 

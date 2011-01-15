@@ -1,5 +1,5 @@
 Error handling and exceptional situations
-=========================================
+-----------------------------------------
 
 This page contains some tedious details of the implementation; it might be of
 interest if you're wondering whether the behaviour you see is intentional or a
@@ -13,7 +13,7 @@ bug.
 .. _game id:
 
 Game identification
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 Each game played in a competition is identified using a short string (the
 :dfn:`game_id`). This is used in the |sgf| :ref:`game record <game records>`
@@ -31,7 +31,7 @@ competitor letters shown in the results grid, with the length depending on the
 
 
 Details of scoring
-------------------
+^^^^^^^^^^^^^^^^^^
 
 If :setting:`scorer` is ``"players"`` but neither engine is able to score
 (whether because :gtp:`!final_score` isn't implemented, or it fails, or
@@ -50,7 +50,7 @@ recorded in |sgf| file comments.
 .. _engine errors:
 
 Engine errors
--------------
+^^^^^^^^^^^^^
 
 If an engine returns a |gtp| failure response to any of the commands which set
 up the game (eg :gtp:`!boardsize` or :gtp:`!fixed_handicap`), the game is
@@ -68,7 +68,7 @@ game is not treated as void.
 .. _engine exit behaviour:
 
 Engine exit behaviour
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 
 Before reporting the game result, the ringmaster sends :gtp:`!quit` to both
 engines, closes their input and output pipes, and waits for the subprocesses
@@ -85,7 +85,7 @@ The exit status of engine subprocesses is ignored.
 .. _void games:
 
 Void games
-----------
+^^^^^^^^^^
 
 Void games are games which were not completed due to a software failure, and
 which don't count as a forfeit by either engine.
@@ -107,7 +107,7 @@ depend on the competition type; see below).
 
 
 Halting competitions due to errors
-----------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A single error which causes a void game will not normally cause a competition
 to be prematurely halted, but multiple errors may.
@@ -133,7 +133,7 @@ In parallel mode, outstanding games will be allowed to complete.
 
 
 Preventing simultaneous runs
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If :c:func:`!flock()` is available, the ringmaster will detect attempts to run
 a competition which is already running (but this probably won't work if the
@@ -144,7 +144,7 @@ while a competition is running.
 
 
 Signals and controlling terminal
---------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The check for :kbd:`Ctrl-X` uses the ringmaster's controlling terminal,
 independently of stdin and stdout. If there's no controlling terminal, or
@@ -162,14 +162,14 @@ should work properly (you probably want :ref:`quiet mode <quiet mode>`).
 .. _remote control file:
 
 The remote control file
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The :action:`stop` action is implemented by writing a :file:`{code}.cmd` file
 to the competition directory.
 
 
 Character encoding
-------------------
+^^^^^^^^^^^^^^^^^^
 
 Gomill is designed for a UTF-8 environment; it is intended to work correctly
 if non-ASCII characters provided as input are encoded in UTF-8, and to produce

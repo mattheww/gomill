@@ -59,10 +59,13 @@ Using the ringmaster
 --------------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :titlesonly:
 
    competitions
    results
    ringmaster_cmdline
+   settings
+   competition_types
+   Error handling… <errors>
 

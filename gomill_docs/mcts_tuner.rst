@@ -1,7 +1,7 @@
 .. index:: monte carlo tuner
 
 The Monte Carlo tuner
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 
 The Monte Carlo tuner treats the tuning event as a :term:`bandit problem`.
 That is, it attempts to find the candidate which has the highest probability
@@ -23,7 +23,7 @@ It does this using a form of the :term:`UCB` algorithm (or, optionally,
 .. _mc parameter model:
 
 The parameter model
-^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""
 
 The Monte Carlo tuner expects to work with one or more independent player
 parameters.
@@ -49,7 +49,7 @@ Reports, and the live display, are also based on engine parameters; see the
 
 
 Candidates
-^^^^^^^^^^
+""""""""""
 
 Each parameter also has a :mc-setting:`split` setting (a smallish integer).
 This determines how many 'samples' of the parameter range are used to make
@@ -80,7 +80,7 @@ the samples (after translation to engine parameters) will be 1.0, 4.0, and
 .. _the mcts tuning algorithm:
 
 The tuning algorithm
-^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""
 
 Each time the tuner starts a new game, it chooses the candidate which gives
 the highest value to the following formula:
@@ -123,7 +123,7 @@ usually the same as the candidate which has played the most games).
 .. _sample_mcts_control_file:
 
 Sample control file
-^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""
 
 Here is a sample control file, illustrating most of the available settings for
 a Monte Carlo tuning event::
@@ -191,7 +191,7 @@ a Monte Carlo tuning event::
 .. _mcts_control_file_settings:
 
 Control file settings
-^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""
 
 The following settings can be set at the top level of the control file:
 
@@ -347,7 +347,7 @@ on the tuning algorithm.
 .. _mc parameter configuration:
 
 Parameter configuration
-^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""
 
 .. mc-setting-cls:: Parameter
 
@@ -442,7 +442,7 @@ The arguments are:
 .. _predefined scales:
 
 Predefined scales
-^^^^^^^^^^^^^^^^^
+"""""""""""""""""
 
 There are three kinds of predefined scale which you can use in a
 :mc-setting:`scale` definition:
@@ -506,7 +506,7 @@ There are three kinds of predefined scale which you can use in a
 
 
 Writing scale functions
-^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""
 
 The following built-in Python functions might be useful: :func:`abs`,
 :func:`min`, :func:`max`, :func:`round`.
@@ -534,7 +534,7 @@ Here are scale functions equivalent to ``LINEAR(3, 3000)`` and
 
 
 Reporting
-^^^^^^^^^
+"""""""""
 
 Currently, there aren't any sophisticated reports.
 
@@ -560,7 +560,7 @@ written).
 .. _tree search:
 
 Tree search
-^^^^^^^^^^^
+"""""""""""
 
 As a further (and even more experimental) refinement, it's possible to arrange
 the candidates in the form of a tree and use the :term:`UCT` algorithm instead
@@ -620,7 +620,7 @@ candidate with the most wins in the entire tree).
 
 
 Changing the control file between runs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""""""""""""""""""
 
 In general, you shouldn't change the :mc-setting-cls:`Parameter` definitions
 or the settings which control the tuning algorithm between runs. The

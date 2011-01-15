@@ -1,7 +1,7 @@
 .. |ce| replace:: :ref:`[CE] <ce_paper>`
 
 The cross-entropy tuner
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The cross-entropy tuner uses the :dfn:`cross-entropy method` described in
 |ce|:
@@ -22,7 +22,7 @@ The cross-entropy tuner uses the :dfn:`cross-entropy method` described in
 
 
 The tuning algorithm
-^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""
 
 The algorithm is not described in detail in this documentation. See |ce|
 section 3 for the description. The tuner always uses a Gaussian distribution.
@@ -32,7 +32,7 @@ The improvement suggested in section 5 is not implemented.
 .. _ce parameter model:
 
 The parameter model
-^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""
 
 The parameter values taken from the Gaussian distribution are floating-point
 numbers known as :dfn:`optimiser parameters`.
@@ -52,7 +52,7 @@ parameter distribution in the form :samp:`{mean}~{variance}`.
 .. _sample_cem_control_file:
 
 Sample control file
-^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""
 
 Here is a sample control file, illustrating most of the available settings for
 a cross-entropy tuning event::
@@ -126,7 +126,7 @@ a cross-entropy tuning event::
 .. _cem_control_file_settings:
 
 Control file settings
-^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""
 
 The following settings can be set at the top level of the control file:
 
@@ -246,7 +246,7 @@ The following additional settings (they are all required):
 .. _ce parameter configuration:
 
 Parameter configuration
-^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""
 
 .. ce-setting-cls:: Parameter
 
@@ -331,7 +331,7 @@ The arguments are:
 
 
 Reporting
-^^^^^^^^^
+"""""""""
 
 Currently, there aren't any sophisticated reports.
 
@@ -344,7 +344,7 @@ with a ``*``.
 
 
 Changing the control file between runs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""""""""""""""""""
 
 Some settings can safely be changed between runs of the same cross-entropy
 tuning event:

@@ -1,7 +1,7 @@
 .. index:: playoffs
 
 Playoff tournaments
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 In a playoff tournament the control file explicitly describes one or more
 pairings of players (:dfn:`matchups`).
@@ -21,7 +21,7 @@ each matchup (indefinitely, if :pl-setting:`number_of_games` is unset).
 .. _sample_playoff_control_file:
 
 Sample control file
-^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""
 
 Here is a sample control file, illustrating how matchups are specified::
 
@@ -55,7 +55,7 @@ Here is a sample control file, illustrating how matchups are specified::
 .. _playoff_control_file_settings:
 
 Control file settings
-^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""
 
 The following settings can be set at the top level of the control file:
 
@@ -82,7 +82,7 @@ The only required settings are :setting:`competition_type`,
 .. _matchup configuration:
 
 Matchup configuration
-^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""
 
 .. pl-setting-cls:: Matchup
 
@@ -153,7 +153,7 @@ also the following:
 
 
 Changing the control file between runs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""""""""""""""""""
 
 If you change a :pl-setting-cls:`Matchup` definition, the new definition will
 be used when describing the matchup in reports; there'll be no record of the
