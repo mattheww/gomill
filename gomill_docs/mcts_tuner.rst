@@ -199,7 +199,7 @@ All :ref:`common settings <common settings>` (:setting:`competition_type` must
 have the value ``"mc_tuner"``; the :setting:`players` dictionary is required,
 though it is used only to define the opponent).
 
-The following game settings (only :setting:`board_size` and :setting:`komi`
+The following game settings (only :setting:`!board_size` and :setting:`!komi`
 are required):
 
 - :setting:`board_size`
@@ -209,7 +209,7 @@ are required):
 - :setting:`move_limit`
 - :setting:`scorer`
 
-:setting:`komi` must be fractional, as the tuning algorithm doesn't currently
+:setting:`!komi` must be fractional, as the tuning algorithm doesn't currently
 support :term:`jigos <jigo>`.
 
 

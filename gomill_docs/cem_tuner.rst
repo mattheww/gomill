@@ -134,7 +134,7 @@ All :ref:`common settings <common settings>` (:setting:`competition_type` must
 have the value ``"ce_tuner"``; the :setting:`players` dictionary is required,
 though it is used only to define the opponent).
 
-The following game settings (only :setting:`board_size` and :setting:`komi`
+The following game settings (only :setting:`!board_size` and :setting:`!komi`
 are required):
 
 - :setting:`board_size`

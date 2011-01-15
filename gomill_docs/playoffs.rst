@@ -62,9 +62,9 @@ The following settings can be set at the top level of the control file:
 All :ref:`common settings <common settings>` (:setting:`competition_type` must
 have the value ``"playoff"``).
 
-All :ref:`game settings <game settings>`, :pl-setting:`alternating`, and
-:pl-setting:`number_of_games`; these will be used for any matchups which don't
-explicitly override them.
+All :ref:`game settings <game settings>`, and the matchup settings
+:pl-setting:`alternating` and :pl-setting:`number_of_games` described below;
+these will be used for any matchups which don't explicitly override them.
 
 .. pl-setting:: matchups
 
@@ -151,8 +151,8 @@ also the following:
   disable a matchup in future runs, without forgetting its results.
 
 
-Results
-"""""""
+Reporting
+"""""""""
 
 The :ref:`live display <live_display>` and :ref:`competition report
 <competition report file>` show each matchup's results in the following form::

@@ -84,8 +84,8 @@ The only required settings are :setting:`competition_type`,
 :setting:`komi`.
 
 
-Results
-"""""""
+Reporting
+"""""""""
 
 The :ref:`live display <live_display>` and :ref:`competition report
 <competition report file>` summarise the tournament results in the form of a
