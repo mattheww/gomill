@@ -219,16 +219,16 @@ The following settings are used for all competition types.
   :ref:`control file techniques` below for a compact way to define several
   similar Players.
 
-  .. todo:: genericise
-
   The dictionary keys are the :dfn:`player codes`; they are used to identify
-  the players in :pl-setting-cls:`Matchup` definitions, and also appear in
-  reports and the |sgf| game records.
+  the players in reports and the |sgf| game records, and elsewhere in the
+  control file to specify how players take part in the competition.
 
-  It's fine to have player definitions here which aren't used in any
-  matchups. These definitions will be ignored, and no corresponding engines
+  See the documentation for specific competition types for the way in which
+  players are selected from the :setting:`!players` dictionary.
+
+  It's fine to have player definitions here which aren't used in the
+  competition. These definitions will be ignored, and no corresponding engines
   will be run.
-
 
 
 

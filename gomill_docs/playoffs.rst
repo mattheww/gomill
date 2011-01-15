@@ -9,9 +9,6 @@ pairings of players (:dfn:`matchups`). Each matchup is treated independently.
 .. todo:: rough mention of what can be configured in a matchup? Expand on 'is
    treated independently'?
 
-.. todo:: say that not all players from players dict have to appear in matchup
-   definitions?
-
 
 .. contents:: Page contents
    :local:
@@ -71,7 +68,7 @@ explicitly override them.
   List of :pl-setting-cls:`Matchup` definitions (see :ref:`matchup
   configuration`).
 
-  This defines which engines will play against each other, and the game
+  This defines which players will compete against each other, and the game
   settings they will use.
 
 The only required settings are :setting:`competition_type`,
