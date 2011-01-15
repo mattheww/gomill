@@ -13,6 +13,11 @@ pairings of players (:dfn:`matchups`). Each matchup is treated independently.
    definitions?
 
 
+.. contents:: Page contents
+   :local:
+   :backlinks: none
+
+
 .. _sample_playoff_control_file:
 
 Sample control file

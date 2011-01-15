@@ -9,7 +9,10 @@ games are played between each possible pairing.
 All games are played with no handicap and with the same komi. The players in
 each pairing will swap colours in successive games.
 
-.. todo:: talk about reporting as a grid?
+
+.. contents:: Page contents
+   :local:
+   :backlinks: none
 
 
 .. _sample_allplayall_control_file:
