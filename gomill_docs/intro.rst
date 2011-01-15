@@ -86,7 +86,7 @@ Gomill is intended to be useful as a Python library, but as of Gomill
 |version| the API is not yet stable. See :doc:`library` for details.
 
 
-The Example scripts
+The example scripts
 -------------------
 
 Some :doc:`example scripts <example_scripts>` are also included in the Gomill
