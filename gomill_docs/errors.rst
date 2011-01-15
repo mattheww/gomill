@@ -20,10 +20,14 @@ Each game played in a competition is identified using a short string (the
 filename and game name (``GN``), the :ref:`log files <logging>`, the live
 display, and so on.
 
-For playoffs, game ids are made up from the :pl-setting:`matchup id <id>` and
-the number of the game within the matchup; for example, the first game played
-might be ``0_0`` or ``0_000`` (depending on the value of
+For playoff tournaments, game ids are made up from the :pl-setting:`matchup id
+<id>` and the number of the game within the matchup; for example, the first
+game played might be ``0_0`` or ``0_000`` (depending on the value of
 :pl-setting:`number_of_games`).
+
+Similarly for all-play-all tournaments, game ids are like ``AvB_0``, using the
+competitor letters shown in the results grid, with the length depending on the
+:aa-setting:`rounds` setting.
 
 
 Details of scoring
@@ -110,8 +114,9 @@ to be prematurely halted, but multiple errors may.
 
 The details depend on the competition type:
 
-For playoffs, a run is halted early if the first game in any matchup is void,
-or if two games in a row for the same matchup are void.
+For playoff and all-play-all tournaments, a run is halted early if the first
+game in any matchup is void, or if two games in a row for the same matchup are
+void.
 
 For tuning events, a run is halted immediately if the first game to finish is
 void.

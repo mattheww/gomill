@@ -63,10 +63,8 @@ Game records
 
 The ringmaster writes an |sgf| record of each game it plays to the
 :file:`{code}.games/` directory (which it will create if necessary). This can
-be disabled with the :setting:`record_games` setting.
-
-The filename is based on the game's :ref:`id <game id>` (which includes the
-:pl-setting:`matchup id <id>`).
+be disabled with the :setting:`record_games` setting. The filename is based on
+the game's :ref:`game_id <game id>`.
 
 (You might also see game records in a :file:`{code}.void/` directory; these
 are games which were abandoned due to software failure; see :ref:`void
@@ -107,5 +105,6 @@ interpreting a competition's :ref:`state file <competition state>`.
 
 As of Gomill |version|, this library interface is not definitely stable, but
 the :script:`find_forfeits.py` example script and the docstrings of the last
-few methods in the :mod:`!playoffs` module show how it can be used.
+few methods in the :mod:`!playoffs` module show how it can be used (for
+tournaments, at least).
 

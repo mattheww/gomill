@@ -84,11 +84,15 @@ lines between elements (for example, lists can be split at the commas).
 Comments are introduced by the ``#`` character, and continue until the end of
 the line.
 
+In general, the order of settings in the control file isn't significant
+(except for list members). But note that :setting:`competition_type` must come
+first.
+
 See :ref:`data types` below for the representation of values. See the `Python
 language reference`__ for a formal specification.
 
-The settings for use in playoffs are listed below. Note that
-:setting:`competition_type` must come first.
+The settings which are common to all competition types are listed below.
+Further settings are given on the page for each competition type.
 
 .. caution:: while the ringmaster will give error messages for unacceptable
    setting values, it will ignore attempts to set a nonexistent setting (this
@@ -170,7 +174,8 @@ applied (see :func:`os.path.expanduser`).
 Common settings
 ^^^^^^^^^^^^^^^
 
-The following settings are used for all competition types.
+The following settings can appear at the top level of the control file for all
+competition types.
 
 .. setting:: competition_type
 
@@ -223,8 +228,8 @@ The following settings are used for all competition types.
   the players in reports and the |sgf| game records, and elsewhere in the
   control file to specify how players take part in the competition.
 
-  See the documentation for specific competition types for the way in which
-  players are selected from the :setting:`!players` dictionary.
+  See the pages for specific competition types for the way in which players
+  are selected from the :setting:`!players` dictionary.
 
   It's fine to have player definitions here which aren't used in the
   competition. These definitions will be ignored, and no corresponding engines
@@ -385,8 +390,9 @@ Game settings
 
 The following settings describe how a particular game is to be played.
 
-.. todo:: explain where they can appear (ie, that it depends on competition
-   type).
+They are not all used in every competition type, and may be specified in some
+other way than a top level control file setting; see the page for a particular
+competition type for details.
 
 
 .. setting:: board_size
@@ -470,8 +476,8 @@ record of the earlier definition, or which games were played under it.
 If you change descriptive text, you can use the :action:`report` command line
 action to remake the report file.
 
-The documentation for each competition type has more detail on what it is safe
-to change.
+The page for each competition type has more detail on what it is safe to
+change.
 
 
 .. _control file techniques:

@@ -78,8 +78,8 @@ Glossary
 
 
   matchup
-    A pairing of players in a playoff, together with its settings (board size,
-    komi, handicap, and so on)
+    A pairing of players in a tournament, together with its settings (board
+    size, komi, handicap, and so on)
 
 
   tuning event

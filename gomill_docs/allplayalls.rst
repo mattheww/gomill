@@ -3,11 +3,18 @@
 All-play-all tournaments
 ------------------------
 
-In an all-play-all tournament the control file lists a number of players, and
-games are played between each possible pairing.
+In an all-play-all tournament the control file lists a number of players (the
+:dfn:`competitors`), and games are played between each possible pairing.
 
 All games are played with no handicap and with the same komi. The players in
 each pairing will swap colours in successive games.
+
+For most purposes an all-play-all tournament is equivalent to a playoff
+tournament with a matchup defined for each pair of competitors; the main
+difference is that reports include a results summary grid.
+
+The tournament runs until :aa-setting:`rounds` games have been played between
+each pairing (indefinitely, if :aa-setting:`rounds` is unset).
 
 
 .. contents:: Page contents
@@ -70,7 +77,7 @@ The following additional settings:
   Integer (default ``None``)
 
   The number of games to play for each pairing. If you leave this unset, the
-  tournament will continue indefinitely; see :ref:`stopping competitions`.
+  tournament will continue indefinitely.
 
 The only required settings are :setting:`competition_type`,
 :setting:`players`, :aa-setting:`competitors`, :setting:`board_size`, and

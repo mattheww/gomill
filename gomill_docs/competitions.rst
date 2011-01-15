@@ -14,10 +14,13 @@ Pairings
 When a competition is run, the ringmaster will launch one or more games
 between pairs of players.
 
-For playoffs, the pairings are determined by the :pl-setting-cls:`Matchup`
-descriptions in the control file. If there is more than one matchup specified,
-the ringmaster prefers to start games from the matchup which has played fewest
-games.
+For playoff tournaments, the pairings are determined by the
+:pl-setting-cls:`Matchup` descriptions in the control file. If more than one
+matchup is specified, the ringmaster prefers to start games from the matchup
+which has played fewest games.
+
+For all-play-all tournaments, the ringmaster will again prefer the pair of
+:aa-setting:`competitors` which has played the fewest games.
 
 For tuning events, the pairings are specified by a tuning algorithm.
 
@@ -50,9 +53,10 @@ time it chooses a candidate player.
 Display
 ^^^^^^^
 
-While the competition runs, the ringmaster displays a summary of the scores in
-each matchup (or of the tuning algorithm status), a list of games in progress,
-and a list of recent game results. For example::
+While the competition runs, the ringmaster displays a summary of the
+tournament results (or of the tuning algorithm status), a list of games in
+progress, and a list of recent game results. For example, in a playoff
+tournament with a single matchup::
 
   2 games in progress: 0_2 0_4
   (Ctrl-X to halt gracefully)
@@ -77,19 +81,18 @@ Use :ref:`quiet mode <quiet mode>` to turn this display off.
 Stopping competitions
 ^^^^^^^^^^^^^^^^^^^^^
 
-Unless interrupted, a playoff run will continue until the specified
-:pl-setting:`number_of_games` have been played for each matchup (indefinitely
-if :pl--setting:`number_of_games` is unset), or the limit specified by the
-:option:`--max-games <ringmaster --max-games>` command line option is reached.
+Unless interrupted, a run will continue until either the competition completes
+or the per-run limit specified by the :option:`--max-games
+<ringmaster --max-games>` command line option is reached.
 
 Type :kbd:`Ctrl-X` to stop a run. The ringmaster will wait for all games in
 progress to complete, and then exit (the stop request won't be acknowledged on
 screen until the next game result comes in).
 
-It's also reasonable to stop a competition with :kbd:`Ctrl-C`; games in
-progress will be terminated immediately (assuming the engine processes are
-well-behaved). The partial games will be forgotten; the ringmaster will replay
-them as necessary if the competition is resumed later.
+It's also reasonable to stop a run with :kbd:`Ctrl-C`; games in progress will
+be terminated immediately (assuming the engine processes are well-behaved).
+The partial games will be forgotten; the ringmaster will replay them as
+necessary if the competition is resumed later.
 
 You can also stop a competition by running the command line :action:`stop`
 action from a shell; like :kbd:`Ctrl-X`, this will be acknowledged when the
@@ -126,9 +129,9 @@ Playing games
 ^^^^^^^^^^^^^
 
 The :setting:`board_size`, :setting:`komi`, :setting:`handicap`, and
-:setting:`handicap_style` matchup settings control the details of the game.
-The ringmaster doesn't know or care what rule variant the players are using;
-it's up to you to make sure they agree with each other.
+:setting:`handicap_style` game settings control the details of the game. The
+ringmaster doesn't know or care what rule variant the players are using; it's
+up to you to make sure they agree with each other.
 
 Any :setting:`startup_gtp_commands` configured for a player will be sent
 before the :gtp:`!boardsize` and :gtp:`!clear_board` commands. Failure responses
@@ -215,10 +218,13 @@ The :action:`check` command line action runs the same checks, but it leaves
 the engines' standard error going to the console (any
 :setting:`discard_stderr` player settings are ignored).
 
-For playoffs, only players listed in matchups are checked (and matchups with
-:pl-setting:`number_of_games` set to ``0`` are ignored). If a player appears
-in more than one matchup, the board size and komi from its first matchup are
-used.
+For playoff tournaments, only players listed in matchups are checked (and
+matchups with :pl-setting:`number_of_games` set to ``0`` are ignored). If a
+player appears in more than one matchup, the board size and komi from its
+first matchup are used.
+
+For all-play-all tournaments, all players listed as :aa-setting:`competitors`
+are checked.
 
 For tuning events, the opponent and one sample candidate are checked.
 

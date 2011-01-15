@@ -32,9 +32,9 @@ scripts.
 
 .. script:: find_forfeits.py
 
-  Finds the forfeited games from a playoff competition.
+  Finds the forfeited games from a playoff or all-play-all tournament.
 
-  This demonstrates the library interface for :ref:`querying competition
+  This demonstrates the library interface for :ref:`querying tournament
   results <querying the results>`.
 
 

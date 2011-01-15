@@ -4,10 +4,13 @@ Playoff tournaments
 -------------------
 
 In a playoff tournament the control file explicitly describes one or more
-pairings of players (:dfn:`matchups`). Each matchup is treated independently.
+pairings of players (:dfn:`matchups`).
 
-.. todo:: rough mention of what can be configured in a matchup? Expand on 'is
-   treated independently'?
+Each matchup is treated independently: different matchups can use different
+board sizes, handicap arrangements, and so on.
+
+The tournament runs until :pl-setting:`number_of_games` have been played for
+each matchup (indefinitely, if :pl-setting:`number_of_games` is unset).
 
 
 .. contents:: Page contents
@@ -92,7 +95,7 @@ specified in keyword form. For example::
 
   Matchup('gnugo-l1', 'fuego-5k', board_size=13, komi=6)
 
-Defaults for matchup settings (other than :pl-setting:`id` and
+Defaults for matchup arguments (other than :pl-setting:`id` and
 :pl-setting:`name`) can be specified at the top level of the control file.
 
 The :setting:`board_size` and :setting:`komi` arguments must be given for all
@@ -102,8 +105,8 @@ matchups (either explicitly or as defaults); the rest are all optional.
    will be applied even to handicap games.
 
 
-The arguments are:
-
+All :ref:`game settings <game settings>` can be used as matchup arguments, and
+also the following:
 
 .. pl-setting:: id
 
@@ -134,7 +137,7 @@ The arguments are:
   Boolean (default ``False``)
 
   If this is ``True``, the players will swap colours in successive games.
-  Otherwise, the first-named player always takes Black.
+  Otherwise, the player given as the first argument always takes Black.
 
 
 .. pl-setting:: number_of_games
@@ -142,14 +145,11 @@ The arguments are:
   Integer (default ``None``)
 
   The total number of games to play in the matchup. If you leave this unset,
-  there will be no limit; see :ref:`stopping competitions`.
+  there will be no limit.
 
   Changing :pl-setting:`!number_of_games` to ``0`` provides a way to effectively
   disable a matchup in future runs, without forgetting its results.
 
-
-All :ref:`game settings <game settings>` can also be used as Matchup
-arguments.
 
 
 Changing the control file between runs

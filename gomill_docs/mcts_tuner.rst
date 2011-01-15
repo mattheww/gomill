@@ -110,10 +110,14 @@ When more than one candidate has the highest value (for example, at the start
 of the event), one is chosen at random.
 
 
+The tuning event runs until :mc-setting:`number_of_games` games have been
+played (indefinitely, if :mc-setting:`number_of_games` is unset).
+
 The tuner can be stopped at any time; after each game result, it reports the
 parameters of the current 'best' candidate. This is the candidate with the
 most *wins* (note that this may not be the one with the best win rate; it is
 usually the same as the candidate which has played the most games).
+
 
 
 .. _sample_mcts_control_file:
@@ -217,7 +221,7 @@ required):
   Integer (default ``None``)
 
   The total number of games to play in the event. If you leave this unset,
-  there will be no limit; see :ref:`stopping competitions`.
+  there will be no limit.
 
 
 .. mc-setting:: candidate_colour
