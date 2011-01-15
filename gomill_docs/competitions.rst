@@ -14,7 +14,7 @@ Pairings
 When a competition is run, the ringmaster will launch one or more games
 between pairs of players.
 
-For playoffs, the pairings are determined by the :setting-cls:`Matchup`
+For playoffs, the pairings are determined by the :pl-setting-cls:`Matchup`
 descriptions in the control file. If there is more than one matchup specified,
 the ringmaster prefers to start games from the matchup which has played fewest
 games.
@@ -78,8 +78,8 @@ Stopping competitions
 ^^^^^^^^^^^^^^^^^^^^^
 
 Unless interrupted, a playoff run will continue until the specified
-:setting:`number_of_games` have been played for each matchup (indefinitely if
-:setting:`number_of_games` is unset), or the limit specified by the
+:pl-setting:`number_of_games` have been played for each matchup (indefinitely
+if :pl--setting:`number_of_games` is unset), or the limit specified by the
 :option:`--max-games <ringmaster --max-games>` command line option is reached.
 
 Type :kbd:`Ctrl-X` to stop a run. The ringmaster will wait for all games in
@@ -169,8 +169,7 @@ Scoring
 ^^^^^^^
 
 The ringmaster has two scoring methods: ``players`` (which is the default),
-and ``internal``. The :setting:`scorer` matchup setting determines which is
-used.
+and ``internal``. The :setting:`scorer` game setting determines which is used.
 
 When the ``players`` method is used, the players are asked to score the game
 using the |gtp| :gtp:`!final_score` command. See also the
@@ -217,8 +216,8 @@ the engines' standard error going to the console (any
 :setting:`discard_stderr` player settings are ignored).
 
 For playoffs, only players listed in matchups are checked (and matchups with
-:setting:`number_of_games` set to ``0`` are ignored). If a player appears in
-more than one matchup, the board size and komi from its first matchup are
+:pl-setting:`number_of_games` set to ``0`` are ignored). If a player appears
+in more than one matchup, the board size and komi from its first matchup are
 used.
 
 For tuning events, the opponent and one sample candidate are checked.

@@ -38,7 +38,7 @@ games have unknown results (because they could not be scored, or reached the
 games` are not shown in these reports.
 
 If there is more than one matchup between the same pair of players, use the
-matchup :setting:`name` setting to distinguish them.
+matchup :pl-setting:`name` setting to distinguish them.
 
 The player descriptions at the end of the report are obtained using the |gtp|
 :gtp:`!name` and :gtp:`!version` commands, or using
@@ -66,7 +66,7 @@ The ringmaster writes an |sgf| record of each game it plays to the
 be disabled with the :setting:`record_games` setting.
 
 The filename is based on the game's :ref:`id <game id>` (which includes the
-:setting:`matchup id <id>`).
+:pl-setting:`matchup id <id>`).
 
 (You might also see game records in a :file:`{code}.void/` directory; these
 are games which were abandoned due to software failure; see :ref:`void

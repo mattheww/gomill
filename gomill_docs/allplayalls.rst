@@ -54,15 +54,15 @@ The following game settings: :setting:`board_size`, :setting:`komi`,
 
 The following additional settings:
 
-.. setting:: competitors
+.. aa-setting:: competitors
 
-  List of :ref:`player codes <player code>`.
+  List of :ref:`player codes <player codes>`.
 
   This defines which players will take part. Reports will list the players
   in the order in which they appear here. You may not list the same player
   more than once.
 
-.. setting:: rounds
+.. aa-setting:: rounds
 
   Integer (default ``None``)
 
@@ -70,7 +70,7 @@ The following additional settings:
   tournament will continue indefinitely; see :ref:`stopping competitions`.
 
 The only required settings are :setting:`competition_type`,
-:setting:`players`, :setting:`competitors`, :setting:`board_size`, and
+:setting:`players`, :aa-setting:`competitors`, :setting:`board_size`, and
 :setting:`komi`.
 
 
@@ -99,6 +99,6 @@ results grid).
 Changing the control file between runs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You can add new players to the end of the :setting:`competitors` list between
-runs, but you may not remove or reorder competitors.
+You can add new players to the end of the :aa-setting:`competitors` list
+between runs, but you may not remove or reorder competitors.
 

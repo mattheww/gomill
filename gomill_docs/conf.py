@@ -79,6 +79,14 @@ def setup(app):
                         indextemplate='pair: %s; control file setting',
                         objname="Control file setting")
 
+    app.add_object_type('pl-setting', 'pl-setting',
+                        indextemplate='pair: %s; Playoff tournament setting',
+                        objname="Playoff tournament setting")
+
+    app.add_object_type('aa-setting', 'aa-setting',
+                        indextemplate='pair: %s; All-play-all tournament setting',
+                        objname="All-play-all tournament setting")
+
     app.add_object_type('mc-setting', 'mc-setting',
                         indextemplate='pair: %s; Monte Carlo tuner setting',
                         objname="Monte Carlo tuner setting")
@@ -88,6 +96,10 @@ def setup(app):
                         objname="Cross-entropy tuner setting")
 
     app.add_crossref_type('setting-cls', 'setting-cls',
+                          indextemplate='single: %s',
+                          objname="Control file object")
+
+    app.add_crossref_type('pl-setting-cls', 'pl-setting-cls',
                           indextemplate='single: %s',
                           objname="Control file object")
 

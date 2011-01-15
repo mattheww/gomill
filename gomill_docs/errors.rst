@@ -20,10 +20,10 @@ Each game played in a competition is identified using a short string (the
 filename and game name (``GN``), the :ref:`log files <logging>`, the live
 display, and so on.
 
-For playoffs, game ids are made up from the :setting:`matchup id <id>` and the
-number of the game within the matchup; for example, the first game played
+For playoffs, game ids are made up from the :pl-setting:`matchup id <id>` and
+the number of the game within the matchup; for example, the first game played
 might be ``0_0`` or ``0_000`` (depending on the value of
-:setting:`number_of_games`).
+:pl-setting:`number_of_games`).
 
 
 Details of scoring

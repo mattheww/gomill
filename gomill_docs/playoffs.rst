@@ -57,20 +57,20 @@ The following settings can be set at the top level of the control file:
 All :ref:`common settings <common settings>` (:setting:`competition_type` must
 have the value ``"playoff"``).
 
-All :ref:`game settings <game settings>`, :setting:`alternating`, and
-:setting:`number_of_games`; these will be used for any matchups which don't
+All :ref:`game settings <game settings>`, :pl-setting:`alternating`, and
+:pl-setting:`number_of_games`; these will be used for any matchups which don't
 explicitly override them.
 
-.. setting:: matchups
+.. pl-setting:: matchups
 
-  List of :setting-cls:`Matchup` definitions (see :ref:`matchup
+  List of :pl-setting-cls:`Matchup` definitions (see :ref:`matchup
   configuration`).
 
   This defines which engines will play against each other, and the game
   settings they will use.
 
 The only required settings are :setting:`competition_type`,
-:setting:`players`, and :setting:`matchups`.
+:setting:`players`, and :pl-setting:`matchups`.
 
 
 
@@ -79,10 +79,10 @@ The only required settings are :setting:`competition_type`,
 Matchup configuration
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. setting-cls:: Matchup
+.. pl-setting-cls:: Matchup
 
-A :setting-cls:`!Matchup` definition has the same syntax as a Python function
-call: :samp:`Matchup({arguments})`.
+A :pl-setting-cls:`!Matchup` definition has the same syntax as a Python
+function call: :samp:`Matchup({arguments})`.
 
 The first two arguments should be the :ref:`player codes <player codes>` for
 the two players involved in the matchup. The remaining arguments should be
@@ -90,20 +90,20 @@ specified in keyword form. For example::
 
   Matchup('gnugo-l1', 'fuego-5k', board_size=13, komi=6)
 
-Defaults for matchup settings (other than :setting:`id` and :setting:`name`)
-can be specified at the top level of the control file.
+Defaults for matchup settings (other than :pl-setting:`id` and
+:pl-setting:`name`) can be specified at the top level of the control file.
 
 The :setting:`board_size` and :setting:`komi` arguments must be given for all
 matchups (either explicitly or as defaults); the rest are all optional.
 
-.. caution:: a default :setting:`komi` or :setting:`alternating` setting will
-   be applied even to handicap games.
+.. caution:: a default :setting:`komi` or :pl-setting:`alternating` setting
+   will be applied even to handicap games.
 
 
 The arguments are:
 
 
-.. setting:: id
+.. pl-setting:: id
 
   Identifier
 
@@ -113,11 +113,11 @@ The arguments are:
   <querying the results>`.
 
   If this is left unspecified, the matchup id will be the index of the matchup
-  in the :setting:`matchups` list (formatted as a decimal string, starting
+  in the :pl-setting:`matchups` list (formatted as a decimal string, starting
   from ``"0"``).
 
 
-.. setting:: name
+.. pl-setting:: name
 
   String
 
@@ -127,7 +127,7 @@ The arguments are:
   different komi or handicap).
 
 
-.. setting:: alternating
+.. pl-setting:: alternating
 
   Boolean (default ``False``)
 
@@ -135,14 +135,14 @@ The arguments are:
   Otherwise, the first-named player always takes Black.
 
 
-.. setting:: number_of_games
+.. pl-setting:: number_of_games
 
   Integer (default ``None``)
 
   The total number of games to play in the matchup. If you leave this unset,
   there will be no limit; see :ref:`stopping competitions`.
 
-  Changing :setting:`!number_of_games` to ``0`` provides a way to effectively
+  Changing :pl-setting:`!number_of_games` to ``0`` provides a way to effectively
   disable a matchup in future runs, without forgetting its results.
 
 
