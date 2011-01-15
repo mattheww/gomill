@@ -1,7 +1,7 @@
 .. _control file:
 
 The control file
-----------------
+================
 
 .. contents:: Page contents
    :local:
@@ -11,7 +11,7 @@ The control file
 .. _sample control file:
 
 Sample control file
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 Here is a sample control file for a playoff tournament::
 
@@ -65,7 +65,7 @@ Here is a sample control file for a playoff tournament::
 
 
 File format
-^^^^^^^^^^^
+-----------
 
 The control file is a plain text configuration file.
 
@@ -112,7 +112,7 @@ The recommended filename extension for the control file is :file:`.ctl`.
 .. _data types:
 
 Data types
-^^^^^^^^^^
+----------
 
 The following data types are used for values of settings:
 
@@ -159,7 +159,7 @@ Dictionary
 .. _file and directory names:
 
 File and directory names
-^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
 
 When values in the control file are file or directory names, non-absolute
 names are interpreted relative to the :ref:`competition directory <competition
@@ -172,7 +172,7 @@ applied (see :func:`os.path.expanduser`).
 .. _common settings:
 
 Common settings
-^^^^^^^^^^^^^^^
+---------------
 
 The following settings can appear at the top level of the control file for all
 competition types.
@@ -240,7 +240,7 @@ competition types.
 .. _player configuration:
 
 Player configuration
-^^^^^^^^^^^^^^^^^^^^
+--------------------
 
 .. setting-cls:: Player
 
@@ -386,7 +386,7 @@ The arguments are:
 .. _game settings:
 
 Game settings
-^^^^^^^^^^^^^
+-------------
 
 The following settings describe how a particular game is to be played.
 
@@ -458,7 +458,7 @@ competition type for details.
 
 
 Changing the control file between runs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------
 
 Changing the control file between runs of the same competition (or after the
 final run) is allowed. For example, in a playoff tournament it's fine to
@@ -483,7 +483,7 @@ change.
 .. _control file techniques:
 
 Control file techniques
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 As the control file is just Python code, it's possible to use less direct
 methods to specify the values of settings.

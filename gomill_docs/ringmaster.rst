@@ -28,40 +28,31 @@ case starting the ringmaster again will make it continue from where it left
 off.
 
 
-.. index:: competition type
+Competition types
+-----------------
 
 The ringmaster supports a number of different :dfn:`competition types`.
 These are divided into :dfn:`tournaments` and :dfn:`tuning events`.
 
-
-Tournaments
------------
-
 In a tournament, the ringmaster plays games between predefined players, in
-order to compare their strengths.
-
-There are two kinds of tournament: playoff and all-play-all.
+order to compare their strengths. The types of tournament are:
 
 Playoff tournaments
   In a playoff tournament the control file explicitly describes one or more
-  pairings of players (:dfn:`matchups`). Each matchup is treated
-  independently.
+  pairings of players (:dfn:`matchups`). Each matchup can have separate
+  settings.
 
 All-play-all tournaments
   In an all-play-all tournament the control file lists a number of players, and
-  games are played between each possible pairing.
+  games are played with the same settings between each possible pairing.
+
+In a tuning event, the ringmaster runs an algorithm for adjusting player
+parameters to try to find the values which give strongest play.
+
+See :ref:`competition types` for full details of the types of tournament and
+tuning event.
 
 
-
-Tuning events
--------------
-
-In a :ref:`tuning event <tuners>`, the ringmaster runs an algorithm for
-adjusting player parameters to try to find the values which give strongest
-play.
-
-There are two types of tuning event, :doc:`Monte Carlo <mcts_tuner>` and
-:doc:`cross-entropy <cem_tuner>`.
 
 
 Using the ringmaster
@@ -74,5 +65,4 @@ Using the ringmaster
    competitions
    results
    ringmaster_cmdline
-   settings
 

@@ -7,10 +7,10 @@ Gomill
 
    intro
    ringmaster
-   tournaments
-   tuners
-   gtp_extensions
+   settings
+   competition_types
    Error handling… <errors>
+   gtp_extensions
    library
    example_scripts
    install
