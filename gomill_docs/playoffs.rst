@@ -151,6 +151,36 @@ also the following:
   disable a matchup in future runs, without forgetting its results.
 
 
+Results
+"""""""
+
+The :ref:`live display <live_display>` and :ref:`competition report
+<competition report file>` show each matchup's results in the following form::
+
+  gnugo-l1 v gnugo-l2 (5/5 games)
+  board size: 9   komi: 7.5
+             wins              black        white      avg cpu
+  gnugo-l1      2 40.00%       1 33.33%     1 50.00%      1.23
+  gnugo-l2      3 60.00%       1 50.00%     2 66.67%      1.39
+                               2 40.00%     3 60.00%
+
+or, if the players have not alternated colours::
+
+  gnugo-l1 v gnugo-l2 (5/5 games)
+  board size: 9   komi: 7.5
+             wins                   avg cpu
+  gnugo-l1      0   0.00%   (black)    0.49
+  gnugo-l2      5 100.00%   (white)    0.48
+
+Any :term:`jigos <jigo>` are counted as half a win for each player. If any
+games have been lost by forfeit, a count will be shown for each player. If any
+games have unknown results (because they could not be scored, or reached the
+:setting:`move_limit`), a count will be shown for each matchup. :ref:`void
+games` are not shown in these reports.
+
+If there is more than one matchup between the same pair of players, use the
+matchup :pl-setting:`name` setting to distinguish them.
+
 
 Changing the control file between runs
 """"""""""""""""""""""""""""""""""""""

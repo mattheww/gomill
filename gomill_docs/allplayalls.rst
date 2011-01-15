@@ -87,7 +87,9 @@ The only required settings are :setting:`competition_type`,
 Results
 """""""
 
-The tournament results are summarised in a grid, for example::
+The :ref:`live display <live_display>` and :ref:`competition report
+<competition report file>` summarise the tournament results in the form of a
+grid, for example::
 
               A   B   C
   A gnugo-l1     4-5 3-5
@@ -98,8 +100,8 @@ Each row shows the number of wins and losses for the player named on that row
 against each opponent (in the example, ``gnugo-l1`` has won 4 games and lost 5
 against ``gnugo-l2``).
 
-The competition report file also shows full details of each pairing, in the
-same style as playoff tournaments.
+The competition report also shows full details of each pairing in the same
+style as playoff tournaments.
 
 For purposes of :ref:`querying the results <querying the results>`, the
 matchup ids are of the form ``AvB`` (using the competitor letters shown in the

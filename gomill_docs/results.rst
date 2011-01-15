@@ -13,9 +13,14 @@ Reports
 
 The competition :dfn:`report file` (:file:`{code}.report`) file is a plain
 text description of the competition results. This is similar to the live
-report that is displayed while the competition is running. It also includes
-descriptions of the players, and the contents of the competition's
-:setting:`description` setting. For example::
+report that is displayed while the competition is running. It includes the
+contents of the competition's :setting:`description` setting.
+
+For tournaments, it also shows descriptions of the players. These are obtained
+using the |gtp| :gtp:`!name` and :gtp:`!version` commands, or using
+:gtp:`gomill-describe_engine` if the engine provides it.
+
+For example, in a playoff tournament with a single matchup::
 
   playoff: example
 
@@ -31,18 +36,6 @@ descriptions of the players, and the contents of the competition's
   player gnugo-l1: GNU Go:3.8
   player gnugo-l2: GNU Go:3.8
 
-Any :term:`jigos <jigo>` are counted as half a win for each player. If any
-games have been lost by forfeit, a count will be shown for each player. If any
-games have unknown results (because they could not be scored, or reached the
-:setting:`move_limit`), a count will be shown for each matchup. :ref:`void
-games` are not shown in these reports.
-
-If there is more than one matchup between the same pair of players, use the
-matchup :pl-setting:`name` setting to distinguish them.
-
-The player descriptions at the end of the report are obtained using the |gtp|
-:gtp:`!name` and :gtp:`!version` commands, or using
-:gtp:`gomill-describe_engine` if the engine provides it.
 
 The report file is written automatically at the end of each run. The
 :action:`report` command line action forces it to be rewritten; this can be

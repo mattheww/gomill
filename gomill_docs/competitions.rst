@@ -50,6 +50,8 @@ time it chooses a candidate player.
    processor cores available.
 
 
+.. _live_display:
+
 Display
 ^^^^^^^
 
