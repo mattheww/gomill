@@ -47,13 +47,15 @@ Here is a sample control file, illustrating how matchups are specified::
       ]
 
 
-Playoff settings
-^^^^^^^^^^^^^^^^
+.. _playoff_control_file_settings:
 
-The following settings can be set at the top level of the control file, for
-competitions of type ``playoff``:
+Control file settings
+^^^^^^^^^^^^^^^^^^^^^
 
-All :ref:`common settings <common settings>`.
+The following settings can be set at the top level of the control file:
+
+All :ref:`common settings <common settings>` (:setting:`competition_type` must
+have the value ``"playoff"``).
 
 All :ref:`game settings <game settings>`, :setting:`alternating`, and
 :setting:`number_of_games`; these will be used for any matchups which don't

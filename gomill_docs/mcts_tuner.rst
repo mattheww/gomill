@@ -189,16 +189,14 @@ a Monte Carlo tuning event::
 Control file settings
 ^^^^^^^^^^^^^^^^^^^^^
 
-The control file settings are similar to those used in playoffs.
+The following settings can be set at the top level of the control file:
 
-The :setting:`competition_type` setting must have the value ``"mc_tuner"``.
+All :ref:`common settings <common settings>` (:setting:`competition_type` must
+have the value ``"mc_tuner"``; the :setting:`players` dictionary is required,
+though it is used only to define the opponent).
 
-The :setting:`players` dictionary must be present as usual, but it is used
-only to define the opponent.
-
-The :setting:`matchups` setting is not used. The following matchup settings
-may be specified as top-level settings (as usual, :setting:`board_size` and
-:setting:`komi` are compulsory):
+The following game settings (only :setting:`board_size` and :setting:`komi`
+are required):
 
 - :setting:`board_size`
 - :setting:`komi`
@@ -206,17 +204,21 @@ may be specified as top-level settings (as usual, :setting:`board_size` and
 - :setting:`handicap_style`
 - :setting:`move_limit`
 - :setting:`scorer`
-- :setting:`number_of_games`
 
 :setting:`komi` must be fractional, as the tuning algorithm doesn't currently
 support :term:`jigos <jigo>`.
 
-All other competition settings may be present, with the same meaning as for
-playoffs.
 
+The following additional settings (all those without a listed default are
+required):
 
-The following additional settings are used (all those without a listed default
-are compulsory):
+.. mc-setting:: number_of_games
+
+  Integer (default ``None``)
+
+  The total number of games to play in the event. If you leave this unset,
+  there will be no limit; see :ref:`stopping competitions`.
+
 
 .. mc-setting:: candidate_colour
 
@@ -634,4 +636,6 @@ candidates created in future.
 
 Changing the settings which control reporting, including :mc-setting:`format`,
 is ok.
+
+Changing :mc-setting:`number_of_games` is ok.
 

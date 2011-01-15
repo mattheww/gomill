@@ -128,16 +128,14 @@ a cross-entropy tuning event::
 Control file settings
 ^^^^^^^^^^^^^^^^^^^^^
 
-The control file settings are similar to those used in playoffs.
+The following settings can be set at the top level of the control file:
 
-The :setting:`competition_type` setting must have the value ``"ce_tuner"``.
+All :ref:`common settings <common settings>` (:setting:`competition_type` must
+have the value ``"ce_tuner"``; the :setting:`players` dictionary is required,
+though it is used only to define the opponent).
 
-The :setting:`players` dictionary must be present as usual, but it is used
-only to define the opponent.
-
-The :setting:`matchups` setting is not used. The following matchup settings
-may be specified as top-level settings (as usual, :setting:`board_size` and
-:setting:`komi` are compulsory):
+The following game settings (only :setting:`board_size` and :setting:`komi`
+are required):
 
 - :setting:`board_size`
 - :setting:`komi`
@@ -146,12 +144,8 @@ may be specified as top-level settings (as usual, :setting:`board_size` and
 - :setting:`move_limit`
 - :setting:`scorer`
 
-All other competition settings may be present, with the same meaning as for
-playoffs.
 
-
-The following additional settings are used (they are all compulsory):
-
+The following additional settings (they are all required):
 
 .. ce-setting:: candidate_colour
 

@@ -39,16 +39,20 @@ Here is a sample control file::
   competitors = ['gnugo-l1', 'gnugo-l2', 'gnugo-l3']
 
 
-All-play-all settings
+.. _allplayall_control_file_settings:
+
+Control file settings
 ^^^^^^^^^^^^^^^^^^^^^
 
-The following settings can be set at the top level of the control file, for
-competitions of type ``allplayall``:
+The following settings can be set at the top level of the control file:
 
-All :ref:`common settings <common settings>`.
+All :ref:`common settings <common settings>` (:setting:`competition_type` must
+have the value ``"allplayall"``).
 
 The following game settings: :setting:`board_size`, :setting:`komi`,
 :setting:`move_limit`, :setting:`scorer`.
+
+The following additional settings:
 
 .. setting:: competitors
 
@@ -65,7 +69,7 @@ The following game settings: :setting:`board_size`, :setting:`komi`,
   The number of games to play for each pairing. If you leave this unset, the
   tournament will continue indefinitely; see :ref:`stopping competitions`.
 
-The following settings are required: :setting:`competition_type`,
+The only required settings are :setting:`competition_type`,
 :setting:`players`, :setting:`competitors`, :setting:`board_size`, and
 :setting:`komi`.
 
