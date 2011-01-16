@@ -37,12 +37,24 @@ class Ringmaster_fixture(test_framework.Fixture):
         """Return messages sent to the specified channel."""
         return self.ringmaster.presenter.recent_messages(channel)
 
-    def get_job(self):
-        """Initialise the ringmaster, and call get_job() once."""
+    def initialise_clean(self):
+        """Initialise the ringmaster (with clean status)."""
         self.ringmaster.set_clean_status()
         self.ringmaster._open_files()
         self.ringmaster._initialise_presenter()
         self.ringmaster._initialise_terminal_reader()
+
+    def initialise_with_state(self, ringmaster_status):
+        """Initialise the ringmaster with specified status."""
+        self.ringmaster.set_test_status(ringmaster_status)
+        self.ringmaster.load_status()
+        self.ringmaster._open_files()
+        self.ringmaster._initialise_presenter()
+        self.ringmaster._initialise_terminal_reader()
+
+    def get_job(self):
+        """Initialise the ringmaster, and call get_job() once."""
+        self.initialise_clean()
         return self.ringmaster.get_job()
 
     def get_log(self):
@@ -284,3 +296,31 @@ def test_run_with_late_errors(tc):
         "  0_000 p1 beat p2 B+10.5\n"
         "  0_001 p1 beat p2 B+10.5\n")
 
+def test_status(tc):
+    # Construct suitable competition status
+    fx1 = Ringmaster_fixture(tc, base_ctl)
+    sfv = fx1.ringmaster.status_format_version
+    fx1.get_job()
+    competition_status = fx1.ringmaster.competition.get_status()
+
+    fx = Ringmaster_fixture(tc, base_ctl, [
+        "players['p1'] = Player('test', discard_stderr=True)",
+        "players['p2'] = Player('test', discard_stderr=True)",
+        ])
+    status = {
+        'void_game_count' : 0,
+        'comp_vn'         : sfv,
+        'comp'            : competition_status,
+        }
+    fx.initialise_with_state((sfv, status))
+    fx.ringmaster.run(max_games=3)
+    tc.assertListEqual(
+        fx.messages('warnings'),
+        [])
+    tc.assertListEqual(
+        fx.messages('screen_report'),
+        ["p1 v p2 (3/400 games)\n"
+         "board size: 9   komi: 7.5\n"
+         "     wins\n"
+         "p1      3 100.00%   (black)\n"
+         "p2      0   0.00%   (white)"])

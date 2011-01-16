@@ -53,6 +53,7 @@ class Testing_ringmaster(ringmasters.Ringmaster):
     """
     def __init__(self, control_file_contents):
         self._control_file_contents = control_file_contents
+        self._test_status = None
         ringmasters.Ringmaster.__init__(self, '/nonexistent/ctl/test.ctl')
 
     _presenter_classes = {
@@ -69,6 +70,22 @@ class Testing_ringmaster(ringmasters.Ringmaster):
 
     def _read_control_file(self):
         return self._control_file_contents
+
+    def set_test_status(self, test_status):
+        """Specify the value that will be loaded from the state file.
+
+        test_status -- fake state file contents
+
+        test_status should be a pair (status_format_version, status dict)
+
+        """
+        self._test_status = test_status
+
+    def _load_status(self):
+        return self._test_status
+
+    def status_file_exists(self):
+        return (self._test_status is not None)
 
     def write_status(self):
         pass

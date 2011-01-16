@@ -381,12 +381,15 @@ class Ringmaster(object):
         except EnvironmentError, e:
             raise RingmasterError("error writing persistent state:\n%s" % e)
 
+    def _load_status(self):
+        """Return the unpickled contents of the persistent state file."""
+        with open(self.status_pathname, "rb") as f:
+            return pickle.load(f)
+
     def load_status(self):
         """Read the persistent state file and load the state it contains."""
         try:
-            f = open(self.status_pathname, "rb")
-            status_format_version, status = pickle.load(f)
-            f.close()
+            status_format_version, status = self._load_status()
             if (status_format_version != self.status_format_version or
                 status['comp_vn'] != self.competition.status_format_version):
                 raise RingmasterError("incompatible status file")
@@ -401,7 +404,7 @@ class Ringmaster(object):
         try:
             self.competition.set_status(competition_status)
         except CompetitionError, e:
-            raise RingmasterError(e)
+            raise RingmasterError("error loading competition state: %s" % e)
 
     def set_clean_status(self):
         """Reset persistent state to the initial values."""
@@ -420,9 +423,7 @@ class Ringmaster(object):
     def print_status(self):
         """Print the contents of the persistent state file, for debugging."""
         from pprint import pprint
-        f = open(self.status_pathname, "rb")
-        status_format_version, status = pickle.load(f)
-        f.close()
+        status_format_version, status = self._load_status()
         print "status_format_version:", status_format_version
         pprint(status)
 
