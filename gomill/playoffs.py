@@ -127,40 +127,27 @@ class Playoff(Competition):
                 interpret_sequence_of_quiet_configs(Matchup_config)),
         ]
 
-    def matchup_from_config(self, matchup_config, matchup_defaults):
+    def matchup_from_config(self, arguments, matchup_defaults):
         """Make a Matchup from a Matchup_config.
+
+        arguments -- resolved arguments from a Matchup_config
+
+        The 'id' argument must be present; the caller should add it if it
+        wasn't there in the config file.
+
+        The 'player1' and 'player2' arguments must be present; the caller
+        should report an error before calling this function if they aren't.
+
+        This function doesn't check that they are in self.players.
 
         Raises ControlFileError if there is an error in the configuration.
 
         Returns a Matchup with all attributes set.
 
-        If 'id' wasn't specified, it is left as None (caller should then set
-        it).
-
-        If player1 and player2 are the same, takes the following actions:
-         - sets player2 to <player1>#2
-         - if it doesn't already exist, creates <player1>#2 as a clone of
-           player1 and adds it to self.players
-
         """
-        arguments = matchup_config.resolve_arguments()
-
         matchup = Matchup()
-        try:
-            matchup.p1 = arguments['player1']
-            matchup.p2 = arguments['player2']
-        except KeyError:
-            raise ControlFileError("not enough arguments")
-        if matchup.p1 not in self.players:
-            raise ControlFileError("unknown player %s" % matchup.p1)
-        if matchup.p2 not in self.players:
-            raise ControlFileError("unknown player %s" % matchup.p2)
-
-        if matchup.p1 == matchup.p2:
-            p2_code = matchup.p1 + "#2"
-            matchup.p2 = p2_code
-            if matchup.p2 not in self.players:
-                self.players[p2_code] = self.players[matchup.p1].copy(p2_code)
+        matchup.p1 = arguments['player1']
+        matchup.p2 = arguments['player2']
 
         for setting in matchup_settings:
             if setting.name in arguments:
@@ -177,13 +164,11 @@ class Playoff(Competition):
         competitions.validate_handicap(
             matchup.handicap, matchup.handicap_style, matchup.board_size)
 
-        matchup_id = arguments.get('id')
-        if matchup_id is not None:
-            try:
-                matchup_id = interpret_identifier(matchup_id)
-            except ValueError, e:
-                raise ControlFileError("id: %s" % e)
-        matchup.id = matchup_id
+        matchup_id = arguments['id']
+        try:
+            matchup.id = interpret_identifier(matchup_id)
+        except ValueError, e:
+            raise ControlFileError("id: %s" % e)
 
         name = arguments.get('name')
         if name is None:
@@ -201,6 +186,45 @@ class Playoff(Competition):
             competitions.leading_zero_template(matchup.number_of_games))
 
         return matchup
+
+    def _fix_up_matchup_arguments(self, matchup_id, matchup_config):
+        """Process a Matchup_config and return its arguments.
+
+        Returns arguments suitable for use with matchup_from_config().
+
+        This does matchup_config.resolve_arguments(), and the following further
+        checks and fixups:
+
+        Checks that the player1 and player2 parameters exist, and that the
+        player codes are present in self.players.
+
+        Sets the 'id' argument if not already present.
+
+        If player1 and player2 are the same, takes the following actions:
+         - sets player2 to <player1>#2
+         - if it doesn't already exist, creates <player1>#2 as a clone of
+           player1 and adds it to self.players
+
+        """
+        arguments = matchup_config.resolve_arguments()
+        if 'id' not in arguments:
+            arguments['id'] = matchup_id
+        try:
+            player_1 = arguments['player1']
+            player_2 = arguments['player2']
+        except KeyError:
+            raise ControlFileError("not enough arguments")
+        if player_1 not in self.players:
+            raise ControlFileError("unknown player %s" % player_1)
+        if player_2 not in self.players:
+            raise ControlFileError("unknown player %s" % player_2)
+        # If both players are the same, make a clone.
+        if player_1 == player_2:
+            p2_code = player_1 + "#2"
+            arguments['player2'] = p2_code
+            if p2_code not in self.players:
+                self.players[p2_code] = self.players[player_1].copy(p2_code)
+        return arguments
 
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
@@ -232,20 +256,20 @@ class Playoff(Competition):
         self.matchup_list = []
         if not specials['matchups']:
             raise ControlFileError("matchups: empty list")
-        for i, matchup_spec in enumerate(specials['matchups']):
+
+        for i, matchup_config in enumerate(specials['matchups']):
+            matchup_id = matchup_config.kwargs.get('id', str(i))
             try:
-                m = self.matchup_from_config(matchup_spec, matchup_defaults)
+                arguments = self._fix_up_matchup_arguments(
+                    matchup_id, matchup_config)
+                m = self.matchup_from_config(arguments, matchup_defaults)
             except StandardError, e:
-                code = matchup_spec.kwargs.get('id')
-                if code is None:
-                    code = i
-                raise ControlFileError("matchup %s: %s" % (code, e))
-            if m.id is None:
-                m.id = str(i)
+                raise ControlFileError("matchup %s: %s" % (matchup_id, e))
             if m.id in self.matchups:
                 raise ControlFileError("duplicate matchup id '%s'" % m.id)
             self.matchups[m.id] = m
             self.matchup_list.append(m)
+
 
     # State attributes (*: in persistent state):
     #  *results               -- map matchup id -> list of pairs

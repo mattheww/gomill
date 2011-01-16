@@ -76,7 +76,7 @@ class Allplayall(playoffs.Playoff):
             raise ValueError("player not specified")
         cspec.player = arguments['player']
         if cspec.player not in self.players:
-            raise ControlFileError("unknown player %s" % cspec.player)
+            raise ControlFileError("unknown player")
 
         def let(n):
             return chr(ord('A') + n)
@@ -134,13 +134,14 @@ class Allplayall(playoffs.Playoff):
         self.matchup_list = []
         for c1_i, c1 in enumerate(self.competitors):
             for c2_i, c2 in list(enumerate(self.competitors))[c1_i+1:]:
-                ms = playoffs.Matchup_config(c1.player, c2.player)
+                mc = playoffs.Matchup_config(c1.player, c2.player,
+                                             id=self._get_matchup_id(c1, c2))
+                arguments = mc.resolve_arguments()
                 try:
-                    m = self.matchup_from_config(ms, matchup_defaults)
+                    m = self.matchup_from_config(arguments, matchup_defaults)
                 except StandardError, e:
                     raise ControlFileError("%s v %s: %s" %
                                            (c1.player, c2.player, e))
-                m.id = self._get_matchup_id(c1, c2)
                 self.matchups[m.id] = m
                 self.matchup_list.append(m)
 
