@@ -236,17 +236,11 @@ def test_play_many(tc):
 
     tc.assertEqual(len(fx.comp.get_matchup_results('AvB')), 19)
 
-    comp2 = allplayalls.Allplayall('testcomp')
-    comp2.initialise_from_control_file(config)
-    status = pickle.loads(pickle.dumps(fx.comp.get_status()))
-    comp2.set_status(status)
-
+    comp2 = competition_test_support.check_round_trip(tc, fx.comp, config)
     jobs2 = [comp2.get_game() for _ in range(4)]
     tc.assertListEqual([job.game_id for job in jobs2],
                        ['AvB_19', 'AvC_19', 'BvC_19', 'AvB_20'])
     tc.assertEqual(len(comp2.get_matchup_results('AvB')), 19)
-    check_screen_report(
-        tc, comp2, competition_test_support.get_screen_report(fx.comp))
 
 def test_competitor_change(tc):
     fx = Allplayall_fixture(tc)

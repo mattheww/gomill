@@ -265,10 +265,8 @@ def test_play_many(tc):
     #tc.assertEqual(fx.comp.scheduler.allocators['0'].issued, 11)
     #tc.assertEqual(fx.comp.scheduler.allocators['0'].fixed, 6)
 
-    comp2 = playoffs.Playoff('testcomp')
-    comp2.initialise_from_control_file(default_config())
-    status = pickle.loads(pickle.dumps(fx.comp.get_status()))
-    comp2.set_status(status)
+    comp2 = competition_test_support.check_round_trip(
+        tc, fx.comp, default_config())
 
     #tc.assertEqual(comp2.scheduler.allocators['0'].issued, 6)
     #tc.assertEqual(comp2.scheduler.allocators['0'].fixed, 6)
@@ -277,8 +275,6 @@ def test_play_many(tc):
     tc.assertListEqual([job.game_id for job in jobs2],
                        ['0_1', '0_5', '0_8', '0_9'])
     tc.assertEqual(len(comp2.get_matchup_results('0')), 6)
-    check_screen_report(
-        tc, comp2, competition_test_support.get_screen_report(fx.comp))
 
 def test_jigo_reporting(tc):
     fx = Playoff_fixture(tc)
@@ -341,12 +337,7 @@ def test_self_play(tc):
     t1#2      6 60.00%   (white)
     """))
 
-    comp2 = playoffs.Playoff('testcomp')
-    comp2.initialise_from_control_file(config)
-    status = pickle.loads(pickle.dumps(fx.comp.get_status()))
-    comp2.set_status(status)
-    check_screen_report(
-        tc, comp2, competition_test_support.get_screen_report(fx.comp))
+    competition_test_support.check_round_trip(tc, fx.comp, config)
 
 
 def test_matchup_change(tc):

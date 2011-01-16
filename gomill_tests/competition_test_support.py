@@ -1,5 +1,6 @@
 """Test support code for testing Competitions and Ringmasters."""
 
+import cPickle as pickle
 from cStringIO import StringIO
 
 from gomill import game_jobs
@@ -52,3 +53,18 @@ def check_screen_report(tc, comp, expected):
     """Check that a competition's screen report is as expected."""
     tc.assertMultiLineEqual(get_screen_report(comp), expected)
 
+def check_round_trip(tc, comp, config):
+    """Check that a competition round-trips through saved state.
+
+    Makes a new Competition, loads it from comp's saved state, and checks that
+    the resulting screen report is identical.
+
+    Returns the new Competition.
+
+    """
+    comp2 = comp.__class__(comp.competition_code)
+    comp2.initialise_from_control_file(config)
+    status = pickle.loads(pickle.dumps(comp.get_status()))
+    comp2.set_status(status)
+    check_screen_report(tc, comp2, get_screen_report(comp))
+    return comp2
