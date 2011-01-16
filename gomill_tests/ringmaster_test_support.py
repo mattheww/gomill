@@ -54,6 +54,7 @@ class Testing_ringmaster(ringmasters.Ringmaster):
     def __init__(self, control_file_contents):
         self._control_file_contents = control_file_contents
         self._test_status = None
+        self._written_status = None
         ringmasters.Ringmaster.__init__(self, '/nonexistent/ctl/test.ctl')
 
     _presenter_classes = {
@@ -87,6 +88,6 @@ class Testing_ringmaster(ringmasters.Ringmaster):
     def status_file_exists(self):
         return (self._test_status is not None)
 
-    def write_status(self):
-        pass
+    def _write_status(self, value):
+        self._written_status = value
 

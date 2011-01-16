@@ -365,6 +365,13 @@ class Ringmaster(object):
     #    games_in_progress -- dict game_id -> Game_job
     #    games_to_replay   -- dict game_id -> Game_job
 
+    def _write_status(self, value):
+        """Write the pickled contents of the persistent state file."""
+        f = open(self.status_pathname + ".new", "wb")
+        pickle.dump(value, f, protocol=-1)
+        f.close()
+        os.rename(self.status_pathname + ".new", self.status_pathname)
+
     def write_status(self):
         """Write the persistent state file."""
         competition_status = self.competition.get_status()
@@ -374,10 +381,7 @@ class Ringmaster(object):
             'comp'            : competition_status,
             }
         try:
-            f = open(self.status_pathname + ".new", "wb")
-            pickle.dump((self.status_format_version, status), f, protocol=-1)
-            f.close()
-            os.rename(self.status_pathname + ".new", self.status_pathname)
+            self._write_status((self.status_format_version, status))
         except EnvironmentError, e:
             raise RingmasterError("error writing persistent state:\n%s" % e)
 

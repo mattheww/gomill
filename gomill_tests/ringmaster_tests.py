@@ -70,6 +70,10 @@ class Ringmaster_fixture(test_framework.Fixture):
         """Retrieve the history file contents."""
         return self.ringmaster.historyfile.getvalue()
 
+    def get_written_state(self):
+        """Return the unpickled value written to the state file."""
+        return self.ringmaster._written_status
+
 
 base_ctl = """
 
@@ -297,6 +301,35 @@ def test_run_with_late_errors(tc):
         fx.get_history(),
         "  0_000 p1 beat p2 B+10.5\n"
         "  0_001 p1 beat p2 B+10.5\n")
+
+def test_status_roundtrip(tc):
+    fx1 = Ringmaster_fixture(tc, base_ctl, [
+        "players['p1'] = Player('test', discard_stderr=True)",
+        "players['p2'] = Player('test', discard_stderr=True)",
+        ])
+    fx1.initialise_clean()
+    fx1.ringmaster.run(max_games=2)
+    tc.assertListEqual(
+        fx1.messages('warnings'),
+        [])
+    state = fx1.get_written_state()
+
+    fx2 = Ringmaster_fixture(tc, base_ctl, [
+        "players['p1'] = Player('test', discard_stderr=True)",
+        "players['p2'] = Player('test', discard_stderr=True)",
+        ])
+    fx2.initialise_with_state(state)
+    fx2.ringmaster.run(max_games=1)
+    tc.assertListEqual(
+        fx2.messages('warnings'),
+        [])
+    tc.assertListEqual(
+        fx2.messages('screen_report'),
+        ["p1 v p2 (3/400 games)\n"
+         "board size: 9   komi: 7.5\n"
+         "     wins\n"
+         "p1      3 100.00%   (black)\n"
+         "p2      0   0.00%   (white)"])
 
 def test_status(tc):
     # Construct suitable competition status
