@@ -145,6 +145,9 @@ class Allplayall(playoffs.Playoff):
                 self.matchups[m.id] = m
                 self.matchup_list.append(m)
 
+    # Can bump this to prevent people loading incompatible .status files.
+    status_format_version = 0
+
     def get_status(self):
         result = playoffs.Playoff.get_status(self)
         result['competitors'] = [c.player for c in self.competitors]
