@@ -278,7 +278,8 @@ class Competition(object):
         except ValueError, e:
             raise ControlFileError("'gtp_aliases': %s" % e)
 
-        player.discard_stderr = config['discard_stderr']
+        if config['discard_stderr']:
+            player.stderr_pathname = os.devnull
 
         return player
 
@@ -326,8 +327,9 @@ class Competition(object):
          - sgf_game_name isn't set
          - sgf_filename, sgf_dirname and void_sgf_dirname aren't set
          - gtp_log_pathname isn't set
-         - the Players' stderr_pathname isn't set; instead they have a
-           discard_stderr boolean attribute
+         - the Players' stderr_pathname may not be set
+           (if it is set, it will be to os.devnull, and the ringmaster should
+            leave it alone)
 
         """
         raise NotImplementedError

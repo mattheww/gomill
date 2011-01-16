@@ -161,7 +161,6 @@ class Playoff(Competition):
             matchup.p2 = p2_code
             if matchup.p2 not in self.players:
                 self.players[p2_code] = self.players[matchup.p1].copy(p2_code)
-                self.players[p2_code].discard_stderr = self.players[matchup.p1].discard_stderr
 
         for setting in matchup_settings:
             if setting.name in arguments:
