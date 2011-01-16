@@ -208,9 +208,12 @@ class Game_job(object):
     def _run(self):
         warnings = []
         log_entries = []
-        game = gtp_games.Game(self.board_size, self.komi, self.move_limit)
-        game.set_player_code('b', self.player_b.code)
-        game.set_player_code('w', self.player_w.code)
+        try:
+            game = gtp_games.Game(self.board_size, self.komi, self.move_limit)
+            game.set_player_code('b', self.player_b.code)
+            game.set_player_code('w', self.player_w.code)
+        except ValueError, e:
+            raise job_manager.JobFailed("error creating game: %s" % e)
         if self.use_internal_scorer:
             game.use_internal_scorer()
         else:

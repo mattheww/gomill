@@ -118,6 +118,13 @@ def test_game_job(tc):
     C[one beat two B+10.5])
     """))
 
+def test_duplicate_player_codes(tc):
+    gj = Game_job_fixture(tc)
+    gj.job.player_w.code = "one"
+    tc.assertRaisesRegexp(
+        JobFailed, "error creating game: player codes must be distinct",
+        gj.job.run)
+
 def test_game_job_no_sgf(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     gj = Game_job_fixture(tc)
