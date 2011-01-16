@@ -347,7 +347,7 @@ def test_bad_state(tc):
 
     comp2 = playoffs.Playoff('testcomp')
     comp2.initialise_from_control_file(default_config())
-    tc.assertRaises(StandardError, comp2.set_status, bad_status)
+    tc.assertRaises(KeyError, comp2.set_status, bad_status)
 
 def test_matchup_change(tc):
     fx = Playoff_fixture(tc)
