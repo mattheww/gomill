@@ -206,7 +206,7 @@ def test_run(tc):
         "players['p1'] = Player('test', discard_stderr=True)",
         "players['p2'] = Player('test', discard_stderr=True)",
         ])
-    fx.ringmaster.set_clean_status()
+    fx.initialise_clean()
     fx.ringmaster.run(max_games=3)
     tc.assertListEqual(
         fx.messages('warnings'),
@@ -247,7 +247,7 @@ def test_run_fail(tc):
         "players['p1'] = Player('test', discard_stderr=True)",
         "players['p2'] = Player('test fail=startup', discard_stderr=True)",
         ])
-    fx.ringmaster.set_clean_status()
+    fx.initialise_clean()
     fx.ringmaster.run()
     tc.assertListEqual(
         fx.messages('warnings'),
@@ -277,7 +277,7 @@ def test_run_with_late_errors(tc):
     def fail_close(channel):
         channel.fail_close = True
     fx.msf.register_init_callback('fail_close', fail_close)
-    fx.ringmaster.set_clean_status()
+    fx.initialise_clean()
     fx.ringmaster.run(max_games=2)
     tc.assertListEqual(fx.messages('warnings'), [])
     tc.assertMultiLineEqual(
@@ -300,10 +300,17 @@ def test_run_with_late_errors(tc):
 
 def test_status(tc):
     # Construct suitable competition status
-    fx1 = Ringmaster_fixture(tc, base_ctl)
+    fx1 = Ringmaster_fixture(tc, base_ctl, [
+        "players['p1'] = Player('test', discard_stderr=True)",
+        "players['p2'] = Player('test', discard_stderr=True)",
+        ])
     sfv = fx1.ringmaster.status_format_version
-    fx1.get_job()
+    fx1.initialise_clean()
+    fx1.ringmaster.run(max_games=2)
     competition_status = fx1.ringmaster.competition.get_status()
+    tc.assertListEqual(
+        fx1.messages('warnings'),
+        [])
 
     fx = Ringmaster_fixture(tc, base_ctl, [
         "players['p1'] = Player('test', discard_stderr=True)",
@@ -315,7 +322,7 @@ def test_status(tc):
         'comp'            : competition_status,
         }
     fx.initialise_with_state((sfv, status.copy()))
-    fx.ringmaster.run(max_games=3)
+    fx.ringmaster.run(max_games=1)
     tc.assertListEqual(
         fx.messages('warnings'),
         [])
