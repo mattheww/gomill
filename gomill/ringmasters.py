@@ -399,12 +399,20 @@ class Ringmaster(object):
             competition_status = status['comp']
         except pickle.UnpicklingError:
             raise RingmasterError("corrupt status file")
+        except KeyError, e:
+            raise RingmasterError("error reading status file: missing %s" % e)
         except Exception, e:
             raise RingmasterError("error reading status file: %s" % e)
         try:
             self.competition.set_status(competition_status)
         except CompetitionError, e:
             raise RingmasterError("error loading competition state: %s" % e)
+        except KeyError, e:
+            raise RingmasterError(
+                "error loading competition state: missing %s" % e)
+        except Exception, e:
+            raise RingmasterError("error loading competition state:\n%s" %
+                                  compact_tracebacks.format_traceback(skip=1))
 
     def set_clean_status(self):
         """Reset persistent state to the initial values."""

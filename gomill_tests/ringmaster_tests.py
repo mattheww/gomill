@@ -9,6 +9,8 @@ from gomill_tests import ringmaster_test_support
 from gomill_tests import gtp_engine_fixtures
 from gomill_tests.playoff_tests import fake_response
 
+from gomill.ringmasters import RingmasterError
+
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
@@ -312,7 +314,7 @@ def test_status(tc):
         'comp_vn'         : sfv,
         'comp'            : competition_status,
         }
-    fx.initialise_with_state((sfv, status))
+    fx.initialise_with_state((sfv, status.copy()))
     fx.ringmaster.run(max_games=3)
     tc.assertListEqual(
         fx.messages('warnings'),
@@ -324,3 +326,38 @@ def test_status(tc):
          "     wins\n"
          "p1      3 100.00%   (black)\n"
          "p2      0   0.00%   (white)"])
+
+    fx.ringmaster.set_test_status((-1, status.copy()))
+    tc.assertRaisesRegexp(
+        RingmasterError,
+        "error reading status file: incompatible status file",
+        fx.ringmaster.load_status)
+
+    bad_status = status.copy()
+    del bad_status['void_game_count']
+    fx.ringmaster.set_test_status((sfv, bad_status))
+    tc.assertRaisesRegexp(
+        RingmasterError,
+        "error reading status file: missing 'void_game_count'",
+        fx.ringmaster.load_status)
+
+    bad_competition_status = competition_status.copy()
+    del bad_competition_status['results']
+    bad_status_2 = status.copy()
+    bad_status_2['comp'] = bad_competition_status
+    fx.ringmaster.set_test_status((sfv, bad_status_2))
+    tc.assertRaisesRegexp(
+        RingmasterError,
+        "error loading competition state: missing 'results'",
+        fx.ringmaster.load_status)
+
+    bad_competition_status_2 = competition_status.copy()
+    bad_competition_status_2['scheduler'] = None
+    bad_status_3 = status.copy()
+    bad_status_3['comp'] = bad_competition_status_2
+    fx.ringmaster.set_test_status((sfv, bad_status_3))
+    tc.assertRaisesRegexp(
+        RingmasterError,
+        "error loading competition state:\n"
+        "AttributeError: 'NoneType' object has no attribute 'set_groups'",
+        fx.ringmaster.load_status)

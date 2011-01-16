@@ -302,6 +302,10 @@ class Competition(object):
 
         'status' will be a value previously reported by get_status().
 
+        If the status is invalid, CompetitionError may be raised with a
+        description of the error, or any other exception may be raised without
+        a friendly description.
+
         """
         # This is called for the 'show' command, so it mustn't log anything.
         raise NotImplementedError

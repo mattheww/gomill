@@ -340,6 +340,15 @@ def test_self_play(tc):
     competition_test_support.check_round_trip(tc, fx.comp, config)
 
 
+def test_bad_state(tc):
+    fx = Playoff_fixture(tc)
+    bad_status = fx.comp.get_status()
+    del bad_status['scheduler']
+
+    comp2 = playoffs.Playoff('testcomp')
+    comp2.initialise_from_control_file(default_config())
+    tc.assertRaises(StandardError, comp2.set_status, bad_status)
+
 def test_matchup_change(tc):
     fx = Playoff_fixture(tc)
 
