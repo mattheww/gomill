@@ -200,8 +200,13 @@ class Game(object):
         Setting these is optional but strongly encouraged. If not explicitly
         set, they will just be 'b' and 'w'.
 
+        Raises ValueError if both players are given the same code.
+
         """
-        self.players[colour] = str(player_code)
+        s = str(player_code)
+        if self.players[opponent_of(colour)] == s:
+            raise ValueError("player codes must be distinct")
+        self.players[colour] = s
 
     def use_internal_scorer(self):
         """Set the scoring method to internal.

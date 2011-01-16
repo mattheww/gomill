@@ -497,3 +497,9 @@ def test_forfeit_play_failed(tc):
                    "crash")
     fx.check_moves(moves[:-1])
 
+def test_same_player_code(tc):
+    game = gtp_games.Game(board_size=9, komi=0)
+    game.set_player_code('b', 'one')
+    tc.assertRaisesRegexp(ValueError, "player codes must be distinct",
+                          game.set_player_code, 'w', 'one')
+
