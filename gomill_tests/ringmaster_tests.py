@@ -344,16 +344,16 @@ def test_status(tc):
     tc.assertListEqual(
         fx1.messages('warnings'),
         [])
-
-    fx = Ringmaster_fixture(tc, base_ctl, [
-        "players['p1'] = Player('test', discard_stderr=True)",
-        "players['p2'] = Player('test', discard_stderr=True)",
-        ])
     status = {
         'void_game_count' : 0,
         'comp_vn'         : fx1.ringmaster.competition.status_format_version,
         'comp'            : competition_status,
         }
+
+    fx = Ringmaster_fixture(tc, base_ctl, [
+        "players['p1'] = Player('test', discard_stderr=True)",
+        "players['p2'] = Player('test', discard_stderr=True)",
+        ])
     fx.initialise_with_state((sfv, status.copy()))
     fx.ringmaster.run(max_games=1)
     tc.assertListEqual(
