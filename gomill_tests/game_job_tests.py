@@ -74,6 +74,14 @@ class Game_job_fixture(test_framework.Fixture):
         self.job.void_sgf_dirname = "/sgf/test.void"
         self.job.sgf_filename = "gjtest.sgf"
 
+def test_player_copy(tc):
+    gj = Game_job_fixture(tc)
+    p1 = gj.job.player_b
+    p2 = p1.copy("clone")
+    tc.assertEqual(p2.code, "clone")
+    tc.assertEqual(p2.cmd_args, ['test', 'id=one'])
+    tc.assertIsNot(p1.cmd_args, p2.cmd_args)
+
 def test_game_job(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     gj = Game_job_fixture(tc)

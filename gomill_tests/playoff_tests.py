@@ -309,6 +309,40 @@ def test_jigo_reporting(tc):
                            3.5 50.00%     3.5 50.00%
     """))
 
+def test_self_play(tc):
+    config = default_config()
+    config['matchups'] = [
+        Matchup_config('t1', 't1', alternating=True),
+        Matchup_config('t1', 't1', alternating=False),
+        ]
+    fx = Playoff_fixture(tc, config)
+
+    jobs = [fx.comp.get_game() for _ in range(20)]
+    for i, job in enumerate(jobs):
+        response = fake_response(job, 'b' if i < 9 else 'w')
+        fx.comp.process_game_result(response)
+    fx.check_screen_report(dedent("""\
+    t1 v t1#2 (10 games)
+    board size: 13   komi: 7.5
+           wins              black        white
+    t1        6 60.00%       3 60.00%     3 60.00%
+    t1#2      4 40.00%       2 40.00%     2 40.00%
+                             5 50.00%     5 50.00%
+
+    t1 v t1#2 (10 games)
+    board size: 13   komi: 7.5
+           wins
+    t1        4 40.00%   (black)
+    t1#2      6 60.00%   (white)
+    """))
+
+    comp2 = playoffs.Playoff('testcomp')
+    comp2.initialise_from_control_file(config)
+    status = pickle.loads(pickle.dumps(fx.comp.get_status()))
+    comp2.set_status(status)
+    check_screen_report(
+        tc, comp2, competition_test_support.get_screen_report(fx.comp))
+
 
 def test_matchup_change(tc):
     fx = Playoff_fixture(tc)

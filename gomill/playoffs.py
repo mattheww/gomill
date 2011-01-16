@@ -29,6 +29,8 @@ class Matchup(object):
     If alternating is False, p1 plays black and p2 plays white; otherwise they
     alternate.
 
+    p1 and p2 are always different.
+
     """
     def describe_details(self):
         # Not describing 'alternating', because it's obvious from the results
@@ -135,6 +137,11 @@ class Playoff(Competition):
         If 'id' wasn't specified, it is left as None (caller should then set
         it).
 
+        If player1 and player2 are the same, takes the following actions:
+         - sets player2 to <player1>#2
+         - if it doesn't already exist, creates <player1>#2 as a clone of
+           player1 and adds it to self.players
+
         """
         arguments = matchup_config.resolve_arguments()
 
@@ -148,6 +155,13 @@ class Playoff(Competition):
             raise ControlFileError("unknown player %s" % matchup.p1)
         if matchup.p2 not in self.players:
             raise ControlFileError("unknown player %s" % matchup.p2)
+
+        if matchup.p1 == matchup.p2:
+            p2_code = matchup.p1 + "#2"
+            matchup.p2 = p2_code
+            if matchup.p2 not in self.players:
+                self.players[p2_code] = self.players[matchup.p1].copy(p2_code)
+                self.players[p2_code].discard_stderr = self.players[matchup.p1].discard_stderr
 
         for setting in matchup_settings:
             if setting.name in arguments:

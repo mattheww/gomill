@@ -63,6 +63,23 @@ class Player(object):
             environ = None
         return environ
 
+    def copy(self, code):
+        """Return an independent clone of the Player."""
+        result = Player()
+        result.code = code
+        result.cmd_args = list(self.cmd_args)
+        result.is_reliable_scorer = self.is_reliable_scorer
+        result.allow_claim = self.allow_claim
+        result.gtp_aliases = dict(self.gtp_aliases)
+        result.startup_gtp_commands = list(self.startup_gtp_commands)
+        result.stderr_pathname = self.stderr_pathname
+        result.cwd = self.cwd
+        if self.environ is None:
+            result.environ = None
+        else:
+            result.environ = dict(self.environ)
+        return result
+
 class Game_job_result(object):
     """Information returned after a worker process plays a game.
 
