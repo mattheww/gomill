@@ -311,7 +311,7 @@ def test_status(tc):
         ])
     status = {
         'void_game_count' : 0,
-        'comp_vn'         : sfv,
+        'comp_vn'         : fx1.ringmaster.competition.status_format_version,
         'comp'            : competition_status,
         }
     fx.initialise_with_state((sfv, status.copy()))
@@ -360,4 +360,12 @@ def test_status(tc):
         RingmasterError,
         "error loading competition state:\n"
         "AttributeError: 'NoneType' object has no attribute 'set_groups'",
+        fx.ringmaster.load_status)
+
+    bad_status_4 = status.copy()
+    bad_status_4['comp_vn'] = -1
+    fx.ringmaster.set_test_status((sfv, bad_status_4))
+    tc.assertRaisesRegexp(
+        RingmasterError,
+        "error reading status file: incompatible status file",
         fx.ringmaster.load_status)
