@@ -45,8 +45,6 @@ def main(argv):
     if len(args) > 1:
         parser.error("too many arguments")
     ctl_pathname = args[0]
-    if not ctl_pathname.endswith(".ctl"):
-        parser.error("not a .ctl file")
     try:
         ringmaster = Ringmaster(ctl_pathname)
         find_forfeits(ringmaster)
