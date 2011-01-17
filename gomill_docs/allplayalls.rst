@@ -101,6 +101,9 @@ Each row shows the number of wins and losses for the player named on that row
 against each opponent (in the example, ``gnugo-l1`` has won 4 games and lost 5
 against ``gnugo-l2``).
 
+If any games have unknown results (because they could not be scored, or
+reached the :setting:`move_limit`), they will not be shown in the grid.
+
 The competition report also shows full details of each pairing in the same
 style as playoff tournaments.
 
