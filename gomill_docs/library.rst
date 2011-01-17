@@ -64,9 +64,10 @@ Competitions
 
 - :mod:`!competition_schedulers`
 - :mod:`!competitions`
+- :mod:`!playoffs`
+- :mod:`!allplayalls`
 - :mod:`!cem_tuners`
 - :mod:`!mcts_tuners`
-- :mod:`!playoffs`
 
 
 The Ringmaster
