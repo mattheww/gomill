@@ -503,3 +503,16 @@ def test_same_player_code(tc):
     tc.assertRaisesRegexp(ValueError, "player codes must be distinct",
                           game.set_player_code, 'w', 'one')
 
+def test_make_sgf(tc):
+    fx = Game_fixture(tc)
+    fx.game.use_internal_scorer()
+    fx.game.ready()
+    tc.assertIsNone(fx.game.result)
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertMultiLineEqual(fx.game.make_sgf().as_string(), ("""\
+(;AP[gomill:?]CA[utf-8]DT[2011-01-18]FF[4]GM[1]KM[0.0]RE[B+18]SZ[9];B[ei];W[gi]
+;B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];W[gc];B[eb]
+;W[gb];B[ea];W[ga];B[tt];W[tt]C[one beat two B+18])
+"""))
+
