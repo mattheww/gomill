@@ -25,6 +25,7 @@ class Game_result(object):
       is_jigo             -- bool
       is_forfeit          -- bool
       detail              -- additional information (string or None)
+      game_id             -- string or None
       cpu_times           -- map player code -> float or None or '?'.
 
     Winning/losing colour and player are None for a jigo, unknown result, or
@@ -44,6 +45,7 @@ class Game_result(object):
         self.winning_player = players.get(winning_colour)
         self.is_jigo = False
         self.is_forfeit = False
+        self.game_id = None
         if winning_colour is None:
             self.sgf_result = "?"
         else:
@@ -59,6 +61,7 @@ class Game_result(object):
             self.sgf_result,
             self.detail,
             self.is_forfeit,
+            self.game_id,
             self.cpu_times,
             )
 
@@ -69,6 +72,7 @@ class Game_result(object):
          self.sgf_result,
          self.detail,
          self.is_forfeit,
+         self.game_id,
          self.cpu_times,
          ) = state
         self.players = {'b' : self.player_b, 'w' : self.player_w}
@@ -142,6 +146,7 @@ class Game(object):
 
     Public attributes for reading:
       players               -- map colour -> player code
+      game_id               -- string or None
       result                -- Game_result (None before the game is complete)
       moves                 -- list of tuples (colour, move, comment)
       player_scores         -- map player code -> string or None
@@ -166,6 +171,7 @@ class Game(object):
 
     def __init__(self, board_size, komi=0.0, move_limit=1000):
         self.players = {'b' : 'b', 'w' : 'w'}
+        self.game_id = None
         self.controllers = {}
         self.claim_allowed = {'b' : False, 'w' : False}
         self.after_move_callback = None
@@ -207,6 +213,19 @@ class Game(object):
         if self.players[opponent_of(colour)] == s:
             raise ValueError("player codes must be distinct")
         self.players[colour] = s
+
+    def set_game_id(self, game_id):
+        """Specify a game id.
+
+        game_id -- string
+
+        The game id is reported in the game result, and used as a default game
+        name in the SGF file.
+
+        If you don't set it, it will have value None.
+
+        """
+        self.game_id = str(game_id)
 
     def use_internal_scorer(self):
         """Set the scoring method to internal.
@@ -611,6 +630,7 @@ class Game(object):
 
         """
         result = Game_result(self.players, self.winner)
+        result.game_id = self.game_id
         if self.hit_move_limit:
             result.sgf_result = "Void"
             result.detail = "hit move limit"
@@ -738,6 +758,8 @@ class Game(object):
         if self.engine_names:
             sgf_game.set('black-player', self.engine_names[self.players['b']])
             sgf_game.set('white-player', self.engine_names[self.players['w']])
+        if self.game_id:
+            sgf_game.set('game-name', self.game_id)
         if self.sgf_setup_stones:
             sgf_game.add_setup_stones(self.sgf_setup_stones)
         for colour, move, comment in self.moves:

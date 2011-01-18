@@ -106,6 +106,7 @@ def test_game(tc):
     tc.assertIs(fx.game.get_controller('w'), fx.controller_w)
     fx.game.use_internal_scorer()
     fx.game.ready()
+    tc.assertIsNone(fx.game.game_id)
     tc.assertIsNone(fx.game.result)
     fx.game.run()
     fx.game.close_players()
@@ -121,6 +122,7 @@ def test_game(tc):
     tc.assertFalse(fx.game.result.is_forfeit)
     tc.assertIs(fx.game.result.is_jigo, False)
     tc.assertIsNone(fx.game.result.detail)
+    tc.assertIsNone(fx.game.result.game_id)
     tc.assertEqual(fx.game.result.describe(), "one beat two B+18")
     result2 = pickle.loads(pickle.dumps(fx.game.result))
     tc.assertEqual(result2.describe(), "one beat two B+18")
@@ -507,12 +509,25 @@ def test_make_sgf(tc):
     fx = Game_fixture(tc)
     fx.game.use_internal_scorer()
     fx.game.ready()
-    tc.assertIsNone(fx.game.result)
     fx.game.run()
     fx.game.close_players()
     tc.assertMultiLineEqual(fx.game.make_sgf().as_string(), ("""\
 (;AP[gomill:?]CA[utf-8]DT[2011-01-18]FF[4]GM[1]KM[0.0]RE[B+18]SZ[9];B[ei];W[gi]
 ;B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];W[gc];B[eb]
 ;W[gb];B[ea];W[ga];B[tt];W[tt]C[one beat two B+18])
+"""))
+
+def test_game_id(tc):
+    fx = Game_fixture(tc)
+    fx.game.use_internal_scorer()
+    fx.game.set_game_id("gitest")
+    fx.game.ready()
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertEqual(fx.game.result.game_id, "gitest")
+    tc.assertMultiLineEqual(fx.game.make_sgf().as_string(), ("""\
+(;AP[gomill:?]CA[utf-8]DT[2011-01-18]FF[4]GM[1]GN[gitest]KM[0.0]RE[B+18]SZ[9]
+;B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec]
+;W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];W[tt]C[one beat two B+18])
 """))
 

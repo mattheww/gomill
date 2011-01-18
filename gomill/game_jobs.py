@@ -280,8 +280,6 @@ class Game_job(object):
         sgf_game = game.make_sgf(game_end_message)
         if self.sgf_game_name is not None:
             sgf_game.set('game-name', self.sgf_game_name)
-        else:
-            sgf_game.set('game-name', self.game_id)
         if self.sgf_event is not None:
             sgf_game.set('event', self.sgf_event)
             notes.append("Event: %s" % self.sgf_event)

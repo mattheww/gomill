@@ -339,7 +339,7 @@ class Playoff(Competition):
         self._set_scheduler_groups()
 
     # Can bump this to prevent people loading incompatible .status files.
-    status_format_version = 0
+    status_format_version = 1
 
     def get_status(self):
         return {
