@@ -93,6 +93,7 @@ def test_game_job(tc):
     # Win by 18 on the board minus 7.5 komi
     tc.assertEqual(result.game_result.sgf_result, "B+10.5")
     tc.assertEqual(result.game_id, 'gameid')
+    tc.assertEqual(result.game_result.game_id, 'gameid')
     tc.assertEqual(result.game_data, 'gamedata')
     tc.assertEqual(result.warnings, [])
     tc.assertEqual(result.log_entries, [])

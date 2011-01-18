@@ -212,6 +212,7 @@ class Game_job(object):
             game = gtp_games.Game(self.board_size, self.komi, self.move_limit)
             game.set_player_code('b', self.player_b.code)
             game.set_player_code('w', self.player_w.code)
+            game.set_game_id(self.game_id)
         except ValueError, e:
             raise job_manager.JobFailed("error creating game: %s" % e)
         if self.use_internal_scorer:
