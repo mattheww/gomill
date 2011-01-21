@@ -370,7 +370,7 @@ def test_status(tc):
     fx.ringmaster.set_test_status((-1, status.copy()))
     tc.assertRaisesRegexp(
         RingmasterError,
-        "error reading status file: incompatible status file",
+        "incompatible status file",
         fx.ringmaster.load_status)
 
     bad_status = status.copy()
@@ -378,7 +378,7 @@ def test_status(tc):
     fx.ringmaster.set_test_status((sfv, bad_status))
     tc.assertRaisesRegexp(
         RingmasterError,
-        "error reading status file: missing 'void_game_count'",
+        "incompatible status file: missing 'void_game_count'",
         fx.ringmaster.load_status)
 
     bad_competition_status = competition_status.copy()
@@ -407,5 +407,5 @@ def test_status(tc):
     fx.ringmaster.set_test_status((sfv, bad_status_4))
     tc.assertRaisesRegexp(
         RingmasterError,
-        "error reading status file: incompatible status file",
+        "incompatible status file",
         fx.ringmaster.load_status)

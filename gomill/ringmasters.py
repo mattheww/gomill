@@ -396,7 +396,7 @@ class Ringmaster(object):
             status_format_version, status = self._load_status()
             if (status_format_version != self.status_format_version or
                 status['comp_vn'] != self.competition.status_format_version):
-                raise RingmasterError("incompatible status file")
+                raise StandardError
             self.void_game_count = status['void_game_count']
             self.games_in_progress = {}
             self.games_to_replay = {}
@@ -404,9 +404,10 @@ class Ringmaster(object):
         except pickle.UnpicklingError:
             raise RingmasterError("corrupt status file")
         except KeyError, e:
-            raise RingmasterError("error reading status file: missing %s" % e)
+            raise RingmasterError("incompatible status file: missing %s" % e)
         except Exception, e:
-            raise RingmasterError("error reading status file: %s" % e)
+            # Probably an exception from __setstate__ somewhere
+            raise RingmasterError("incompatible status file")
         try:
             self.competition.set_status(competition_status)
         except CompetitionError, e:
