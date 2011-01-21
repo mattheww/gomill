@@ -47,6 +47,12 @@ def compare_diagrams(d1, d2):
         return True, None
     return False, "diagrams differ:\n%s\n\n%s" % (d1, d2)
 
+def scrub_sgf_date(s):
+    """Replace dates with '***' in sgf files produced by gomill."""
+    s = re.sub(r"(?m)(?<=^Date ).*$", "***", s)
+    s = re.sub(r"(?<=DT\[)[-0-9]+(?=\])", "***", s)
+    return s
+
 
 traceback_line_re = re.compile(
     r"  .*/([a-z0-9_]+)\.pyc?:[0-9]+ \(([a-z0-9_]+)\)")

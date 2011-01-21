@@ -3,7 +3,6 @@
 from __future__ import with_statement
 
 import os
-import re
 from textwrap import dedent
 
 from gomill import gtp_controller
@@ -45,9 +44,7 @@ class Test_game_job(game_jobs.Game_job):
 
     def _get_sgf_written(self):
         """Return the sgf contents with the dates scrubbed out."""
-        s = re.sub(r"(?m)(?<=^Date ).*$", "***", self._sgf_written)
-        s = re.sub(r"(?<=DT\[)[-0-9]+(?=\])", "***", s)
-        return s
+        return gomill_test_support.scrub_sgf_date(self._sgf_written)
 
 class Game_job_fixture(test_framework.Fixture):
     """Fixture setting up a Game_job.
