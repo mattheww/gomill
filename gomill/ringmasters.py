@@ -472,7 +472,7 @@ class Ringmaster(object):
             raise RingmasterError("status is not loaded")
         try:
             return self.competition.get_tournament_results()
-        except AttributeError:
+        except NotImplementedError:
             raise RingmasterError("competition is not a tournament")
 
     def report(self):

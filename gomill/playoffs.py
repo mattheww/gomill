@@ -494,14 +494,6 @@ class Playoff(Competition):
     write_full_report = write_short_report
 
     def get_tournament_results(self):
-        """Return a Tournament_results object for this tournament.
-
-        The competition status must be set before you call this.
-
-        (The returned object is 'live', in that it will see new results as they
-        come in, but don't rely in this behaviour.)
-
-        """
         return tournament_results.Tournament_results(
             self.matchup_list, self.results)
 

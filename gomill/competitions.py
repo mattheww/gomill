@@ -424,6 +424,18 @@ class Competition(object):
         """
         raise NotImplementedError
 
+    def get_tournament_results(self):
+        """Return a Tournament_results object for this competition.
+
+        The competition status must be set before you call this.
+
+        (The returned object is 'live', in that it will see new results as they
+        come in, but don't rely in this behaviour.)
+
+        Expect this to be implemented for tournaments but not tuning events.
+
+        """
+        raise NotImplementedError
 
 ## Helper functions for settings
 
