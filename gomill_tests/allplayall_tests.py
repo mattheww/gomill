@@ -211,9 +211,7 @@ def test_play(tc):
     fx.check_short_report(expected_grid, expected_matchups, expected_players)
 
     avb_results = fx.comp.get_matchup_results('AvB')
-    tc.assertEqual(len(avb_results), 1)
-    tc.assertEqual(avb_results[0][0], 'AvB_0')
-    tc.assertEqual(avb_results[0][1].describe(), 't1 beat t2 B+1.5')
+    tc.assertEqual(avb_results, [response1.game_result])
 
 def test_play_many(tc):
     config = default_config()

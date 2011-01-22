@@ -192,7 +192,7 @@ def test_process_response(tc):
         fx.messages('results'),
         ["game 0_000: p2 beat p1 W+1.5"])
     tc.assertEqual(fx.ringmaster.competition.get_matchup_results('0'),
-                   [('0_000', response.game_result)])
+                   [response.game_result])
     tc.assertEqual(fx.get_log(),
                    "starting game 0_000: p1 (b) vs p2 (w)\n"
                    "response from game 0_000\n"

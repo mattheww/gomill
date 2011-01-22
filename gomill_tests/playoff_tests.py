@@ -237,7 +237,7 @@ def test_play(tc):
     fx.check_screen_report(expected_report)
     fx.check_short_report(expected_report, expected_players)
 
-    tc.assertListEqual(fx.comp.get_matchup_results('0'), [('0_0', result1)])
+    tc.assertListEqual(fx.comp.get_matchup_results('0'), [result1])
 
 def test_play_many(tc):
     fx = Playoff_fixture(tc)

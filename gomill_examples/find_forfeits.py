@@ -26,9 +26,9 @@ def find_forfeits(ringmaster):
     for matchup_id in matchup_ids:
         matchup = playoff.get_matchup(matchup_id)
         results = playoff.get_matchup_results(matchup_id)
-        for game_id, result in results:
+        for result in results:
             if result.is_forfeit:
-                filename = ringmaster.get_sgf_filename(game_id)
+                filename = ringmaster.get_sgf_filename(result.game_id)
                 show_result(matchup, result, filename)
 
 

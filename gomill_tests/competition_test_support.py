@@ -17,11 +17,12 @@ def fake_response(job, winner):
     """
     players = {'b' : job.player_b.code, 'w' : job.player_w.code}
     result = gtp_games.Game_result(players, winner)
-    response = game_jobs.Game_job_result()
+    result.game_id = job.game_id
     if winner is None:
         result.set_jigo()
     else:
         result.sgf_result += "1.5"
+    response = game_jobs.Game_job_result()
     response.game_id = job.game_id
     response.game_result = result
     response.engine_names = {

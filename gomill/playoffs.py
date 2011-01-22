@@ -272,8 +272,7 @@ class Playoff(Competition):
 
 
     # State attributes (*: in persistent state):
-    #  *results               -- map matchup id -> list of pairs
-    #                                              (game_id, Game_result)
+    #  *results               -- map matchup id -> list of Game_results
     #  *scheduler             -- Group_scheduler (group codes are matchup ids)
     #  *engine_names          -- map player code -> string
     #  *engine_descriptions   -- map player code -> string
@@ -302,7 +301,7 @@ class Playoff(Competition):
             results = self.results[matchup.id]
             if not results:
                 continue
-            game_id, result = results[0]
+            result = results[0]
             seen_players = sorted(result.players.itervalues())
             expected_players = sorted((matchup.p1, matchup.p2))
             if seen_players != expected_players:
@@ -320,7 +319,7 @@ class Playoff(Competition):
         for matchup_id, results in self.results.iteritems():
             if matchup_id in live:
                 continue
-            result = results[0][1]
+            result = results[0]
             # p1 and p2 might not be the right way round, but it doesn't matter.
             self.ghost_matchups[matchup_id] = Ghost_matchup(
                 matchup_id, result.player_b, result.player_w)
@@ -410,7 +409,7 @@ class Playoff(Competition):
         self.working_matchups.add(matchup_id)
         self.probationary_matchups.discard(matchup_id)
         self.scheduler.fix(matchup_id, game_number)
-        self.results[matchup_id].append((game_id, response.game_result))
+        self.results[matchup_id].append(response.game_result)
         self.log_history("%7s %s" % (game_id, response.game_result.describe()))
 
     def process_game_error(self, job, previous_error_count):
@@ -582,13 +581,13 @@ class Playoff(Competition):
                 first = False
             else:
                 print >>out
-            self.write_matchup_report(out, matchup, [t[1] for t in results])
+            self.write_matchup_report(out, matchup, results)
 
     def write_ghost_report(self, out):
         for matchup_id, matchup in sorted(self.ghost_matchups.iteritems()):
             print >>out
             results = self.results[matchup_id]
-            self.write_matchup_report(out, matchup, [t[1] for t in results])
+            self.write_matchup_report(out, matchup, results)
 
     def write_short_report(self, out):
         def p(s):
@@ -623,9 +622,7 @@ class Playoff(Competition):
 
         Status must be loaded to use this.
 
-        Returns a list of pairs (game id, Game_result)
-
-        game ids are short strings.
+        Returns a list of Game_results
 
         """
         return self.results[matchup_id][:]

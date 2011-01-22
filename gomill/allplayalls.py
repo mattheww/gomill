@@ -216,7 +216,7 @@ class Allplayall(playoffs.Playoff):
                     matchup = self.matchups[matchup_id]
                     player_x = matchup.p2
                     player_y = matchup.p1
-                results = [r[1] for r in self.results[matchup.id]]
+                results = self.results[matchup.id]
                 js = jigo_scores = 0.5 * sum(r.is_jigo for r in results)
                 x_wins = sum(r.winning_player == player_x for r in results) + js
                 y_wins = sum(r.winning_player == player_y for r in results) + js
