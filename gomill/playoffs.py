@@ -521,7 +521,7 @@ class Matchup_stats(object):
     """Result statistics for games between a pair of players.
 
     Instantiate with
-      results  -- nonempty list of gtp_games.Game_results
+      results  -- list of gtp_games.Game_results
       player_x -- player code
       player_y -- player code
     The game results should all be for games between player_x and player_y.
@@ -545,8 +545,6 @@ class Matchup_stats(object):
         self.player_y = player_y
 
         self.total = len(results)
-        if (self.total == 0):
-            raise ValueError
 
         js = self._jigo_score = 0.5 * sum(r.is_jigo for r in results)
         self.unknown = sum(r.winning_player is None and not r.is_jigo

@@ -216,12 +216,11 @@ class Allplayall(playoffs.Playoff):
                     matchup = self.matchups[matchup_id]
                     player_x = matchup.p2
                     player_y = matchup.p1
-                results = self.results[matchup.id]
-                js = jigo_scores = 0.5 * sum(r.is_jigo for r in results)
-                x_wins = sum(r.winning_player == player_x for r in results) + js
-                y_wins = sum(r.winning_player == player_y for r in results) + js
+                ms = playoffs.Matchup_stats(self.results[matchup.id],
+                                            player_x, player_y)
                 column_values.append(
-                    "%s-%s" % (format_float(x_wins), format_float(y_wins)))
+                    "%s-%s" % (format_float(ms.x_wins),
+                               format_float(ms.y_wins)))
             t.set_column_values(i, column_values)
         print >>out, "\n".join(t.render())
 
