@@ -443,53 +443,10 @@ class Playoff(Competition):
         def p(s):
             print >>out, s
 
-        total = len(results)
-        assert total != 0
-
-        js = jigo_scores = 0.5 * sum(r.is_jigo for r in results)
-        unknown = sum(r.winning_player is None and not r.is_jigo
-                      for r in results)
-
         player_x = matchup.p1
         player_y = matchup.p2
-        x_wins = sum(r.winning_player == player_x for r in results) + js
-        y_wins = sum(r.winning_player == player_y for r in results) + js
-
-        xb_played = sum(r.player_b == player_x for r in results)
-        xw_played = sum(r.player_w == player_x for r in results)
-        yb_played = sum(r.player_b == player_y for r in results)
-        yw_played = sum(r.player_w == player_y for r in results)
-
-        x_forfeits = sum(r.winning_player == player_y and r.is_forfeit
-                         for r in results)
-        y_forfeits = sum(r.winning_player == player_x and r.is_forfeit
-                         for r in results)
-
-        # Trust the results, not the matchup config
-        if xw_played == 0 and yb_played == 0:
-            alternating = False
-            x_colour = 'black'
-            y_colour = 'white'
-        elif xb_played == 0 and yw_played == 0:
-            alternating = False
-            x_colour = 'white'
-            y_colour = 'black'
-        else:
-            alternating = True
-            b_wins = sum(r.winning_colour == 'b' for r in results) + js
-            w_wins = sum(r.winning_colour == 'w' for r in results) + js
-            xb_wins = sum(
-                r.winning_player == player_x and r.winning_colour == 'b'
-                for r in results) + js
-            xw_wins = sum(
-                r.winning_player == player_x and r.winning_colour == 'w'
-                for r in results) + js
-            yb_wins = sum(
-                r.winning_player == player_y and r.winning_colour == 'b'
-                for r in results) + js
-            yw_wins = sum(
-                r.winning_player == player_y and r.winning_colour == 'w'
-                for r in results) + js
+        ms = Matchup_stats(results, player_x, player_y)
+        ms.calculate_colour_breakdown()
 
         x_times = [r.cpu_times[player_x] for r in results]
         x_known_times = [t for t in x_times if t is not None and t != '?']
@@ -514,12 +471,12 @@ class Playoff(Competition):
         ff = format_float
 
         if matchup.number_of_games is None:
-            played_s = "%d" % total
+            played_s = "%d" % ms.total
         else:
-            played_s = "%d/%d" % (total, matchup.number_of_games)
+            played_s = "%d/%d" % (ms.total, matchup.number_of_games)
         p("%s (%s games)" % (matchup.name, played_s))
-        if unknown > 0:
-            p("unknown results: %d %s" % (unknown, pct(unknown, total)))
+        if ms.unknown > 0:
+            p("unknown results: %d %s" % (ms.unknown, pct(unknown, ms.total)))
 
         p(matchup.describe_details())
 
@@ -530,39 +487,41 @@ class Playoff(Competition):
 
         t.add_heading("wins")
         i = t.add_column(align='right')
-        t.set_column_values(i, [ff(x_wins), ff(y_wins)])
+        t.set_column_values(i, [ff(ms.x_wins), ff(ms.y_wins)])
 
         t.add_heading("") # overall pct
         i = t.add_column(align='right')
-        t.set_column_values(i, [pct(x_wins, total), pct(y_wins, total)])
+        t.set_column_values(i, [pct(ms.x_wins, ms.total),
+                                pct(ms.y_wins, ms.total)])
 
-        if alternating:
+        # NB, 'alternating' depends on the results, not the matchup setting
+        if ms.alternating:
             t.columns[i].right_padding = 7
             t.add_heading("black", span=2)
             i = t.add_column(align='left')
-            t.set_column_values(i, [ff(xb_wins), ff(yb_wins), ff(b_wins)])
+            t.set_column_values(i, [ff(ms.xb_wins), ff(ms.yb_wins), ff(ms.b_wins)])
             i = t.add_column(align='right', right_padding=5)
-            t.set_column_values(i, [pct(xb_wins, xb_played),
-                                    pct(yb_wins, yb_played),
-                                    pct(b_wins, total)])
+            t.set_column_values(i, [pct(ms.xb_wins, ms.xb_played),
+                                    pct(ms.yb_wins, ms.yb_played),
+                                    pct(ms.b_wins, ms.total)])
 
             t.add_heading("white", span=2)
             i = t.add_column(align='left')
-            t.set_column_values(i, [ff(xw_wins), ff(yw_wins), ff(w_wins)])
+            t.set_column_values(i, [ff(ms.xw_wins), ff(ms.yw_wins), ff(ms.w_wins)])
             i = t.add_column(align='right', right_padding=3)
-            t.set_column_values(i, [pct(xw_wins, xw_played),
-                                    pct(yw_wins, yw_played),
-                                    pct(w_wins, total)])
+            t.set_column_values(i, [pct(ms.xw_wins, ms.xw_played),
+                                    pct(ms.yw_wins, ms.yw_played),
+                                    pct(ms.w_wins, ms.total)])
         else:
             t.columns[i].right_padding = 3
             t.add_heading("")
             i = t.add_column(align='left')
-            t.set_column_values(i, ["(%s)" % x_colour, "(%s)" % y_colour])
+            t.set_column_values(i, ["(%s)" % ms.x_colour, "(%s)" % ms.y_colour])
 
-        if x_forfeits or y_forfeits:
+        if ms.x_forfeits or ms.y_forfeits:
             t.add_heading("forfeits")
             i = t.add_column(align='right')
-            t.set_column_values(i, [x_forfeits, y_forfeits])
+            t.set_column_values(i, [ms.x_forfeits, ms.y_forfeits])
 
         if x_known_times or y_known_times:
               t.add_heading("avg cpu")
@@ -627,3 +586,103 @@ class Playoff(Competition):
         """
         return self.results[matchup_id][:]
 
+
+class Matchup_stats(object):
+    """Result statistics for games between a pair of players.
+
+    Instantiate with
+      results  -- nonempty list of gtp_games.Game_results
+      player_x -- player code
+      player_y -- player code
+    The game results should all be for games between player_x and player_y.
+
+    Public attributes:
+      player_x    -- player code
+      player_y    -- player code
+      total       -- int (number of games)
+      x_wins      -- float (score)
+      y_wins      -- float (score)
+      x_forfeits  -- int (number of games)
+      y_forfeits  -- int (number of games)
+      unknown     -- int (number of games)
+
+    scores are multiples of 0.5 (as there may be jigos).
+
+    """
+    def __init__(self, results, player_x, player_y):
+        self._results = results
+        self.player_x = player_x
+        self.player_y = player_y
+
+        self.total = len(results)
+        if (self.total == 0):
+            raise ValueError
+
+        js = self._jigo_score = 0.5 * sum(r.is_jigo for r in results)
+        self.unknown = sum(r.winning_player is None and not r.is_jigo
+                           for r in results)
+
+        self.x_wins = sum(r.winning_player == player_x for r in results) + js
+        self.y_wins = sum(r.winning_player == player_y for r in results) + js
+
+        self.x_forfeits = sum(r.winning_player == player_y and r.is_forfeit
+                              for r in results)
+        self.y_forfeits = sum(r.winning_player == player_x and r.is_forfeit
+                              for r in results)
+
+    def calculate_colour_breakdown(self):
+        """Calculate futher statistics, broken down by colour played.
+
+        Sets the following additional attributes:
+
+        xb_played   -- int (number of games)
+        xw_played   -- int (number of games)
+        yb_played   -- int (number of games)
+        yw_played   -- int (number of games)
+        alternating -- bool
+          when alternating is true =>
+            b_wins   -- float (score)
+            w_wins   -- float (score)
+            xb_wins  -- float (score)
+            xw_wins  -- float (score)
+            yb_wins  -- float (score)
+            yw_wins  -- float (score)
+          else =>
+            x_colour -- 'black' or 'white' # FIXME 'b' or 'w'
+            y_colour -- 'black' or 'white' # FIXME 'b' or 'w'
+
+        """
+        results = self._results
+        player_x = self.player_x
+        player_y = self.player_y
+        js = self._jigo_score
+
+        self.xb_played = sum(r.player_b == player_x for r in results)
+        self.xw_played = sum(r.player_w == player_x for r in results)
+        self.yb_played = sum(r.player_b == player_y for r in results)
+        self.yw_played = sum(r.player_w == player_y for r in results)
+
+        if self.xw_played == 0 and self.yb_played == 0:
+            self.alternating = False
+            self.x_colour = 'black'
+            self.y_colour = 'white'
+        elif self.xb_played == 0 and self.yw_played == 0:
+            self.alternating = False
+            self.x_colour = 'white'
+            self.y_colour = 'black'
+        else:
+            self.alternating = True
+            self.b_wins = sum(r.winning_colour == 'b' for r in results) + js
+            self.w_wins = sum(r.winning_colour == 'w' for r in results) + js
+            self.xb_wins = sum(
+                r.winning_player == player_x and r.winning_colour == 'b'
+                for r in results) + js
+            self.xw_wins = sum(
+                r.winning_player == player_x and r.winning_colour == 'w'
+                for r in results) + js
+            self.yb_wins = sum(
+                r.winning_player == player_y and r.winning_colour == 'b'
+                for r in results) + js
+            self.yw_wins = sum(
+                r.winning_player == player_y and r.winning_colour == 'w'
+                for r in results) + js
