@@ -7,7 +7,7 @@ functions.
 
 """
 
-__all__ = ["format_float", "sanitise_utf8"]
+__all__ = ["format_float", "format_percent", "sanitise_utf8"]
 
 def format_float(f):
     """Format a Python float in a friendly way.
@@ -20,6 +20,22 @@ def format_float(f):
         return str(int(f))
     else:
         return str(f)
+
+def format_percent(n, baseline):
+    """Format a ratio as a percentage.
+
+    Returns a string.
+
+    Accepts baseline zero and returns '??'. Formats 0% as '--'.
+
+    """
+    if baseline == 0:
+        if n == 0:
+            return "--"
+        else:
+            return "??"
+    return "%.2f%%" % (100 * n/baseline)
+
 
 def sanitise_utf8(s):
     """Ensure an 8-bit string is utf-8.

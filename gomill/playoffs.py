@@ -11,7 +11,7 @@ from gomill import competition_schedulers
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError, ControlFileError)
 from gomill.settings import *
-from gomill.gomill_utils import format_float
+from gomill.gomill_utils import format_float, format_percent
 
 
 class Matchup(object):
@@ -447,28 +447,7 @@ class Playoff(Competition):
         player_y = matchup.p2
         ms = Matchup_stats(results, player_x, player_y)
         ms.calculate_colour_breakdown()
-
-        x_times = [r.cpu_times[player_x] for r in results]
-        x_known_times = [t for t in x_times if t is not None and t != '?']
-        if x_known_times:
-            x_avg_time_s = "%7.2f" % (sum(x_known_times) / len(x_known_times))
-        else:
-            x_avg_time_s = "   ----"
-        y_times = [r.cpu_times[player_y] for r in results]
-        y_known_times = [t for t in y_times if t is not None and t != '?']
-        if y_known_times:
-            y_avg_time_s = "%7.2f" % (sum(y_known_times) / len(y_known_times))
-        else:
-            y_avg_time_s = "   ----"
-
-        def pct(n, baseline):
-            if baseline == 0:
-                if n == 0:
-                    return "--"
-                else:
-                    return "??"
-            return "%.2f%%" % (100 * n/baseline)
-        ff = format_float
+        ms.calculate_time_stats()
 
         if matchup.number_of_games is None:
             played_s = "%d" % ms.total
@@ -476,59 +455,11 @@ class Playoff(Competition):
             played_s = "%d/%d" % (ms.total, matchup.number_of_games)
         p("%s (%s games)" % (matchup.name, played_s))
         if ms.unknown > 0:
-            p("unknown results: %d %s" % (ms.unknown, pct(unknown, ms.total)))
+            p("unknown results: %d %s" %
+              (ms.unknown, format_percent(unknown, ms.total)))
 
         p(matchup.describe_details())
-
-        t = ascii_tables.Table(row_count=3)
-        t.add_heading("") # player name
-        i = t.add_column(align='left', right_padding=3)
-        t.set_column_values(i, [player_x, player_y])
-
-        t.add_heading("wins")
-        i = t.add_column(align='right')
-        t.set_column_values(i, [ff(ms.x_wins), ff(ms.y_wins)])
-
-        t.add_heading("") # overall pct
-        i = t.add_column(align='right')
-        t.set_column_values(i, [pct(ms.x_wins, ms.total),
-                                pct(ms.y_wins, ms.total)])
-
-        # NB, 'alternating' depends on the results, not the matchup setting
-        if ms.alternating:
-            t.columns[i].right_padding = 7
-            t.add_heading("black", span=2)
-            i = t.add_column(align='left')
-            t.set_column_values(i, [ff(ms.xb_wins), ff(ms.yb_wins), ff(ms.b_wins)])
-            i = t.add_column(align='right', right_padding=5)
-            t.set_column_values(i, [pct(ms.xb_wins, ms.xb_played),
-                                    pct(ms.yb_wins, ms.yb_played),
-                                    pct(ms.b_wins, ms.total)])
-
-            t.add_heading("white", span=2)
-            i = t.add_column(align='left')
-            t.set_column_values(i, [ff(ms.xw_wins), ff(ms.yw_wins), ff(ms.w_wins)])
-            i = t.add_column(align='right', right_padding=3)
-            t.set_column_values(i, [pct(ms.xw_wins, ms.xw_played),
-                                    pct(ms.yw_wins, ms.yw_played),
-                                    pct(ms.w_wins, ms.total)])
-        else:
-            t.columns[i].right_padding = 3
-            t.add_heading("")
-            i = t.add_column(align='left')
-            t.set_column_values(i, ["(%s)" % ms.x_colour, "(%s)" % ms.y_colour])
-
-        if ms.x_forfeits or ms.y_forfeits:
-            t.add_heading("forfeits")
-            i = t.add_column(align='right')
-            t.set_column_values(i, [ms.x_forfeits, ms.y_forfeits])
-
-        if x_known_times or y_known_times:
-              t.add_heading("avg cpu")
-              i = t.add_column(align='right', right_padding=2)
-              t.set_column_values(i, [x_avg_time_s, y_avg_time_s])
-
-        p("\n".join(t.render()))
+        p("\n".join(make_matchup_stats_table(ms).render()))
 
     def write_screen_report(self, out):
         first = True
@@ -686,3 +617,94 @@ class Matchup_stats(object):
             self.yw_wins = sum(
                 r.winning_player == player_y and r.winning_colour == 'w'
                 for r in results) + js
+
+    def calculate_time_stats(self):
+        """Calculate CPU time statistics.
+
+        x_average_time -- float or None
+        y_average_time -- float or None
+
+        """
+        player_x = self.player_x
+        player_y = self.player_y
+        x_times = [r.cpu_times[player_x] for r in self._results]
+        x_known_times = [t for t in x_times if t is not None and t != '?']
+        y_times = [r.cpu_times[player_y] for r in self._results]
+        y_known_times = [t for t in y_times if t is not None and t != '?']
+        if x_known_times:
+            self.x_average_time = sum(x_known_times) / len(x_known_times)
+        else:
+            self.x_average_time = None
+        if y_known_times:
+            self.y_average_time = sum(y_known_times) / len(y_known_times)
+        else:
+            self.y_average_time = None
+
+
+def make_matchup_stats_table(ms):
+    """Produce an ascii table showing matchup statistics.
+
+    ms -- Matchup_stats (with all statistics set)
+
+    returns an ascii_tables.Table
+
+    """
+    ff = format_float
+    pct = format_percent
+
+    t = ascii_tables.Table(row_count=3)
+    t.add_heading("") # player name
+    i = t.add_column(align='left', right_padding=3)
+    t.set_column_values(i, [ms.player_x, ms.player_y])
+
+    t.add_heading("wins")
+    i = t.add_column(align='right')
+    t.set_column_values(i, [ff(ms.x_wins), ff(ms.y_wins)])
+
+    t.add_heading("") # overall pct
+    i = t.add_column(align='right')
+    t.set_column_values(i, [pct(ms.x_wins, ms.total),
+                            pct(ms.y_wins, ms.total)])
+
+    if ms.alternating:
+        t.columns[i].right_padding = 7
+        t.add_heading("black", span=2)
+        i = t.add_column(align='left')
+        t.set_column_values(i, [ff(ms.xb_wins), ff(ms.yb_wins), ff(ms.b_wins)])
+        i = t.add_column(align='right', right_padding=5)
+        t.set_column_values(i, [pct(ms.xb_wins, ms.xb_played),
+                                pct(ms.yb_wins, ms.yb_played),
+                                pct(ms.b_wins, ms.total)])
+
+        t.add_heading("white", span=2)
+        i = t.add_column(align='left')
+        t.set_column_values(i, [ff(ms.xw_wins), ff(ms.yw_wins), ff(ms.w_wins)])
+        i = t.add_column(align='right', right_padding=3)
+        t.set_column_values(i, [pct(ms.xw_wins, ms.xw_played),
+                                pct(ms.yw_wins, ms.yw_played),
+                                pct(ms.w_wins, ms.total)])
+    else:
+        t.columns[i].right_padding = 3
+        t.add_heading("")
+        i = t.add_column(align='left')
+        t.set_column_values(i, ["(%s)" % ms.x_colour, "(%s)" % ms.y_colour])
+
+    if ms.x_forfeits or ms.y_forfeits:
+        t.add_heading("forfeits")
+        i = t.add_column(align='right')
+        t.set_column_values(i, [ms.x_forfeits, ms.y_forfeits])
+
+    if ms.x_average_time or ms.y_average_time:
+        if ms.x_average_time is not None:
+            x_avg_time_s = "%7.2f" % ms.x_average_time
+        else:
+            x_avg_time_s = "   ----"
+        if ms.y_average_time is not None:
+            y_avg_time_s = "%7.2f" % ms.y_average_time
+        else:
+            y_avg_time_s = "   ----"
+        t.add_heading("avg cpu")
+        i = t.add_column(align='right', right_padding=2)
+        t.set_column_values(i, [x_avg_time_s, y_avg_time_s])
+
+    return t
