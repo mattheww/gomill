@@ -7,6 +7,8 @@ functions.
 
 """
 
+from __future__ import division
+
 __all__ = ["format_float", "format_percent", "sanitise_utf8"]
 
 def format_float(f):
@@ -22,11 +24,11 @@ def format_float(f):
         return str(f)
 
 def format_percent(n, baseline):
-    """Format a ratio as a percentage.
+    """Format a ratio as a percentage (showing two decimal places).
 
     Returns a string.
 
-    Accepts baseline zero and returns '??'. Formats 0% as '--'.
+    Accepts baseline zero and returns '??' or '--'.
 
     """
     if baseline == 0:
