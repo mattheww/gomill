@@ -7,7 +7,7 @@ functions.
 
 """
 
-__all__ = ["opponent_of", "format_vertex", "format_vertex_list",
+__all__ = ["opponent_of", "colour_name", "format_vertex", "format_vertex_list",
            "coords_from_vertex"]
 
 _opponents = {"b":"w", "w":"b"}
@@ -23,6 +23,15 @@ def opponent_of(colour):
         return _opponents[colour]
     except KeyError:
         raise ValueError
+
+def colour_name(colour):
+    """Return the (lower-case) full name of a colour.
+
+    colour -- 'b' or 'w'
+
+    """
+    return {'b': 'black', 'w': 'white'}[colour]
+
 
 column_letters = "ABCDEFGHJKLMNOPQRSTUVWXZ"
 

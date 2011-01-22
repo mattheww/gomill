@@ -11,6 +11,7 @@ from gomill import competition_schedulers
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError, ControlFileError)
 from gomill.settings import *
+from gomill.gomill_common import colour_name
 from gomill.gomill_utils import format_float, format_percent
 
 
@@ -428,7 +429,7 @@ class Playoff(Competition):
 
 
     def write_matchup_report(self, out, matchup, results):
-        """Write the status table of the specified matchup to 'out'
+        """Write the summary block for the specified matchup to 'out'
 
         results -- nonempty list of Game_results
 
@@ -443,9 +444,7 @@ class Playoff(Competition):
         def p(s):
             print >>out, s
 
-        player_x = matchup.p1
-        player_y = matchup.p2
-        ms = Matchup_stats(results, player_x, player_y)
+        ms = Matchup_stats(results, matchup.p1, matchup.p2)
         ms.calculate_colour_breakdown()
         ms.calculate_time_stats()
 
@@ -579,8 +578,8 @@ class Matchup_stats(object):
             yb_wins  -- float (score)
             yw_wins  -- float (score)
           else =>
-            x_colour -- 'black' or 'white' # FIXME 'b' or 'w'
-            y_colour -- 'black' or 'white' # FIXME 'b' or 'w'
+            x_colour -- 'b' or 'w'
+            y_colour -- 'b' or 'w'
 
         """
         results = self._results
@@ -595,12 +594,12 @@ class Matchup_stats(object):
 
         if self.xw_played == 0 and self.yb_played == 0:
             self.alternating = False
-            self.x_colour = 'black'
-            self.y_colour = 'white'
+            self.x_colour = 'b'
+            self.y_colour = 'w'
         elif self.xb_played == 0 and self.yw_played == 0:
             self.alternating = False
-            self.x_colour = 'white'
-            self.y_colour = 'black'
+            self.x_colour = 'w'
+            self.y_colour = 'b'
         else:
             self.alternating = True
             self.b_wins = sum(r.winning_colour == 'b' for r in results) + js
@@ -687,7 +686,8 @@ def make_matchup_stats_table(ms):
         t.columns[i].right_padding = 3
         t.add_heading("")
         i = t.add_column(align='left')
-        t.set_column_values(i, ["(%s)" % ms.x_colour, "(%s)" % ms.y_colour])
+        t.set_column_values(i, ["(%s)" % colour_name(ms.x_colour),
+                                "(%s)" % colour_name(ms.y_colour)])
 
     if ms.x_forfeits or ms.y_forfeits:
         t.add_heading("forfeits")
