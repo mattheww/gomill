@@ -14,33 +14,13 @@ from gomill.settings import *
 from gomill.gomill_utils import format_percent
 
 
-class Matchup(object):
+class Matchup(tournament_results.Matchup_description):
     """Internal description of a matchup from the configuration file.
 
-    Public attributes:
-      id                -- matchup id (string)
-      p1                -- player code
-      p2                -- player code
-      name              -- shortish string to show in reports
+    Additional attributes:
       event_description -- string to show as sgf event
 
-    All Playoff matchup_settings are also available as attributes.
-
-    If alternating is False, p1 plays black and p2 plays white; otherwise they
-    alternate.
-
-    p1 and p2 are always different.
-
     """
-    def describe_details(self):
-        # Not describing 'alternating', because it's obvious from the results
-        s = "board size: %s   " % self.board_size
-        if self.handicap is not None:
-            s += "handicap: %s (%s)   " % (
-                self.handicap, self.handicap_style)
-        s += "komi: %s" % self.komi
-        return s
-
     def make_game_id(self, game_number):
         return self._game_id_template % (self.id, game_number)
 

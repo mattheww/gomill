@@ -6,6 +6,43 @@ from gomill import ascii_tables
 from gomill.gomill_utils import format_float, format_percent
 from gomill.gomill_common import colour_name
 
+class Matchup_description(object):
+    """Description of a matchup (pairing of two players).
+
+    Public attributes:
+      id              -- matchup id (very short string)
+      p1              -- player code (identifier-like string)
+      p2              -- player code (identifier-like string)
+      name            -- string (eg 'xxx v yyy')
+      board_size      -- int
+      komi            -- float
+      alternating     -- bool
+      handicap        -- int or None
+      handicap_style  -- 'fixed' or 'free'
+      move_limit      -- int
+      scorer          -- 'internal' or 'players'
+      number_of_games -- int or None
+
+    If alternating is False, p1 plays black and p2 plays white; otherwise they
+    alternate.
+
+    p1 and p2 are always different.
+
+    """
+    def describe_details(self):
+        """Return a text description of game settings.
+
+        This covers the most important game settings which can't be observed
+        in the results table (board size, handicap, and komi).
+
+        """
+        s = "board size: %s   " % self.board_size
+        if self.handicap is not None:
+            s += "handicap: %s (%s)   " % (
+                self.handicap, self.handicap_style)
+        s += "komi: %s" % self.komi
+        return s
+
 
 class Tournament_results(object):
     """Provide access to results of a single tournament.
@@ -25,18 +62,9 @@ class Tournament_results(object):
         return [m.id for m in self.matchup_list]
 
     def get_matchup(self, matchup_id):
-        """Return the Matchup with the specified id.
+        """Describe the matchup with the specified id.
 
-        Returns an object with public attributes
-          id                -- matchup id (string)
-          p1                -- player code
-          p2                -- player code
-          name              -- shortish string to show in reports
-          event_description -- string to show as sgf event
-        And public methods:
-          describe_details() -- return a string describing the matchup
-
-        (treat the returned object as read-only)
+        Returns a Matchup_description (which should be treated as read-only).
 
         """
         return self.matchups[matchup_id]
