@@ -1,5 +1,7 @@
 """Tests for allplayalls.py"""
 
+from __future__ import with_statement
+
 from textwrap import dedent
 import cPickle as pickle
 
