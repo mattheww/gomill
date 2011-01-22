@@ -7,11 +7,11 @@ from collections import defaultdict
 from gomill import game_jobs
 from gomill import competitions
 from gomill import competition_schedulers
+from gomill import tournament_results
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError, ControlFileError)
 from gomill.settings import *
 from gomill.gomill_utils import format_percent
-from gomill.tournament_results import Matchup_stats, make_matchup_stats_table
 
 
 class Matchup(object):
@@ -443,7 +443,7 @@ class Playoff(Competition):
         def p(s):
             print >>out, s
 
-        ms = Matchup_stats(results, matchup.p1, matchup.p2)
+        ms = tournament_results.Matchup_stats(results, matchup.p1, matchup.p2)
         ms.calculate_colour_breakdown()
         ms.calculate_time_stats()
 
@@ -457,7 +457,7 @@ class Playoff(Competition):
               (ms.unknown, format_percent(ms.unknown, ms.total)))
 
         p(matchup.describe_details())
-        p("\n".join(make_matchup_stats_table(ms).render()))
+        p("\n".join(tournament_results.make_matchup_stats_table(ms).render()))
 
     def write_screen_report(self, out):
         first = True
@@ -493,26 +493,15 @@ class Playoff(Competition):
 
     write_full_report = write_short_report
 
-    def get_matchup_ids(self):
-        """Return a list of all matchup ids, in definition order."""
-        return [m.id for m in self.matchup_list]
+    def get_tournament_results(self):
+        """Return a Tournament_results object for this tournament.
 
-    def get_matchups(self):
-        """Return a map matchup id -> Matchup."""
-        return self.matchups.copy()
+        The competition status must be set before you call this.
 
-    def get_matchup(self, matchup_id):
-        """Return the Matchup with the specified id."""
-        return self.matchups[matchup_id]
-
-    def get_matchup_results(self, matchup_id):
-        """Return the results for the specified matchup.
-
-        Status must be loaded to use this.
-
-        Returns a list of Game_results
+        (The returned object is 'live', in that it will see new results as they
+        come in, but don't rely in this behaviour.)
 
         """
-        return self.results[matchup_id][:]
-
+        return tournament_results.Tournament_results(
+            self.matchup_list, self.results)
 

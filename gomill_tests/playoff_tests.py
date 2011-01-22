@@ -91,12 +91,14 @@ def test_basic_config(tc):
     comp.initialise_from_control_file(config)
     tc.assertEqual(comp.description, "default\nconfig")
 
-    m0 = comp.get_matchup('0')
-    m1 = comp.get_matchup('m1')
-    m2 = comp.get_matchup('2')
+    comp.set_clean_status()
+    tr = comp.get_tournament_results()
+    m0 = tr.get_matchup('0')
+    m1 = tr.get_matchup('m1')
+    m2 = tr.get_matchup('2')
 
-    tc.assertListEqual(comp.get_matchup_ids(), ['0', 'm1', '2'])
-    tc.assertDictEqual(comp.get_matchups(), {'0' : m0, 'm1' : m1, '2' : m2})
+    tc.assertListEqual(tr.get_matchup_ids(), ['0', 'm1', '2'])
+    tc.assertDictEqual(tr.get_matchups(), {'0' : m0, 'm1' : m1, '2' : m2})
 
     tc.assertEqual(m0.p1, 't1')
     tc.assertEqual(m0.p2, 't2')
@@ -237,7 +239,8 @@ def test_play(tc):
     fx.check_screen_report(expected_report)
     fx.check_short_report(expected_report, expected_players)
 
-    tc.assertListEqual(fx.comp.get_matchup_results('0'), [result1])
+    tc.assertListEqual(
+        fx.comp.get_tournament_results().get_matchup_results('0'), [result1])
 
 def test_play_many(tc):
     fx = Playoff_fixture(tc)
@@ -260,7 +263,8 @@ def test_play_many(tc):
                            2 33.33%     4 66.67%
     """))
 
-    tc.assertEqual(len(fx.comp.get_matchup_results('0')), 6)
+    tc.assertEqual(
+        len(fx.comp.get_tournament_results().get_matchup_results('0')), 6)
 
     #tc.assertEqual(fx.comp.scheduler.allocators['0'].issued, 11)
     #tc.assertEqual(fx.comp.scheduler.allocators['0'].fixed, 6)
@@ -274,7 +278,8 @@ def test_play_many(tc):
     jobs2 = [comp2.get_game() for _ in range(4)]
     tc.assertListEqual([job.game_id for job in jobs2],
                        ['0_1', '0_5', '0_8', '0_9'])
-    tc.assertEqual(len(comp2.get_matchup_results('0')), 6)
+    tc.assertEqual(
+        len(comp2.get_tournament_results().get_matchup_results('0')), 6)
 
 def test_jigo_reporting(tc):
     fx = Playoff_fixture(tc)

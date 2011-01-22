@@ -3,6 +3,7 @@
 from gomill import ascii_tables
 from gomill import competitions
 from gomill import playoffs
+from gomill import tournament_results
 from gomill.competitions import (
     Competition, CompetitionError, ControlFileError)
 from gomill.settings import *
@@ -216,8 +217,9 @@ class Allplayall(playoffs.Playoff):
                     matchup = self.matchups[matchup_id]
                     player_x = matchup.p2
                     player_y = matchup.p1
-                ms = playoffs.Matchup_stats(self.results[matchup.id],
-                                            player_x, player_y)
+                ms = tournament_results.Matchup_stats(
+                    self.results[matchup.id],
+                    player_x, player_y)
                 column_values.append(
                     "%s-%s" % (format_float(ms.x_wins),
                                format_float(ms.y_wins)))

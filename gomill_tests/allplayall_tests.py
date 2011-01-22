@@ -79,9 +79,10 @@ def test_default_config(tc):
     comp = allplayalls.Allplayall('test')
     config = default_config()
     comp.initialise_from_control_file(config)
-    tc.assertListEqual(comp.get_matchup_ids(),
-                       ['AvB', 'AvC', 'BvC'])
-    mBvC = comp.get_matchup('BvC')
+    comp.set_clean_status()
+    tr = comp.get_tournament_results()
+    tc.assertListEqual(tr.get_matchup_ids(), ['AvB', 'AvC', 'BvC'])
+    mBvC = tr.get_matchup('BvC')
     tc.assertEqual(mBvC.p1, 't2')
     tc.assertEqual(mBvC.p2, 't3')
     tc.assertEqual(mBvC.board_size, 13)
@@ -104,7 +105,8 @@ def test_basic_config(tc):
     config['rounds'] = 20
     comp.initialise_from_control_file(config)
     tc.assertEqual(comp.description, "default\nconfig")
-    mBvC = comp.get_matchup('BvC')
+    comp.set_clean_status()
+    mBvC = comp.get_tournament_results().get_matchup('BvC')
     tc.assertEqual(mBvC.p1, 't2')
     tc.assertEqual(mBvC.p2, 't3')
     tc.assertEqual(mBvC.board_size, 9)
@@ -212,7 +214,7 @@ def test_play(tc):
     fx.check_screen_report(expected_grid)
     fx.check_short_report(expected_grid, expected_matchups, expected_players)
 
-    avb_results = fx.comp.get_matchup_results('AvB')
+    avb_results = fx.comp.get_tournament_results().get_matchup_results('AvB')
     tc.assertEqual(avb_results, [response1.game_result])
 
 def test_play_many(tc):
@@ -234,13 +236,15 @@ def test_play_many(tc):
     C t3 9-10 9-10
     """))
 
-    tc.assertEqual(len(fx.comp.get_matchup_results('AvB')), 19)
+    tc.assertEqual(
+        len(fx.comp.get_tournament_results().get_matchup_results('AvB')), 19)
 
     comp2 = competition_test_support.check_round_trip(tc, fx.comp, config)
     jobs2 = [comp2.get_game() for _ in range(4)]
     tc.assertListEqual([job.game_id for job in jobs2],
                        ['AvB_19', 'AvC_19', 'BvC_19', 'AvB_20'])
-    tc.assertEqual(len(comp2.get_matchup_results('AvB')), 19)
+    tc.assertEqual(
+        len(comp2.get_tournament_results().get_matchup_results('AvB')), 19)
 
 def test_competitor_change(tc):
     fx = Allplayall_fixture(tc)

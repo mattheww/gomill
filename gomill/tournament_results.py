@@ -1,10 +1,63 @@
-"""Reporting tournament results."""
+"""Retrieving and reporting on tournament results."""
 
 from __future__ import division
 
 from gomill import ascii_tables
 from gomill.gomill_utils import format_float, format_percent
 from gomill.gomill_common import colour_name
+
+
+class Tournament_results(object):
+    """Provide access to results of a single tournament.
+
+    The tournament results are catalogued in terms of 'matchups', with each
+    matchup corresponding to a pair of players. Each matchup has an id, which is
+    a short string.
+
+    """
+    def __init__(self, matchup_list, results):
+        self.matchup_list = matchup_list
+        self.results = results
+        self.matchups = dict((m.id, m) for m in matchup_list)
+
+    def get_matchup_ids(self):
+        """Return a list of all matchup ids, in definition order."""
+        return [m.id for m in self.matchup_list]
+
+    def get_matchup(self, matchup_id):
+        """Return the Matchup with the specified id.
+
+        Returns an object with public attributes
+          id                -- matchup id (string)
+          p1                -- player code
+          p2                -- player code
+          name              -- shortish string to show in reports
+          event_description -- string to show as sgf event
+        And public methods:
+          describe_details() -- return a string describing the matchup
+
+        (treat the returned object as read-only)
+
+        """
+        return self.matchups[matchup_id]
+
+    def get_matchups(self):
+        """Return a map matchup id -> Matchup.
+
+        See get_matchups() for a description of Matchup objects.
+
+        """
+        return self.matchups.copy()
+
+    def get_matchup_results(self, matchup_id):
+        """Return the results for the specified matchup.
+
+        Returns a list of gtp_games.Game_results
+
+        The Game_results all have game_id set.
+
+        """
+        return self.results[matchup_id][:]
 
 
 class Matchup_stats(object):

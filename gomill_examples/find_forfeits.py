@@ -1,7 +1,6 @@
 """Find forfeited games in tournament results.
 
-This demonstrates retrieving and processing results from a playoff or
-all-play-all tournament.
+This demonstrates retrieving and processing results from a tournament.
 
 """
 
@@ -21,11 +20,11 @@ def find_forfeits(ringmaster):
     if not ringmaster.status_file_exists():
         raise RingmasterError("no status file")
     ringmaster.load_status()
-    playoff = ringmaster.competition
-    matchup_ids = playoff.get_matchup_ids()
+    tournament_results = ringmaster.competition.get_tournament_results()
+    matchup_ids = tournament_results.get_matchup_ids()
     for matchup_id in matchup_ids:
-        matchup = playoff.get_matchup(matchup_id)
-        results = playoff.get_matchup_results(matchup_id)
+        matchup = tournament_results.get_matchup(matchup_id)
+        results = tournament_results.get_matchup_results(matchup_id)
         for result in results:
             if result.is_forfeit:
                 filename = ringmaster.get_sgf_filename(result.game_id)
