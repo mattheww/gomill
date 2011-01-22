@@ -455,7 +455,7 @@ class Playoff(Competition):
         p("%s (%s games)" % (matchup.name, played_s))
         if ms.unknown > 0:
             p("unknown results: %d %s" %
-              (ms.unknown, format_percent(unknown, ms.total)))
+              (ms.unknown, format_percent(ms.unknown, ms.total)))
 
         p(matchup.describe_details())
         p("\n".join(make_matchup_stats_table(ms).render()))
