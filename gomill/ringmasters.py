@@ -404,6 +404,8 @@ class Ringmaster(object):
             competition_status = status['comp']
         except pickle.UnpicklingError:
             raise RingmasterError("corrupt status file")
+        except EnvironmentError, e:
+            raise RingmasterError("error loading status file:\n%s" % e)
         except KeyError, e:
             raise RingmasterError("incompatible status file: missing %s" % e)
         except Exception, e:
