@@ -15,12 +15,10 @@ def show_result(matchup, result, filename):
         matchup.name, result.losing_player, filename)
 
 def find_forfeits(ringmaster):
-    if ringmaster.competition_type not in ('playoff', 'allplayall'):
-        raise RingmasterError("not a tournament")
     if not ringmaster.status_file_exists():
         raise RingmasterError("no status file")
     ringmaster.load_status()
-    tournament_results = ringmaster.competition.get_tournament_results()
+    tournament_results = ringmaster.get_tournament_results()
     matchup_ids = tournament_results.get_matchup_ids()
     for matchup_id in matchup_ids:
         matchup = tournament_results.get_matchup(matchup_id)
