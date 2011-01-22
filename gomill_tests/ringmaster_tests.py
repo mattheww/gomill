@@ -100,6 +100,38 @@ matchups = [
 
 """
 
+mcts_ctl = """
+
+competition_type = 'mc_tuner'
+
+description = 'gomill_tests mc_tuner.'
+
+players = {
+    'p1'  : Player('test'),
+    }
+
+record_games = False
+board_size = 9
+komi = 7.5
+candidate_colour = 'w'
+opponent = 'p1'
+
+exploration_coefficient = 0.45
+initial_visits = 10
+initial_wins = 5
+
+parameters = [
+    Parameter('foo',
+              scale = LOG(0.01, 5.0),
+              split = 8,
+              format = 'I: %4.2f'),
+    ]
+
+def make_candidate(foo):
+    return Player('candidate')
+
+"""
+
 def test_get_job(tc):
     fx = Ringmaster_fixture(tc, base_ctl, [
         "players['p2'] = Player('test sing song')",
@@ -175,11 +207,25 @@ def test_stderr_settings_nolog(tc):
     tc.assertEqual(job.player_w.stderr_pathname, os.devnull)
 
 
+def test_get_tournament_results(tc):
+    fx = Ringmaster_fixture(tc, base_ctl)
+    tc.assertRaisesRegexp(RingmasterError, "^status is not loaded$",
+                          fx.ringmaster.get_tournament_results)
+    fx.initialise_clean()
+    tr = fx.ringmaster.get_tournament_results()
+    tc.assertEqual(tr.get_matchup_ids(), ['0'])
+
+    fx2 = Ringmaster_fixture(tc, mcts_ctl)
+    fx2.initialise_clean()
+    tc.assertRaisesRegexp(RingmasterError, "^competition is not a tournament$",
+                          fx2.ringmaster.get_tournament_results)
+
 def test_process_response(tc):
     fx = Ringmaster_fixture(tc, base_ctl)
     job = fx.get_job()
     tc.assertEqual(fx.ringmaster.games_in_progress, {'0_000': job})
-    tc.assertEqual(fx.ringmaster.competition.get_tournament_results().get_matchup_results('0'), [])
+    tc.assertEqual(
+        fx.ringmaster.get_tournament_results().get_matchup_results('0'), [])
     response = fake_response(job, 'w')
     response.warnings = ['warningtest']
     response.log_entries = ['logtest']
@@ -191,8 +237,9 @@ def test_process_response(tc):
     tc.assertListEqual(
         fx.messages('results'),
         ["game 0_000: p2 beat p1 W+1.5"])
-    tc.assertEqual(fx.ringmaster.competition.get_tournament_results().get_matchup_results('0'),
-                   [response.game_result])
+    tc.assertEqual(
+        fx.ringmaster.get_tournament_results().get_matchup_results('0'),
+        [response.game_result])
     tc.assertEqual(fx.get_log(),
                    "starting game 0_000: p1 (b) vs p2 (w)\n"
                    "response from game 0_000\n"

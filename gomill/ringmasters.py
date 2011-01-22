@@ -106,6 +106,7 @@ class Ringmaster(object):
         self.void_dir_pathname = stem + ".void"
         self.gtplog_dir_pathname = stem + ".gtplogs"
 
+        self.status_is_loaded = False
         try:
             self._load_control_file()
         except ControlFileError, e:
@@ -418,6 +419,7 @@ class Ringmaster(object):
         except Exception, e:
             raise RingmasterError("error loading competition state:\n%s" %
                                   compact_tracebacks.format_traceback(skip=1))
+        self.status_is_loaded = True
 
     def set_clean_status(self):
         """Reset persistent state to the initial values."""
@@ -428,6 +430,7 @@ class Ringmaster(object):
             self.competition.set_clean_status()
         except CompetitionError, e:
             raise RingmasterError(e)
+        self.status_is_loaded = True
 
     def status_file_exists(self):
         """Check whether the persistent state file exists."""
@@ -455,6 +458,22 @@ class Ringmaster(object):
             f.close()
         except EnvironmentError, e:
             raise RingmasterError("error writing command file:\n%s" % e)
+
+    def get_tournament_results(self):
+        """Provide access to the tournament's results.
+
+        Returns a Tournament_results object.
+
+        Raises RingmasterError if the competition state isn't loaded, or if the
+        competition isn't a tournament.
+
+        """
+        if not self.status_is_loaded:
+            raise RingmasterError("status is not loaded")
+        try:
+            return self.competition.get_tournament_results()
+        except AttributeError:
+            raise RingmasterError("competition is not a tournament")
 
     def report(self):
         """Write the full competition report to the report file."""
