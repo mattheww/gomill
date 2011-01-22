@@ -15,8 +15,6 @@ def show_result(matchup, result, filename):
         matchup.name, result.losing_player, filename)
 
 def find_forfeits(ringmaster):
-    if not ringmaster.status_file_exists():
-        raise RingmasterError("no status file")
     ringmaster.load_status()
     tournament_results = ringmaster.get_tournament_results()
     matchup_ids = tournament_results.get_matchup_ids()
