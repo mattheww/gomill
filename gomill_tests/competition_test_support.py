@@ -10,16 +10,25 @@ def fake_response(job, winner):
     """Produce a response for the specified job.
 
     job      -- Game_job
-    winner   -- winning colour (None for a jigo)
+    winner   -- winning colour (None for a jigo, 'unknown' for unknown result)
 
     The winning margin (if not a jigo) is 1.5.
 
     """
     players = {'b' : job.player_b.code, 'w' : job.player_w.code}
+    if winner == 'unknown':
+        winner = None
+        is_unknown = True
+    else:
+        is_unknown = False
     result = gtp_games.Game_result(players, winner)
     result.game_id = job.game_id
     if winner is None:
-        result.set_jigo()
+        if is_unknown:
+            result.sgf_result = "Void"
+            result.detail = "fake unknown result"
+        else:
+            result.set_jigo()
     else:
         result.sgf_result += "1.5"
     response = game_jobs.Game_job_result()
