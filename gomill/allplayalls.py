@@ -11,15 +11,6 @@ from gomill.settings import *
 from gomill.gomill_utils import format_float
 
 
-matchup_settings = [
-    Setting('board_size', competitions.interpret_board_size),
-    Setting('komi', interpret_float),
-    Setting('move_limit', interpret_positive_int, default=1000),
-    Setting('scorer', interpret_enum('internal', 'players'),
-            default='players'),
-    Setting('rounds', allow_none(interpret_int), default=None),
-    ]
-
 class Competitor_config(Quiet_config):
     """Competitor description for use in control files."""
     # positional or keyword
@@ -96,12 +87,18 @@ class Allplayall(tournaments.Tournament):
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
 
+        matchup_settings = [
+            setting for setting in competitions.game_settings
+            if setting.name not in ('handicap', 'handicap_style')
+            ] + [
+            Setting('rounds', allow_none(interpret_int), default=None),
+            ]
         try:
             matchup_parameters = load_settings(matchup_settings, config)
         except ValueError, e:
             raise ControlFileError(str(e))
-        matchup_parameters['number_of_games'] = matchup_parameters.pop('rounds')
         matchup_parameters['alternating'] = True
+        matchup_parameters['number_of_games'] = matchup_parameters.pop('rounds')
 
         try:
             specials = load_settings(self.special_settings, config)
