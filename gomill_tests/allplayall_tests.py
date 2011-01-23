@@ -243,8 +243,12 @@ def test_play_many(tc):
     jobs2 = [comp2.get_game() for _ in range(4)]
     tc.assertListEqual([job.game_id for job in jobs2],
                        ['AvB_19', 'AvC_19', 'BvC_19', 'AvB_20'])
-    tc.assertEqual(
-        len(comp2.get_tournament_results().get_matchup_results('AvB')), 19)
+    tr = comp2.get_tournament_results()
+    tc.assertEqual(len(tr.get_matchup_results('AvB')), 19)
+    ms = tr.get_matchup_stats('AvB')
+    tc.assertEqual(ms.total, 19)
+    tc.assertEqual(ms.x_wins, 10)
+    tc.assertIs(ms.alternating, True)
 
 def test_competitor_change(tc):
     fx = Allplayall_fixture(tc)

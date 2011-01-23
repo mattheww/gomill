@@ -87,6 +87,18 @@ class Tournament_results(object):
         """
         return self.results[matchup_id][:]
 
+    def get_matchup_stats(self, matchup_id):
+        """Return statistics for a specified mathcup.
+
+        Returns a Matchup_stats object.
+
+        """
+        matchup = self.matchups[matchup_id]
+        ms = Matchup_stats(self.results[matchup_id], matchup.p1, matchup.p2)
+        ms.calculate_colour_breakdown()
+        ms.calculate_time_stats()
+        return ms
+
 
 class Matchup_stats(object):
     """Result statistics for games between a pair of players.

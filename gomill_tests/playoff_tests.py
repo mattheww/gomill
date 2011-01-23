@@ -278,8 +278,12 @@ def test_play_many(tc):
     jobs2 = [comp2.get_game() for _ in range(4)]
     tc.assertListEqual([job.game_id for job in jobs2],
                        ['0_1', '0_5', '0_8', '0_9'])
-    tc.assertEqual(
-        len(comp2.get_tournament_results().get_matchup_results('0')), 6)
+    tr = comp2.get_tournament_results()
+    tc.assertEqual(len(tr.get_matchup_results('0')), 6)
+    ms = tr.get_matchup_stats('0')
+    tc.assertEqual(ms.total, 6)
+    tc.assertEqual(ms.x_wins, 2)
+    tc.assertEqual(ms.b_wins, 2)
 
 def test_jigo_reporting(tc):
     fx = Playoff_fixture(tc)
