@@ -142,7 +142,7 @@ class Allplayall(tournaments.Tournament):
 
 
     # Additional state attributes (*: in persistent state):
-    #  *competitors           -- list of player codes
+    #  *competitors           -- list of Competitor_specs
     # Note that we don't permit ghost matchups
 
     # Can bump this to prevent people loading incompatible .status files.
@@ -166,19 +166,11 @@ class Allplayall(tournaments.Tournament):
 
 
     def get_player_checks(self):
-        # FIXME: specialise for allplayalls
-        # For board size and komi, we check the values from the first matchup
-        # the player appears in.
-        used_players = {}
-        for m in reversed(self.matchup_list):
-            if m.number_of_games == 0:
-                continue
-            used_players[m.p1] = m
-            used_players[m.p2] = m
         result = []
-        for code, matchup in sorted(used_players.iteritems()):
+        matchup = self.matchup_list[0]
+        for competitor in self.competitors:
             check = game_jobs.Player_check()
-            check.player = self.players[code]
+            check.player = self.players[competitor.player]
             check.board_size = matchup.board_size
             check.komi = matchup.komi
             result.append(check)
