@@ -76,10 +76,10 @@ class Playoff(tournaments.Tournament):
                 player2 += "#2"
                 if player2 not in self.players:
                     self.players[player2] = self.players[player1].copy(player2)
-            validated = {}
+            interpreted = {}
             for setting in tournaments.matchup_settings:
                 if setting.name in arguments:
-                    validated[setting.name] = \
+                    interpreted[setting.name] = \
                         setting.interpret(arguments[setting.name])
             matchup_name = arguments.get('name')
             if matchup_name is not None:
@@ -89,7 +89,7 @@ class Playoff(tournaments.Tournament):
                     raise ValueError("'name': %s" % e)
             return self.make_matchup(
                 matchup_id, player1, player2,
-                validated, matchup_defaults, matchup_name)
+                interpreted, matchup_defaults, matchup_name)
         except StandardError, e:
             raise ControlFileError("matchup %s: %s" % (matchup_id, e))
 
