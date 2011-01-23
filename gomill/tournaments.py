@@ -82,6 +82,8 @@ class Ghost_matchup(object):
 
     This is used if the matchup appears in results.
 
+    It has to be a good enough imitation to keep write_matchup_summary() happy.
+
     """
     def __init__(self, matchup_id, p1, p2):
         self.id = matchup_id
@@ -266,24 +268,10 @@ class Tournament(Competition):
         # that isn't available any other way, but we look to the results where
         # we can.
 
-        def p(s):
-            print >>out, s
-
         ms = tournament_results.Matchup_stats(results, matchup.p1, matchup.p2)
         ms.calculate_colour_breakdown()
         ms.calculate_time_stats()
-
-        if matchup.number_of_games is None:
-            played_s = "%d" % ms.total
-        else:
-            played_s = "%d/%d" % (ms.total, matchup.number_of_games)
-        p("%s (%s games)" % (matchup.name, played_s))
-        if ms.unknown > 0:
-            p("unknown results: %d %s" %
-              (ms.unknown, format_percent(ms.unknown, ms.total)))
-
-        p(matchup.describe_details())
-        p("\n".join(tournament_results.make_matchup_stats_table(ms).render()))
+        tournament_results.write_matchup_summary(out, matchup, ms)
 
     def write_matchup_reports(self, out):
         """Write summary blocks for all live matchups to 'out'.

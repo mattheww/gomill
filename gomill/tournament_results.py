@@ -289,3 +289,26 @@ def make_matchup_stats_table(ms):
         t.set_column_values(i, [x_avg_time_s, y_avg_time_s])
 
     return t
+
+def write_matchup_summary(out, matchup, ms):
+    """Write a summary block for the specified matchup to 'out'.
+
+    matchup -- Matchup_description
+    ms      -- Matchup_stats (with all statistics set)
+
+    """
+    def p(s):
+        print >>out, s
+
+    if matchup.number_of_games is None:
+        played_s = "%d" % ms.total
+    else:
+        played_s = "%d/%d" % (ms.total, matchup.number_of_games)
+    p("%s (%s games)" % (matchup.name, played_s))
+    if ms.unknown > 0:
+        p("unknown results: %d %s" %
+          (ms.unknown, format_percent(ms.unknown, ms.total)))
+
+    p(matchup.describe_details())
+    p("\n".join(make_matchup_stats_table(ms).render()))
+
