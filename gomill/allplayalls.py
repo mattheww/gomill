@@ -101,8 +101,6 @@ class Allplayall(tournaments.Tournament):
         except ValueError, e:
             raise ControlFileError(str(e))
         matchup_defaults['number_of_games'] = matchup_defaults.pop('rounds')
-        matchup_defaults['handicap'] = None
-        matchup_defaults['handicap_style'] = 'fixed'
         matchup_defaults['alternating'] = True
 
         try:

@@ -265,6 +265,11 @@ class Setting(object):
         self.defaultmaker = defaultmaker
 
     def get_default(self):
+        """Return the default value for this setting.
+
+        Raises ValueError if there isn't one.
+
+        """
         if self.default is not _nodefault:
             return self.default
         if self.defaultmaker is not None:

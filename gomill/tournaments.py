@@ -94,7 +94,11 @@ class Tournament(Competition):
                 try:
                     v = matchup_defaults[setting.name]
                 except KeyError:
-                    raise ControlFileError("'%s' not specified" % setting.name)
+                    try:
+                        v = setting.get_default()
+                    except ValueError:
+                        raise ControlFileError("'%s' not specified" %
+                                               setting.name)
             setattr(matchup, setting.name, v)
 
         competitions.validate_handicap(
