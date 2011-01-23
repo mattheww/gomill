@@ -259,6 +259,5 @@ class Allplayall(tournaments.Tournament):
         p('')
         self.write_matchup_reports(out)
         p('')
-        for code, description in sorted(self.engine_descriptions.items()):
-            p("player %s: %s" % (code, description))
+        self.write_player_descriptions(out)
         p('')

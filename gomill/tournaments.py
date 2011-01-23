@@ -333,6 +333,11 @@ class Tournament(Competition):
             results = self.results[matchup_id]
             self.write_matchup_report(out, matchup, results)
 
+    def write_player_descriptions(self, out):
+        """Write descriptions of all players to 'out'."""
+        for code, description in sorted(self.engine_descriptions.items()):
+            print >>out, ("player %s: %s" % (code, description))
+
     def get_tournament_results(self):
         return tournament_results.Tournament_results(
             self.matchup_list, self.results)

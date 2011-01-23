@@ -161,8 +161,7 @@ class Playoff(tournaments.Tournament):
         self.write_screen_report(out)
         self.write_ghost_matchup_reports(out)
         p('')
-        for code, description in sorted(self.engine_descriptions.items()):
-            p("player %s: %s" % (code, description))
+        self.write_player_descriptions(out)
         p('')
 
     write_full_report = write_short_report
