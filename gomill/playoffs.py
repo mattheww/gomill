@@ -91,7 +91,7 @@ class Playoff(tournaments.Tournament):
 
         # Check default handicap settings when possible, for friendlier error
         # reporting (would be caught in the matchup anyway).
-        if matchup_defaults['board_size'] is not missing_value:
+        if 'board_size' in matchup_defaults:
             try:
                 competitions.validate_handicap(
                     matchup_defaults['handicap'],

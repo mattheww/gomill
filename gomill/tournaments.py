@@ -91,8 +91,9 @@ class Tournament(Competition):
                 except ValueError, e:
                     raise ControlFileError(str(e))
             else:
-                v = matchup_defaults[setting.name]
-                if v is missing_value:
+                try:
+                    v = matchup_defaults[setting.name]
+                except KeyError:
                     raise ControlFileError("'%s' not specified" % setting.name)
             setattr(matchup, setting.name, v)
 

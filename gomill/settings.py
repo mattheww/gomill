@@ -3,7 +3,7 @@
 import re
 import shlex
 
-__all__ = ['Setting', 'allow_none', 'load_settings', 'missing_value',
+__all__ = ['Setting', 'allow_none', 'load_settings',
            'Config_proxy', 'Quiet_config',
            'interpret_any', 'interpret_bool',
            'interpret_int', 'interpret_positive_int', 'interpret_float',
@@ -16,11 +16,6 @@ __all__ = ['Setting', 'allow_none', 'load_settings', 'missing_value',
            'interpret_map', 'interpret_map_of',
            'clean_string',
            ]
-
-class _Missing_value(object):
-    def __str__(self):
-        return "(missing but no default)"
-missing_value = _Missing_value()
 
 def interpret_any(v):
     return v
@@ -301,8 +296,8 @@ def load_settings(settings, config, allow_missing=False):
     Applies defaults.
 
     If a setting which has no default isn't present in 'config', raises
-    ValueError (unless the allow_missing parameter is true, in which case it
-    is given the missing_value object as the value).
+    ValueError (unless the allow_missing parameter is true, in which case the
+    setting is just omitted from the returned dict).
 
     Resolves Config_proxy objects (see below)
 
@@ -318,7 +313,7 @@ def load_settings(settings, config, allow_missing=False):
                 v = setting.get_default()
             except ValueError:
                 if allow_missing:
-                    v = missing_value
+                    continue
                 else:
                     raise ValueError("'%s' not specified" % setting.name)
         else:
