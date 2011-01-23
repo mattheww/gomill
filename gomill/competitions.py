@@ -437,6 +437,7 @@ class Competition(object):
         """
         raise NotImplementedError
 
+
 ## Helper functions for settings
 
 def interpret_board_size(i):
@@ -491,4 +492,16 @@ def leading_zero_template(ceiling):
     else:
         zeros = len(str(ceiling-1))
         return "%%0%dd" % zeros
+
+
+## Common settings
+
+game_settings = [
+    Setting('board_size', interpret_board_size),
+    Setting('komi', interpret_float),
+    Setting('handicap', allow_none(interpret_int), default=None),
+    Setting('handicap_style', interpret_enum('fixed', 'free'), default='fixed'),
+    Setting('move_limit', interpret_positive_int, default=1000),
+    Setting('scorer', interpret_enum('internal', 'players'), default='players'),
+    ]
 

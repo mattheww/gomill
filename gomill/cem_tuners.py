@@ -130,21 +130,14 @@ class Cem_tuner(Competition):
             })
         return result
 
-    global_settings = Competition.global_settings + [
-        Setting('board_size', competitions.interpret_board_size),
-        Setting('komi', interpret_float),
-        Setting('handicap', allow_none(interpret_int), default=None),
-        Setting('handicap_style', interpret_enum('fixed', 'free'),
-                default='fixed'),
-        Setting('move_limit', interpret_positive_int, default=1000),
-        Setting('scorer', interpret_enum('internal', 'players'),
-                default='players'),
+    global_settings = (Competition.global_settings +
+                       competitions.game_settings + [
         Setting('batch_size', interpret_positive_int),
         Setting('samples_per_generation', interpret_positive_int),
         Setting('number_of_generations', interpret_positive_int),
         Setting('elite_proportion', interpret_float),
         Setting('step_size', interpret_float),
-        ]
+        ])
 
     special_settings = [
         Setting('opponent', interpret_identifier),

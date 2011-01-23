@@ -529,15 +529,8 @@ class Mcts_tuner(Competition):
             })
         return result
 
-    global_settings = Competition.global_settings + [
-        Setting('board_size', competitions.interpret_board_size),
-        Setting('komi', interpret_float),
-        Setting('handicap', allow_none(interpret_int), default=None),
-        Setting('handicap_style', interpret_enum('fixed', 'free'),
-                default='fixed'),
-        Setting('move_limit', interpret_positive_int, default=1000),
-        Setting('scorer', interpret_enum('internal', 'players'),
-                default='players'),
+    global_settings = (Competition.global_settings +
+                       competitions.game_settings + [
         Setting('number_of_games', allow_none(interpret_int), default=None),
         Setting('candidate_colour', interpret_colour),
         Setting('log_tree_to_history_period',
@@ -546,7 +539,7 @@ class Mcts_tuner(Competition):
                 default=(30,)),
         Setting('number_of_running_simulations_to_show', interpret_int,
                 default=12),
-        ]
+        ])
 
     special_settings = [
         Setting('opponent', interpret_identifier),

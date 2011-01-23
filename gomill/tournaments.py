@@ -12,14 +12,8 @@ from gomill.settings import *
 from gomill.gomill_utils import format_percent
 
 # These all appear as Matchup_description attributes
-matchup_settings = [
-    Setting('board_size', competitions.interpret_board_size),
-    Setting('komi', interpret_float),
+matchup_settings = competitions.game_settings + [
     Setting('alternating', interpret_bool, default=False),
-    Setting('handicap', allow_none(interpret_int), default=None),
-    Setting('handicap_style', interpret_enum('fixed', 'free'), default='fixed'),
-    Setting('move_limit', interpret_positive_int, default=1000),
-    Setting('scorer', interpret_enum('internal', 'players'), default='players'),
     Setting('number_of_games', allow_none(interpret_int), default=None),
     ]
 
