@@ -153,14 +153,14 @@ class Allplayall(tournaments.Tournament):
         return result
 
     def set_status(self, status):
-        expected_competitors = status['competitors']
+        seen_competitors = status['competitors']
         # This should mean that _check_results can never fail, but might as well
         # still let it run.
-        if len(self.competitors) < len(expected_competitors):
+        if len(self.competitors) < len(seen_competitors):
             raise CompetitionError(
                 "competitor has been removed from control file")
-        if ([c.player for c in self.competitors[:len(expected_competitors)]] !=
-            expected_competitors):
+        if ([c.player for c in self.competitors[:len(seen_competitors)]] !=
+            seen_competitors):
             raise CompetitionError(
                 "competitors have changed in the control file")
         tournaments.Tournament.set_status(self, status)
