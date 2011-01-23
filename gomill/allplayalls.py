@@ -34,6 +34,8 @@ class Allplayall(tournaments.Tournament):
     The game ids are like AvB_2, where A and B are the competitor short_codes
     and 2 is the game number between those two competitors.
 
+    This tournament type doesn't permit ghost matchups.
+
     """
 
     def control_file_globals(self):
@@ -107,6 +109,7 @@ class Allplayall(tournaments.Tournament):
 
         if not specials['competitors']:
             raise ControlFileError("competitors: empty list")
+        # list of Competitor_specs
         self.competitors = []
         seen_competitors = set()
         for i, competitor_spec in enumerate(specials['competitors']):
@@ -141,10 +144,6 @@ class Allplayall(tournaments.Tournament):
                 self.matchup_list.append(m)
 
 
-    # Additional state attributes (*: in persistent state):
-    #  *competitors           -- list of Competitor_specs
-    # Note that we don't permit ghost matchups
-
     # Can bump this to prevent people loading incompatible .status files.
     status_format_version = 0
 
@@ -155,6 +154,8 @@ class Allplayall(tournaments.Tournament):
 
     def set_status(self, status):
         expected_competitors = status['competitors']
+        # This should mean that _check_results can never fail, but might as well
+        # still let it run.
         if len(self.competitors) < len(expected_competitors):
             raise CompetitionError(
                 "competitor has been removed from control file")
