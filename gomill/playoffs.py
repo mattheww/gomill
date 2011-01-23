@@ -34,8 +34,6 @@ class Playoff(tournaments.Tournament):
         return result
 
 
-    global_settings = Competition.global_settings
-
     special_settings = [
         Setting('matchups',
                 interpret_sequence_of_quiet_configs(Matchup_config)),
