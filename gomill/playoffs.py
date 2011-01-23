@@ -54,9 +54,14 @@ class Playoff(tournaments.Tournament):
            player1 and adds it to self.players
 
         """
-        matchup_id = matchup_config.kwargs.get('id', str(matchup_number))
+        matchup_id = str(matchup_number)
         try:
             arguments = matchup_config.resolve_arguments()
+            if 'id' in arguments:
+                try:
+                    matchup_id = interpret_identifier(arguments['id'])
+                except ValueError, e:
+                    raise ValueError("'id': %s" % e)
             try:
                 player1 = arguments['player1']
                 player2 = arguments['player2']

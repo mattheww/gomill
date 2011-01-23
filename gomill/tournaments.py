@@ -66,14 +66,13 @@ class Tournament(Competition):
                      arguments, matchup_defaults, name=None):
         """Make a Matchup from the various parameters.
 
-        matchup_id       -- string
+        matchup_id       -- identifier
         player1          -- player code
         player2          -- player code
         arguments        -- dict matchup setting name -> value
         matchup_defaults -- dict matchup setting name -> value
 
-        Validates matchup_id and name; raises ControlFileError if either are
-        invalid.
+        Validatesname; raises ControlFileError if it's invalid.
 
         The value for each matchup setting is found as follows:
          - from 'arguments', if present there
@@ -90,6 +89,7 @@ class Tournament(Competition):
 
         """
         matchup = Matchup()
+        matchup.id = matchup_id
         matchup.p1 = player1
         matchup.p2 = player2
 
@@ -112,11 +112,6 @@ class Tournament(Competition):
 
         competitions.validate_handicap(
             matchup.handicap, matchup.handicap_style, matchup.board_size)
-
-        try:
-            matchup.id = interpret_identifier(matchup_id)
-        except ValueError, e:
-            raise ControlFileError("id: %s" % e)
 
         if name is None:
             name = "%s v %s" % (matchup.p1, matchup.p2)

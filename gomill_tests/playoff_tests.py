@@ -140,6 +140,15 @@ def test_bad_matchup_config(tc):
     tc.assertMultiLineEqual(str(ar.exception), dedent("""\
     matchup 1: not enough arguments"""))
 
+def test_bad_matchup_config_bad_id(tc):
+    comp = playoffs.Playoff('test')
+    config = default_config()
+    config['matchups'].append(Matchup_config('t1', 't2', id=99))
+    with tc.assertRaises(ControlFileError) as ar:
+        comp.initialise_from_control_file(config)
+    tc.assertMultiLineEqual(str(ar.exception), dedent("""\
+    matchup 1: 'id': not a string"""))
+
 def test_bad_matchup_config_bad_setting(tc):
     comp = playoffs.Playoff('test')
     config = default_config()
