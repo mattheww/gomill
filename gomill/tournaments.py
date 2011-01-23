@@ -94,10 +94,7 @@ class Tournament(Competition):
 
         for setting in matchup_settings:
             if setting.name in arguments:
-                try:
-                    v = setting.interpret(arguments[setting.name])
-                except ValueError, e:
-                    raise ControlFileError(str(e))
+                v = arguments[setting.name]
             else:
                 try:
                     v = matchup_defaults[setting.name]
