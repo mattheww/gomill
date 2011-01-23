@@ -85,13 +85,13 @@ class Playoff(tournaments.Tournament):
 
         try:
             matchup_defaults = load_settings(
-                tournaments.matchup_settings, config)
+                tournaments.matchup_settings, config, allow_missing=True)
         except ValueError, e:
             raise ControlFileError(str(e))
 
         # Check default handicap settings when possible, for friendlier error
         # reporting (would be caught in the matchup anyway).
-        if matchup_defaults['board_size'] is not tournaments._required_in_matchup:
+        if matchup_defaults['board_size'] is not missing_value:
             try:
                 competitions.validate_handicap(
                     matchup_defaults['handicap'],

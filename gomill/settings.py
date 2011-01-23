@@ -3,8 +3,8 @@
 import re
 import shlex
 
-__all__ = ['Setting', 'allow_none', 'load_settings', 'Config_proxy',
-           'Quiet_config',
+__all__ = ['Setting', 'allow_none', 'load_settings', 'missing_value',
+           'Config_proxy', 'Quiet_config',
            'interpret_any', 'interpret_bool',
            'interpret_int', 'interpret_positive_int', 'interpret_float',
            'interpret_8bit_string', 'interpret_identifier',
@@ -16,6 +16,11 @@ __all__ = ['Setting', 'allow_none', 'load_settings', 'Config_proxy',
            'interpret_map', 'interpret_map_of',
            'clean_string',
            ]
+
+class _Missing_value(object):
+    def __str__(self):
+        return "(missing but no default)"
+missing_value = _Missing_value()
 
 def interpret_any(v):
     return v
@@ -284,20 +289,22 @@ class Setting(object):
         except ValueError, e:
             raise ValueError("'%s': %s" % (self.name, e))
 
-def load_settings(settings, config):
+def load_settings(settings, config, allow_missing=False):
     """Read settings values from configuration.
 
-    settings -- list of Settings
-    config   -- dict containing the values to be read
+    settings      -- list of Settings
+    config        -- dict containing the values to be read
+    allow_missing -- bool
 
     Returns a dict: setting name -> interpreted value
 
     Applies defaults.
 
-    Resolves Config_proxy objects (see below)
+    If a setting which has no default isn't present in 'config', raises
+    ValueError (unless the allow_missing parameter is true, in which case it
+    is given the missing_value object as the value).
 
-    Raises ValueError if a setting which has no default isn't present in
-    'config'.
+    Resolves Config_proxy objects (see below)
 
     Raises ValueError with a description if a value can't be interpreted.
 
@@ -310,7 +317,10 @@ def load_settings(settings, config):
             try:
                 v = setting.get_default()
             except ValueError:
-                raise ValueError("'%s' not specified" % setting.name)
+                if allow_missing:
+                    v = missing_value
+                else:
+                    raise ValueError("'%s' not specified" % setting.name)
         else:
             if isinstance(v, Config_proxy):
                 try:

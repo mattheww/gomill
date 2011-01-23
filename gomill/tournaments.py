@@ -37,33 +37,18 @@ class Ghost_matchup(object):
     def describe_details(self):
         return "?? (missing from control file)"
 
-class _Required_in_matchup(object):
-    def __str__(self):
-        return "(no global default)"
-_required_in_matchup = _Required_in_matchup()
-
-class Matchup_setting(Setting):
-    # Treat 'default' as a keyword-only argument
-    def __init__(self, *args, **kwargs):
-        if 'default' not in kwargs:
-            kwargs['default'] = _required_in_matchup
-        Setting.__init__(self, *args, **kwargs)
-
 # These settings can be specified both globally and in matchups.
 # The global values (not stored) are defaults for the
 # matchup values (stored as Matchup attributes).
 matchup_settings = [
-    Matchup_setting('board_size', competitions.interpret_board_size),
-    Matchup_setting('komi', interpret_float),
-    Matchup_setting('alternating', interpret_bool, default=False),
-    Matchup_setting('handicap', allow_none(interpret_int), default=None),
-    Matchup_setting('handicap_style', interpret_enum('fixed', 'free'),
-                    default='fixed'),
-    Matchup_setting('move_limit', interpret_positive_int, default=1000),
-    Matchup_setting('scorer', interpret_enum('internal', 'players'),
-                    default='players'),
-    Matchup_setting('number_of_games', allow_none(interpret_int),
-                    default=None),
+    Setting('board_size', competitions.interpret_board_size),
+    Setting('komi', interpret_float),
+    Setting('alternating', interpret_bool, default=False),
+    Setting('handicap', allow_none(interpret_int), default=None),
+    Setting('handicap_style', interpret_enum('fixed', 'free'), default='fixed'),
+    Setting('move_limit', interpret_positive_int, default=1000),
+    Setting('scorer', interpret_enum('internal', 'players'), default='players'),
+    Setting('number_of_games', allow_none(interpret_int), default=None),
     ]
 
 
@@ -107,7 +92,7 @@ class Tournament(Competition):
                     raise ControlFileError(str(e))
             else:
                 v = matchup_defaults[setting.name]
-                if v is _required_in_matchup:
+                if v is missing_value:
                     raise ControlFileError("'%s' not specified" % setting.name)
             setattr(matchup, setting.name, v)
 

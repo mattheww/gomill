@@ -149,6 +149,27 @@ def test_bad_matchup_config_unknown_player(tc):
     tc.assertMultiLineEqual(str(ar.exception), dedent("""\
     matchup 1: unknown player nonex"""))
 
+def test_bad_matchup_config_no_board_size(tc):
+    comp = playoffs.Playoff('test')
+    config = default_config()
+    del config['board_size']
+    with tc.assertRaises(ControlFileError) as ar:
+        comp.initialise_from_control_file(config)
+    tc.assertMultiLineEqual(str(ar.exception), dedent("""\
+    matchup 0: 'board_size' not specified"""))
+
+def test_matchup_config_board_size_in_matchup_only(tc):
+    comp = playoffs.Playoff('test')
+    config = default_config()
+    del config['board_size']
+    config['matchups'] = [Matchup_config('t1', 't2', alternating=True,
+                                         board_size=9)]
+    comp.initialise_from_control_file(config)
+    comp.set_clean_status()
+    tr = comp.get_tournament_results()
+    m0 = tr.get_matchup('0')
+    tc.assertEqual(m0.board_size, 9)
+
 def test_global_handicap_validation(tc):
     comp = playoffs.Playoff('testcomp')
     config = default_config()
