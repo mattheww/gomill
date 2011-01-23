@@ -88,7 +88,7 @@ class Tournament_results(object):
         return self.results[matchup_id][:]
 
     def get_matchup_stats(self, matchup_id):
-        """Return statistics for a specified mathcup.
+        """Return statistics for the specified matchup.
 
         Returns a Matchup_stats object.
 
