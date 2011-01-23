@@ -3,8 +3,7 @@
 from gomill import game_jobs
 from gomill import competitions
 from gomill import tournaments
-from gomill.competitions import (
-    Competition, NoGameAvailable, CompetitionError, ControlFileError)
+from gomill.competitions import (Competition, ControlFileError)
 from gomill.settings import *
 
 
