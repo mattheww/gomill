@@ -64,17 +64,29 @@ class Tournament(Competition):
 
     def make_matchup(self, matchup_id, player1, player2,
                      arguments, matchup_defaults, name=None):
-        """Make a Matchup from a Matchup_config.
+        """Make a Matchup from the various parameters.
 
-        FIXME [[
-        arguments -- FIXME: matchup_settings values (possibly partial)
+        matchup_id       -- string
+        player1          -- player code
+        player2          -- player code
+        arguments        -- dict matchup setting name -> unchecked value
+        matchup_defaults -- dict matchup setting name -> checked value
 
-        [This function doesn't check that the players are in self.players.]
-        ]]
+        Validates matchup_id, name and the contents of 'arguments'; raises
+        ControlFileError if any are invalid.
 
-        Raises ControlFileError if there is an error in the configuration.
+        The value for each matchup setting is found as follows:
+         - from 'arguments', if present there
+         - from 'matchup_defaults', if present there
+         - from the matchup setting default, if there is one
+         - otherwise ControlFileError is raised
+
+        Extraneous items in 'arguments' or 'matchup_defaults' are ignored.
 
         Returns a Matchup with all attributes set.
+
+        Note that this function doesn't check that the players are in
+        self.players.
 
         """
         matchup = Matchup()
