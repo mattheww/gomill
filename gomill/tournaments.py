@@ -11,8 +11,23 @@ from gomill.competitions import (
 from gomill.settings import *
 from gomill.gomill_utils import format_percent
 
+# These all appear as Matchup_description attributes
+matchup_settings = [
+    Setting('board_size', competitions.interpret_board_size),
+    Setting('komi', interpret_float),
+    Setting('alternating', interpret_bool, default=False),
+    Setting('handicap', allow_none(interpret_int), default=None),
+    Setting('handicap_style', interpret_enum('fixed', 'free'), default='fixed'),
+    Setting('move_limit', interpret_positive_int, default=1000),
+    Setting('scorer', interpret_enum('internal', 'players'), default='players'),
+    Setting('number_of_games', allow_none(interpret_int), default=None),
+    ]
+
+
 class Matchup(tournament_results.Matchup_description):
     """Internal description of a matchup from the configuration file.
+
+    See tournament_results.Matchup_description for main public attributes.
 
     Additional attributes:
       event_description -- string to show as sgf event
@@ -31,7 +46,8 @@ class Matchup(tournament_results.Matchup_description):
     'event_code' is used for the sgf event description (combined with 'name'
     if available).
 
-    Raises ControlFileError if the handicap settings aren't permitted.
+    Instantiation raises ControlFileError if the handicap settings aren't
+    permitted.
 
     """
     def __init__(self, matchup_id, player1, player2, parameters,
@@ -82,21 +98,6 @@ class Ghost_matchup(object):
 
     def describe_details(self):
         return "?? (missing from control file)"
-
-# These settings can be specified both globally and in matchups.
-# The global values (not stored) are defaults for the
-# matchup values (stored as Matchup attributes).
-matchup_settings = [
-    Setting('board_size', competitions.interpret_board_size),
-    Setting('komi', interpret_float),
-    Setting('alternating', interpret_bool, default=False),
-    Setting('handicap', allow_none(interpret_int), default=None),
-    Setting('handicap_style', interpret_enum('fixed', 'free'), default='fixed'),
-    Setting('move_limit', interpret_positive_int, default=1000),
-    Setting('scorer', interpret_enum('internal', 'players'), default='players'),
-    Setting('number_of_games', allow_none(interpret_int), default=None),
-    ]
-
 
 
 class Tournament(Competition):

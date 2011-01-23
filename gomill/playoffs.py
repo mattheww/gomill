@@ -45,10 +45,11 @@ class Playoff(tournaments.Tournament):
 
         This does the following checks and fixups before calling make_matchup():
 
-        Validates all the matchup_config arguments
-
         Checks that the player1 and player2 parameters exist, and that the
         player codes are present in self.players.
+
+        Validates all the matchup_config arguments, and merges them with the
+        defaults.
 
         If player1 and player2 are the same, takes the following actions:
          - sets player2 to <player1>#2
