@@ -248,19 +248,6 @@ class Allplayall(tournaments.Tournament):
             t.set_column_values(i, column_values)
         print >>out, "\n".join(t.render())
 
-    def write_playoff_style_screen_report(self, out):
-        # FIXME: share code with Playoff
-        first = True
-        for matchup in self.matchup_list:
-            results = self.results[matchup.id]
-            if not results:
-                continue
-            if first:
-                first = False
-            else:
-                print >>out
-            self.write_matchup_report(out, matchup, results)
-
     def write_short_report(self, out):
         def p(s):
             print >>out, s
@@ -270,7 +257,7 @@ class Allplayall(tournaments.Tournament):
         p('')
         self.write_screen_report(out)
         p('')
-        self.write_playoff_style_screen_report(out)
+        self.write_matchup_reports(out)
         p('')
         for code, description in sorted(self.engine_descriptions.items()):
             p("player %s: %s" % (code, description))

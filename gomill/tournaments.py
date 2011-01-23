@@ -305,6 +305,19 @@ class Tournament(Competition):
         p(matchup.describe_details())
         p("\n".join(tournament_results.make_matchup_stats_table(ms).render()))
 
+    def write_matchup_reports(self, out):
+        """Write summary blocks for all matchups to 'out'."""
+        first = True
+        for matchup in self.matchup_list:
+            results = self.results[matchup.id]
+            if not results:
+                continue
+            if first:
+                first = False
+            else:
+                print >>out
+            self.write_matchup_report(out, matchup, results)
+
     def get_tournament_results(self):
         return tournament_results.Tournament_results(
             self.matchup_list, self.results)

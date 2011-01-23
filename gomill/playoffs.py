@@ -149,16 +149,7 @@ class Playoff(tournaments.Tournament):
 
 
     def write_screen_report(self, out):
-        first = True
-        for matchup in self.matchup_list:
-            results = self.results[matchup.id]
-            if not results:
-                continue
-            if first:
-                first = False
-            else:
-                print >>out
-            self.write_matchup_report(out, matchup, results)
+        self.write_matchup_reports(out)
 
     def write_ghost_report(self, out):
         for matchup_id, matchup in sorted(self.ghost_matchups.iteritems()):
