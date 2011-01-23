@@ -140,6 +140,10 @@ class Allplayall(tournaments.Tournament):
                 self.matchups[m.id] = m
                 self.matchup_list.append(m)
 
+
+    # Additional state attributes (*: in persistent state):
+    #  *competitors           -- list of player codes
+
     # Can bump this to prevent people loading incompatible .status files.
     status_format_version = 0
 
