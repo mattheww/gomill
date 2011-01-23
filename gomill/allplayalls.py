@@ -1,8 +1,9 @@
 """Competitions for all-play-all tournaments."""
 
 from gomill import ascii_tables
+from gomill import game_jobs
 from gomill import competitions
-from gomill import playoffs
+from gomill import tournaments
 from gomill import tournament_results
 from gomill.competitions import (
     Competition, CompetitionError, ControlFileError)
@@ -36,15 +37,13 @@ class Competitor_spec(object):
     """
 
 
-class Allplayall(playoffs.Playoff):
-    """A Competition in which each player repeatedly plays each other player.
+class Allplayall(tournaments.Tournament):
+    """A Tournament with matchups for all pairs of competitors.
 
     The game ids are like AvB_2, where A and B are the competitor short_codes
     and 2 is the game number between those two competitors.
 
     """
-    def __init__(self, competition_code, **kwargs):
-        playoffs.Playoff.__init__(self, competition_code, **kwargs)
 
     def control_file_globals(self):
         result = Competition.control_file_globals(self)
@@ -135,8 +134,10 @@ class Allplayall(playoffs.Playoff):
         self.matchup_list = []
         for c1_i, c1 in enumerate(self.competitors):
             for c2_i, c2 in list(enumerate(self.competitors))[c1_i+1:]:
-                mc = playoffs.Matchup_config(c1.player, c2.player,
-                                             id=self._get_matchup_id(c1, c2))
+                # FIXME
+                from playoffs import Matchup_config
+                mc = Matchup_config(c1.player, c2.player,
+                                    id=self._get_matchup_id(c1, c2))
                 arguments = mc.resolve_arguments()
                 try:
                     m = self.matchup_from_config(arguments, matchup_defaults)
@@ -150,7 +151,7 @@ class Allplayall(playoffs.Playoff):
     status_format_version = 0
 
     def get_status(self):
-        result = playoffs.Playoff.get_status(self)
+        result = tournaments.Tournament.get_status(self)
         result['competitors'] = [c.player for c in self.competitors]
         return result
 
@@ -163,7 +164,28 @@ class Allplayall(playoffs.Playoff):
             expected_competitors):
             raise CompetitionError(
                 "competitors have changed in the control file")
-        playoffs.Playoff.set_status(self, status)
+        tournaments.Tournament.set_status(self, status)
+
+
+    def get_player_checks(self):
+        # FIXME: specialise for allplayalls
+        # For board size and komi, we check the values from the first matchup
+        # the player appears in.
+        used_players = {}
+        for m in reversed(self.matchup_list):
+            if m.number_of_games == 0:
+                continue
+            used_players[m.p1] = m
+            used_players[m.p2] = m
+        result = []
+        for code, matchup in sorted(used_players.iteritems()):
+            check = game_jobs.Player_check()
+            check.player = self.players[code]
+            check.board_size = matchup.board_size
+            check.komi = matchup.komi
+            result.append(check)
+        return result
+
 
     def count_games_played(self):
         """Return the total number of games completed."""
@@ -226,6 +248,19 @@ class Allplayall(playoffs.Playoff):
             t.set_column_values(i, column_values)
         print >>out, "\n".join(t.render())
 
+    def write_playoff_style_screen_report(self, out):
+        # FIXME: share code with Playoff
+        first = True
+        for matchup in self.matchup_list:
+            results = self.results[matchup.id]
+            if not results:
+                continue
+            if first:
+                first = False
+            else:
+                print >>out
+            self.write_matchup_report(out, matchup, results)
+
     def write_short_report(self, out):
         def p(s):
             print >>out, s
@@ -235,7 +270,7 @@ class Allplayall(playoffs.Playoff):
         p('')
         self.write_screen_report(out)
         p('')
-        playoffs.Playoff.write_screen_report(self, out)
+        self.write_playoff_style_screen_report(out)
         p('')
         for code, description in sorted(self.engine_descriptions.items()):
             p("player %s: %s" % (code, description))
