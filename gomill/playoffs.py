@@ -81,9 +81,15 @@ class Playoff(tournaments.Tournament):
                 if setting.name in arguments:
                     validated[setting.name] = \
                         setting.interpret(arguments[setting.name])
+            matchup_name = arguments.get('name')
+            if matchup_name is not None:
+                try:
+                    matchup_name = interpret_as_utf8(matchup_name)
+                except ValueError, e:
+                    raise ValueError("'name': %s" % e)
             return self.make_matchup(
                 matchup_id, player1, player2,
-                validated, matchup_defaults, arguments.get('name'))
+                validated, matchup_defaults, matchup_name)
         except StandardError, e:
             raise ControlFileError("matchup %s: %s" % (matchup_id, e))
 

@@ -188,6 +188,16 @@ def test_matchup_config_board_size_in_matchup_only(tc):
     m0 = tr.get_matchup('0')
     tc.assertEqual(m0.board_size, 9)
 
+def test_matchup_name(tc):
+    comp = playoffs.Playoff('test')
+    config = default_config()
+    config['matchups'] = [Matchup_config('t1', 't2', name="asd")]
+    comp.initialise_from_control_file(config)
+    comp.set_clean_status()
+    tr = comp.get_tournament_results()
+    m0 = tr.get_matchup('0')
+    tc.assertEqual(m0.name, "asd")
+
 def test_global_handicap_validation(tc):
     comp = playoffs.Playoff('testcomp')
     config = default_config()

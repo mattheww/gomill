@@ -71,8 +71,7 @@ class Tournament(Competition):
         player2          -- player code
         arguments        -- dict matchup setting name -> value
         matchup_defaults -- dict matchup setting name -> value
-
-        Validatesname; raises ControlFileError if it's invalid.
+        name             -- utf-8 string, or None
 
         The value for each matchup setting is found as follows:
          - from 'arguments', if present there
@@ -117,10 +116,6 @@ class Tournament(Competition):
             name = "%s v %s" % (matchup.p1, matchup.p2)
             event_description = self.competition_code
         else:
-            try:
-                name = interpret_as_utf8(name)
-            except ValueError, e:
-                raise ControlFileError("name: %s" % e)
             event_description = "%s (%s)" % (self.competition_code, name)
         matchup.name = name
         matchup.event_description = event_description
