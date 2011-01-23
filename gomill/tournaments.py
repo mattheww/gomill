@@ -62,29 +62,23 @@ class Tournament(Competition):
         self.working_matchups = set()
         self.probationary_matchups = set()
 
-    def make_matchup(self, matchup_id, player1, player2,
-                     arguments, matchup_defaults, name=None):
+    def make_matchup(self, matchup_id, player1, player2, parameters, name=None):
         """Make a Matchup from the various parameters.
 
-        matchup_id       -- identifier
-        player1          -- player code
-        player2          -- player code
-        arguments        -- dict matchup setting name -> value
-        matchup_defaults -- dict matchup setting name -> value
-        name             -- utf-8 string, or None
+        matchup_id -- identifier
+        player1    -- player code
+        player2    -- player code
+        parameters -- dict matchup setting name -> value
+        name       -- utf-8 string, or None
 
         The value for each matchup setting is found as follows:
-         - from 'arguments', if present there
-         - from 'matchup_defaults', if present there
+         - from 'parameters', if present there
          - from the matchup setting default, if there is one
          - otherwise ControlFileError is raised
 
-        Extraneous items in 'arguments' or 'matchup_defaults' are ignored.
+        Extraneous items in 'parameters' are ignored.
 
         Returns a Matchup with all attributes set.
-
-        Note that this function doesn't check that the players are in
-        self.players.
 
         """
         matchup = Matchup()
@@ -93,17 +87,14 @@ class Tournament(Competition):
         matchup.p2 = player2
 
         for setting in matchup_settings:
-            if setting.name in arguments:
-                v = arguments[setting.name]
-            else:
+            try:
+                v = parameters[setting.name]
+            except KeyError:
                 try:
-                    v = matchup_defaults[setting.name]
-                except KeyError:
-                    try:
-                        v = setting.get_default()
-                    except ValueError:
-                        raise ControlFileError("'%s' not specified" %
-                                               setting.name)
+                    v = setting.get_default()
+                except ValueError:
+                    raise ControlFileError("'%s' not specified" %
+                                           setting.name)
             setattr(matchup, setting.name, v)
 
         competitions.validate_handicap(

@@ -97,11 +97,11 @@ class Allplayall(tournaments.Tournament):
         Competition.initialise_from_control_file(self, config)
 
         try:
-            matchup_defaults = load_settings(matchup_settings, config)
+            matchup_parameters = load_settings(matchup_settings, config)
         except ValueError, e:
             raise ControlFileError(str(e))
-        matchup_defaults['number_of_games'] = matchup_defaults.pop('rounds')
-        matchup_defaults['alternating'] = True
+        matchup_parameters['number_of_games'] = matchup_parameters.pop('rounds')
+        matchup_parameters['alternating'] = True
 
         try:
             specials = load_settings(self.special_settings, config)
@@ -136,7 +136,7 @@ class Allplayall(tournaments.Tournament):
                     m = self.make_matchup(
                         self._get_matchup_id(c1, c2),
                         c1.player, c2.player,
-                        {}, matchup_defaults)
+                        matchup_parameters)
                 except StandardError, e:
                     raise ControlFileError("%s v %s: %s" %
                                            (c1.player, c2.player, e))

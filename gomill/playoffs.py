@@ -89,9 +89,11 @@ class Playoff(tournaments.Tournament):
                     matchup_name = interpret_as_utf8(matchup_name)
                 except ValueError, e:
                     raise ValueError("'name': %s" % e)
+            parameters = matchup_defaults.copy()
+            parameters.update(interpreted)
             return self.make_matchup(
                 matchup_id, player1, player2,
-                interpreted, matchup_defaults, matchup_name)
+                parameters, matchup_name)
         except StandardError, e:
             raise ControlFileError("matchup %s: %s" % (matchup_id, e))
 
