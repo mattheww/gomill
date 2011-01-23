@@ -132,11 +132,11 @@ class Allplayall(tournaments.Tournament):
         self.matchup_list = []
         for c1_i, c1 in enumerate(self.competitors):
             for c2_i, c2 in list(enumerate(self.competitors))[c1_i+1:]:
-                # FIXME
-                from playoffs import Matchup_config
-                mc = Matchup_config(c1.player, c2.player,
-                                    id=self._get_matchup_id(c1, c2))
-                arguments = mc.resolve_arguments()
+                arguments = {
+                    'id' : self._get_matchup_id(c1, c2),
+                    'player1' : c1.player,
+                    'player2' : c2.player,
+                    }
                 try:
                     m = self.matchup_from_config(arguments, matchup_defaults)
                 except StandardError, e:
