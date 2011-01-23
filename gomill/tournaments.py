@@ -17,9 +17,55 @@ class Matchup(tournament_results.Matchup_description):
     Additional attributes:
       event_description -- string to show as sgf event
 
+    Instantiate with
+      matchup_id -- identifier
+      player1    -- player code
+      player2    -- player code
+      parameters -- dict matchup setting name -> value
+      name       -- utf-8 string, or None
+      event_code -- identifier
+
+    If a matchup setting is missing from 'parameters', the setting's default
+    value is used (or, if there is no default value, ValueError is raised).
+
+    'event_code' is used for the sgf event description (combined with 'name'
+    if available).
+
+    Raises ControlFileError if the handicap settings aren't permitted.
+
     """
+    def __init__(self, matchup_id, player1, player2, parameters,
+                 name, event_code):
+        self.id = matchup_id
+        self.p1 = player1
+        self.p2 = player2
+
+        for setting in matchup_settings:
+            try:
+                v = parameters[setting.name]
+            except KeyError:
+                try:
+                    v = setting.get_default()
+                except ValueError:
+                    raise ValueError("'%s' not specified" % setting.name)
+            setattr(self, setting.name, v)
+
+        competitions.validate_handicap(
+            self.handicap, self.handicap_style, self.board_size)
+
+        if name is None:
+            name = "%s v %s" % (self.p1, self.p2)
+            event_description = event_code
+        else:
+            event_description = "%s (%s)" % (event_code, name)
+        self.name = name
+        self.event_description = event_description
+        self._game_id_template = ("%s_" +
+            competitions.leading_zero_template(self.number_of_games))
+
     def make_game_id(self, game_number):
         return self._game_id_template % (self.id, game_number)
+
 
 class Ghost_matchup(object):
     """Dummy Matchup object for matchups which have gone from the control file.
@@ -65,52 +111,16 @@ class Tournament(Competition):
     def make_matchup(self, matchup_id, player1, player2, parameters, name=None):
         """Make a Matchup from the various parameters.
 
-        matchup_id -- identifier
-        player1    -- player code
-        player2    -- player code
-        parameters -- dict matchup setting name -> value
-        name       -- utf-8 string, or None
+        Raises ControlFileError if any required parameters are missing.
 
-        The value for each matchup setting is found as follows:
-         - from 'parameters', if present there
-         - from the matchup setting default, if there is one
-         - otherwise ControlFileError is raised
-
-        Extraneous items in 'parameters' are ignored.
-
-        Returns a Matchup with all attributes set.
+        See Matchup.__init__ for details.
 
         """
-        matchup = Matchup()
-        matchup.id = matchup_id
-        matchup.p1 = player1
-        matchup.p2 = player2
-
-        for setting in matchup_settings:
-            try:
-                v = parameters[setting.name]
-            except KeyError:
-                try:
-                    v = setting.get_default()
-                except ValueError:
-                    raise ControlFileError("'%s' not specified" %
-                                           setting.name)
-            setattr(matchup, setting.name, v)
-
-        competitions.validate_handicap(
-            matchup.handicap, matchup.handicap_style, matchup.board_size)
-
-        if name is None:
-            name = "%s v %s" % (matchup.p1, matchup.p2)
-            event_description = self.competition_code
-        else:
-            event_description = "%s (%s)" % (self.competition_code, name)
-        matchup.name = name
-        matchup.event_description = event_description
-        matchup._game_id_template = ("%s_" +
-            competitions.leading_zero_template(matchup.number_of_games))
-
-        return matchup
+        try:
+            return Matchup(matchup_id, player1, player2, parameters, name,
+                           event_code=self.competition_code)
+        except ValueError, e:
+            raise ControlFileError(str(e))
 
 
     # State attributes (*: in persistent state):
