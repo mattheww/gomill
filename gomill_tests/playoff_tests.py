@@ -176,6 +176,15 @@ def test_bad_matchup_config_no_board_size(tc):
     tc.assertMultiLineEqual(str(ar.exception), dedent("""\
     matchup 0: 'board_size' not specified"""))
 
+def test_bad_matchup_config_bad_handicap(tc):
+    comp = playoffs.Playoff('test')
+    config = default_config()
+    config['matchups'].append(Matchup_config('t1', 't2', handicap=10))
+    with tc.assertRaises(ControlFileError) as ar:
+        comp.initialise_from_control_file(config)
+    tc.assertMultiLineEqual(str(ar.exception), dedent("""\
+    matchup 1: fixed handicap out of range for board size 13"""))
+
 def test_matchup_config_board_size_in_matchup_only(tc):
     comp = playoffs.Playoff('test')
     config = default_config()
