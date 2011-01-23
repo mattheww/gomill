@@ -151,12 +151,6 @@ class Playoff(tournaments.Tournament):
     def write_screen_report(self, out):
         self.write_matchup_reports(out)
 
-    def write_ghost_report(self, out):
-        for matchup_id, matchup in sorted(self.ghost_matchups.iteritems()):
-            print >>out
-            results = self.results[matchup_id]
-            self.write_matchup_report(out, matchup, results)
-
     def write_short_report(self, out):
         def p(s):
             print >>out, s
@@ -165,7 +159,7 @@ class Playoff(tournaments.Tournament):
             p(self.description)
         p('')
         self.write_screen_report(out)
-        self.write_ghost_report(out)
+        self.write_ghost_matchup_reports(out)
         p('')
         for code, description in sorted(self.engine_descriptions.items()):
             p("player %s: %s" % (code, description))

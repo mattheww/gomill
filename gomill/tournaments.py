@@ -306,7 +306,11 @@ class Tournament(Competition):
         p("\n".join(tournament_results.make_matchup_stats_table(ms).render()))
 
     def write_matchup_reports(self, out):
-        """Write summary blocks for all matchups to 'out'."""
+        """Write summary blocks for all live matchups to 'out'.
+
+        This doesn't include ghost matchups, or matchups with no games.
+
+        """
         first = True
         for matchup in self.matchup_list:
             results = self.results[matchup.id]
@@ -316,6 +320,17 @@ class Tournament(Competition):
                 first = False
             else:
                 print >>out
+            self.write_matchup_report(out, matchup, results)
+
+    def write_ghost_matchup_reports(self, out):
+        """Write summary blocks for all ghost matchups to 'out'.
+
+        (This may produce no output. Starts with a blank line otherwise.)
+
+        """
+        for matchup_id, matchup in sorted(self.ghost_matchups.iteritems()):
+            print >>out
+            results = self.results[matchup_id]
             self.write_matchup_report(out, matchup, results)
 
     def get_tournament_results(self):
