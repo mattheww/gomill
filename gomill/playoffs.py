@@ -78,11 +78,9 @@ class Playoff(tournaments.Tournament):
                 player2 += "#2"
                 if player2 not in self.players:
                     self.players[player2] = self.players[player1].copy(player2)
-            interpreted = {}
-            for setting in tournaments.matchup_settings:
-                if setting.name in arguments:
-                    interpreted[setting.name] = \
-                        setting.interpret(arguments[setting.name])
+            interpreted = load_settings(
+                tournaments.matchup_settings, arguments,
+                apply_defaults=False, allow_missing=True)
             matchup_name = arguments.get('name')
             if matchup_name is not None:
                 try:

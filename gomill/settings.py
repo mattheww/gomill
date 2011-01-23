@@ -267,14 +267,14 @@ class Setting(object):
     def get_default(self):
         """Return the default value for this setting.
 
-        Raises ValueError if there isn't one.
+        Raises KeyError if there isn't one.
 
         """
         if self.default is not _nodefault:
             return self.default
         if self.defaultmaker is not None:
             return self.defaultmaker()
-        raise ValueError
+        raise KeyError
 
     def interpret(self, value):
         """Validate the value and normalise if necessary.
@@ -289,20 +289,21 @@ class Setting(object):
         except ValueError, e:
             raise ValueError("'%s': %s" % (self.name, e))
 
-def load_settings(settings, config, allow_missing=False):
+def load_settings(settings, config, apply_defaults=True, allow_missing=False):
     """Read settings values from configuration.
 
-    settings      -- list of Settings
-    config        -- dict containing the values to be read
-    allow_missing -- bool
+    settings       -- list of Settings
+    config         -- dict containing the values to be read
+    apply_defaults -- bool (default true)
+    allow_missing  -- bool (default false)
 
     Returns a dict: setting name -> interpreted value
 
-    Applies defaults.
-
-    If a setting which has no default isn't present in 'config', raises
-    ValueError (unless the allow_missing parameter is true, in which case the
-    setting is just omitted from the returned dict).
+    Handling of values which aren't present in 'config':
+      - if apply_defaults is true, the setting's default is substituted
+      - if apply_defaults is false or the setting has no default:
+        - if allow_missing is true, omits the setting from the returned dict
+        - if allow_missing is false, raises ValueError
 
     Resolves Config_proxy objects (see below)
 
@@ -312,23 +313,25 @@ def load_settings(settings, config, allow_missing=False):
     result = {}
     for setting in settings:
         try:
-            v = config[setting.name]
-        except KeyError:
             try:
-                v = setting.get_default()
-            except ValueError:
-                if allow_missing:
-                    continue
+                v = config[setting.name]
+                if isinstance(v, Config_proxy):
+                    try:
+                        v = v.resolve()
+                    except ValueError, e:
+                        raise ValueError("'%s': %s" % (setting.name, e))
+                # May propagate ValueError
+                v = setting.interpret(v)
+            except KeyError:
+                if apply_defaults:
+                    v = setting.get_default()
                 else:
-                    raise ValueError("'%s' not specified" % setting.name)
-        else:
-            if isinstance(v, Config_proxy):
-                try:
-                    v = v.resolve()
-                except ValueError, e:
-                    raise ValueError("'%s': %s" % (setting.name, e))
-            # May propagate ValueError
-            v = setting.interpret(v)
+                    raise
+        except KeyError:
+            if allow_missing:
+                continue
+            else:
+                raise ValueError("'%s' not specified" % setting.name)
         result[setting.name] = v
     return result
 

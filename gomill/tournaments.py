@@ -56,7 +56,7 @@ class Matchup(tournament_results.Matchup_description):
             except KeyError:
                 try:
                     v = setting.get_default()
-                except ValueError:
+                except KeyError:
                     raise ValueError("'%s' not specified" % setting.name)
             setattr(self, setting.name, v)
 
