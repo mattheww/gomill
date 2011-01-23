@@ -69,11 +69,11 @@ class Tournament(Competition):
         matchup_id       -- string
         player1          -- player code
         player2          -- player code
-        arguments        -- dict matchup setting name -> unchecked value
-        matchup_defaults -- dict matchup setting name -> checked value
+        arguments        -- dict matchup setting name -> value
+        matchup_defaults -- dict matchup setting name -> value
 
-        Validates matchup_id, name and the contents of 'arguments'; raises
-        ControlFileError if any are invalid.
+        Validates matchup_id and name; raises ControlFileError if either are
+        invalid.
 
         The value for each matchup setting is found as follows:
          - from 'arguments', if present there
