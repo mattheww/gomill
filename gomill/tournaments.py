@@ -1,10 +1,15 @@
 """Common code for all tournament types."""
 
+from collections import defaultdict
+
+from gomill import game_jobs
+from gomill import competition_schedulers
 from gomill import tournament_results
 from gomill import competitions
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError, ControlFileError)
 from gomill.settings import *
+from gomill.gomill_utils import format_percent
 
 class Matchup(tournament_results.Matchup_description):
     """Internal description of a matchup from the configuration file.
@@ -131,4 +136,176 @@ class Tournament(Competition):
             competitions.leading_zero_template(matchup.number_of_games))
 
         return matchup
+
+
+    # State attributes (*: in persistent state):
+    #  *results               -- map matchup id -> list of Game_results
+    #  *scheduler             -- Group_scheduler (group codes are matchup ids)
+    #  *engine_names          -- map player code -> string
+    #  *engine_descriptions   -- map player code -> string
+    #   working_matchups      -- set of matchup ids
+    #       (matchups which have successfully completed a game in this run)
+    #   probationary_matchups -- set of matchup ids
+    #       (matchups which failed to complete their last game)
+    #   ghost_matchups        -- map matchup id -> Ghost_matchup
+    #       (matchups which have been removed from the control file)
+
+    def _check_results(self):
+        """Check that the current results are consistent with the control file.
+
+        This is run when reloading state.
+
+        Raises CompetitionError if they're not.
+
+        (In general, control file changes are permitted. The only thing we
+        reject is results for a currently-defined matchup whose players aren't
+        correct.)
+
+        """
+        # We guarantee that results for a given matchup always have consistent
+        # players, so we need only check the first result.
+        for matchup in self.matchup_list:
+            results = self.results[matchup.id]
+            if not results:
+                continue
+            result = results[0]
+            seen_players = sorted(result.players.itervalues())
+            expected_players = sorted((matchup.p1, matchup.p2))
+            if seen_players != expected_players:
+                raise CompetitionError(
+                    "existing results for matchup %s "
+                    "are inconsistent with control file:\n"
+                    "result players are %s;\n"
+                    "control file players are %s" %
+                    (matchup.id,
+                     ",".join(seen_players), ",".join(expected_players)))
+
+    def _set_ghost_matchups(self):
+        self.ghost_matchups = {}
+        live = set(self.matchups)
+        for matchup_id, results in self.results.iteritems():
+            if matchup_id in live:
+                continue
+            result = results[0]
+            # p1 and p2 might not be the right way round, but it doesn't matter.
+            self.ghost_matchups[matchup_id] = Ghost_matchup(
+                matchup_id, result.player_b, result.player_w)
+
+    def _set_scheduler_groups(self):
+        self.scheduler.set_groups(
+            [(m.id, m.number_of_games) for m in self.matchup_list] +
+            [(id, 0) for id in self.ghost_matchups])
+
+    def set_clean_status(self):
+        self.results = defaultdict(list)
+        self.engine_names = {}
+        self.engine_descriptions = {}
+        self.scheduler = competition_schedulers.Group_scheduler()
+        self.ghost_matchups = {}
+        self._set_scheduler_groups()
+
+    def get_status(self):
+        return {
+            'results' : self.results,
+            'scheduler' : self.scheduler,
+            'engine_names' : self.engine_names,
+            'engine_descriptions' : self.engine_descriptions,
+            }
+
+    def set_status(self, status):
+        self.results = status['results']
+        self._check_results()
+        self._set_ghost_matchups()
+        self.scheduler = status['scheduler']
+        self._set_scheduler_groups()
+        self.scheduler.rollback()
+        self.engine_names = status['engine_names']
+        self.engine_descriptions = status['engine_descriptions']
+
+
+    def get_game(self):
+        matchup_id, game_number = self.scheduler.issue()
+        if matchup_id is None:
+            return NoGameAvailable
+        matchup = self.matchups[matchup_id]
+        if matchup.alternating and (game_number % 2):
+            player_b, player_w = matchup.p2, matchup.p1
+        else:
+            player_b, player_w = matchup.p1, matchup.p2
+        game_id = matchup.make_game_id(game_number)
+
+        job = game_jobs.Game_job()
+        job.game_id = game_id
+        job.game_data = (matchup_id, game_number)
+        job.player_b = self.players[player_b]
+        job.player_w = self.players[player_w]
+        job.board_size = matchup.board_size
+        job.komi = matchup.komi
+        job.move_limit = matchup.move_limit
+        job.handicap = matchup.handicap
+        job.handicap_is_free = (matchup.handicap_style == 'free')
+        job.use_internal_scorer = (matchup.scorer == 'internal')
+        job.sgf_event = matchup.event_description
+        return job
+
+    def process_game_result(self, response):
+        self.engine_names.update(response.engine_names)
+        self.engine_descriptions.update(response.engine_descriptions)
+        matchup_id, game_number = response.game_data
+        game_id = response.game_id
+        self.working_matchups.add(matchup_id)
+        self.probationary_matchups.discard(matchup_id)
+        self.scheduler.fix(matchup_id, game_number)
+        self.results[matchup_id].append(response.game_result)
+        self.log_history("%7s %s" % (game_id, response.game_result.describe()))
+
+    def process_game_error(self, job, previous_error_count):
+        # ignoring previous_error_count, as we can consider all jobs for the
+        # same matchup to be equivalent.
+        stop_competition = False
+        retry_game = False
+        matchup_id, game_data = job.game_data
+        if (matchup_id not in self.working_matchups or
+            matchup_id in self.probationary_matchups):
+            stop_competition = True
+        else:
+            self.probationary_matchups.add(matchup_id)
+            retry_game = True
+        return stop_competition, retry_game
+
+    def write_matchup_report(self, out, matchup, results):
+        """Write the summary block for the specified matchup to 'out'
+
+        results -- nonempty list of Game_results
+
+        """
+        # The control file might have changed since the results were recorded.
+        # We are guaranteed that the player codes correspond, but nothing else.
+
+        # We use the current matchup to describe 'background' information, as
+        # that isn't available any other way, but we look to the results where
+        # we can.
+
+        def p(s):
+            print >>out, s
+
+        ms = tournament_results.Matchup_stats(results, matchup.p1, matchup.p2)
+        ms.calculate_colour_breakdown()
+        ms.calculate_time_stats()
+
+        if matchup.number_of_games is None:
+            played_s = "%d" % ms.total
+        else:
+            played_s = "%d/%d" % (ms.total, matchup.number_of_games)
+        p("%s (%s games)" % (matchup.name, played_s))
+        if ms.unknown > 0:
+            p("unknown results: %d %s" %
+              (ms.unknown, format_percent(ms.unknown, ms.total)))
+
+        p(matchup.describe_details())
+        p("\n".join(tournament_results.make_matchup_stats_table(ms).render()))
+
+    def get_tournament_results(self):
+        return tournament_results.Tournament_results(
+            self.matchup_list, self.results)
 
