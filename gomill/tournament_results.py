@@ -80,7 +80,7 @@ class Tournament_results(object):
     def get_matchup_results(self, matchup_id):
         """Return the results for the specified matchup.
 
-        Returns a list of gtp_games.Game_results
+        Returns a list of gtp_games.Game_results (in unspecified order).
 
         The Game_results all have game_id set.
 
