@@ -143,6 +143,7 @@ class Allplayall(tournaments.Tournament):
 
     # Additional state attributes (*: in persistent state):
     #  *competitors           -- list of player codes
+    # Note that we don't permit ghost matchups
 
     # Can bump this to prevent people loading incompatible .status files.
     status_format_version = 0
