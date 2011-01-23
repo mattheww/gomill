@@ -62,18 +62,15 @@ class Tournament(Competition):
         self.working_matchups = set()
         self.probationary_matchups = set()
 
-    def matchup_from_config(self, arguments, matchup_defaults):
+    def make_matchup(self, matchup_id, player1, player2,
+                     arguments, matchup_defaults, name=None):
         """Make a Matchup from a Matchup_config.
 
-        arguments -- resolved arguments from a Matchup_config
+        FIXME [[
+        arguments -- FIXME: matchup_settings values (possibly partial)
 
-        The 'id' argument must be present; the caller should add it if it
-        wasn't there in the config file.
-
-        The 'player1' and 'player2' arguments must be present; the caller
-        should report an error before calling this function if they aren't.
-
-        This function doesn't check that they are in self.players.
+        [This function doesn't check that the players are in self.players.]
+        ]]
 
         Raises ControlFileError if there is an error in the configuration.
 
@@ -81,8 +78,8 @@ class Tournament(Competition):
 
         """
         matchup = Matchup()
-        matchup.p1 = arguments['player1']
-        matchup.p2 = arguments['player2']
+        matchup.p1 = player1
+        matchup.p2 = player2
 
         for setting in matchup_settings:
             if setting.name in arguments:
@@ -104,13 +101,11 @@ class Tournament(Competition):
         competitions.validate_handicap(
             matchup.handicap, matchup.handicap_style, matchup.board_size)
 
-        matchup_id = arguments['id']
         try:
             matchup.id = interpret_identifier(matchup_id)
         except ValueError, e:
             raise ControlFileError("id: %s" % e)
 
-        name = arguments.get('name')
         if name is None:
             name = "%s v %s" % (matchup.p1, matchup.p2)
             event_description = self.competition_code
