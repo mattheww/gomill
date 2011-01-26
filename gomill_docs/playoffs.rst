@@ -109,6 +109,9 @@ matchups (either explicitly or as defaults); the rest are all optional.
 All :ref:`game settings <game settings>` can be used as matchup arguments, and
 also the following:
 
+
+.. _matchup id:
+
 .. pl-setting:: id
 
   Identifier

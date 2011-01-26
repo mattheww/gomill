@@ -67,5 +67,6 @@ Using the ringmaster
    ringmaster_cmdline
    settings
    competition_types
+   tournament_results
    Error handling… <errors>
 
