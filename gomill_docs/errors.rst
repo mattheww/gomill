@@ -30,6 +30,8 @@ competitor letters shown in the results grid, with the length depending on the
 :aa-setting:`rounds` setting.
 
 
+.. _details of scoring:
+
 Details of scoring
 ^^^^^^^^^^^^^^^^^^
 

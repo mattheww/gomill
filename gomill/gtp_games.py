@@ -17,13 +17,13 @@ class Game_result(object):
       players             -- map colour -> player code
       player_b            -- player code
       player_w            -- player code
-      winning_colour      -- 'b', 'w', or None
-      losing_colour       -- 'b', 'w', or None
       winning_player      -- player code or None
       losing_player       -- player code or None
-      sgf_result          -- string describing the game's result (for sgf RE)
+      winning_colour      -- 'b', 'w', or None
+      losing_colour       -- 'b', 'w', or None
       is_jigo             -- bool
       is_forfeit          -- bool
+      sgf_result          -- string describing the game's result (for sgf RE)
       detail              -- additional information (string or None)
       game_id             -- string or None
       cpu_times           -- map player code -> float or None or '?'.

@@ -75,6 +75,11 @@ included.
    there.
 
 
+.. index:: CPU time
+.. index:: time; CPU
+
+.. _cpu time:
+
 CPU time
 ^^^^^^^^
 
