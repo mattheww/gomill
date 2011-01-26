@@ -76,12 +76,14 @@ Tournament results API
 
    :attr:`!p1` and :attr:`!p2` are always different.
 
-   .. todo:: Explain that they match the Game_results. Explain about #2 stuff.
-
+   .. note:: In a :ref:`playoff tournament <playoff tournament>`, it is
+      possible to define a matchup in which the same player takes both
+      colours. In this case, :attr:`!p2` will have the string ``'#2'``
+      appended to the player code from the control file.
 
    .. attribute:: name
 
-      String describing the matchup (eg ``xxx v yyy``)
+      String describing the matchup (eg ``'xxx v yyy'``)
 
    .. attribute:: board_size
 
@@ -138,6 +140,10 @@ Tournament results API
       :class:`ringmaster` object using
       :samp:`ringmaster.get_sgf_filename({game_id})`
 
+   The :ref:`player codes <player codes>` used here are the same as the ones
+   in the corresponding :class:`Matchup_description`'s :attr:`p1` and
+   :attr:`p2` attributes.
+
    See :ref:`playing games` and :ref:`details of scoring` for an explanation
    of the possible game results. Games with unknown result can be
    distinguished as having :attr:`winning_player` ``None`` but :attr:`is_jigo`
@@ -150,6 +156,9 @@ Tournament results API
 
       Short string uniquely identifying the game within the tournament. See
       :ref:`game id`.
+
+      .. Game_results returned via Tournament_results always have game_id set,
+         so documenting it that way here.
 
    .. attribute:: players
 
@@ -190,7 +199,7 @@ Tournament results API
    .. attribute:: sgf_result
 
       String describing the game's result. This is in the format used for the
-      :term:`SGF` ``RE`` property (eg ``B+1.5``).
+      :term:`SGF` ``RE`` property (eg ``'B+1.5'``).
 
    .. attribute:: detail
 
