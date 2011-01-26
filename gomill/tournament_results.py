@@ -70,11 +70,7 @@ class Tournament_results(object):
         return self.matchups[matchup_id]
 
     def get_matchups(self):
-        """Return a map matchup id -> Matchup.
-
-        See get_matchups() for a description of Matchup objects.
-
-        """
+        """Return a map matchup id -> Matchup_description."""
         return self.matchups.copy()
 
     def get_matchup_results(self, matchup_id):
