@@ -7,12 +7,12 @@ Tournament results API
 
 .. class:: Tournament_results
 
-   A Tournament_results object provides access to the results of a single
-   tournament.
+   A Tournament_results object provides access to the game results and
+   statistics for a single tournament.
 
    The tournament results are catalogued in terms of :dfn:`matchups`, with
-   each matchup corresponding to a pair of players. Each matchup has an id,
-   which is a short string.
+   each matchup corresponding to a series of games which had the same players
+   and settings. Each matchup has an id, which is a short string.
 
    Tournament_results objects are normally retrieved from :class:`Competition`
    or :class:`Ringmaster` objects.
@@ -37,7 +37,7 @@ Tournament results API
 
       Return the individual game results for the matchup with the specified id.
 
-      Returns a list of :class:`Game_result` objects.
+      This returns a list of :class:`Game_result` objects.
 
       The list is in unspecified order (in particular, the colours don't
       necessarily alternate, even if :attr:`alternating` is ``True`` for the
@@ -149,6 +149,8 @@ Tournament results API
    distinguished as having :attr:`winning_player` ``None`` but :attr:`is_jigo`
    ``False``.
 
+   Game_results can be retrieved from :class:`Tournament_results` objects.
+
    Game_results have the following attributes (which should be treated as
    read-only):
 
@@ -190,11 +192,12 @@ Tournament results API
 
    .. attribute:: is_jigo
 
-      Bool: ``True`` if the game is a :term:`jigo`.
+      Bool: ``True`` if the game was a :term:`jigo`.
 
    .. attribute:: is_forfeit
 
-      Bool: ``True`` if the game was forfeit; see :ref:`playing games`.
+      Bool: ``True`` if one of the players lost the game by forfeit; see
+      :ref:`playing games`.
 
    .. attribute:: sgf_result
 

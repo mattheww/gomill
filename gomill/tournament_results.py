@@ -48,8 +48,8 @@ class Tournament_results(object):
     """Provide access to results of a single tournament.
 
     The tournament results are catalogued in terms of 'matchups', with each
-    matchup corresponding to a pair of players. Each matchup has an id, which is
-    a short string.
+    matchup corresponding to a series of games which have the same players and
+    settings. Each matchup has an id, which is a short string.
 
     """
     def __init__(self, matchup_list, results):

@@ -1,5 +1,7 @@
 .. index:: playoffs
 
+.. _playoff tournament:
+
 Playoff tournaments
 ^^^^^^^^^^^^^^^^^^^
 
