@@ -229,3 +229,127 @@ Tournament results API
       Return a short human-readable description of the result.
 
       For example, ``'xxx beat yyy (W+2.5)'``.
+
+
+.. class:: Matchup_stats
+
+   A Matchup_stats object provides statistical summary information for a
+   matchup.
+
+   Matchup_stats objects are normally retrieved from
+   :class:`Tournament_results` objects.
+
+   Matchup_stats objects have the following attributes (which should be
+   treated as read-only):
+
+   .. attribute:: player_x
+
+      :ref:`player code <player codes>` of the first player
+
+   .. attribute:: player_y
+
+      :ref:`player code <player codes>` of the second player
+
+   .. attribute:: total
+
+      Integer. The number of games played in the matchup.
+
+   .. attribute:: x_wins
+
+      Integer. The number of games won by the first player.
+
+   .. attribute:: y_wins
+
+      Integer. The number of games won by the second player.
+
+   .. attribute:: x_forfeits
+
+      Integer. The number of games in which the first player lost by forfeit.
+
+   .. attribute:: y_forfeits
+
+      Integer. The number of games in which the second player lost by forfeit.
+
+   .. attribute:: unknown
+
+      Integer. The number of games whose result is unknown.
+
+   .. attribute:: x_average_time
+
+      float or ``None``. The average CPU time taken by the first player.
+
+   .. attribute:: y_average_time
+
+      float or ``None``. The average CPU time taken by the second player.
+
+   If CPU times are available for only some games, the average is taken over
+   the games for which they are available. If they aren't available for any
+   games, the average is given as ``None``.
+
+
+   .. attribute:: xb_played
+
+      Integer. The number of games in which the first player took Black.
+
+   .. attribute:: xw_played
+
+      Integer. The number of games in which the first player took White.
+
+   .. attribute:: yb_played
+
+      Integer. The number of games in which the second player took Black.
+
+   .. attribute:: yw_played
+
+      Integer. The number of games in which the second player took White.
+
+   .. attribute:: alternating
+
+      Bool. This is true if each player played at least one game as Black and
+      at least one game as White.
+
+      This doesn't always equal the :attr:`~Matchup_description.alternating`
+      attribute from the corresponding :class:`Matchup_description` object (in
+      particular, if only one game was played in the matchup, it will always
+      be ``False``).
+
+   If :attr:`alternating` is ``True``, the following attributes are also
+   available:
+
+   .. attribute:: b_wins
+
+      Integer. The number of games in which Black won.
+
+   .. attribute:: w_wins
+
+      Integer. The number of games in which White won.
+
+   .. attribute:: xb_wins
+
+      Integer. The number of games in which the first player won with Black.
+
+   .. attribute:: xw_wins
+
+      Integer. The number of games in which the first player won with White.
+
+   .. attribute:: yb_wins
+
+      Integer. The number of games in which the second player won with Black.
+
+   .. attribute:: yw_wins
+
+      Integer. The number of games in which the second player won with White.
+
+
+   If :attr:`alternating` is ``False``, the following attributes are also
+   available:
+
+   .. attribute:: x_colour
+
+      The *colour* taken by the first player.
+
+   .. attribute:: y_colour
+
+      The *colour* taken by the second player.
+
+
