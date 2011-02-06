@@ -211,15 +211,17 @@ Tournament results API
       This is present (not ``None``) for those game results which are not wins
       on points, jigos, or wins by resignation.
 
-   .. attribute:: cpu_times
+   .. (leaving cpu_times undocumented, as I don't want to say it's stable)
 
-      Map :ref:`player code <player codes>` → *time*.
+      .. attribute:: cpu_times
 
-      The time is a float representing a number of seconds, or ``None`` if
-      time is not available, or ``'?'`` if :gtp:`gomill-cpu_time` is
-      implemented but returned a failure response.
+         Map :ref:`player code <player codes>` → *time*.
 
-      See :ref:`cpu time` for more details.
+         The time is a float representing a number of seconds, or ``None`` if
+         time is not available, or ``'?'`` if :gtp:`gomill-cpu_time` is
+         implemented but returned a failure response.
+
+         See :ref:`cpu time` for more details.
 
 
    Game_results support the following method:
@@ -233,8 +235,7 @@ Tournament results API
 
 .. class:: Matchup_stats
 
-   A Matchup_stats object provides statistical summary information for a
-   matchup.
+   A Matchup_stats object provides basic summary information for a matchup.
 
    Matchup_stats objects are normally retrieved from
    :class:`Tournament_results` objects.
@@ -284,7 +285,8 @@ Tournament results API
 
    If CPU times are available for only some games, the average is taken over
    the games for which they are available. If they aren't available for any
-   games, the average is given as ``None``.
+   games, the average is given as ``None``. See :ref:`cpu time` for notes on
+   how CPU times are obtained.
 
 
    .. attribute:: xb_played
