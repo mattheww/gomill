@@ -3,7 +3,16 @@ Tournament results API
 
 .. todo:: introduction
 
+
+.. contents:: Page contents
+   :local:
+   :backlinks: none
+
 .. todo:: explain *colour* is ``'b'`` or ``'w'``.
+
+
+Tournament_results objects
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. class:: Tournament_results
 
@@ -50,6 +59,9 @@ Tournament results API
       Return a :class:`Matchup_stats` object containing statistics for the
       matchup with the specified id.
 
+
+Matchup_description objects
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. class:: Matchup_description
 
@@ -130,6 +142,9 @@ Tournament results API
       This covers the most important game settings which can't be observed in
       the results table (board size, handicap, and komi).
 
+
+Game_result objects
+^^^^^^^^^^^^^^^^^^^
 
 .. class:: Game_result
 
@@ -232,6 +247,9 @@ Tournament results API
 
       For example, ``'xxx beat yyy (W+2.5)'``.
 
+
+Matchup_stats objects
+^^^^^^^^^^^^^^^^^^^^^
 
 .. class:: Matchup_stats
 
