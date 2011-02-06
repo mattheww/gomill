@@ -26,7 +26,7 @@ Tournament_results objects
    and settings. Each matchup has an id, which is a short string.
 
    Tournament_results objects are normally retrieved from :class:`Competition`
-   or :class:`Ringmaster` objects.
+   or :class:`Ringmaster` objects; see :ref:`using_the_api_in_scripts`.
 
    Tournament_results objects support the following methods:
 
@@ -375,4 +375,23 @@ Matchup_stats objects
 
       The *colour* taken by the second player.
 
+
+.. _using_the_api_in_scripts:
+
+Using the API in scripts
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+To write a stand-alone script using the tournaments results API, use a
+:class:`Ringmaster` object as follows::
+
+  from gomill import ringmasters
+  ringmaster = ringmasters.Ringmaster(control_file_pathname)
+  ringmaster.load_status()
+  tournament_results = ringmaster.tournament_results()
+
+All of these calls report problems by raising the :exc:`RingmasterError`
+exception defined in the :mod:`ringmasters` module.
+
+See the :script:`find_forfeits.py` example script for a more fleshed-out
+example.
 
