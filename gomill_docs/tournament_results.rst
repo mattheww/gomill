@@ -1,8 +1,11 @@
 Tournament results API
 ----------------------
 
-.. todo:: introduction
+This is a Python library interface for processing the competition results
+stored in a tournament's :ref:`state file <competition state>`.
 
+Note that it can be used only for :ref:`tournaments <tournaments>` (not for
+:ref:`tuning events <tuners>`).
 
 In the descriptions below, *colour* represents a single-character string,
 either ``'b'`` or ``'w'``.
