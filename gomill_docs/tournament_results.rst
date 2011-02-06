@@ -1,8 +1,9 @@
 Tournament results API
 ----------------------
 
-This is a Python library interface for processing the competition results
-stored in a tournament's :ref:`state file <competition state>`.
+This is a Python interface for processing the game results stored in a
+tournament's :ref:`state file <competition state>`. It can be used to write
+custom reports, or to find games with particular results.
 
 Note that it can be used only for :ref:`tournaments <tournaments>` (not for
 :ref:`tuning events <tuners>`).
@@ -158,7 +159,7 @@ Game_result objects
    .. note:: If an |sgf| :ref:`game record <game records>` has been written
       for the game, you can retrieve its location in the filesystem from a
       :class:`ringmaster` object using
-      :samp:`ringmaster.get_sgf_filename({game_id})`
+      :samp:`ringmaster.get_sgf_pathname({game_id})`
 
    The :ref:`player codes <player codes>` used here are the same as the ones
    in the corresponding :class:`Matchup_description`'s

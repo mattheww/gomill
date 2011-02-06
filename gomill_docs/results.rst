@@ -98,8 +98,8 @@ all done directly in that process.
 Querying the results
 ^^^^^^^^^^^^^^^^^^^^
 
-Gomill provides a Python library interface for processing the competition
-results stored in a tournament's :ref:`state file <competition state>`.
+Gomill provides a Python library interface for processing the game results
+stored in a tournament's :ref:`state file <competition state>`.
 
 This is documented in :doc:`tournament_results`. See also the
 :script:`find_forfeits.py` example script.
