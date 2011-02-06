@@ -13,12 +13,15 @@ Gomill is intended to be useful as a Python library for developing |gtp|- and
 Library status
 --------------
 
-As of Gomill |version|, the library API is not formally documented, and should
-not be considered entirely stable.
+As of Gomill |version|, most of the library API is not formally documented,
+and should not be considered entirely stable.
 
 Nonetheless, the source files contain fairly detailed documentation, and the
 :doc:`example scripts <example_scripts>` illustrate how various parts of the
 library can be used.
+
+Most of the :mod:`!tournament_results` module is documented under
+:doc:`tournament_results`.
 
 
 Library overview

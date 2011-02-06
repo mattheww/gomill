@@ -1,5 +1,3 @@
-.. _cmdline:
-
 Command line
 ^^^^^^^^^^^^
 

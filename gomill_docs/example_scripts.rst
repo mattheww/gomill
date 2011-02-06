@@ -34,8 +34,7 @@ scripts.
 
   Finds the forfeited games from a playoff or all-play-all tournament.
 
-  This demonstrates the library interface for :ref:`querying tournament
-  results <querying the results>`.
+  This demonstrates the :doc:`tournament results API <tournament_results>`.
 
 
 .. script:: gtp_test_player

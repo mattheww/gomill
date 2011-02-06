@@ -120,8 +120,8 @@ also the following:
 
   A short string (usually one to three characters) which is used to identify
   the matchup. Matchup ids appear in the :ref:`game ids <game id>` (and so in
-  the |sgf| filenames), and are used in the :ref:`result-retrieval API
-  <querying the results>`.
+  the |sgf| filenames), and are used in the :doc:`tournament results API
+  <tournament_results>`.
 
   If this is left unspecified, the matchup id will be the index of the matchup
   in the :pl-setting:`matchups` list (formatted as a decimal string, starting

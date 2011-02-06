@@ -98,11 +98,9 @@ all done directly in that process.
 Querying the results
 ^^^^^^^^^^^^^^^^^^^^
 
-It's possible to write Python scripts to process competition results,
-interpreting a competition's :ref:`state file <competition state>`.
+Gomill provides a Python library interface for processing the competition
+results stored in a tournament's :ref:`state file <competition state>`.
 
-As of Gomill |version|, this library interface is not definitely stable, but
-the :script:`find_forfeits.py` example script and the docstrings of the last
-few methods in the :mod:`!playoffs` module show how it can be used (for
-tournaments, at least).
+This is documented in :doc:`tournament_results`. See also the
+:script:`find_forfeits.py` example script.
 

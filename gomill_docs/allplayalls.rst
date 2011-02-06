@@ -107,7 +107,7 @@ reached the :setting:`move_limit`), they will not be shown in the grid.
 The competition report also shows full details of each pairing in the same
 style as playoff tournaments.
 
-For purposes of :ref:`querying the results <querying the results>`, the
+For purposes of the :doc:`tournament results API <tournament_results>`, the
 matchup ids are of the form ``AvB`` (using the competitor letters shown in the
 results grid).
 

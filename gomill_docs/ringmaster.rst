@@ -2,8 +2,8 @@ The ringmaster
 ==============
 
 The ringmaster is a command line program which arranges games between |gtp|
-engines and keeps track of the results. See :ref:`cmdline` below for details
-of the command line options.
+engines and keeps track of the results. See :doc:`ringmaster_cmdline` below
+for details of the command line options.
 
 .. contents:: Page contents
    :local:
