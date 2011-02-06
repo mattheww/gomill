@@ -4,11 +4,13 @@ Tournament results API
 .. todo:: introduction
 
 
+In the descriptions below, *colour* represents a single-character string,
+either ``'b'`` or ``'w'``.
+
 .. contents:: Page contents
    :local:
    :backlinks: none
 
-.. todo:: explain *colour* is ``'b'`` or ``'w'``.
 
 
 Tournament_results objects
@@ -76,15 +78,15 @@ Matchup_description objects
 
    .. attribute:: id
 
-      The :ref:`matchup id <matchup id>` (a string, usually 1 to 3 characters)
+      The :ref:`matchup id <matchup id>` (a string, usually 1 to 3 characters).
 
    .. attribute:: p1
 
-      The :ref:`player code <player codes>` of the first player
+      The :ref:`player code <player codes>` of the first player.
 
    .. attribute:: p2
 
-      The :ref:`player code <player codes>` of the second player
+      The :ref:`player code <player codes>` of the second player.
 
    :attr:`!p1` and :attr:`!p2` are always different.
 
@@ -95,15 +97,15 @@ Matchup_description objects
 
    .. attribute:: name
 
-      String describing the matchup (eg ``'xxx v yyy'``)
+      String describing the matchup (eg ``'xxx v yyy'``).
 
    .. attribute:: board_size
 
-      Integer (eg ``19``)
+      Integer (eg ``19``).
 
    .. attribute:: komi
 
-      Float (eg ``7.0``)
+      Float (eg ``7.0``).
 
    .. attribute:: alternating
 
@@ -112,11 +114,11 @@ Matchup_description objects
 
    .. attribute:: handicap
 
-      Integer or ``None``
+      Integer or ``None``.
 
    .. attribute:: handicap_style
 
-      String: ``'fixed'`` or ``'free'``
+      String: ``'fixed'`` or ``'free'``.
 
    .. attribute:: move_limit
 
@@ -156,8 +158,9 @@ Game_result objects
       :samp:`ringmaster.get_sgf_filename({game_id})`
 
    The :ref:`player codes <player codes>` used here are the same as the ones
-   in the corresponding :class:`Matchup_description`'s :attr:`p1` and
-   :attr:`p2` attributes.
+   in the corresponding :class:`Matchup_description`'s
+   :attr:`~Matchup_description.p1` and :attr:`~Matchup_description.p2`
+   attributes.
 
    See :ref:`playing games` and :ref:`details of scoring` for an explanation
    of the possible game results. Games with unknown result can be
@@ -179,31 +182,31 @@ Game_result objects
 
    .. attribute:: players
 
-      Map *colour* → :ref:`player code <player codes>`
+      Map *colour* → :ref:`player code <player codes>`.
 
    .. attribute:: player_b
 
-      :ref:`player code <player codes>` of the Black player
+      :ref:`player code <player codes>` of the Black player.
 
    .. attribute:: player_w
 
-      :ref:`player code <player codes>` of the White player
+      :ref:`player code <player codes>` of the White player.
 
    .. attribute:: winning_player
 
-      :ref:`player code <player codes>` or ``None``
+      :ref:`player code <player codes>` or ``None``.
 
    .. attribute:: losing_player
 
-      :ref:`player code <player codes>` or ``None``
+      :ref:`player code <player codes>` or ``None``.
 
    .. attribute:: winning_colour
 
-      *colour* or ``None``
+      *colour* or ``None``.
 
    .. attribute:: losing_colour
 
-      *colour* or ``None``
+      *colour* or ``None``.
 
    .. attribute:: is_jigo
 
@@ -263,11 +266,11 @@ Matchup_stats objects
 
    .. attribute:: player_x
 
-      :ref:`player code <player codes>` of the first player
+      :ref:`player code <player codes>` of the first player.
 
    .. attribute:: player_y
 
-      :ref:`player code <player codes>` of the second player
+      :ref:`player code <player codes>` of the second player.
 
    .. attribute:: total
 
