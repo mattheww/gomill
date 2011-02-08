@@ -36,23 +36,27 @@ Tournament_results objects
 
    .. method:: get_matchup_ids()
 
-      Return a list of all the tournament's matchup ids.
+      :rtype: list of strings
+
+      Return the tournament's matchup ids.
 
    .. method:: get_matchup(matchup_id)
 
-      Return a :class:`Matchup_description` describing the matchup with the
-      specified id.
+      :rtype: :class:`Matchup_description`
+
+      Describe the matchup with the specified id.
 
    .. method:: get_matchups()
 
-      Return a map *matchup id* → :class:`Matchup_description`, describing all
-      matchups.
+      :rtype: map *matchup id* → :class:`Matchup_description`
+
+      Describe all matchups.
 
    .. method:: get_matchup_results(matchup_id)
 
-      Return the individual game results for the matchup with the specified id.
+      :rtype: list of :class:`Game_result` objects
 
-      This returns a list of :class:`Game_result` objects.
+      Return the individual game results for the matchup with the specified id.
 
       The list is in unspecified order (in particular, the colours don't
       necessarily alternate, even if :attr:`alternating` is ``True`` for the
@@ -62,8 +66,9 @@ Tournament_results objects
 
    .. method:: get_matchup_stats(matchup_id)
 
-      Return a :class:`Matchup_stats` object containing statistics for the
-      matchup with the specified id.
+      :rtype: :class:`Matchup_stats` object
+
+      Return statistics for the matchup with the specified id.
 
 
 Matchup_description objects
@@ -142,6 +147,8 @@ Matchup_description objects
    Matchup_descriptions support the following method:
 
    .. method:: describe_details()
+
+      :rtype: string
 
       Return a text description of the matchup's game settings.
 
@@ -249,6 +256,8 @@ Game_result objects
    Game_results support the following method:
 
    .. method:: describe()
+
+      :rtype: string
 
       Return a short human-readable description of the result.
 

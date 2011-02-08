@@ -31,3 +31,8 @@ abbr {
   border-bottom: none; cursor:help;
 }
 
+th.field-name {
+  background-color: #E4E4E4;
+  font-weight: normal;
+}
+
