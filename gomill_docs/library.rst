@@ -67,6 +67,8 @@ Competitions
 
 - :mod:`!competition_schedulers`
 - :mod:`!competitions`
+- :mod:`!tournament_results`
+- :mod:`!tournaments`
 - :mod:`!playoffs`
 - :mod:`!allplayalls`
 - :mod:`!cem_tuners`
