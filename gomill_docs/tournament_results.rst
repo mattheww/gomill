@@ -8,14 +8,20 @@ custom reports, or to find games with particular results.
 Note that it can be used only for :ref:`tournaments <tournaments>` (not for
 :ref:`tuning events <tuners>`).
 
+The classes described here are implemented in the :mod:`tournament_results`
+and :mod:`gtp_games` modules, but there is normally no need to import these
+directly. See :ref:`using_the_api_in_scripts`.
+
 In the descriptions below, *colour* represents a single-character string,
 either ``'b'`` or ``'w'``.
+
 
 .. contents:: Page contents
    :local:
    :backlinks: none
 
 
+.. currentmodule:: tournament_results
 
 Tournament_results objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -156,6 +162,8 @@ Matchup_description objects
       the results table (board size, handicap, and komi).
 
 
+.. currentmodule:: gtp_games
+
 Game_result objects
 ^^^^^^^^^^^^^^^^^^^
 
@@ -263,6 +271,8 @@ Game_result objects
 
       For example, ``'xxx beat yyy (W+2.5)'``.
 
+
+.. currentmodule:: tournament_results
 
 Matchup_stats objects
 ^^^^^^^^^^^^^^^^^^^^^
