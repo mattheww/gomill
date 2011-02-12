@@ -274,7 +274,7 @@ same as in the control file (:file:`{code}` in the table below).
 The full set of files that may be present in the competition directory is:
 
 ======================= =======================================================
-:file:`{code}.ctl`      the :ref:`control file <control file>`
+:file:`{code}.ctl`      the :doc:`control file <settings>`
 :file:`{code}.status`   the :ref:`competition state <competition state>` file
 :file:`{code}.log`      the :ref:`event log <logging>`
 :file:`{code}.hist`     the :ref:`history file <logging>`

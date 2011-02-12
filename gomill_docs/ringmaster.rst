@@ -15,7 +15,7 @@ Competitions and runs
 .. index:: competition
 
 The ringmaster takes its instructions from a single configuration file known
-as the :ref:`control file <control file>`. Each control file defines a
+as the :doc:`control file <settings>`. Each control file defines a
 :term:`competition`; the :ref:`output files <output files>` for that
 competition are written to the directory containing the control file.
 
