@@ -56,7 +56,7 @@ def sanitise_utf8(s):
     if s is None:
         return None
     try:
-        u = s.decode("utf-8")
+        s.decode("utf-8")
     except UnicodeDecodeError:
         return (s.decode("utf-8", 'replace')
                 .replace(u"\ufffd", u"?")
