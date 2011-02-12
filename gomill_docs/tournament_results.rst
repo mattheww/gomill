@@ -83,7 +83,8 @@ Matchup_description objects
 .. class:: Matchup_description
 
    A Matchup_description describes a series of games which had the same
-   players and settings.
+   players and settings. The information comes from the current contents of
+   the tournament's control file.
 
    Matchup_descriptions are normally retrieved from
    :class:`Tournament_results` objects.
@@ -169,12 +170,14 @@ Game_result objects
 
 .. class:: Game_result
 
-   A Game_result contains the information recorded for an individual game.
+   A Game_result contains the information recorded for an individual game. The
+   information comes from the tournament's :ref:`state file <competition
+   state>`.
 
    .. note:: If an |sgf| :ref:`game record <game records>` has been written
       for the game, you can retrieve its location in the filesystem from a
       :class:`ringmaster` object using
-      :samp:`ringmaster.get_sgf_pathname({game_id})`
+      :samp:`ringmaster.get_sgf_pathname({game_id})`.
 
    The :ref:`player codes <player codes>` used here are the same as the ones
    in the corresponding :class:`Matchup_description`'s
@@ -280,6 +283,8 @@ Matchup_stats objects
 .. class:: Matchup_stats
 
    A Matchup_stats object provides basic summary information for a matchup.
+   The information comes from the tournament's :ref:`state file <competition
+   state>`.
 
    Matchup_stats objects are normally retrieved from
    :class:`Tournament_results` objects.
