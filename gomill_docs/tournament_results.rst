@@ -9,7 +9,7 @@ Note that it can be used only for :ref:`tournaments <tournaments>` (not for
 :ref:`tuning events <tuners>`).
 
 The classes described here are implemented in the :mod:`tournament_results`
-and :mod:`gtp_games` modules, but there is normally no need to import these
+and :mod:`gtp_games` modules, but you should not normally import these
 directly. See :ref:`using_the_api_in_scripts`.
 
 In the descriptions below, *colour* represents a single-character string,
@@ -404,8 +404,9 @@ Matchup_stats objects
 Using the API in scripts
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-To write a stand-alone script using the tournaments results API, use a
-:class:`Ringmaster` object as follows::
+To write a stand-alone script using the tournaments results API, obtain a
+:class:`Tournament_results` object from a :class:`Ringmaster` object as
+follows::
 
   from gomill import ringmasters
   ringmaster = ringmasters.Ringmaster(control_file_pathname)
