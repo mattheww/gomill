@@ -92,7 +92,7 @@ See :ref:`data types` below for the representation of values. See the `Python
 language reference`__ for a formal specification.
 
 The settings which are common to all competition types are listed below.
-Further settings are given on the page for each competition type.
+Further settings are given on the page documenting each competition type.
 
 .. caution:: while the ringmaster will give error messages for unacceptable
    setting values, it will ignore attempts to set a nonexistent setting (this
@@ -246,8 +246,8 @@ Player configuration
 
 A :setting-cls:`!Player` definition has the same syntax as a Python function
 call: :samp:`Player({arguments})`. Apart from :setting:`command`, the
-arguments should be specified using keyword form (see :ref:`sample control
-file`).
+arguments should be specified using keyword form (see the examples for
+particular arguments below).
 
 All arguments other than :setting:`command` are optional.
 
@@ -262,7 +262,7 @@ The arguments are:
 
   String or list of strings
 
-  This is the only required :setting-cls:`Player` arguments. It can be
+  This is the only required :setting-cls:`Player` argument. It can be
   specified either as the first argument, or using a keyword
   :samp:`command="{...}"`. It specifies the executable which will provide the
   player, and its command line arguments.
@@ -338,8 +338,8 @@ The arguments are:
   games`.
 
   Each command can be specified either as a single string or as a list of
-  strings (with each argument in a single string). For example, the following
-  are equivalent::
+  strings (with each |gtp| argument in a single string). For example, the
+  following are equivalent::
 
     Player('fuego', startup_gtp_commands=[
                         "uct_param_player ponder 0",
@@ -391,8 +391,8 @@ Game settings
 The following settings describe how a particular game is to be played.
 
 They are not all used in every competition type, and may be specified in some
-other way than a top level control file setting; see the page for a particular
-competition type for details.
+other way than a top level control file setting; see the page documenting a
+particular competition type for details.
 
 
 .. setting:: board_size
@@ -476,8 +476,8 @@ record of the earlier definition, or which games were played under it.
 If you change descriptive text, you can use the :action:`report` command line
 action to remake the report file.
 
-The page for each competition type has more detail on what it is safe to
-change.
+The page documenting each competition type has more detail on what it is safe
+to change.
 
 
 .. _control file techniques:
