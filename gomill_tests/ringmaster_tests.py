@@ -75,7 +75,7 @@ class Ringmaster_fixture(test_framework.Fixture):
         return self.ringmaster._written_status
 
 
-base_ctl = """
+playoff_ctl = """
 
 competition_type = 'playoff'
 
@@ -133,7 +133,7 @@ def make_candidate(foo):
 """
 
 def test_get_job(tc):
-    fx = Ringmaster_fixture(tc, base_ctl, [
+    fx = Ringmaster_fixture(tc, playoff_ctl, [
         "players['p2'] = Player('test sing song')",
         ])
     job = fx.get_job()
@@ -167,7 +167,7 @@ def test_get_job(tc):
 
 
 def test_settings(tc):
-    fx = Ringmaster_fixture(tc, base_ctl, [
+    fx = Ringmaster_fixture(tc, playoff_ctl, [
         "handicap = 9",
         "handicap_style = 'free'",
         "record_games = True",
@@ -190,7 +190,7 @@ def test_settings(tc):
                    "/nonexistent/ctl/test.games/0_000.sgf")
 
 def test_stderr_settings(tc):
-    fx = Ringmaster_fixture(tc, base_ctl, [
+    fx = Ringmaster_fixture(tc, playoff_ctl, [
         "players['p2'] = Player('test', discard_stderr=True)",
         ])
     job = fx.get_job()
@@ -198,7 +198,7 @@ def test_stderr_settings(tc):
     tc.assertEqual(job.player_w.stderr_pathname, os.devnull)
 
 def test_stderr_settings_nolog(tc):
-    fx = Ringmaster_fixture(tc, base_ctl, [
+    fx = Ringmaster_fixture(tc, playoff_ctl, [
         "players['p2'] = Player('test', discard_stderr=True)",
         "stderr_to_log = False",
         ])
@@ -208,7 +208,7 @@ def test_stderr_settings_nolog(tc):
 
 
 def test_get_tournament_results(tc):
-    fx = Ringmaster_fixture(tc, base_ctl)
+    fx = Ringmaster_fixture(tc, playoff_ctl)
     tc.assertRaisesRegexp(RingmasterError, "^status is not loaded$",
                           fx.ringmaster.get_tournament_results)
     fx.initialise_clean()
@@ -221,7 +221,7 @@ def test_get_tournament_results(tc):
                           fx2.ringmaster.get_tournament_results)
 
 def test_process_response(tc):
-    fx = Ringmaster_fixture(tc, base_ctl)
+    fx = Ringmaster_fixture(tc, playoff_ctl)
     job = fx.get_job()
     tc.assertEqual(fx.ringmaster.games_in_progress, {'0_000': job})
     tc.assertEqual(
@@ -249,11 +249,11 @@ def test_process_response(tc):
 
 
 def test_check_players(tc):
-    fx = Ringmaster_fixture(tc, base_ctl)
+    fx = Ringmaster_fixture(tc, playoff_ctl)
     tc.assertTrue(fx.ringmaster.check_players(discard_stderr=True))
 
 def test_run(tc):
-    fx = Ringmaster_fixture(tc, base_ctl, [
+    fx = Ringmaster_fixture(tc, playoff_ctl, [
         "players['p1'] = Player('test', discard_stderr=True)",
         "players['p2'] = Player('test', discard_stderr=True)",
         ])
@@ -288,13 +288,13 @@ def test_run(tc):
         "  0_002 p1 beat p2 B+10.5\n")
 
 def test_check_players_fail(tc):
-    fx = Ringmaster_fixture(tc, base_ctl, [
+    fx = Ringmaster_fixture(tc, playoff_ctl, [
         "players['p2'] = Player('test fail=startup')"
         ])
     tc.assertFalse(fx.ringmaster.check_players(discard_stderr=True))
 
 def test_run_fail(tc):
-    fx = Ringmaster_fixture(tc, base_ctl, [
+    fx = Ringmaster_fixture(tc, playoff_ctl, [
         "players['p1'] = Player('test', discard_stderr=True)",
         "players['p2'] = Player('test fail=startup', discard_stderr=True)",
         ])
@@ -321,7 +321,7 @@ def test_run_fail(tc):
     tc.assertMultiLineEqual(fx.get_history(), "")
 
 def test_run_with_late_errors(tc):
-    fx = Ringmaster_fixture(tc, base_ctl, [
+    fx = Ringmaster_fixture(tc, playoff_ctl, [
         "players['p1'] = Player('test', discard_stderr=True)",
         "players['p2'] = Player('test init=fail_close', discard_stderr=True)",
         ])
@@ -350,7 +350,7 @@ def test_run_with_late_errors(tc):
         "  0_001 p1 beat p2 B+10.5\n")
 
 def test_status_roundtrip(tc):
-    fx1 = Ringmaster_fixture(tc, base_ctl, [
+    fx1 = Ringmaster_fixture(tc, playoff_ctl, [
         "players['p1'] = Player('test', discard_stderr=True)",
         "players['p2'] = Player('test', discard_stderr=True)",
         ])
@@ -361,7 +361,7 @@ def test_status_roundtrip(tc):
         [])
     state = fx1.get_written_state()
 
-    fx2 = Ringmaster_fixture(tc, base_ctl, [
+    fx2 = Ringmaster_fixture(tc, playoff_ctl, [
         "players['p1'] = Player('test', discard_stderr=True)",
         "players['p2'] = Player('test', discard_stderr=True)",
         ])
@@ -380,7 +380,7 @@ def test_status_roundtrip(tc):
 
 def test_status(tc):
     # Construct suitable competition status
-    fx1 = Ringmaster_fixture(tc, base_ctl, [
+    fx1 = Ringmaster_fixture(tc, playoff_ctl, [
         "players['p1'] = Player('test', discard_stderr=True)",
         "players['p2'] = Player('test', discard_stderr=True)",
         ])
@@ -397,7 +397,7 @@ def test_status(tc):
         'comp'            : competition_status,
         }
 
-    fx = Ringmaster_fixture(tc, base_ctl, [
+    fx = Ringmaster_fixture(tc, playoff_ctl, [
         "players['p1'] = Player('test', discard_stderr=True)",
         "players['p2'] = Player('test', discard_stderr=True)",
         ])
