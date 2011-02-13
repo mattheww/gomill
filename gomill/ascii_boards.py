@@ -55,7 +55,6 @@ def play_diagram(board, diagram):
         extra_offset = 1
     else:
         extra_offset = 0
-    result = []
     try:
         for (row, col) in board.board_coords:
             colour = colours[lines[board.side-row-1][3*(col+1)+extra_offset]]
