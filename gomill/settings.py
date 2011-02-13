@@ -231,7 +231,7 @@ def interpret_map_of(key_interpreter, value_interpreter):
             except ValueError, e:
                 # we assume validated keys are fit to print
                 raise ValueError("bad value for '%s': %s" % (new_key, e))
-            result.append((key, value))
+            result.append((new_key, new_value))
         # We assume validated items are suitable for sorting
         return sorted(result)
     return interpreter
