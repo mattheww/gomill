@@ -8,17 +8,28 @@ custom reports, or to find games with particular results.
 Note that it can be used only for :ref:`tournaments <tournaments>` (not for
 :ref:`tuning events <tuners>`).
 
-The classes described here are implemented in the :mod:`tournament_results`
-and :mod:`gtp_games` modules, but you should not normally import these
-directly. See :ref:`using_the_api_in_scripts`.
+.. contents:: Page contents
+   :local:
+   :backlinks: none
+
+
+General
+^^^^^^^
+
+In this interface, players are identified using their player codes (that is,
+their keys in the control file's :setting:`players` dictionary).
+
+.. note:: In a :doc:`playoff tournament <playoffs>`, it is possible
+  to define a matchup in which the same player takes both colours. In this
+  case, the player code used for the second player will be the player code
+  from the control file with ``'#2'`` appended.
 
 In the descriptions below, *colour* represents a single-character string,
 either ``'b'`` or ``'w'``.
 
-
-.. contents:: Page contents
-   :local:
-   :backlinks: none
+The classes described here are implemented in the :mod:`tournament_results`
+and :mod:`gtp_games` modules, but you should not normally import these
+directly. See :ref:`using_the_api_in_scripts`.
 
 
 .. currentmodule:: tournament_results
@@ -104,12 +115,7 @@ Matchup_description objects
 
       The :ref:`player code <player codes>` of the second player.
 
-   :attr:`!player_1` and :attr:`!player_2` are always different.
-
-   .. note:: In a :ref:`playoff tournament <playoff tournament>`, it is
-      possible to define a matchup in which the same player takes both
-      colours. In this case, :attr:`!p2` will have the string ``'#2'``
-      appended to the player code from the control file.
+      :attr:`!player_1` and :attr:`!player_2` are always different.
 
    .. attribute:: name
 
