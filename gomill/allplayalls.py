@@ -145,7 +145,7 @@ class Allplayall(tournaments.Tournament):
 
 
     # Can bump this to prevent people loading incompatible .status files.
-    status_format_version = 0
+    status_format_version = 1
 
     def get_status(self):
         result = tournaments.Tournament.get_status(self)
