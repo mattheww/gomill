@@ -1,7 +1,5 @@
 """Run a game between two GTP engines."""
 
-import os
-
 from gomill.gomill_utils import *
 from gomill.gomill_common import *
 from gomill import gtp_controller
