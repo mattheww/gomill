@@ -289,7 +289,6 @@ class Gtp_engine_protocol(object):
                 raise GtpFatalError("internal error; exiting\n" + traceback)
             else:
                 raise GtpError("internal error\n" + traceback)
-            raise cls()
 
     def run_command(self, command, args):
         """Run the handler for a command directly.
