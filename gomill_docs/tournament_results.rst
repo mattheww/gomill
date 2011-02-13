@@ -69,6 +69,12 @@ Tournament_results objects
 
       Describe all matchups.
 
+   .. method:: get_matchup_stats(matchup_id)
+
+      :rtype: :class:`Matchup_stats` object
+
+      Return statistics for the matchup with the specified id.
+
    .. method:: get_matchup_results(matchup_id)
 
       :rtype: list of :class:`Game_result` objects
@@ -80,12 +86,6 @@ Tournament_results objects
       matchup).
 
       :ref:`void games` do not appear in these results.
-
-   .. method:: get_matchup_stats(matchup_id)
-
-      :rtype: :class:`Matchup_stats` object
-
-      Return statistics for the matchup with the specified id.
 
 
 Matchup_description objects
@@ -168,120 +168,6 @@ Matchup_description objects
       This covers the most important game settings which can't be observed in
       the results table (board size, handicap, and komi).
 
-
-.. currentmodule:: gtp_games
-
-Game_result objects
-^^^^^^^^^^^^^^^^^^^
-
-.. class:: Game_result
-
-   A Game_result contains the information recorded for an individual game. The
-   information comes from the tournament's :ref:`state file <competition
-   state>`.
-
-   .. note:: If an |sgf| :ref:`game record <game records>` has been written
-      for the game, you can retrieve its location in the filesystem from a
-      :class:`ringmaster` object using
-      :samp:`ringmaster.get_sgf_pathname({game_id})`.
-
-   The :ref:`player codes <player codes>` used here are the same as the ones
-   in the corresponding :class:`Matchup_description`'s
-   :attr:`~Matchup_description.player_1` and
-   :attr:`~Matchup_description.player_2` attributes.
-
-   See :ref:`playing games` and :ref:`details of scoring` for an explanation
-   of the possible game results. Games with unknown result can be
-   distinguished as having :attr:`winning_player` ``None`` but :attr:`is_jigo`
-   ``False``.
-
-   Game_results can be retrieved from :class:`Tournament_results` objects.
-
-   Game_results have the following attributes (which should be treated as
-   read-only):
-
-   .. attribute:: game_id
-
-      Short string uniquely identifying the game within the tournament. See
-      :ref:`game id`.
-
-      .. Game_results returned via Tournament_results always have game_id set,
-         so documenting it that way here.
-
-   .. attribute:: players
-
-      Map *colour* → :ref:`player code <player codes>`.
-
-   .. attribute:: player_b
-
-      :ref:`player code <player codes>` of the Black player.
-
-   .. attribute:: player_w
-
-      :ref:`player code <player codes>` of the White player.
-
-   .. attribute:: winning_player
-
-      :ref:`player code <player codes>` or ``None``.
-
-   .. attribute:: losing_player
-
-      :ref:`player code <player codes>` or ``None``.
-
-   .. attribute:: winning_colour
-
-      *colour* or ``None``.
-
-   .. attribute:: losing_colour
-
-      *colour* or ``None``.
-
-   .. attribute:: is_jigo
-
-      Bool: ``True`` if the game was a :term:`jigo`.
-
-   .. attribute:: is_forfeit
-
-      Bool: ``True`` if one of the players lost the game by forfeit; see
-      :ref:`playing games`.
-
-   .. attribute:: sgf_result
-
-      String describing the game's result. This is in the format used for the
-      :term:`SGF` ``RE`` property (eg ``'B+1.5'``).
-
-   .. attribute:: detail
-
-      Additional information about the game result (string or ``None``).
-
-      This is present (not ``None``) for those game results which are not wins
-      on points, jigos, or wins by resignation.
-
-   .. (leaving cpu_times undocumented, as I don't want to say it's stable)
-
-      .. attribute:: cpu_times
-
-         Map :ref:`player code <player codes>` → *time*.
-
-         The time is a float representing a number of seconds, or ``None`` if
-         time is not available, or ``'?'`` if :gtp:`gomill-cpu_time` is
-         implemented but returned a failure response.
-
-         See :ref:`cpu time` for more details.
-
-
-   Game_results support the following method:
-
-   .. method:: describe()
-
-      :rtype: string
-
-      Return a short human-readable description of the result.
-
-      For example, ``'xxx beat yyy (W+2.5)'``.
-
-
-.. currentmodule:: tournament_results
 
 Matchup_stats objects
 ^^^^^^^^^^^^^^^^^^^^^
@@ -408,6 +294,118 @@ Matchup_stats objects
    .. attribute:: colour_2
 
       The *colour* taken by the second player.
+
+
+.. currentmodule:: gtp_games
+
+Game_result objects
+^^^^^^^^^^^^^^^^^^^
+
+.. class:: Game_result
+
+   A Game_result contains the information recorded for an individual game. The
+   information comes from the tournament's :ref:`state file <competition
+   state>`.
+
+   .. note:: If an |sgf| :ref:`game record <game records>` has been written
+      for the game, you can retrieve its location in the filesystem from a
+      :class:`ringmaster` object using
+      :samp:`ringmaster.get_sgf_pathname({game_id})`.
+
+   The :ref:`player codes <player codes>` used here are the same as the ones
+   in the corresponding :class:`Matchup_description`'s
+   :attr:`~Matchup_description.player_1` and
+   :attr:`~Matchup_description.player_2` attributes.
+
+   See :ref:`playing games` and :ref:`details of scoring` for an explanation
+   of the possible game results. Games with unknown result can be
+   distinguished as having :attr:`winning_player` ``None`` but :attr:`is_jigo`
+   ``False``.
+
+   Game_results can be retrieved from :class:`Tournament_results` objects.
+
+   Game_results have the following attributes (which should be treated as
+   read-only):
+
+   .. attribute:: game_id
+
+      Short string uniquely identifying the game within the tournament. See
+      :ref:`game id`.
+
+      .. Game_results returned via Tournament_results always have game_id set,
+         so documenting it that way here.
+
+   .. attribute:: players
+
+      Map *colour* → :ref:`player code <player codes>`.
+
+   .. attribute:: player_b
+
+      :ref:`player code <player codes>` of the Black player.
+
+   .. attribute:: player_w
+
+      :ref:`player code <player codes>` of the White player.
+
+   .. attribute:: winning_player
+
+      :ref:`player code <player codes>` or ``None``.
+
+   .. attribute:: losing_player
+
+      :ref:`player code <player codes>` or ``None``.
+
+   .. attribute:: winning_colour
+
+      *colour* or ``None``.
+
+   .. attribute:: losing_colour
+
+      *colour* or ``None``.
+
+   .. attribute:: is_jigo
+
+      Bool: ``True`` if the game was a :term:`jigo`.
+
+   .. attribute:: is_forfeit
+
+      Bool: ``True`` if one of the players lost the game by forfeit; see
+      :ref:`playing games`.
+
+   .. attribute:: sgf_result
+
+      String describing the game's result. This is in the format used for the
+      :term:`SGF` ``RE`` property (eg ``'B+1.5'``).
+
+   .. attribute:: detail
+
+      Additional information about the game result (string or ``None``).
+
+      This is present (not ``None``) for those game results which are not wins
+      on points, jigos, or wins by resignation.
+
+   .. (leaving cpu_times undocumented, as I don't want to say it's stable)
+
+      .. attribute:: cpu_times
+
+         Map :ref:`player code <player codes>` → *time*.
+
+         The time is a float representing a number of seconds, or ``None`` if
+         time is not available, or ``'?'`` if :gtp:`gomill-cpu_time` is
+         implemented but returned a failure response.
+
+         See :ref:`cpu time` for more details.
+
+
+   Game_results support the following method:
+
+   .. method:: describe()
+
+      :rtype: string
+
+      Return a short human-readable description of the result.
+
+      For example, ``'xxx beat yyy (W+2.5)'``.
 
 
 .. _using_the_api_in_scripts:
