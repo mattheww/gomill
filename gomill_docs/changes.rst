@@ -17,7 +17,7 @@ incompatible with gomill 0.6. Tuning event state files are compatible.
 * Allowed arbitrary filename extensions for control files.
 
 
-Gomill 0.5 (2010-10-28)
+Gomill 0.5 (2010-10-29)
 -----------------------
 
 * First public release.
