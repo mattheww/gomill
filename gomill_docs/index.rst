@@ -1,5 +1,6 @@
+******
 Gomill
-======
+******
 
 .. toctree::
    :maxdepth: 3
@@ -12,6 +13,7 @@ Gomill
    example_scripts
    install
    contact
+   changes
    licence
    glossary
 

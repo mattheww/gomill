@@ -168,4 +168,9 @@ I'm particularly interested in hearing about any GTP engines (even buggy ones)
 which don't work with the ringmaster.
 
 
+Changelog
+---------
+
+See the 'Changes' page in the HTML documentation (docs/changes.rst).
+
                                                                 mjw 2010-10-26
