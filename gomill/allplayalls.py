@@ -252,3 +252,6 @@ class Allplayall(tournaments.Tournament):
         p('')
         self.write_player_descriptions(out)
         p('')
+
+    write_full_report = write_short_report
+
