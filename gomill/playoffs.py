@@ -10,7 +10,7 @@ from gomill.settings import *
 class Matchup_config(Quiet_config):
     """Matchup description for use in control files."""
     # positional or keyword
-    positional_arguments = ('player1', 'player2')
+    positional_arguments = ('player_1', 'player_2')
     # keyword-only
     keyword_arguments = (
         ('id', 'name') +
@@ -44,16 +44,16 @@ class Playoff(tournaments.Tournament):
 
         This does the following checks and fixups before calling make_matchup():
 
-        Checks that the player1 and player2 parameters exist, and that the
+        Checks that the player_1 and player_2 parameters exist, and that the
         player codes are present in self.players.
 
         Validates all the matchup_config arguments, and merges them with the
         defaults.
 
-        If player1 and player2 are the same, takes the following actions:
-         - sets player2 to <player1>#2
-         - if it doesn't already exist, creates <player1>#2 as a clone of
-           player1 and adds it to self.players
+        If player_1 and player_2 are the same, takes the following actions:
+         - sets player_2 to <player_1>#2
+         - if it doesn't already exist, creates <player_1>#2 as a clone of
+           player_1 and adds it to self.players
 
         """
         matchup_id = str(matchup_number)
@@ -65,19 +65,20 @@ class Playoff(tournaments.Tournament):
                 except ValueError, e:
                     raise ValueError("'id': %s" % e)
             try:
-                player1 = arguments['player1']
-                player2 = arguments['player2']
+                player_1 = arguments['player_1']
+                player_2 = arguments['player_2']
             except KeyError:
                 raise ControlFileError("not enough arguments")
-            if player1 not in self.players:
-                raise ControlFileError("unknown player %s" % player1)
-            if player2 not in self.players:
-                raise ControlFileError("unknown player %s" % player2)
+            if player_1 not in self.players:
+                raise ControlFileError("unknown player %s" % player_1)
+            if player_2 not in self.players:
+                raise ControlFileError("unknown player %s" % player_2)
             # If both players are the same, make a clone.
-            if player1 == player2:
-                player2 += "#2"
-                if player2 not in self.players:
-                    self.players[player2] = self.players[player1].copy(player2)
+            if player_1 == player_2:
+                player_2 += "#2"
+                if player_2 not in self.players:
+                    self.players[player_2] = \
+                        self.players[player_1].copy(player_2)
             interpreted = load_settings(
                 tournaments.matchup_settings, arguments,
                 apply_defaults=False, allow_missing=True)
@@ -90,7 +91,7 @@ class Playoff(tournaments.Tournament):
             parameters = matchup_defaults.copy()
             parameters.update(interpreted)
             return self.make_matchup(
-                matchup_id, player1, player2,
+                matchup_id, player_1, player_2,
                 parameters, matchup_name)
         except StandardError, e:
             raise ControlFileError("matchup %s: %s" % (matchup_id, e))

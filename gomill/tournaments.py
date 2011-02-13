@@ -28,8 +28,8 @@ class Matchup(tournament_results.Matchup_description):
 
     Instantiate with
       matchup_id -- identifier
-      player1    -- player code
-      player2    -- player code
+      player_1   -- player code
+      player_2   -- player code
       parameters -- dict matchup setting name -> value
       name       -- utf-8 string, or None
       event_code -- identifier
@@ -44,11 +44,11 @@ class Matchup(tournament_results.Matchup_description):
     permitted.
 
     """
-    def __init__(self, matchup_id, player1, player2, parameters,
+    def __init__(self, matchup_id, player_1, player_2, parameters,
                  name, event_code):
         self.id = matchup_id
-        self.player_1 = player1
-        self.player_2 = player2
+        self.player_1 = player_1
+        self.player_2 = player_2
 
         for setting in matchup_settings:
             try:
@@ -105,7 +105,8 @@ class Tournament(Competition):
         self.working_matchups = set()
         self.probationary_matchups = set()
 
-    def make_matchup(self, matchup_id, player1, player2, parameters, name=None):
+    def make_matchup(self, matchup_id, player_1, player_2, parameters,
+                     name=None):
         """Make a Matchup from the various parameters.
 
         Raises ControlFileError if any required parameters are missing.
@@ -114,7 +115,7 @@ class Tournament(Competition):
 
         """
         try:
-            return Matchup(matchup_id, player1, player2, parameters, name,
+            return Matchup(matchup_id, player_1, player_2, parameters, name,
                            event_code=self.competition_code)
         except ValueError, e:
             raise ControlFileError(str(e))
