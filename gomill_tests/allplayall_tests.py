@@ -247,7 +247,7 @@ def test_play_many(tc):
     tc.assertEqual(len(tr.get_matchup_results('AvB')), 19)
     ms = tr.get_matchup_stats('AvB')
     tc.assertEqual(ms.total, 19)
-    tc.assertEqual(ms.x_wins, 10)
+    tc.assertEqual(ms.wins_1, 10)
     tc.assertIs(ms.alternating, True)
 
 def test_competitor_change(tc):

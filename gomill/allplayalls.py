@@ -234,8 +234,8 @@ class Allplayall(tournaments.Tournament):
                     self.results[matchup.id],
                     player_x, player_y)
                 column_values.append(
-                    "%s-%s" % (format_float(ms.x_wins),
-                               format_float(ms.y_wins)))
+                    "%s-%s" % (format_float(ms.wins_1),
+                               format_float(ms.wins_2)))
             t.set_column_values(i, column_values)
         print >>out, "\n".join(t.render())
 

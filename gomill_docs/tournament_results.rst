@@ -292,11 +292,11 @@ Matchup_stats objects
    Matchup_stats objects have the following attributes (which should be
    treated as read-only):
 
-   .. attribute:: player_x
+   .. attribute:: player_1
 
       :ref:`player code <player codes>` of the first player.
 
-   .. attribute:: player_y
+   .. attribute:: player_2
 
       :ref:`player code <player codes>` of the second player.
 
@@ -304,19 +304,19 @@ Matchup_stats objects
 
       Integer. The number of games played in the matchup.
 
-   .. attribute:: x_wins
+   .. attribute:: wins_1
 
       Integer. The number of games won by the first player.
 
-   .. attribute:: y_wins
+   .. attribute:: wins_2
 
       Integer. The number of games won by the second player.
 
-   .. attribute:: x_forfeits
+   .. attribute:: forfeits_1
 
       Integer. The number of games in which the first player lost by forfeit.
 
-   .. attribute:: y_forfeits
+   .. attribute:: forfeits_2
 
       Integer. The number of games in which the second player lost by forfeit.
 
@@ -324,11 +324,11 @@ Matchup_stats objects
 
       Integer. The number of games whose result is unknown.
 
-   .. attribute:: x_average_time
+   .. attribute:: average_time_1
 
       float or ``None``. The average CPU time taken by the first player.
 
-   .. attribute:: y_average_time
+   .. attribute:: average_time_2
 
       float or ``None``. The average CPU time taken by the second player.
 
@@ -338,19 +338,19 @@ Matchup_stats objects
    how CPU times are obtained.
 
 
-   .. attribute:: xb_played
+   .. attribute:: played_1b
 
       Integer. The number of games in which the first player took Black.
 
-   .. attribute:: xw_played
+   .. attribute:: played_1w
 
       Integer. The number of games in which the first player took White.
 
-   .. attribute:: yb_played
+   .. attribute:: played_2b
 
       Integer. The number of games in which the second player took Black.
 
-   .. attribute:: yw_played
+   .. attribute:: played_2w
 
       Integer. The number of games in which the second player took White.
 
@@ -367,27 +367,27 @@ Matchup_stats objects
    If :attr:`alternating` is ``True``, the following attributes are also
    available:
 
-   .. attribute:: b_wins
+   .. attribute:: wins_b
 
       Integer. The number of games in which Black won.
 
-   .. attribute:: w_wins
+   .. attribute:: wins_w
 
       Integer. The number of games in which White won.
 
-   .. attribute:: xb_wins
+   .. attribute:: wins_1b
 
       Integer. The number of games in which the first player won with Black.
 
-   .. attribute:: xw_wins
+   .. attribute:: wins_1w
 
       Integer. The number of games in which the first player won with White.
 
-   .. attribute:: yb_wins
+   .. attribute:: wins_2b
 
       Integer. The number of games in which the second player won with Black.
 
-   .. attribute:: yw_wins
+   .. attribute:: wins_2w
 
       Integer. The number of games in which the second player won with White.
 
@@ -395,11 +395,11 @@ Matchup_stats objects
    If :attr:`alternating` is ``False``, the following attributes are also
    available:
 
-   .. attribute:: x_colour
+   .. attribute:: colour_1
 
       The *colour* taken by the first player.
 
-   .. attribute:: y_colour
+   .. attribute:: colour_2
 
       The *colour* taken by the second player.
 

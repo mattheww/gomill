@@ -340,8 +340,8 @@ def test_play_many(tc):
     tc.assertEqual(len(tr.get_matchup_results('0')), 6)
     ms = tr.get_matchup_stats('0')
     tc.assertEqual(ms.total, 6)
-    tc.assertEqual(ms.x_wins, 2)
-    tc.assertEqual(ms.b_wins, 2)
+    tc.assertEqual(ms.wins_1, 2)
+    tc.assertEqual(ms.wins_b, 2)
 
 def test_jigo_reporting(tc):
     fx = Playoff_fixture(tc)

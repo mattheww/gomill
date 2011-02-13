@@ -101,27 +101,27 @@ class Matchup_stats(object):
 
     Instantiate with
       results  -- list of gtp_games.Game_results
-      player_x -- player code
-      player_y -- player code
-    The game results should all be for games between player_x and player_y.
+      player_1 -- player code
+      player_2 -- player code
+    The game results should all be for games between player_1 and player_2.
 
     Public attributes:
-      player_x    -- player code
-      player_y    -- player code
+      player_1    -- player code
+      player_2    -- player code
       total       -- int (number of games)
-      x_wins      -- float (score)
-      y_wins      -- float (score)
-      x_forfeits  -- int (number of games)
-      y_forfeits  -- int (number of games)
+      wins_1      -- float (score)
+      wins_2      -- float (score)
+      forfeits_1  -- int (number of games)
+      forfeits_2  -- int (number of games)
       unknown     -- int (number of games)
 
     scores are multiples of 0.5 (as there may be jigos).
 
     """
-    def __init__(self, results, player_x, player_y):
+    def __init__(self, results, player_1, player_2):
         self._results = results
-        self.player_x = player_x
-        self.player_y = player_y
+        self.player_1 = player_1
+        self.player_2 = player_2
 
         self.total = len(results)
 
@@ -129,12 +129,12 @@ class Matchup_stats(object):
         self.unknown = sum(r.winning_player is None and not r.is_jigo
                            for r in results)
 
-        self.x_wins = sum(r.winning_player == player_x for r in results) + js
-        self.y_wins = sum(r.winning_player == player_y for r in results) + js
+        self.wins_1 = sum(r.winning_player == player_1 for r in results) + js
+        self.wins_2 = sum(r.winning_player == player_2 for r in results) + js
 
-        self.x_forfeits = sum(r.winning_player == player_y and r.is_forfeit
+        self.forfeits_1 = sum(r.winning_player == player_2 and r.is_forfeit
                               for r in results)
-        self.y_forfeits = sum(r.winning_player == player_x and r.is_forfeit
+        self.forfeits_2 = sum(r.winning_player == player_1 and r.is_forfeit
                               for r in results)
 
     def calculate_colour_breakdown(self):
@@ -142,79 +142,79 @@ class Matchup_stats(object):
 
         Sets the following additional attributes:
 
-        xb_played   -- int (number of games)
-        xw_played   -- int (number of games)
-        yb_played   -- int (number of games)
-        yw_played   -- int (number of games)
+        played_1b   -- int (number of games)
+        played_1w   -- int (number of games)
+        played_2b   -- int (number of games)
+        played_y2   -- int (number of games)
         alternating -- bool
           when alternating is true =>
-            b_wins   -- float (score)
-            w_wins   -- float (score)
-            xb_wins  -- float (score)
-            xw_wins  -- float (score)
-            yb_wins  -- float (score)
-            yw_wins  -- float (score)
+            wins_b   -- float (score)
+            wins_w   -- float (score)
+            wins_1b  -- float (score)
+            wins_1w  -- float (score)
+            wins_2b  -- float (score)
+            wins_2w  -- float (score)
           else =>
-            x_colour -- 'b' or 'w'
-            y_colour -- 'b' or 'w'
+            colour_1 -- 'b' or 'w'
+            colour_2 -- 'b' or 'w'
 
         """
         results = self._results
-        player_x = self.player_x
-        player_y = self.player_y
+        player_1 = self.player_1
+        player_2 = self.player_2
         js = self._jigo_score
 
-        self.xb_played = sum(r.player_b == player_x for r in results)
-        self.xw_played = sum(r.player_w == player_x for r in results)
-        self.yb_played = sum(r.player_b == player_y for r in results)
-        self.yw_played = sum(r.player_w == player_y for r in results)
+        self.played_1b = sum(r.player_b == player_1 for r in results)
+        self.played_1w = sum(r.player_w == player_1 for r in results)
+        self.played_2b = sum(r.player_b == player_2 for r in results)
+        self.played_y2 = sum(r.player_w == player_2 for r in results)
 
-        if self.xw_played == 0 and self.yb_played == 0:
+        if self.played_1w == 0 and self.played_2b == 0:
             self.alternating = False
-            self.x_colour = 'b'
-            self.y_colour = 'w'
-        elif self.xb_played == 0 and self.yw_played == 0:
+            self.colour_1 = 'b'
+            self.colour_2 = 'w'
+        elif self.played_1b == 0 and self.played_y2 == 0:
             self.alternating = False
-            self.x_colour = 'w'
-            self.y_colour = 'b'
+            self.colour_1 = 'w'
+            self.colour_2 = 'b'
         else:
             self.alternating = True
-            self.b_wins = sum(r.winning_colour == 'b' for r in results) + js
-            self.w_wins = sum(r.winning_colour == 'w' for r in results) + js
-            self.xb_wins = sum(
-                r.winning_player == player_x and r.winning_colour == 'b'
+            self.wins_b = sum(r.winning_colour == 'b' for r in results) + js
+            self.wins_w = sum(r.winning_colour == 'w' for r in results) + js
+            self.wins_1b = sum(
+                r.winning_player == player_1 and r.winning_colour == 'b'
                 for r in results) + js
-            self.xw_wins = sum(
-                r.winning_player == player_x and r.winning_colour == 'w'
+            self.wins_1w = sum(
+                r.winning_player == player_1 and r.winning_colour == 'w'
                 for r in results) + js
-            self.yb_wins = sum(
-                r.winning_player == player_y and r.winning_colour == 'b'
+            self.wins_2b = sum(
+                r.winning_player == player_2 and r.winning_colour == 'b'
                 for r in results) + js
-            self.yw_wins = sum(
-                r.winning_player == player_y and r.winning_colour == 'w'
+            self.wins_2w = sum(
+                r.winning_player == player_2 and r.winning_colour == 'w'
                 for r in results) + js
 
     def calculate_time_stats(self):
         """Calculate CPU time statistics.
 
-        x_average_time -- float or None
-        y_average_time -- float or None
+        average_time_1 -- float or None
+        average_time_2 -- float or None
 
         """
-        player_x = self.player_x
-        player_y = self.player_y
-        x_times = [r.cpu_times[player_x] for r in self._results]
-        x_known_times = [t for t in x_times if t is not None and t != '?']
-        y_times = [r.cpu_times[player_y] for r in self._results]
-        y_known_times = [t for t in y_times if t is not None and t != '?']
-        if x_known_times:
-            self.x_average_time = sum(x_known_times) / len(x_known_times)
+        player_1 = self.player_1
+        player_2 = self.player_2
+        times_1 = [r.cpu_times[player_1] for r in self._results]
+        known_times_1 = [t for t in times_1 if t is not None and t != '?']
+        times_2 = [r.cpu_times[player_2] for r in self._results]
+        known_times_2 = [t for t in times_2 if t is not None and t != '?']
+        if known_times_1:
+            self.average_time_1 = sum(known_times_1) / len(known_times_1)
         else:
-            self.x_average_time = None
-        if y_known_times:
-            self.y_average_time = sum(y_known_times) / len(y_known_times)
+            self.average_time_1 = None
+        if known_times_2:
+            self.average_time_2 = sum(known_times_2) / len(known_times_2)
         else:
-            self.y_average_time = None
+            self.average_time_2 = None
 
 
 def make_matchup_stats_table(ms):
@@ -231,58 +231,58 @@ def make_matchup_stats_table(ms):
     t = ascii_tables.Table(row_count=3)
     t.add_heading("") # player name
     i = t.add_column(align='left', right_padding=3)
-    t.set_column_values(i, [ms.player_x, ms.player_y])
+    t.set_column_values(i, [ms.player_1, ms.player_2])
 
     t.add_heading("wins")
     i = t.add_column(align='right')
-    t.set_column_values(i, [ff(ms.x_wins), ff(ms.y_wins)])
+    t.set_column_values(i, [ff(ms.wins_1), ff(ms.wins_2)])
 
     t.add_heading("") # overall pct
     i = t.add_column(align='right')
-    t.set_column_values(i, [pct(ms.x_wins, ms.total),
-                            pct(ms.y_wins, ms.total)])
+    t.set_column_values(i, [pct(ms.wins_1, ms.total),
+                            pct(ms.wins_2, ms.total)])
 
     if ms.alternating:
         t.columns[i].right_padding = 7
         t.add_heading("black", span=2)
         i = t.add_column(align='left')
-        t.set_column_values(i, [ff(ms.xb_wins), ff(ms.yb_wins), ff(ms.b_wins)])
+        t.set_column_values(i, [ff(ms.wins_1b), ff(ms.wins_2b), ff(ms.wins_b)])
         i = t.add_column(align='right', right_padding=5)
-        t.set_column_values(i, [pct(ms.xb_wins, ms.xb_played),
-                                pct(ms.yb_wins, ms.yb_played),
-                                pct(ms.b_wins, ms.total)])
+        t.set_column_values(i, [pct(ms.wins_1b, ms.played_1b),
+                                pct(ms.wins_2b, ms.played_2b),
+                                pct(ms.wins_b, ms.total)])
 
         t.add_heading("white", span=2)
         i = t.add_column(align='left')
-        t.set_column_values(i, [ff(ms.xw_wins), ff(ms.yw_wins), ff(ms.w_wins)])
+        t.set_column_values(i, [ff(ms.wins_1w), ff(ms.wins_2w), ff(ms.wins_w)])
         i = t.add_column(align='right', right_padding=3)
-        t.set_column_values(i, [pct(ms.xw_wins, ms.xw_played),
-                                pct(ms.yw_wins, ms.yw_played),
-                                pct(ms.w_wins, ms.total)])
+        t.set_column_values(i, [pct(ms.wins_1w, ms.played_1w),
+                                pct(ms.wins_2w, ms.played_y2),
+                                pct(ms.wins_w, ms.total)])
     else:
         t.columns[i].right_padding = 3
         t.add_heading("")
         i = t.add_column(align='left')
-        t.set_column_values(i, ["(%s)" % colour_name(ms.x_colour),
-                                "(%s)" % colour_name(ms.y_colour)])
+        t.set_column_values(i, ["(%s)" % colour_name(ms.colour_1),
+                                "(%s)" % colour_name(ms.colour_2)])
 
-    if ms.x_forfeits or ms.y_forfeits:
+    if ms.forfeits_1 or ms.forfeits_2:
         t.add_heading("forfeits")
         i = t.add_column(align='right')
-        t.set_column_values(i, [ms.x_forfeits, ms.y_forfeits])
+        t.set_column_values(i, [ms.forfeits_1, ms.forfeits_2])
 
-    if ms.x_average_time or ms.y_average_time:
-        if ms.x_average_time is not None:
-            x_avg_time_s = "%7.2f" % ms.x_average_time
+    if ms.average_time_1 or ms.average_time_2:
+        if ms.average_time_1 is not None:
+            avg_time_1_s = "%7.2f" % ms.average_time_1
         else:
-            x_avg_time_s = "   ----"
-        if ms.y_average_time is not None:
-            y_avg_time_s = "%7.2f" % ms.y_average_time
+            avg_time_1_s = "   ----"
+        if ms.average_time_2 is not None:
+            avg_time_2_s = "%7.2f" % ms.average_time_2
         else:
-            y_avg_time_s = "   ----"
+            avg_time_2_s = "   ----"
         t.add_heading("avg cpu")
         i = t.add_column(align='right', right_padding=2)
-        t.set_column_values(i, [x_avg_time_s, y_avg_time_s])
+        t.set_column_values(i, [avg_time_1_s, avg_time_2_s])
 
     return t
 
