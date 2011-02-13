@@ -93,8 +93,8 @@ class Test_player(object):
     This supports at least the minimal commands required to play a game.
 
     At present, this plays up column 4 (for black) or 6 (for white), then
-    resigns. It pays no attention to its opponent's moves, and doesn't maintain
-    a board position.
+    passes. It pays no attention to its opponent's moves, and doesn't maintain a
+    board position.
 
     (This means that if two Test_players play each other, black will win by
     boardsize*2 on the board).
