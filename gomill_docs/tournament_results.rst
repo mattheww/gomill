@@ -332,10 +332,10 @@ Matchup_stats objects
 
       float or ``None``. The average CPU time taken by the second player.
 
-   If CPU times are available for only some games, the average is taken over
-   the games for which they are available. If they aren't available for any
-   games, the average is given as ``None``. See :ref:`cpu time` for notes on
-   how CPU times are obtained.
+      If CPU times are available for only some games, the average is taken
+      over the games for which they are available. If they aren't available
+      for any games, the average is given as ``None``. See :ref:`cpu time`
+      for notes on how CPU times are obtained.
 
 
    .. attribute:: played_1b
