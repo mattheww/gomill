@@ -1,7 +1,6 @@
 """Organise processing jobs based around playing many GTP games."""
 
 import os
-import sys
 
 from gomill import game_jobs
 from gomill import gtp_controller
