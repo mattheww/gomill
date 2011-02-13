@@ -66,6 +66,9 @@ To install, first change to the distribution directory, then:
 
     python setup.py install --user
 
+  (in this case the ringmaster executable will be placed in
+  :file:`~/.local/bin`.)
+
 Pass :option:`!--dry-run` to see what these will do. See
 http://docs.python.org/2.7/install/ for more information.
 
