@@ -69,7 +69,7 @@ class Ringmaster(object):
     status_format_version = 0
 
     # For --version command
-    public_version = "gomill ringmaster v0.5"
+    public_version = "gomill ringmaster v0.6"
 
     def __init__(self, control_pathname):
         """Instantiate and initialise a Ringmaster.

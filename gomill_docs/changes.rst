@@ -1,8 +1,8 @@
 Changes
 =======
 
-Gomill 0.6 (FIXME)
-------------------
+Gomill 0.6 (2011-02-13)
+-----------------------
 
 Playoff tournament :ref:`state files <competition state>` from gomill 0.5 are
 incompatible with gomill 0.6. Tuning event state files are compatible.

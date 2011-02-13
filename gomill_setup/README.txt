@@ -173,4 +173,4 @@ Changelog
 
 See the 'Changes' page in the HTML documentation (docs/changes.rst).
 
-                                                                mjw 2010-10-26
+                                                                mjw 2011-02-13
