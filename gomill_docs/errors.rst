@@ -141,8 +141,8 @@ If :c:func:`!flock()` is available, the ringmaster will detect attempts to run
 a competition which is already running (but this probably won't work if the
 control file is on a network filesystem).
 
-It's fine to use :action:`show` and :action:`report`, or the results API,
-while a competition is running.
+It's fine to use :action:`show` and :action:`report`, or the :doc:`tournament
+results API <tournament_results>`, while a competition is running.
 
 
 Signals and controlling terminal
