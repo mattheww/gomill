@@ -298,7 +298,6 @@ class Gtp_state(object):
         self.simple_ko_point = None
 
     def _choose_free_handicap_moves(self, number_of_stones):
-        moves = []
         i = min(number_of_stones,
                 handicap_layout.max_fixed_handicap_for_board_size(
                     self.board_size))
