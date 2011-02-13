@@ -131,7 +131,7 @@ class Allplayall(tournaments.Tournament):
         # Matchups in order of definition
         self.matchup_list = []
         for c1_i, c1 in enumerate(self.competitors):
-            for c2_i, c2 in list(enumerate(self.competitors))[c1_i+1:]:
+            for c2 in self.competitors[c1_i+1:]:
                 try:
                     m = self.make_matchup(
                         self._get_matchup_id(c1, c2),
