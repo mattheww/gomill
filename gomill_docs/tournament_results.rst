@@ -12,6 +12,7 @@ Note that it can be used only for :ref:`tournaments <tournaments>` (not for
    :local:
    :backlinks: none
 
+.. currentmodule:: tournament_results
 
 General
 ^^^^^^^
@@ -27,12 +28,10 @@ their keys in the control file's :setting:`players` dictionary).
 In the descriptions below, *colour* represents a single-character string,
 either ``'b'`` or ``'w'``.
 
-The classes described here are implemented in the :mod:`tournament_results`
-and :mod:`gtp_games` modules, but you should not normally import these
+The classes described here are implemented in the :mod:`!tournament_results`
+and :mod:`!gtp_games` modules, but you should not normally import these
 directly. See :ref:`using_the_api_in_scripts`.
 
-
-.. currentmodule:: tournament_results
 
 Tournament_results objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -46,8 +45,8 @@ Tournament_results objects
    each matchup corresponding to a series of games which had the same players
    and settings. Each matchup has an id, which is a short string.
 
-   Tournament_results objects are normally retrieved from :class:`Competition`
-   or :class:`Ringmaster` objects; see :ref:`using_the_api_in_scripts`.
+   Tournament_results objects are normally retrieved from :class:`!Competition`
+   or :class:`!Ringmaster` objects; see :ref:`using_the_api_in_scripts`.
 
    Tournament_results objects support the following methods:
 
@@ -77,13 +76,13 @@ Tournament_results objects
 
    .. method:: get_matchup_results(matchup_id)
 
-      :rtype: list of :class:`Game_result` objects
+      :rtype: list of :class:`~gtp_games.Game_result` objects
 
       Return the individual game results for the matchup with the specified id.
 
       The list is in unspecified order (in particular, the colours don't
-      necessarily alternate, even if :attr:`alternating` is ``True`` for the
-      matchup).
+      necessarily alternate, even if :attr:`~Matchup_description.alternating`
+      is ``True`` for the matchup).
 
       :ref:`void games` do not appear in these results.
 
@@ -309,20 +308,21 @@ Game_result objects
 
    .. note:: If an |sgf| :ref:`game record <game records>` has been written
       for the game, you can retrieve its location in the filesystem from a
-      :class:`ringmaster` object using
+      :class:`!Ringmaster` object using
       :samp:`ringmaster.get_sgf_pathname({game_id})`.
 
    The :ref:`player codes <player codes>` used here are the same as the ones
-   in the corresponding :class:`Matchup_description`'s
-   :attr:`~Matchup_description.player_1` and
-   :attr:`~Matchup_description.player_2` attributes.
+   in the corresponding :class:`~tournament_results.Matchup_description`'s
+   :attr:`~tournament_results.Matchup_description.player_1` and
+   :attr:`~tournament_results.Matchup_description.player_2` attributes.
 
    See :ref:`playing games` and :ref:`details of scoring` for an explanation
    of the possible game results. Games with unknown result can be
    distinguished as having :attr:`winning_player` ``None`` but :attr:`is_jigo`
    ``False``.
 
-   Game_results can be retrieved from :class:`Tournament_results` objects.
+   Game_results can be retrieved from
+   :class:`~tournament_results.Tournament_results` objects.
 
    Game_results have the following attributes (which should be treated as
    read-only):
@@ -408,13 +408,15 @@ Game_result objects
       For example, ``'xxx beat yyy (W+2.5)'``.
 
 
+.. currentmodule:: tournament_results
+
 .. _using_the_api_in_scripts:
 
 Using the API in scripts
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 To write a standalone script using the tournaments results API, obtain a
-:class:`Tournament_results` object from a :class:`Ringmaster` object as
+:class:`Tournament_results` object from a :class:`!Ringmaster` object as
 follows::
 
   from gomill import ringmasters
@@ -422,8 +424,8 @@ follows::
   ringmaster.load_status()
   tournament_results = ringmaster.tournament_results()
 
-All of these calls report problems by raising the :exc:`RingmasterError`
-exception defined in the :mod:`ringmasters` module.
+All of these calls report problems by raising the :exc:`!RingmasterError`
+exception defined in the :mod:`!ringmasters` module.
 
 See the :script:`find_forfeits.py` example script for a more fleshed-out
 example.
