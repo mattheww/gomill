@@ -146,8 +146,8 @@ class Playoff(tournaments.Tournament):
         for m in reversed(self.matchup_list):
             if m.number_of_games == 0:
                 continue
-            used_players[m.p1] = m
-            used_players[m.p2] = m
+            used_players[m.player_1] = m
+            used_players[m.player_2] = m
         result = []
         for code, matchup in sorted(used_players.iteritems()):
             check = game_jobs.Player_check()

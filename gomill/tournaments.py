@@ -47,8 +47,8 @@ class Matchup(tournament_results.Matchup_description):
     def __init__(self, matchup_id, player1, player2, parameters,
                  name, event_code):
         self.id = matchup_id
-        self.p1 = player1
-        self.p2 = player2
+        self.player_1 = player1
+        self.player_2 = player2
 
         for setting in matchup_settings:
             try:
@@ -64,7 +64,7 @@ class Matchup(tournament_results.Matchup_description):
             self.handicap, self.handicap_style, self.board_size)
 
         if name is None:
-            name = "%s v %s" % (self.p1, self.p2)
+            name = "%s v %s" % (self.player_1, self.player_2)
             event_description = event_code
         else:
             event_description = "%s (%s)" % (event_code, name)
@@ -85,11 +85,11 @@ class Ghost_matchup(object):
     It has to be a good enough imitation to keep write_matchup_summary() happy.
 
     """
-    def __init__(self, matchup_id, p1, p2):
+    def __init__(self, matchup_id, player_1, player_2):
         self.id = matchup_id
-        self.p1 = p1
-        self.p2 = p2
-        self.name = "%s v %s" % (p1, p2)
+        self.player_1 = player_1
+        self.player_2 = player_2
+        self.name = "%s v %s" % (player_1, player_2)
         self.number_of_games = None
 
     def describe_details(self):
@@ -152,7 +152,7 @@ class Tournament(Competition):
                 continue
             result = results[0]
             seen_players = sorted(result.players.itervalues())
-            expected_players = sorted((matchup.p1, matchup.p2))
+            expected_players = sorted((matchup.player_1, matchup.player_2))
             if seen_players != expected_players:
                 raise CompetitionError(
                     "existing results for matchup %s "
@@ -169,7 +169,8 @@ class Tournament(Competition):
             if matchup_id in live:
                 continue
             result = results[0]
-            # p1 and p2 might not be the right way round, but it doesn't matter.
+            # player_1 and player_2 might not be the right way round, but it
+            # doesn't matter.
             self.ghost_matchups[matchup_id] = Ghost_matchup(
                 matchup_id, result.player_b, result.player_w)
 
@@ -211,9 +212,9 @@ class Tournament(Competition):
             return NoGameAvailable
         matchup = self.matchups[matchup_id]
         if matchup.alternating and (game_number % 2):
-            player_b, player_w = matchup.p2, matchup.p1
+            player_b, player_w = matchup.player_2, matchup.player_1
         else:
-            player_b, player_w = matchup.p1, matchup.p2
+            player_b, player_w = matchup.player_1, matchup.player_2
         game_id = matchup.make_game_id(game_number)
 
         job = game_jobs.Game_job()
@@ -268,7 +269,8 @@ class Tournament(Competition):
         # that isn't available any other way, but we look to the results where
         # we can.
 
-        ms = tournament_results.Matchup_stats(results, matchup.p1, matchup.p2)
+        ms = tournament_results.Matchup_stats(
+            results, matchup.player_1, matchup.player_2)
         ms.calculate_colour_breakdown()
         ms.calculate_time_stats()
         tournament_results.write_matchup_summary(out, matchup, ms)

@@ -100,8 +100,8 @@ def test_basic_config(tc):
     tc.assertListEqual(tr.get_matchup_ids(), ['0', 'm1', '2'])
     tc.assertDictEqual(tr.get_matchups(), {'0' : m0, 'm1' : m1, '2' : m2})
 
-    tc.assertEqual(m0.p1, 't1')
-    tc.assertEqual(m0.p2, 't2')
+    tc.assertEqual(m0.player_1, 't1')
+    tc.assertEqual(m0.player_2, 't2')
     tc.assertEqual(m0.board_size, 9)
     tc.assertEqual(m0.komi, 0.5)
     tc.assertIs(m0.alternating, True)
@@ -111,8 +111,8 @@ def test_basic_config(tc):
     tc.assertEqual(m0.scorer, 'internal')
     tc.assertEqual(m0.number_of_games, 20)
 
-    tc.assertEqual(m1.p1, 't2')
-    tc.assertEqual(m1.p2, 't1')
+    tc.assertEqual(m1.player_1, 't2')
+    tc.assertEqual(m1.player_2, 't1')
     tc.assertEqual(m1.board_size, 13)
     tc.assertEqual(m1.komi, 7.5)
     tc.assertIs(m1.alternating, False)

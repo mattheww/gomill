@@ -11,8 +11,8 @@ class Matchup_description(object):
 
     Public attributes:
       id              -- matchup id (very short string)
-      p1              -- player code (identifier-like string)
-      p2              -- player code (identifier-like string)
+      player_1        -- player code (identifier-like string)
+      player_2        -- player code (identifier-like string)
       name            -- string (eg 'xxx v yyy')
       board_size      -- int
       komi            -- float
@@ -23,10 +23,10 @@ class Matchup_description(object):
       scorer          -- 'internal' or 'players'
       number_of_games -- int or None
 
-    If alternating is False, p1 plays black and p2 plays white; otherwise they
-    alternate.
+    If alternating is False, player_1 plays black and player_2 plays white;
+    otherwise they alternate.
 
-    p1 and p2 are always different.
+    player_1 and player_2 are always different.
 
     """
     def describe_details(self):
@@ -90,7 +90,8 @@ class Tournament_results(object):
 
         """
         matchup = self.matchups[matchup_id]
-        ms = Matchup_stats(self.results[matchup_id], matchup.p1, matchup.p2)
+        ms = Matchup_stats(self.results[matchup_id],
+                           matchup.player_1, matchup.player_2)
         ms.calculate_colour_breakdown()
         ms.calculate_time_stats()
         return ms

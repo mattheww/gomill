@@ -223,13 +223,13 @@ class Allplayall(tournaments.Tournament):
                 if c1_i < c2_i:
                     matchup_id = self._get_matchup_id(c1, c2)
                     matchup = self.matchups[matchup_id]
-                    player_x = matchup.p1
-                    player_y = matchup.p2
+                    player_x = matchup.player_1
+                    player_y = matchup.player_2
                 else:
                     matchup_id = self._get_matchup_id(c2, c1)
                     matchup = self.matchups[matchup_id]
-                    player_x = matchup.p2
-                    player_y = matchup.p1
+                    player_x = matchup.player_2
+                    player_y = matchup.player_1
                 ms = tournament_results.Matchup_stats(
                     self.results[matchup.id],
                     player_x, player_y)

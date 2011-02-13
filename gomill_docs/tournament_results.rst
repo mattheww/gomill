@@ -96,15 +96,15 @@ Matchup_description objects
 
       The :ref:`matchup id <matchup id>` (a string, usually 1 to 3 characters).
 
-   .. attribute:: p1
+   .. attribute:: player_1
 
       The :ref:`player code <player codes>` of the first player.
 
-   .. attribute:: p2
+   .. attribute:: player_2
 
       The :ref:`player code <player codes>` of the second player.
 
-   :attr:`!p1` and :attr:`!p2` are always different.
+   :attr:`!player_1` and :attr:`!player_2` are always different.
 
    .. note:: In a :ref:`playoff tournament <playoff tournament>`, it is
       possible to define a matchup in which the same player takes both
@@ -125,8 +125,8 @@ Matchup_description objects
 
    .. attribute:: alternating
 
-      Bool. If this is ``False``, :attr:`p1` played black and :attr:`p2`
-      played white; otherwise they alternated.
+      Bool. If this is ``False``, :attr:`player_1` played black and
+      :attr:`player_2` played white; otherwise they alternated.
 
    .. attribute:: handicap
 
@@ -181,8 +181,8 @@ Game_result objects
 
    The :ref:`player codes <player codes>` used here are the same as the ones
    in the corresponding :class:`Matchup_description`'s
-   :attr:`~Matchup_description.p1` and :attr:`~Matchup_description.p2`
-   attributes.
+   :attr:`~Matchup_description.player_1` and
+   :attr:`~Matchup_description.player_2` attributes.
 
    See :ref:`playing games` and :ref:`details of scoring` for an explanation
    of the possible game results. Games with unknown result can be
