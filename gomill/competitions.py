@@ -37,16 +37,19 @@ class Control_file_token(object):
 
 _player_settings = [
     Setting('command', interpret_shlex_sequence),
-    Setting('cwd', interpret_8bit_string, default=None),
+    Setting('cwd', allow_none(interpret_8bit_string), default=None),
     Setting('environ',
-            interpret_map_of(interpret_8bit_string, interpret_8bit_string),
+            allow_none(interpret_map_of(
+                interpret_8bit_string, interpret_8bit_string)),
             default=None),
     Setting('is_reliable_scorer', interpret_bool, default=True),
     Setting('allow_claim', interpret_bool, default=False),
     Setting('gtp_aliases',
-            interpret_map_of(interpret_8bit_string, interpret_8bit_string),
+            allow_none(interpret_map_of(
+                interpret_8bit_string, interpret_8bit_string)),
             defaultmaker=dict),
-    Setting('startup_gtp_commands', interpret_sequence, defaultmaker=list),
+    Setting('startup_gtp_commands', allow_none(interpret_sequence),
+            defaultmaker=list),
     Setting('discard_stderr', interpret_bool, default=False),
     ]
 
@@ -160,7 +163,8 @@ class Competition(object):
 
     # List of Settings (subclasses can override, and should include these)
     global_settings = [
-        Setting('description', interpret_as_utf8_stripped, default=None),
+        Setting('description', allow_none(interpret_as_utf8_stripped),
+                default=None),
         ]
 
     def initialise_from_control_file(self, config):
