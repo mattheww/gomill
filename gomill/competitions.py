@@ -283,7 +283,7 @@ class Competition(object):
             raise ControlFileError("'gtp_aliases': %s" % e)
 
         if config['discard_stderr']:
-            player.stderr_pathname = os.devnull
+            player.discard_stderr = True
 
         return player
 
@@ -330,14 +330,13 @@ class Competition(object):
 
         Returns a game_jobs.Game_job, or NoGameAvailable.
 
-        The Game_job is incomplete in the following ways (which are left to the
-        ringmaster to finish off):
-         - sgf_game_name isn't set
-         - sgf_filename, sgf_dirname and void_sgf_dirname aren't set
-         - gtp_log_pathname isn't set
-         - the Players' stderr_pathname may not be set
-           (if it is set, it will be to os.devnull, and the ringmaster should
-            leave it alone)
+        The following Game_job attributes are left for the ringmaster to set:
+         - sgf_game_name
+         - sgf_filename
+         - sgf_dirname
+         - void_sgf_dirname
+         - gtp_log_pathname
+         - stderr_pathname
 
         """
         raise NotImplementedError

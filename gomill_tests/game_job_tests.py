@@ -240,21 +240,46 @@ def test_game_job_late_error_from_void_game(tc):
         "forced failure for close")
     tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.void/gjtest.sgf')
 
-def test_game_job_stderr_cwd_env(tc):
+def test_game_job_cwd_env(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     gj = Game_job_fixture(tc)
-    gj.job.player_b.stderr_pathname = os.devnull
     gj.job.player_b.cwd = "/nonexistent_directory"
     gj.job.player_b.environ = {'GOMILL_TEST' : 'gomill'}
     result = gj.job.run()
     channel = fx.get_channel('one')
-    tc.assertIsInstance(channel.requested_stderr, file)
-    tc.assertEqual(channel.requested_stderr.name, os.devnull)
+    tc.assertIsNone(channel.requested_stderr)
     tc.assertEqual(channel.requested_cwd, "/nonexistent_directory")
     tc.assertEqual(channel.requested_env['GOMILL_TEST'], 'gomill')
     # Check environment was merged, not replaced
     tc.assertIn('PATH', channel.requested_env)
     tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
+
+def test_game_job_stderr_discarded(tc):
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    gj = Game_job_fixture(tc)
+    gj.job.player_b.discard_stderr = True
+    result = gj.job.run()
+    channel = fx.get_channel('one')
+    tc.assertIsInstance(channel.requested_stderr, file)
+    tc.assertEqual(channel.requested_stderr.name, os.devnull)
+
+def test_game_job_stderr_set(tc):
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    gj = Game_job_fixture(tc)
+    gj.job.stderr_pathname = "/dev/full"
+    result = gj.job.run()
+    channel = fx.get_channel('one')
+    tc.assertIsInstance(channel.requested_stderr, file)
+    tc.assertEqual(channel.requested_stderr.name, "/dev/full")
+
+def test_game_job_stderr_set_and_discarded(tc):
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    gj = Game_job_fixture(tc)
+    gj.job.player_b.discard_stderr = True
+    result = gj.job.run()
+    channel = fx.get_channel('one')
+    tc.assertIsInstance(channel.requested_stderr, file)
+    tc.assertEqual(channel.requested_stderr.name, os.devnull)
 
 def test_game_job_gtp_aliases(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)

@@ -181,7 +181,7 @@ def test_get_job(tc):
     tc.assertEqual(job.player_w.cmd_args, ['test', 'sing', 'song'])
     tc.assertDictEqual(job.player_b.gtp_aliases, {})
     tc.assertListEqual(job.player_b.startup_gtp_commands, [])
-    tc.assertEqual(job.player_b.stderr_pathname, "/nonexistent/ctl/test.log")
+    tc.assertEqual(job.stderr_pathname, "/nonexistent/ctl/test.log")
     tc.assertIsNone(job.player_b.cwd)
     tc.assertIsNone(job.player_b.environ)
     tc.assertEqual(fx.ringmaster.games_in_progress, {'0_000': job})
@@ -203,7 +203,7 @@ def test_settings(tc):
     tc.assertEqual(job.handicap, 9)
     tc.assertIs(job.handicap_is_free, True)
     tc.assertIs(job.use_internal_scorer, False)
-    tc.assertEqual(job.player_b.stderr_pathname, "/nonexistent/ctl/test.log")
+    tc.assertEqual(job.stderr_pathname, "/nonexistent/ctl/test.log")
     tc.assertEqual(job.gtp_log_pathname,
                    '/nonexistent/ctl/test.gtplogs/0_000.log')
     tc.assertEqual(job.sgf_filename, '0_000.sgf')
@@ -218,8 +218,9 @@ def test_stderr_settings(tc):
         "players['p2'] = Player('test', discard_stderr=True)",
         ])
     job = fx.get_job()
-    tc.assertEqual(job.player_b.stderr_pathname, "/nonexistent/ctl/test.log")
-    tc.assertEqual(job.player_w.stderr_pathname, os.devnull)
+    tc.assertEqual(job.stderr_pathname, "/nonexistent/ctl/test.log")
+    tc.assertIs(job.player_b.discard_stderr, False)
+    tc.assertIs(job.player_w.discard_stderr, True)
 
 def test_stderr_settings_nolog(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
@@ -227,8 +228,9 @@ def test_stderr_settings_nolog(tc):
         "stderr_to_log = False",
         ])
     job = fx.get_job()
-    tc.assertIsNone(job.player_b.stderr_pathname, None)
-    tc.assertEqual(job.player_w.stderr_pathname, os.devnull)
+    tc.assertIs(job.stderr_pathname, None)
+    tc.assertIs(job.player_b.discard_stderr, False)
+    tc.assertIs(job.player_w.discard_stderr, True)
 
 
 def test_get_tournament_results(tc):

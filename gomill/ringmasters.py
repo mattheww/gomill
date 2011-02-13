@@ -555,9 +555,8 @@ class Ringmaster(object):
         if self.write_gtp_logs:
             job.gtp_log_pathname = os.path.join(
                     self.gtplog_dir_pathname, "%s.log" % job.game_id)
-        for player in (job.player_b, job.player_w):
-            if player.stderr_pathname is None and self.stderr_to_log:
-                player.stderr_pathname = self.log_pathname
+        if self.stderr_to_log:
+            job.stderr_pathname = self.log_pathname
 
     def get_job(self):
         """Job supply function for the job manager."""

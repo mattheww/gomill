@@ -20,7 +20,7 @@ class Player(object):
       allow_claim          -- bool (default False)
       gtp_aliases          -- map command string -> command string
       startup_gtp_commands -- list of pairs (command_name, arguments)
-      stderr_pathname      -- pathname or None (default None)
+      discard_stderr       -- bool (default False)
       cwd                  -- working directory to change to (default None)
       environ              -- maplike of environment variables (default None)
 
@@ -29,10 +29,6 @@ class Player(object):
     The startup commands will be executed before starting the game. Their
     responses will be ignored, but the game will be aborted if any startup
     command returns an error.
-
-    If stderr_pathname is set, the specified file will be opened in append mode
-    and the player's standard error will be sent there. Otherwise the player's
-    standard error will be left as the standard error of the calling process.
 
     By default, the player will be given a copy of the parent process's
     environment variables; use 'environ' to add variables or replace particular
@@ -46,7 +42,7 @@ class Player(object):
         self.allow_claim = False
         self.gtp_aliases = {}
         self.startup_gtp_commands = []
-        self.stderr_pathname = None
+        self.discard_stderr = False
         self.cwd = None
         self.environ = None
 
@@ -72,7 +68,7 @@ class Player(object):
         result.allow_claim = self.allow_claim
         result.gtp_aliases = dict(self.gtp_aliases)
         result.startup_gtp_commands = list(self.startup_gtp_commands)
-        result.stderr_pathname = self.stderr_pathname
+        result.discard_stderr = self.discard_stderr
         result.cwd = self.cwd
         if self.environ is None:
             result.environ = None
@@ -125,6 +121,7 @@ class Game_job(object):
       sgf_event           -- string to show as SGF EVent
       sgf_note            -- multiline string to put into SGF root comment
       gtp_log_pathname    -- pathname to use for the GTP log
+      stderr_pathname     -- pathname to send players' stderr to
 
     The game_id will be returned in the job result, so you can tell which game
     you're getting the result for. It also appears in a comment in the SGF file.
@@ -146,6 +143,11 @@ class Game_job(object):
     If gtp_log_pathname is set, all GTP messages to and from both players will
     be logged (this doesn't append; any existing file will be overwritten).
 
+    If stderr_pathname is set, the specified file will be opened in append mode
+    and both players' standard error streams will be sent there. Otherwise the
+    players' standard error streams will be left as the standard error of the
+    calling process. But if a player has discard_stderr=True then its standard
+    error is sent to os.devnull instead.
 
     Game_jobs are suitable for pickling.
 
@@ -162,6 +164,7 @@ class Game_job(object):
         self.use_internal_scorer = True
         self.game_data = None
         self.gtp_log_pathname = None
+        self.stderr_pathname = None
 
     # The code here has to be happy to run in a separate process.
 
@@ -187,8 +190,12 @@ class Game_job(object):
                     pass
 
     def _start_player(self, game, colour, player, gtp_log_file):
-        if player.stderr_pathname is not None:
-            stderr = open(player.stderr_pathname, "a")
+        if player.discard_stderr:
+            stderr_pathname = os.devnull
+        else:
+            stderr_pathname = self.stderr_pathname
+        if stderr_pathname is not None:
+            stderr = open(stderr_pathname, "a")
             self._files_to_close.append(stderr)
         else:
             stderr = None
