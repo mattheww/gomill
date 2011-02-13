@@ -584,7 +584,6 @@ class Game(object):
                 winner = None
                 margin = 0
         else:
-            interpreted_scores = []
             winners = []
             margins = []
             for colour in self.allowed_scorers:
