@@ -434,6 +434,8 @@ class Competition(object):
 
         Expect this to be implemented for tournaments but not tuning events.
 
+        This won't include results for 'ghost' matchups.
+
         """
         raise NotImplementedError
 
