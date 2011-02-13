@@ -2,6 +2,7 @@
 
 import os
 import re
+from textwrap import dedent
 
 from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
@@ -97,6 +98,29 @@ number_of_games = 400
 matchups = [
     Matchup('p1', 'p2'),
     ]
+
+"""
+
+allplayall_ctl = """
+
+competition_type = 'allplayall'
+
+description = 'gomill_tests allplayall_ctl.'
+
+players = {
+    'p1'  : Player('test'),
+    'p2'  : Player('test'),
+    }
+
+move_limit = 400
+record_games = False
+board_size = 9
+komi = 7.5
+scorer = 'internal'
+
+rounds = 8
+
+competitors = ['p1', 'p2']
 
 """
 
@@ -286,6 +310,42 @@ def test_run(tc):
         "  0_000 p1 beat p2 B+10.5\n"
         "  0_001 p1 beat p2 B+10.5\n"
         "  0_002 p1 beat p2 B+10.5\n")
+
+def test_run_allplayall(tc):
+    fx = Ringmaster_fixture(tc, allplayall_ctl, [
+        "players['p1'] = Player('test', discard_stderr=True)",
+        "players['p2'] = Player('test', discard_stderr=True)",
+        ])
+    fx.initialise_clean()
+    fx.ringmaster.run(max_games=3)
+    tc.assertListEqual(
+        fx.messages('warnings'),
+        [])
+    tc.assertListEqual(
+        fx.messages('screen_report'),
+        [dedent("""\
+        3/8 games played
+
+              A   B
+        A p1     2-1
+        B p2 1-2""")])
+    tc.assertMultiLineEqual(
+        fx.get_log(),
+        "run started at *** with max_games 3\n"
+        "starting game AvB_0: p1 (b) vs p2 (w)\n"
+        "response from game AvB_0\n"
+        "starting game AvB_1: p2 (b) vs p1 (w)\n"
+        "response from game AvB_1\n"
+        "starting game AvB_2: p1 (b) vs p2 (w)\n"
+        "response from game AvB_2\n"
+        "halting competition: max-games reached for this run\n"
+        "run finished at ***\n"
+        )
+    tc.assertMultiLineEqual(
+        fx.get_history(),
+        "  AvB_0 p1 beat p2 B+10.5\n"
+        "  AvB_1 p2 beat p1 B+10.5\n"
+        "  AvB_2 p1 beat p2 B+10.5\n")
 
 def test_check_players_fail(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
