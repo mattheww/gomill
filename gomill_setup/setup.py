@@ -122,6 +122,9 @@ Download: http://mjw.woodcraft.me.uk/gomill/download/gomill-%(VERSION)s.tar.gz
 Documentation: http://mjw.woodcraft.me.uk/gomill/download/gomill-doc-%(VERSION)s.tar.gz
 
 Online Documentation: http://mjw.woodcraft.me.uk/gomill/doc/%(VERSION)s/
+
+Changelog: http://mjw.woodcraft.me.uk/gomill/doc/%(VERSION)s/changes.html
+
 """ % vars()
 
 setup(name='gomill',
