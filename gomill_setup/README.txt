@@ -100,6 +100,12 @@ distribution directory and run
   python test_installed_gomill.py
 
 
+With Python versions earlier than 2.7, the unittest2 library [1] is required
+to run the testsuite.
+
+[1] http://pypi.python.org/pypi/unittest2/
+
+
 Running the example scripts
 ---------------------------
 
