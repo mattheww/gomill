@@ -411,7 +411,7 @@ class Game(object):
         Raises ValueError if the number of stones isn't valid (see GTP spec).
 
         Raises BadGtpResponse if there's an invalid respone to
-        place_free_handicap (doesn't check the response to fixed_handicap).
+        place_free_handicap or fixed_handicap.
 
         """
         if is_free:
@@ -438,7 +438,17 @@ class Game(object):
             # May propagate ValueError
             points = handicap_layout.handicap_points(handicap, self.board_size)
             for colour in "b", "w":
-                self.send_command(colour, "fixed_handicap", str(handicap))
+                vertices = self.send_command(
+                    colour, "fixed_handicap", str(handicap))
+                try:
+                    seen_points = [coords_from_vertex(vt, self.board_size)
+                                   for vt in vertices.split(" ")]
+                    if set(seen_points) != set(points):
+                        raise ValueError
+                except ValueError:
+                    raise BadGtpResponse(
+                        "bad response from fixed_handicap command "
+                        "to %s: %s" % (self.players[colour], vertices))
         self.board.apply_setup(points, [], [])
         self.additional_sgf_props.append(('handicap', handicap))
         self.sgf_setup_stones = [("b", coords) for coords in points]

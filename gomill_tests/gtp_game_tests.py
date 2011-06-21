@@ -567,3 +567,20 @@ def test_fixed_handicap(tc):
 ;B[ed]C[one beat two B+F (forfeit: two attempted move to occupied point g7)])
 """))
 
+def test_fixed_handicap_bad_engine(tc):
+    fh_calls = []
+    def handle_fixed_handicap_good(args):
+        fh_calls.append(args[0])
+        return "g7 c7 c3"
+    def handle_fixed_handicap_bad(args):
+        fh_calls.append(args[0])
+        return "C3 G3 C7" # Should be G7, not G3
+    fx = Game_fixture(tc)
+    fx.engine_b.add_command('fixed_handicap', handle_fixed_handicap_good)
+    fx.engine_w.add_command('fixed_handicap', handle_fixed_handicap_bad)
+    fx.game.ready()
+    tc.assertRaisesRegexp(
+        gtp_controller.BadGtpResponse,
+        "^bad response from fixed_handicap command to two: C3 G3 C7$",
+        fx.game.set_handicap, 3, is_free=False)
+
