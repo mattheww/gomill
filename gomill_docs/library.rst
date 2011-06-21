@@ -33,7 +33,7 @@ itself defines only a single constant:
 .. currentmodule:: gomill
 .. data:: __version__
 
-   The library version, as a string.
+   The library version, as a string (like ``"0.7"``).
 
    .. versionadded:: 0.7
 
