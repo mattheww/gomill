@@ -1,6 +1,12 @@
 Changes
 =======
 
+
+* Gomill now checks the response to the :gtp:`!fixed_handicap` command.
+
+* Added the :data:`gomill.__version__` constant.
+
+
 Gomill 0.6 (2011-02-13)
 -----------------------
 
