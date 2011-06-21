@@ -98,6 +98,10 @@ class Game_fixture(test_framework.Fixture):
         self.game.ready()
         self.game.run()
 
+    def sgf_string(self):
+        return gomill_test_support.scrub_sgf_date(
+            self.game.make_sgf().as_string())
+
 
 def test_game(tc):
     fx = Game_fixture(tc)
@@ -505,14 +509,14 @@ def test_same_player_code(tc):
     tc.assertRaisesRegexp(ValueError, "player codes must be distinct",
                           game.set_player_code, 'w', 'one')
 
+
 def test_make_sgf(tc):
     fx = Game_fixture(tc)
     fx.game.use_internal_scorer()
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
-    tc.assertMultiLineEqual(gomill_test_support.scrub_sgf_date(
-        fx.game.make_sgf().as_string()), ("""\
+    tc.assertMultiLineEqual(fx.sgf_string(), ("""\
 (;AP[gomill:?]CA[utf-8]DT[***]FF[4]GM[1]KM[0.0]RE[B+18]SZ[9];B[ei];W[gi]
 ;B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];W[gc];B[eb]
 ;W[gb];B[ea];W[ga];B[tt];W[tt]C[one beat two B+18])
@@ -526,10 +530,40 @@ def test_game_id(tc):
     fx.game.run()
     fx.game.close_players()
     tc.assertEqual(fx.game.result.game_id, "gitest")
-    tc.assertMultiLineEqual(gomill_test_support.scrub_sgf_date(
-        fx.game.make_sgf().as_string()), ("""\
+    tc.assertMultiLineEqual(fx.sgf_string(), ("""\
 (;AP[gomill:?]CA[utf-8]DT[***]FF[4]GM[1]GN[gitest]KM[0.0]RE[B+18]SZ[9]
 ;B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec]
 ;W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];W[tt]C[one beat two B+18])
+"""))
+
+
+def test_fixed_handicap(tc):
+    fh_calls = []
+    def handle_fixed_handicap(args):
+        fh_calls.append(args[0])
+        return "C3 G7 C7"
+    fx = Game_fixture(tc)
+    fx.engine_b.add_command('fixed_handicap', handle_fixed_handicap)
+    fx.engine_w.add_command('fixed_handicap', handle_fixed_handicap)
+    fx.game.ready()
+    fx.game.set_handicap(3, is_free=False)
+    tc.assertEqual(fh_calls, ["3", "3"])
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertEqual(fx.game.result.sgf_result, "B+F")
+    tc.assertEqual(fx.game.result.detail,
+                   "forfeit: two attempted move to occupied point g7")
+    fx.check_moves([
+        ('w', 'G1'), ('b', 'E1'),
+        ('w', 'G2'), ('b', 'E2'),
+        ('w', 'G3'), ('b', 'E3'),
+        ('w', 'G4'), ('b', 'E4'),
+        ('w', 'G5'), ('b', 'E5'),
+        ('w', 'G6'), ('b', 'E6'),
+        ])
+    tc.assertMultiLineEqual(fx.sgf_string(), ("""\
+(;AP[gomill:?]CA[utf-8]DT[***]FF[4]GM[1]HA[3]KM[0.0]RE[B+F]SZ[9]AB[cc]
+[cg][gc];W[gi];B[ei];W[gh];B[eh];W[gg];B[eg];W[gf];B[ef];W[ge];B[ee];W[gd]
+;B[ed]C[one beat two B+F (forfeit: two attempted move to occupied point g7)])
 """))
 
