@@ -2,7 +2,7 @@ Changes
 =======
 
 
-* Gomill now checks the response to the :gtp:`!fixed_handicap` command.
+* Gomill now checks the response to the :gtp:`!fixed_handicap` |gtp| command.
 
 * Added the :data:`gomill.__version__` constant.
 
