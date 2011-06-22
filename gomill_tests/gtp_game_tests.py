@@ -14,6 +14,8 @@ from gomill_tests.gtp_engine_fixtures import Programmed_player
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
+    for t in handicap_compensation_tests:
+        suite.addTest(Handicap_compensation_TestCase(*t))
 
 
 class Game_fixture(test_framework.Fixture):
@@ -34,10 +36,10 @@ class Game_fixture(test_framework.Fixture):
       player_w     -- player object
 
     """
-    def __init__(self, tc, player_b=None, player_w=None, komi=0.0):
+    def __init__(self, tc, player_b=None, player_w=None,
+                 komi=0.0, board_size=9):
         self.tc = tc
-        self.board_size = 9
-        game = gtp_games.Game(board_size=self.board_size, komi=komi)
+        game = gtp_games.Game(board_size, komi=komi)
         game.set_player_code('b', 'one')
         game.set_player_code('w', 'two')
         if player_b is None:
@@ -584,3 +586,28 @@ def test_fixed_handicap_bad_engine(tc):
         "^bad response from fixed_handicap command to two: C3 G3 C7$",
         fx.game.set_handicap, 3, is_free=False)
 
+
+handicap_compensation_tests = [
+    # test code, handicap_compensation, result
+    ('no', 'no', "B+53"),
+    ('full', 'full', "B+50"),
+    ('short', 'short', "B+51"),
+    ]
+
+class Handicap_compensation_TestCase(
+        gomill_test_support.Gomill_ParameterisedTestCase):
+    test_name = "test_handicap_compensation"
+    parameter_names = ('hc', 'result')
+
+    def runTest(self):
+        def handle_fixed_handicap(args):
+            return "D4 K10 D10"
+        fx = Game_fixture(self, board_size=13)
+        fx.engine_b.add_command('fixed_handicap', handle_fixed_handicap)
+        fx.engine_w.add_command('fixed_handicap', handle_fixed_handicap)
+        fx.game.use_internal_scorer(handicap_compensation=self.hc)
+        fx.game.set_handicap(3, is_free=False)
+        fx.game.ready()
+        fx.game.run()
+        fx.game.close_players()
+        self.assertEqual(fx.game.result.sgf_result, self.result)

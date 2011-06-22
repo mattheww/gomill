@@ -178,6 +178,8 @@ class Game(object):
         self.move_limit = move_limit
         self.allowed_scorers = []
         self.internal_scorer = False
+        self.handicap_compensation = "no"
+        self.handicap = 0
         self.first_player = "b"
         self.engine_names = {}
         self.engine_descriptions = {}
@@ -225,13 +227,25 @@ class Game(object):
         """
         self.game_id = str(game_id)
 
-    def use_internal_scorer(self):
+    def use_internal_scorer(self, handicap_compensation='no'):
         """Set the scoring method to internal.
 
         The internal scorer uses area score, assuming all stones alive.
 
+        handicap_compensation -- 'no' (default), 'short', or 'full'.
+
+        If handicap_compensation is 'full', one point is deducted from Black's
+        score for each handicap stone; if handicap_compensation is 'short', one
+        point is deducted from Black's score for each handicap stone except the
+        first. (The number of handicap stones is taken from the parameter to
+        set_handicap().)
+
         """
         self.internal_scorer = True
+        if handicap_compensation not in ('no', 'short', 'full'):
+            raise ValueError("bad handicap_compensation value: %s" %
+                             handicap_compensation)
+        self.handicap_compensation = handicap_compensation
 
     def allow_scorer(self, colour):
         """Allow the specified player to score the game.
@@ -450,6 +464,7 @@ class Game(object):
                         "bad response from fixed_handicap command "
                         "to %s: %s" % (self.players[colour], vertices))
         self.board.apply_setup(points, [], [])
+        self.handicap = handicap
         self.additional_sgf_props.append(('handicap', handicap))
         self.sgf_setup_stones = [("b", coords) for coords in points]
         self.first_player = "w"
@@ -582,6 +597,10 @@ class Game(object):
         is_disagreement = False
         if self.internal_scorer:
             score = self.board.area_score() - self.komi
+            if self.handicap_compensation == "full":
+                score -= self.handicap
+            elif self.handicap_compensation == "short":
+                score -= (self.handicap - 1)
             if score > 0:
                 winner = "b"
                 margin = score
