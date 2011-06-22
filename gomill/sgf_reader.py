@@ -125,6 +125,7 @@ class Sgf_scanner(object):
                 self.index += 1
                 continue
             if c == "]":
+                self.index += 1
                 break
             if c != "\n" and c.isspace():
                 c = " "
@@ -404,12 +405,10 @@ def read_sgf(s):
             prop_values = []
             while True:
                 scanner.skip_space()
-                c = scanner.peek()
-                if c != "[":
+                if scanner.peek() != "[":
                     break
                 scanner.skip()
                 prop_values.append(scanner.scan_prop_value())
-                scanner.expect("]")
             if not prop_values:
                 raise ValueError
             node.add(Prop(prop_ident, prop_values))
