@@ -454,6 +454,16 @@ particular competition type for details.
   ringmaster. See :ref:`Scoring <scoring>` and :setting:`is_reliable_scorer`.
 
 
+.. setting:: internal_scorer_handicap_compensation
+
+  String: ``"no"``, ``"full"`` or ``"short"`` (default ``"full"``)
+
+  Specifies whether White is given extra points to compensate for Black's
+  handicap stones; see :ref:`Scoring <scoring>` for details. This setting has
+  no effect for games which are played without handicap, and it has no effect
+  when :setting:`scorer` is set to ``"players"``.
+
+
 
 
 

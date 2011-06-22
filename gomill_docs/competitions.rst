@@ -168,6 +168,8 @@ See also :ref:`claiming wins`.
    wall-clock time.
 
 
+.. index:: handicap compensation
+
 .. _scoring:
 
 Scoring
@@ -182,8 +184,15 @@ using the |gtp| :gtp:`!final_score` command. See also the
 
 When the ``internal`` method is used, the ringmaster scores the game itself,
 area-fashion. It assumes that all stones remaining on the board at the end of
-the game are alive. It applies :setting:`komi`, but no handicap stone
-compensation.
+the game are alive. It applies :setting:`komi`.
+
+In handicap games, the internal scorer can also apply handicap stone
+compensation, controlled by the
+:setting:`internal_scorer_handicap_compensation` game setting: ``"full"`` (the
+default) means that White is given an additional point for each handicap
+stone, ``"short"`` means White is given an additional point for each handicap
+stone except the first, and ``"no"`` means that no handicap stone compensation
+is given.
 
 
 .. _claiming wins:
