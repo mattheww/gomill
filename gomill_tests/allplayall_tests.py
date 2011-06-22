@@ -89,6 +89,7 @@ def test_default_config(tc):
     tc.assertEqual(mBvC.komi, 7.5)
     tc.assertEqual(mBvC.move_limit, 1000)
     tc.assertEqual(mBvC.scorer, 'players')
+    tc.assertEqual(mBvC.internal_scorer_handicap_compensation, 'full')
     tc.assertEqual(mBvC.number_of_games, None)
     tc.assertIs(mBvC.alternating, True)
     tc.assertIs(mBvC.handicap, None)
@@ -102,6 +103,7 @@ def test_basic_config(tc):
     config['komi'] = 0.5
     config['move_limit'] = 200
     config['scorer'] = 'internal'
+    config['internal_scorer_handicap_compensation'] = 'short'
     config['rounds'] = 20
     comp.initialise_from_control_file(config)
     tc.assertEqual(comp.description, "default\nconfig")
@@ -113,6 +115,7 @@ def test_basic_config(tc):
     tc.assertEqual(mBvC.komi, 0.5)
     tc.assertEqual(mBvC.move_limit, 200)
     tc.assertEqual(mBvC.scorer, 'internal')
+    tc.assertEqual(mBvC.internal_scorer_handicap_compensation, 'short')
     tc.assertEqual(mBvC.number_of_games, 20)
     tc.assertIs(mBvC.alternating, True)
     tc.assertIs(mBvC.handicap, None)
@@ -165,6 +168,8 @@ def test_play(tc):
     tc.assertEqual(job1.board_size, 13)
     tc.assertEqual(job1.komi, 7.5)
     tc.assertEqual(job1.move_limit, 1000)
+    tc.assertIs(job1.use_internal_scorer, False)
+    tc.assertIs(job1.internal_scorer_handicap_compensation, 'full')
     tc.assertEqual(job1.game_data, ('AvB', 0))
     tc.assertIsNone(job1.sgf_filename)
     tc.assertIsNone(job1.sgf_dirname)

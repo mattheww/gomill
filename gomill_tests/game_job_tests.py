@@ -304,6 +304,25 @@ def test_game_job_claim(tc):
     tc.assertEqual(result.game_result.sgf_result, "W+")
     tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
 
+def test_game_job_handicap(tc):
+    def handle_fixed_handicap(args):
+        return "D4 K10 D10"
+    def register_fixed_handicap(channel):
+        channel.engine.add_command('fixed_handicap', handle_fixed_handicap)
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    fx.register_init_callback('handicap', register_fixed_handicap)
+    gj = Game_job_fixture(tc)
+    gj.job.player_b.cmd_args.append('init=handicap')
+    gj.job.player_w.cmd_args.append('init=handicap')
+    gj.job.board_size = 13
+    gj.job.handicap = 3
+    gj.job.handicap_is_free = False
+    gj.job.internal_scorer_handicap_compensation = 'full'
+    result = gj.job.run()
+    # area score 53, less 7.5 komi, less 3 handicap compensation
+    tc.assertEqual(result.game_result.sgf_result, "B+42.5")
+
+
 
 ### check_player
 

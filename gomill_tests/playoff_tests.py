@@ -84,7 +84,9 @@ def test_basic_config(tc):
             Matchup_config(
                 't1',  't2', board_size=9, komi=0.5, alternating=True,
                 handicap=6, handicap_style='free',
-                move_limit=50, scorer="internal", number_of_games=20),
+                move_limit=50,
+                scorer="internal", internal_scorer_handicap_compensation='no',
+                number_of_games=20),
             Matchup_config('t2', 't1', id='m1'),
             Matchup_config('t1', 't2'),
             ]
@@ -109,6 +111,7 @@ def test_basic_config(tc):
     tc.assertEqual(m0.handicap_style, 'free')
     tc.assertEqual(m0.move_limit, 50)
     tc.assertEqual(m0.scorer, 'internal')
+    tc.assertEqual(m0.internal_scorer_handicap_compensation, 'no')
     tc.assertEqual(m0.number_of_games, 20)
 
     tc.assertEqual(m1.player_1, 't2')
@@ -120,6 +123,7 @@ def test_basic_config(tc):
     tc.assertEqual(m1.handicap_style, 'fixed')
     tc.assertEqual(m1.move_limit, 1000)
     tc.assertEqual(m1.scorer, 'players')
+    tc.assertEqual(m1.internal_scorer_handicap_compensation, 'full')
     tc.assertEqual(m1.number_of_games, None)
 
 def test_nonsense_matchup_config(tc):
@@ -253,6 +257,8 @@ def test_play(tc):
     tc.assertEqual(job1.board_size, 13)
     tc.assertEqual(job1.komi, 7.5)
     tc.assertEqual(job1.move_limit, 1000)
+    tc.assertIs(job1.use_internal_scorer, False)
+    tc.assertIs(job1.internal_scorer_handicap_compensation, 'full')
     tc.assertEqual(job1.game_data, ('0', 0))
     tc.assertIsNone(job1.sgf_filename)
     tc.assertIsNone(job1.sgf_dirname)

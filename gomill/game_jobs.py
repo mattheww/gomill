@@ -114,6 +114,8 @@ class Game_job(object):
       handicap            -- int
       handicap_is_free    -- bool (default False)
       use_internal_scorer -- bool (default True)
+      internal_scorer_handicap_compensation -- 'no' , 'short', or 'full'
+                             (default 'no')
       sgf_filename        -- filename for the SGF file
       sgf_dirname         -- directory pathname for the SGF file
       void_sgf_dirname    -- directory pathname for the SGF file for void games
@@ -162,6 +164,7 @@ class Game_job(object):
         self.sgf_event = None
         self.sgf_note = None
         self.use_internal_scorer = True
+        self.internal_scorer_handicap_compensation = 'no'
         self.game_data = None
         self.gtp_log_pathname = None
         self.stderr_pathname = None
@@ -223,7 +226,7 @@ class Game_job(object):
         except ValueError, e:
             raise job_manager.JobFailed("error creating game: %s" % e)
         if self.use_internal_scorer:
-            game.use_internal_scorer()
+            game.use_internal_scorer(self.internal_scorer_handicap_compensation)
         else:
             if self.player_b.is_reliable_scorer:
                 game.allow_scorer('b')

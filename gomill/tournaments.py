@@ -229,6 +229,8 @@ class Tournament(Competition):
         job.handicap = matchup.handicap
         job.handicap_is_free = (matchup.handicap_style == 'free')
         job.use_internal_scorer = (matchup.scorer == 'internal')
+        job.internal_scorer_handicap_compensation = \
+            matchup.internal_scorer_handicap_compensation
         job.sgf_event = matchup.event_description
         return job
 

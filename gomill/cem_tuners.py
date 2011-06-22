@@ -414,6 +414,8 @@ class Cem_tuner(Competition):
         job.handicap = self.handicap
         job.handicap_is_free = (self.handicap_style == 'free')
         job.use_internal_scorer = (self.scorer == 'internal')
+        job.internal_scorer_handicap_compensation = \
+            self.internal_scorer_handicap_compensation
         job.sgf_event = self.competition_code
         job.sgf_note = ("Candidate parameters: %s" %
                         self.format_optimiser_parameters(

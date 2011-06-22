@@ -507,5 +507,7 @@ game_settings = [
     Setting('handicap_style', interpret_enum('fixed', 'free'), default='fixed'),
     Setting('move_limit', interpret_positive_int, default=1000),
     Setting('scorer', interpret_enum('internal', 'players'), default='players'),
+    Setting('internal_scorer_handicap_compensation',
+            interpret_enum('no', 'full', 'short'), default='full'),
     ]
 
