@@ -43,8 +43,8 @@ class Test_game_job(game_jobs.Game_job):
         self._mkdir_pathname = pathname
 
     def _get_sgf_written(self):
-        """Return the sgf contents with the dates scrubbed out."""
-        return gomill_test_support.scrub_sgf_date(self._sgf_written)
+        """Return the 'scrubbed' sgf contents."""
+        return gomill_test_support.scrub_sgf(self._sgf_written)
 
 class Game_job_fixture(test_framework.Fixture):
     """Fixture setting up a Game_job.
@@ -101,7 +101,7 @@ def test_game_job(tc):
     tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
     tc.assertIsNone(gj.job._mkdir_pathname)
     tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
-    (;AP[gomill:?]
+    (;AP[gomill:VER]
     C[Event: game_job_tests
     Game id gameid
     Date ***

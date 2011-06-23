@@ -1,5 +1,6 @@
 """Run a game between two GTP engines."""
 
+from gomill import __version__
 from gomill.gomill_utils import *
 from gomill.gomill_common import *
 from gomill import gtp_controller
@@ -777,7 +778,7 @@ class Game(object):
         """
         sgf_game = sgf_writer.Sgf_game(self.board_size)
         sgf_game.set('komi', self.komi)
-        sgf_game.set('application', "gomill:?")
+        sgf_game.set('application', "gomill:" + __version__)
         for prop, value in self.additional_sgf_props:
             sgf_game.set(prop, value)
         sgf_game.add_date()

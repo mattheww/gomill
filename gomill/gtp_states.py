@@ -2,6 +2,7 @@
 
 import math
 
+from gomill import __version__
 from gomill.gomill_common import *
 from gomill import ascii_boards
 from gomill import boards
@@ -508,7 +509,7 @@ class Gtp_state(object):
 
         sgf_game = sgf_writer.Sgf_game(self.board_size)
         sgf_game.set('komi', self.komi)
-        sgf_game.set('application', "gomill:?")
+        sgf_game.set('application', "gomill:" + __version__)
         sgf_game.add_date()
         if self.handicap is not None:
             sgf_game.set('handicap', self.handicap)

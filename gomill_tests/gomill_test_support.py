@@ -2,6 +2,7 @@
 
 import re
 
+from gomill import __version__
 from gomill_tests.test_framework import unittest2
 from gomill_tests import test_framework
 
@@ -47,10 +48,15 @@ def compare_diagrams(d1, d2):
         return True, None
     return False, "diagrams differ:\n%s\n\n%s" % (d1, d2)
 
-def scrub_sgf_date(s):
-    """Replace dates with '***' in sgf files produced by gomill."""
+def scrub_sgf(s):
+    """Normalise sgf string for convenience of testing.
+
+    Replaces dates with '***', and 'gomill:<__version__>' with 'gomill:VER'.
+
+    """
     s = re.sub(r"(?m)(?<=^Date ).*$", "***", s)
     s = re.sub(r"(?<=DT\[)[-0-9]+(?=\])", "***", s)
+    s = re.sub(r"gomill:" + re.escape(__version__), "gomill:VER", s)
     return s
 
 
