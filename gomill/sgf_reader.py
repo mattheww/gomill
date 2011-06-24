@@ -107,7 +107,10 @@ class Sgf_scanner(object):
             elif c == "[":
                 break
             self.index += 1
-        return self.chars[start:i]
+        result = self.chars[start:i]
+        if not result.isalpha() or not result.isupper():
+            raise ValueError
+        return result
 
     def scan_prop_value(self):
         is_escaped = False

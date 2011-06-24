@@ -33,9 +33,8 @@ def test_malformed(tc):
     tc.assertRaises(ValueError, read, r"(;B[ag\])")
     tc.assertRaises(ValueError, read, r"(B[ag])")
     tc.assertRaises(ValueError, read, r"(;B)")
-
-    # This should fail, but currently we accept it as a propIdent 'B;W'
-    #tc.assertRaises(ValueError, read, r"(;B;W[ah])")
+    tc.assertRaises(ValueError, read, r"(;B;W[ah])")
+    tc.assertRaises(ValueError, read, r"(;AddBlack[ag])")
 
     # We don't reject this yet, because we stop at first close-paren
     #tc.assertRaises(ValueError, read, r"(;B[ag];W[ah](;B[ai])")
