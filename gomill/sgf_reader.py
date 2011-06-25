@@ -11,8 +11,9 @@ def escape_text(s):
     return s.replace("\\", "\\\\").replace("]", "\\]")
 
 
-_newline_re = re.compile("\n\r|\r\n|\n|\r")
+_newline_re = re.compile(r"\n\r|\r\n|\n|\r")
 _whitespace_table = string.maketrans("\t\f\v", "   ")
+_chunk_re = re.compile(r" [^\n\\]+ | [\n\\] ", re.VERBOSE)
 
 def value_as_text(s):
     """Convert a raw Text value to the string it represents.
@@ -29,15 +30,15 @@ def value_as_text(s):
     s = s.translate(_whitespace_table)
     is_escaped = False
     result = []
-    for c in s:
+    for chunk in _chunk_re.findall(s):
         if is_escaped:
-            if c != "\n":
-                result.append(c)
+            if chunk != "\n":
+                result.append(chunk)
             is_escaped = False
-        elif c == "\\":
+        elif chunk == "\\":
             is_escaped = True
         else:
-            result.append(c)
+            result.append(chunk)
     return "".join(result)
 
 def interpret_point(s, size):
