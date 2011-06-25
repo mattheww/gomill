@@ -218,7 +218,8 @@ class Node(object):
 
     def has_setup_commands(self):
         """Check whether the node has any AB/AW/AE properties."""
-        return self.has_prop("AB") or self.has_prop("AW") or self.has_prop("AE")
+        d = self.props_by_id
+        return ("AB" in d or "AW" in d or "AE" in d)
 
     def __str__(self):
         def format_property(ident, values):
@@ -324,7 +325,7 @@ class Sgf_game_tree(object):
 
         """
         board = boards.Board(self.get_size())
-        ab, aw, ae = self.nodes[0].get_setup_commands()
+        ab, aw, ae = self.root.get_setup_commands()
         if ab or aw:
             is_legal = board.apply_setup(ab, aw, ae)
             if not is_legal:
