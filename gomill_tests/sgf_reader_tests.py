@@ -11,8 +11,8 @@ def make_tests(suite):
 
 SAMPLE_SGF = """\
 (;AP[testsuite]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
-PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc];B[cg];W[df]C[comment
-on two lines];B[tt]C[Final comment])
+PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc];B[dg];W[ef]C[comment
+on two lines];B[];W[tt]C[Final comment])
 """
 
 def test_basic_reader(tc):
@@ -24,9 +24,36 @@ def test_basic_reader(tc):
     tc.assertEqual(sgf.get_player('w'), "White engine")
     tc.assertEqual(sgf.get_winner(), 'w')
     tc.assertEqual(sgf.get_root_prop('AP'), "testsuite")
-    tc.assertEqual(len(sgf.nodes), 4)
+    tc.assertEqual(len(sgf.nodes), 5)
     tc.assertEqual(sgf.nodes[2].get('C'), "comment\non two lines")
-    tc.assertEqual(sgf.nodes[3].get('C'), "Final comment")
+    tc.assertEqual(sgf.nodes[4].get('C'), "Final comment")
+
+def test_node_string(tc):
+    sgf = sgf_reader.read_sgf(SAMPLE_SGF)
+    node = sgf.nodes[0]
+    tc.assertMultiLineEqual(str(node), dedent("""\
+    AB[ai][bh][ee]
+    AP[testsuite]
+    AW[fd][gc]
+    CA[utf-8]
+    DT[2009-06-06]
+    FF[4]
+    GM[1]
+    KM[7.5]
+    PB[Black engine]
+    PL[B]
+    PW[White engine]
+    RE[W+R]
+    SZ[9]
+    """))
+
+def test_get_move(tc):
+    sgf = sgf_reader.read_sgf(SAMPLE_SGF)
+    tc.assertEqual(sgf.nodes[0].get_move(), (None, None))
+    tc.assertEqual(sgf.nodes[1].get_move(), ('b', (2, 3)))
+    tc.assertEqual(sgf.nodes[2].get_move(), ('w', (3, 4)))
+    tc.assertEqual(sgf.nodes[3].get_move(), ('b', None))
+    tc.assertEqual(sgf.nodes[4].get_move(), ('w', None))
 
 def test_malformed(tc):
     def read(s):
@@ -111,21 +138,3 @@ def test_string_handling(tc):
 
     tc.assertEqual(check("(;C[ab\\\tc])"), "ab c")
 
-def test_node(tc):
-    sgf = sgf_reader.read_sgf(SAMPLE_SGF)
-    node = sgf.nodes[0]
-    tc.assertMultiLineEqual(str(node), dedent("""\
-    AB[ai][bh][ee]
-    AP[testsuite]
-    AW[fd][gc]
-    CA[utf-8]
-    DT[2009-06-06]
-    FF[4]
-    GM[1]
-    KM[7.5]
-    PB[Black engine]
-    PL[B]
-    PW[White engine]
-    RE[W+R]
-    SZ[9]
-    """))
