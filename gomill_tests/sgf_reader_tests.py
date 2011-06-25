@@ -101,3 +101,4 @@ def test_string_handling(tc):
     tc.assertEqual(check("(;C[ab\\\r\nc])"), "abc")
     tc.assertEqual(check("(;C[ab\\\n\nc])"), "ab\nc")
 
+    tc.assertEqual(check("(;C[ab\\\tc])"), "ab c")

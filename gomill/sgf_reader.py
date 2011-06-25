@@ -27,6 +27,8 @@ def unescape_text(s):
     try:
         while True:
             c = s[i]
+            if c != "\n" and c.isspace():
+                c = " "
             if is_escaped:
                 if c != "\n":
                     result.append(c)
@@ -39,8 +41,6 @@ def unescape_text(s):
                 continue
             if c == "]":
                 raise AssertionError
-            if c != "\n" and c.isspace():
-                c = " "
             result.append(c)
             i += 1
     except IndexError:
