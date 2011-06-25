@@ -412,21 +412,19 @@ def read_sgf(s):
     try:
         while True:
             token_type, contents = tokens[index]
+            index += 1
             if token_type == 'V':
                 raise ValueError("unexpected value")
             if token_type == 'D':
                 if contents == ')':
                     break
                 if contents == '(':
-                    index += 1
                     continue
                 if contents == ';':
-                    index += 1
                     node = result.new_node()
                     continue
             #assert token_type == 'I'
             prop_ident = contents
-            index += 1
             prop_values = []
             while True:
                 token_type, contents = tokens[index]
