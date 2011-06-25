@@ -410,22 +410,22 @@ def read_sgf(s):
                 if contents == ')':
                     break
                 if contents == '(':
-                    continue
+                    pass
                 if contents == ';':
                     node = result.new_node()
-                    continue
-            #assert token_type == 'I'
-            prop_ident = contents
-            prop_values = []
-            while True:
-                token_type, contents = tokens[index]
-                if token_type != 'V':
-                    break
-                index += 1
-                prop_values.append(contents)
-            if not prop_values:
-                raise ValueError("property with no values")
-            node.add(Prop(prop_ident, prop_values))
+            else:
+                # assert token_type == 'I'
+                prop_ident = contents
+                prop_values = []
+                while True:
+                    token_type, contents = tokens[index]
+                    if token_type != 'V':
+                        break
+                    index += 1
+                    prop_values.append(contents)
+                if not prop_values:
+                    raise ValueError("property with no values")
+                node.add(Prop(prop_ident, prop_values))
     except IndexError:
         raise ValueError("unexpected end of SGF data")
     return result
