@@ -107,8 +107,8 @@ def interpret_compressed_point_list(values, size):
 class Node(object):
     """An SGF node.
 
-    This doesn't know the types of different properties; the escaping rules for
-    Text are applied to all values.
+    This doesn't know the types of different properties; it stores raw values,
+    and it's up to the client to specify the escaping required.
 
     """
     def __init__(self, owner):
