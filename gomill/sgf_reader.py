@@ -235,20 +235,21 @@ class Sgf_game_tree(object):
     def __init__(self):
         self.nodes = []
 
-    def get_root_prop(self, prop):
-        """Return a root-node property as a string.
+    def _setup(self):
+        """Finish initialisation, after loading all nodes.
 
-        Raises KeyError if the property isn't present.
+        Raises ValueError if vital properties are corrupt.
 
         """
-        return self.nodes[0].get(prop)
+        self.root = self.nodes[0]
+        try:
+            self.size = int(self.root.get_raw("SZ"))
+        except KeyError:
+            self.size = 19
 
     def get_size(self):
         """Return the board size as an integer."""
-        try:
-            return int(self.get_root_prop("SZ"))
-        except KeyError:
-            return 19
+        return self.size
 
     def get_komi(self):
         """Return the komi as a float.
@@ -259,7 +260,7 @@ class Sgf_game_tree(object):
 
         """
         try:
-            komi_s = self.get_root_prop("KM")
+            komi_s = self.root.get_raw("KM")
         except KeyError:
             return 0.0
         return float(komi_s)
@@ -274,7 +275,7 @@ class Sgf_game_tree(object):
 
         """
         try:
-            handicap_s = self.get_root_prop("HA")
+            handicap_s = self.root.get_raw("HA")
         except KeyError:
             return None
         handicap = int(handicap_s)
@@ -286,7 +287,7 @@ class Sgf_game_tree(object):
 
     def get_player(self, colour):
         """Return the name of the specified player."""
-        return self.get_root_prop({'b' : 'PB', 'w' : 'PW'}[colour])
+        return self.root.get({'b' : 'PB', 'w' : 'PW'}[colour])
 
     def get_winner(self):
         """Return the colour of the winning player.
@@ -295,7 +296,7 @@ class Sgf_game_tree(object):
 
         """
         try:
-            colour = self.get_root_prop("RE")[0].lower()
+            colour = self.root.get("RE")[0].lower()
         except LookupError:
             return None
         if colour not in ("b", "w"):
@@ -433,5 +434,6 @@ def read_sgf(s):
                 node.add(prop_ident, prop_values)
     except IndexError:
         raise ValueError("unexpected end of SGF data")
+    tree._setup()
     return tree
 
