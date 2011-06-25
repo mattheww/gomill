@@ -102,24 +102,6 @@ def interpret_compressed_point_list(values, size):
     return result
 
 
-class Prop(object):
-    """An SGF property.
-
-    'values' is a nonempty list of property values. (An elist specified as [] is
-    represented as a single empty string.)
-
-    Property values are 8-bit strings in the source encoding. They haven't been
-    'unescaped'.
-
-    """
-
-    def __init__(self, identifier, values):
-        self.identifier = identifier
-        self.values = values
-
-    def __str__(self):
-        return self.identifier + "".join("[%s]" % s for s in self.values)
-
 class Node(object):
     """An SGF node.
 
@@ -127,17 +109,19 @@ class Node(object):
     Text are applied to all values.
 
     """
-
     def __init__(self, owner):
+        # Map identifier (PropIdent) -> list of raw values
         self.props_by_id = {}
         # Owning Sgf_game_tree (needed to find board size to interpret moves)
         self.owner = owner
 
-    def add(self, prop):
-        self.props_by_id[prop.identifier] = prop
+    def add(self, identifier, values):
+        self.props_by_id[identifier] = values
 
     def get(self, identifier):
         """Return the scalar value of the specified property.
+
+        FIXME: This always applies the interpretation rules for Text.
 
         Raises KeyError if there was no property with the given identifier.
 
@@ -145,10 +129,12 @@ class Node(object):
         property was an empty elist, this returns an empty string.
 
         """
-        return value_as_text(self.props_by_id[identifier].values[0])
+        return value_as_text(self.props_by_id[identifier][0])
 
     def get_list(self, identifier):
         """Return the list value of the specified property.
+
+        FIXME: This always applies the interpretation rules for Text.
 
         Raises KeyError if there was no property with the given identifier.
 
@@ -158,7 +144,7 @@ class Node(object):
         an elist).
 
         """
-        l = self.props_by_id[identifier].values
+        l = self.props_by_id[identifier]
         if l == [""]:
             return []
         else:
@@ -180,16 +166,16 @@ class Node(object):
 
         """
         size = self.owner.get_size()
-        prop = self.props_by_id.get("B")
-        if prop is not None:
+        values = self.props_by_id.get("B")
+        if values is not None:
             colour = "b"
         else:
-            prop = self.props_by_id.get("W")
-            if prop is not None:
+            values = self.props_by_id.get("W")
+            if values is not None:
                 colour = "w"
             else:
                 return None, None
-        return colour, interpret_point(prop.values[0], size)
+        return colour, interpret_point(values[0], size)
 
     def get_setup_commands(self):
         """Retrieve Add Black / Add White / Add Empty properties from a node.
@@ -219,8 +205,11 @@ class Node(object):
         return self.has_prop("AB") or self.has_prop("AW") or self.has_prop("AE")
 
     def __str__(self):
+        def format_property(ident, values):
+            return ident + "".join("[%s]" % s for s in values)
         return "\n".join(
-            str(p) for (ident, p) in sorted(self.props_by_id.items()))\
+            format_property(ident, values)
+            for (ident, values) in sorted(self.props_by_id.items())) \
             + "\n"
 
 
@@ -393,7 +382,6 @@ def read_sgf(s):
 
     """
     _Node = Node
-    _Prop = Prop
     tree = Sgf_game_tree()
     _add_node = tree.nodes.append
     tokens = _tokenise(s)
@@ -424,7 +412,7 @@ def read_sgf(s):
                     prop_values.append(contents)
                 if not prop_values:
                     raise ValueError("property with no values")
-                node.add(_Prop(prop_ident, prop_values))
+                node.add(prop_ident, prop_values)
     except IndexError:
         raise ValueError("unexpected end of SGF data")
     return tree
