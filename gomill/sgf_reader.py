@@ -117,7 +117,7 @@ class Node(object):
         # Owning Sgf_game_tree (needed to find board size to interpret moves)
         self.owner = owner
 
-    def add(self, identifier, values):
+    def _add(self, identifier, values):
         self.props_by_id[identifier] = values
 
     def get_raw(self, identifier):
@@ -167,7 +167,7 @@ class Node(object):
         """
         return value_as_text(self.props_by_id[identifier][0])
 
-    def has_prop(self, identifier):
+    def has_property(self, identifier):
         """Check whether the node has the specified property."""
         return identifier in self.props_by_id
 
@@ -449,7 +449,7 @@ def read_sgf(s):
                     prop_values.append(contents)
                 if not prop_values:
                     raise ValueError("property with no values")
-                node.add(prop_ident, prop_values)
+                node._add(prop_ident, prop_values)
     except IndexError:
         raise ValueError("unexpected end of SGF data")
     tree._setup()

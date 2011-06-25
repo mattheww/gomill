@@ -29,6 +29,12 @@ def test_basic_reader(tc):
     tc.assertEqual(nodes[2].get('C'), "comment\non two lines")
     tc.assertEqual(nodes[4].get('C'), "Final comment")
 
+def test_node(tc):
+    sgf = sgf_reader.read_sgf(SAMPLE_SGF)
+    node = sgf.get_root_node()
+    tc.assertIs(node.has_property('KM'), True)
+    tc.assertIs(node.has_property('XX'), False)
+
 def test_node_string(tc):
     sgf = sgf_reader.read_sgf(SAMPLE_SGF)
     node = sgf.get_root_node()
