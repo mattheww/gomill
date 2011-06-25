@@ -54,6 +54,7 @@ def test_malformed(tc):
     tc.assertRaises(ValueError, read, r"(;+B[ag])")
     tc.assertRaises(ValueError, read, r"(;B+[ag])")
     tc.assertRaises(ValueError, read, r"(;[B][ag])")
+    tc.assertRaises(ValueError, read, r"(;B W[ag])")
 
     # We don't reject these yet, because we don't track parens
     #tc.assertRaises(ValueError, read, r"(;B[ag];W[ah](;B[ai])")
