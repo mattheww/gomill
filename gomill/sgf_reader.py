@@ -1,10 +1,47 @@
 """Read sgf files."""
 
+import re
+
 from gomill import boards
 
 
-def escape(s):
+def escape_text(s):
+    """Apply the escaping rules for Text."""
     return s.replace("\\", "\\\\").replace("]", "\\]")
+
+def unescape_text(s):
+    """Convert a raw Text value to the string it represents.
+
+    This interprets escape characters, and does whitespace mapping.
+
+    FIXME: It only handles LF line breaks.
+
+    """
+    is_escaped = False
+    result = []
+    i = 0
+    try:
+        while True:
+            c = s[i]
+            if is_escaped:
+                if c != "\n":
+                    result.append(c)
+                i += 1
+                is_escaped = False
+                continue
+            if c == "\\":
+                is_escaped = True
+                i += 1
+                continue
+            if c == "]":
+                raise AssertionError
+            if c != "\n" and c.isspace():
+                c = " "
+            result.append(c)
+            i += 1
+    except IndexError:
+        pass
+    return "".join(result)
 
 def interpret_point(s, size):
     """Interpret an SGF Point or Move value.
@@ -66,75 +103,6 @@ def interpret_compressed_point_list(values, size):
             result.add(pt)
     return result
 
-class Sgf_scanner(object):
-    def __init__(self, s):
-        self.chars = s
-        self.index = 0
-
-    def peek(self):
-        return self.chars[self.index]
-
-    def skip(self):
-        self.index += 1
-
-    def skip_space(self):
-        while self.chars[self.index].isspace():
-            self.index += 1
-
-    def expect(self, c):
-        self.skip_space()
-        if self.chars[self.index] != c:
-            raise ValueError
-        self.index += 1
-
-    def skip_until(self, c):
-        while self.chars[self.index] != c:
-            self.index += 1
-        self.index += 1
-
-    def scan_prop_ident(self):
-        self.skip_space()
-        start = self.index
-        while True:
-            i = self.index
-            c = self.chars[i]
-            if c.isspace():
-                self.skip_space()
-                if self.chars[self.index] == "[":
-                    break
-                else:
-                    raise ValueError
-            elif c == "[":
-                break
-            self.index += 1
-        result = self.chars[start:i]
-        if not result.isalpha() or not result.isupper():
-            raise ValueError
-        return result
-
-    def scan_prop_value(self):
-        is_escaped = False
-        result = []
-        while True:
-            c = self.chars[self.index]
-            if is_escaped:
-                if c != "\n":
-                    result.append(c)
-                self.index += 1
-                is_escaped = False
-                continue
-            if c == "\\":
-                is_escaped = True
-                self.index += 1
-                continue
-            if c == "]":
-                self.index += 1
-                break
-            if c != "\n" and c.isspace():
-                c = " "
-            result.append(c)
-            self.index += 1
-        return "".join(result)
 
 class Prop(object):
     """An SGF property.
@@ -142,19 +110,25 @@ class Prop(object):
     'values' is a nonempty list of property values. (An elist specified as [] is
     represented as a single empty string.)
 
-    Property values are 8-bit strings in the source encoding.
+    Property values are 8-bit strings in the source encoding. They haven't been
+    'unescaped'.
 
     """
 
     def __init__(self, identifier, values):
-        self.identifier = identifier.upper()
+        self.identifier = identifier
         self.values = values
 
     def __str__(self):
-        return self.identifier + "".join("[%s]" % escape(s)for s in self.values)
+        return self.identifier + "".join("[%s]" % s for s in self.values)
 
 class Node(object):
-    """An SGF node."""
+    """An SGF node.
+
+    This doesn't know the types of different properties; the escaping rules for
+    Text are applied to all values.
+
+    """
 
     def __init__(self, owner):
         # Owning SGF file: used to find board size to interpret moves.
@@ -175,7 +149,7 @@ class Node(object):
         property was an empty elist, this returns an empty string.
 
         """
-        return self.props_by_id[identifier].values[0]
+        return unescape_text(self.props_by_id[identifier].values[0])
 
     def get_list(self, identifier):
         """Return the list value of the specified property.
@@ -192,7 +166,7 @@ class Node(object):
         if l == [""]:
             return []
         else:
-            return l
+            return map(unescape_text, l)
 
     def has_prop(self, identifier):
         return identifier in self.props_by_id
@@ -369,53 +343,114 @@ class Sgf_game_tree(object):
         return board, moves
 
 
+_find_start_re = re.compile(r"\(\s*;")
+_tokenise_re = re.compile(r"""
+\s*
+(?:
+    (?P<D> [;\(\)])                          # delimiter
+    |
+    (?P<I> [A-Z]{1,8})                       # PropIdent
+    |
+    \[ (?P<V> .*? (?<!\\) (?:\\\\)* ) \]     # PropValue
+)
+""", re.VERBOSE | re.DOTALL)
+
+def _tokenise(s):
+    """Tokenise a string containing SGF data.
+
+    Skips leading junk.
+
+    Yields nothing if there is no SGF content.
+
+    Yields pairs of strings (token type, contents)
+
+    token types and contents:
+      I -- PropIdent: upper-case letters
+      V -- PropValue: raw value, without the enclosing brackets
+      D -- delimiter: ';', '(', or ')'
+
+    Stops at the end of the string, or when it first finds something it can't
+    tokenise.
+
+    The first two tokens are always '(' and ';' (otherwise it won't find the
+    start of the content).
+
+    """
+    m = _find_start_re.search(s)
+    if not m:
+        return
+    i = m.start()
+    while True:
+        m = _tokenise_re.match(s, i)
+        if not m:
+            break
+        yield (m.lastgroup, m.group(m.lastindex))
+        i = m.end()
+
+class _Scanner(object):
+    """Support one-token lookahead on a token stream."""
+    def __init__(self, stream):
+        self.stream = stream
+        self.next_token = None
+
+    def peek(self):
+        if self.next_token is None:
+            self.next_token = self.stream.next()
+        return self.next_token
+
+    def eat(self):
+        assert self.next_token is not None
+        self.next_token = None
+
+
 def read_sgf(s):
     """Interpret an SGF file from a string.
 
     Returns an Sgf_game_tree.
 
-    Ignores everything in the string before the first open-paren.
-
     Reads only the first sequence from the first game in the string (ie, any
     variations are ignored).
 
+    Identifies the start of the SGF content by looking for '(;' (with possible
+    whitespace between); ignores everything preceding that. Ignores everything
+    following the first sequence from the first game.
+
     Raises ValueError if can't parse the string.
 
-    The string should use LF to represent a line break.
-
-    This doesn't know the types of different properties; the escaping rules for
-    Text are applied to all values.
+    FIXME The string should use LF to represent a line break.
 
     """
-    scanner = Sgf_scanner(s)
     result = Sgf_game_tree()
+    scanner = _Scanner(_tokenise(s))
     try:
-        scanner.skip_until("(")
-        scanner.expect(";")
-        node = result.new_node()
         while True:
-            scanner.skip_space()
-            c = scanner.peek()
-            if c == ")":
-                break
-            if c == "(":
-                scanner.skip()
-                continue
-            if c == ";":
-                scanner.skip()
-                node = result.new_node()
-            prop_ident = scanner.scan_prop_ident()
+            token_type, contents = scanner.peek()
+            if token_type == 'V':
+                raise ValueError("unexpected value")
+            if token_type == 'D':
+                if contents == ')':
+                    break
+                if contents == '(':
+                    scanner.eat()
+                    continue
+                if contents == ';':
+                    scanner.eat()
+                    node = result.new_node()
+                    continue
+            assert token_type == 'I'
+            prop_ident = contents
+            scanner.eat()
             prop_values = []
             while True:
-                scanner.skip_space()
-                if scanner.peek() != "[":
+                token_type, contents = scanner.peek()
+                if token_type != 'V':
                     break
-                scanner.skip()
-                prop_values.append(scanner.scan_prop_value())
+                scanner.eat()
+                prop_values.append(contents)
             if not prop_values:
-                raise ValueError
+                raise ValueError("property with no values")
             node.add(Prop(prop_ident, prop_values))
-    except IndexError:
-        raise ValueError
+    except StopIteration:
+        raise ValueError("unexpected end of SGF data")
     return result
 
