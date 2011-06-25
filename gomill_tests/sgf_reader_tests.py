@@ -117,7 +117,6 @@ def test_value_escaping(tc):
     tc.assertEqual(check(r"(;C[xxx :\) yyy]KO[])"), r"xxx :) yyy")
 
 def test_string_handling(tc):
-    # NB, read_sgf() currently documents that line endings must be \n
     def check(s):
         sgf = sgf_reader.read_sgf(s)
         return sgf.root.get("C")
