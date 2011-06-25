@@ -6,11 +6,6 @@ import string
 from gomill import boards
 
 
-def escape_text(s):
-    """Apply the escaping rules for Text."""
-    return s.replace("\\", "\\\\").replace("]", "\\]")
-
-
 _newline_re = re.compile(r"\n\r|\r\n|\n|\r")
 _whitespace_table = string.maketrans("\t\f\v", "   ")
 _chunk_re = re.compile(r" [^\n\\]+ | [\n\\] ", re.VERBOSE)
@@ -120,6 +115,10 @@ class Node(object):
     def _add(self, identifier, values):
         self.props_by_id[identifier] = values
 
+    def has_property(self, identifier):
+        """Check whether the node has the specified property."""
+        return identifier in self.props_by_id
+
     def get_raw(self, identifier):
         """Return the raw scalar value of the specified property.
 
@@ -138,6 +137,8 @@ class Node(object):
         """Return the raw list value of the specified property.
 
         Returns a list of strings, containing 'raw' values (see get_raw()).
+
+        Raises KeyError if there was no property with the given identifier.
 
         If the property had a single value, returns a single-element list.
 
@@ -166,10 +167,6 @@ class Node(object):
 
         """
         return value_as_text(self.props_by_id[identifier][0])
-
-    def has_property(self, identifier):
-        """Check whether the node has the specified property."""
-        return identifier in self.props_by_id
 
     def get_move(self):
         """Retrieve the move from a node.
