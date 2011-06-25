@@ -42,29 +42,31 @@ def value_as_text(s):
     return "".join(result)
 
 def interpret_point(s, size):
-    """Interpret an SGF Point or Move value.
+    """Interpret an SGF Point, Move, or Stone value.
 
-    s -- string
+    s    -- string
+    size -- board size (int)
 
     Returns a pair (row, col), or None for a pass.
 
     Raises ValueError if the string is malformed or the coordinates are out of
     range.
 
+    Only supports board sizes up to 26.
+
+    The returned coordinates are in the GTP coordinate system (as in the rest of
+    gomill), where (0, 0) is the lower left.
+
     """
-    s = s.lower()
     if s == "" or (s == "tt" and size <= 19):
         return None
     try:
         col_s, row_s = s
     except TypeError:
         raise ValueError
-    col = ord(col_s) - ord("a")
-    if not 0 <= col < size:
-        raise ValueError
-    row = ord(row_s) - ord("a")
-    row = size - row - 1
-    if not 0 <= row < size:
+    col = ord(col_s) - 97 # 97 == ord("a")
+    row = size - ord(row_s) + 96
+    if not (0 <= col < size) and (0 <= row < size):
         raise ValueError
     return row, col
 
