@@ -24,13 +24,14 @@ def test_basic_reader(tc):
     tc.assertEqual(sgf.get_player('w'), "White engine")
     tc.assertEqual(sgf.get_winner(), 'w')
     tc.assertEqual(sgf.root.get('AP'), "testsuite")
-    tc.assertEqual(len(sgf.nodes), 5)
-    tc.assertEqual(sgf.nodes[2].get('C'), "comment\non two lines")
-    tc.assertEqual(sgf.nodes[4].get('C'), "Final comment")
+    nodes = sgf.get_main_sequence()
+    tc.assertEqual(len(nodes), 5)
+    tc.assertEqual(nodes[2].get('C'), "comment\non two lines")
+    tc.assertEqual(nodes[4].get('C'), "Final comment")
 
 def test_node_string(tc):
     sgf = sgf_reader.read_sgf(SAMPLE_SGF)
-    node = sgf.nodes[0]
+    node = sgf.get_root_node()
     tc.assertMultiLineEqual(str(node), dedent("""\
     AB[ai][bh][ee]
     AP[testsuite]
@@ -49,11 +50,12 @@ def test_node_string(tc):
 
 def test_get_move(tc):
     sgf = sgf_reader.read_sgf(SAMPLE_SGF)
-    tc.assertEqual(sgf.nodes[0].get_move(), (None, None))
-    tc.assertEqual(sgf.nodes[1].get_move(), ('b', (2, 3)))
-    tc.assertEqual(sgf.nodes[2].get_move(), ('w', (3, 4)))
-    tc.assertEqual(sgf.nodes[3].get_move(), ('b', None))
-    tc.assertEqual(sgf.nodes[4].get_move(), ('w', None))
+    nodes = sgf.get_main_sequence()
+    tc.assertEqual(nodes[0].get_move(), (None, None))
+    tc.assertEqual(nodes[1].get_move(), ('b', (2, 3)))
+    tc.assertEqual(nodes[2].get_move(), ('w', (3, 4)))
+    tc.assertEqual(nodes[3].get_move(), ('b', None))
+    tc.assertEqual(nodes[4].get_move(), ('w', None))
 
 def test_malformed(tc):
     def read(s):
@@ -85,7 +87,7 @@ def test_malformed(tc):
 def test_parsing(tc):
     def check(s):
         sgf = sgf_reader.read_sgf(s)
-        return len(sgf.nodes)
+        return len(sgf.get_main_sequence())
     tc.assertEqual(check("(;C[abc]KO[];B[bc])"), 2)
     tc.assertEqual(check("initial junk (;C[abc]KO[];B[bc])"), 2)
     tc.assertEqual(check("(;C[abc]KO[];B[bc]) final junk"), 2)

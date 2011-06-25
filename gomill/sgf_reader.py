@@ -233,10 +233,13 @@ class Node(object):
 
 
 class Sgf_game_tree(object):
-    """An SGF game tree."""
+    """An SGF game tree.
 
+    Do not instantiate these directly; use read_sgf()
+
+    """
     def __init__(self):
-        self.nodes = []
+        self._nodes = []
 
     def _setup(self):
         """Finish initialisation, after loading all nodes.
@@ -244,11 +247,23 @@ class Sgf_game_tree(object):
         Raises ValueError if vital properties are corrupt.
 
         """
-        self.root = self.nodes[0]
+        self.root = self._nodes[0]
         try:
             self.size = int(self.root.get_raw("SZ"))
         except KeyError:
             self.size = 19
+
+    def get_root_node(self):
+        """Return the root Node."""
+        return self.root
+
+    def get_main_sequence(self):
+        """Return a list of Nodes representing the first Sequence in the game.
+
+        Do not modify the returned list.
+
+        """
+        return self._nodes
 
     def get_size(self):
         """Return the board size as an integer."""
@@ -333,7 +348,7 @@ class Sgf_game_tree(object):
             if not is_legal:
                 raise ValueError("setup position not legal")
         moves = []
-        for node in self.nodes[1:]:
+        for node in self._nodes[1:]:
             if node.has_setup_commands():
                 raise ValueError("setup commands after the root node")
             colour, coords = node.get_move()
@@ -405,7 +420,7 @@ def read_sgf(s):
     """
     _Node = Node
     tree = Sgf_game_tree()
-    _add_node = tree.nodes.append
+    _add_node = tree._nodes.append
     tokens = _tokenise(s)
     index = 0
     try:
