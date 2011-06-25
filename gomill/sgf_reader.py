@@ -137,11 +137,9 @@ class Node(object):
     def __init__(self, owner):
         # Owning SGF file: used to find board size to interpret moves.
         self.owner = owner
-        self.prop_list = []
         self.props_by_id = {}
 
     def add(self, prop):
-        self.prop_list.append(prop)
         self.props_by_id[prop.identifier] = prop
 
     def get(self, identifier):
@@ -174,9 +172,6 @@ class Node(object):
 
     def has_prop(self, identifier):
         return identifier in self.props_by_id
-
-    def get_props(self):
-        return self.prop_list[:]
 
     def get_move(self):
         """Retrieve the move from a node.
@@ -230,7 +225,9 @@ class Node(object):
         return self.has_prop("AB") or self.has_prop("AW") or self.has_prop("AE")
 
     def __str__(self):
-        return "\n".join(str(p) for p in self.prop_list)
+        return "\n".join(
+            str(p) for (ident, p) in sorted(self.props_by_id.items()))\
+            + "\n"
 
 
 class Sgf_game_tree(object):

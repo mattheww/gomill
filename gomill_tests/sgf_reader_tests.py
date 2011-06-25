@@ -1,5 +1,7 @@
 """Tests for sgf_reader.py."""
 
+from textwrap import dedent
+
 from gomill_tests import gomill_test_support
 
 from gomill import sgf_reader
@@ -7,13 +9,14 @@ from gomill import sgf_reader
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
-
-def test_basic_reader(tc):
-    sgf = sgf_reader.read_sgf("""\
+SAMPLE_SGF = """\
 (;AP[testsuite]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
 PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc];B[cg];W[df]C[comment
 on two lines];B[tt]C[Final comment])
-""")
+"""
+
+def test_basic_reader(tc):
+    sgf = sgf_reader.read_sgf(SAMPLE_SGF)
     tc.assertEqual(sgf.get_size(), 9)
     tc.assertEqual(sgf.get_komi(), 7.5)
     tc.assertIs(sgf.get_handicap(), None)
@@ -107,3 +110,22 @@ def test_string_handling(tc):
     tc.assertEqual(check("(;C[ab\\\n\nc])"), "ab\nc")
 
     tc.assertEqual(check("(;C[ab\\\tc])"), "ab c")
+
+def test_node(tc):
+    sgf = sgf_reader.read_sgf(SAMPLE_SGF)
+    node = sgf.nodes[0]
+    tc.assertMultiLineEqual(str(node), dedent("""\
+    AB[ai][bh][ee]
+    AP[testsuite]
+    AW[fd][gc]
+    CA[utf-8]
+    DT[2009-06-06]
+    FF[4]
+    GM[1]
+    KM[7.5]
+    PB[Black engine]
+    PL[B]
+    PW[White engine]
+    RE[W+R]
+    SZ[9]
+    """))
