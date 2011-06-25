@@ -1,4 +1,8 @@
-"""Interpret SGF data."""
+"""Interpret SGF data.
+
+This is intended for use with SGF FF[4]; see http://www.red-bean.com/sgf/
+
+"""
 
 import re
 import string
@@ -405,12 +409,15 @@ def parse_sgf(s):
 
     Returns an Sgf_game_tree.
 
-    Reads only the first sequence from the first game in the string (ie, any
-    variations are ignored).
+    Reads only the first sequence from the first game in the string (ie, it
+    reads a GameTree not a Collection, and any variations are ignored).
 
     Identifies the start of the SGF content by looking for '(;' (with possible
     whitespace between); ignores everything preceding that. Ignores everything
     following the first sequence from the first game.
+
+    Doesn't pay any attention to the FF[n] property; always applies the rules
+    for FF[4].
 
     Raises ValueError if can't parse the string.
 
