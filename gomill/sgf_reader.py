@@ -1,4 +1,4 @@
-"""Read sgf files."""
+"""Interpret SGF data."""
 
 import re
 import string
@@ -118,10 +118,11 @@ class Node(object):
     def add(self, identifier, values):
         self.props_by_id[identifier] = values
 
-    def get(self, identifier):
-        """Return the scalar value of the specified property.
+    def get_raw(self, identifier):
+        """Return the raw scalar value of the specified property.
 
-        FIXME: This always applies the interpretation rules for Text.
+        Returns the raw bytes that were between the square brakets, without
+        interpreting escapes or performing any whitespace conversion.
 
         Raises KeyError if there was no property with the given identifier.
 
@@ -129,16 +130,14 @@ class Node(object):
         property was an empty elist, this returns an empty string.
 
         """
-        return value_as_text(self.props_by_id[identifier][0])
+        return self.props_by_id[identifier][0]
 
     def get_list(self, identifier):
-        """Return the list value of the specified property.
+        """Return the raw list value of the specified property.
 
-        FIXME: This always applies the interpretation rules for Text.
+        Returns a list of strings, containing 'raw' values (see get_raw()).
 
-        Raises KeyError if there was no property with the given identifier.
-
-        If the property had a single value, this returns a single-element list.
+        If the property had a single value, returns a single-element list.
 
         If the property had value [], returns an empty list (as appropriate for
         an elist).
@@ -148,9 +147,26 @@ class Node(object):
         if l == [""]:
             return []
         else:
-            return map(value_as_text, l)
+            return l
+
+    def get(self, identifier):
+        """Return the value of the specified property, interpreted as text.
+
+        Applies the formatting and escaping rules defined for SGF Text (see
+        value_as_text() for details).
+
+        Returns an 8-bit string, in the encoding of the original SGF string.
+
+        Raises KeyError if there was no property with the given identifier.
+
+        If the property had multiple values, this returns the first. If the
+        property was an empty elist, this returns an empty string.
+
+        """
+        return value_as_text(self.props_by_id[identifier][0])
 
     def has_prop(self, identifier):
+        """Check whether the node has the specified property."""
         return identifier in self.props_by_id
 
     def get_move(self):
@@ -367,7 +383,9 @@ def _tokenise(s):
     return result
 
 def read_sgf(s):
-    """Interpret an SGF file from a string.
+    """Interpret SGF date from a string.
+
+    s -- 8-bit string
 
     Returns an Sgf_game_tree.
 
