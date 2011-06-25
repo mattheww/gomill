@@ -11,8 +11,8 @@ def make_tests(suite):
 def test_basic_reader(tc):
     sgf = sgf_reader.read_sgf("""\
 (;AP[testsuite]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
-PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc];B[cg];W[df]C[cmt]
-;B[tt]C[Final comment])
+PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc];B[cg];W[df]C[comment
+on two lines];B[tt]C[Final comment])
 """)
     tc.assertEqual(sgf.get_size(), 9)
     tc.assertEqual(sgf.get_komi(), 7.5)
@@ -22,12 +22,18 @@ PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc];B[cg];W[df]C[cmt]
     tc.assertEqual(sgf.get_winner(), 'w')
     tc.assertEqual(sgf.get_root_prop('AP'), "testsuite")
     tc.assertEqual(len(sgf.nodes), 4)
+    tc.assertEqual(sgf.nodes[2].get('C'), "comment\non two lines")
     tc.assertEqual(sgf.nodes[3].get('C'), "Final comment")
 
 def test_malformed(tc):
     def read(s):
         sgf_reader.read_sgf(s)
     tc.assertRaises(ValueError, read, r"")
+    tc.assertRaises(ValueError, read, r"B[ag]")
+    tc.assertRaises(ValueError, read, r"[ag]")
+    tc.assertRaises(ValueError, read, r"(;[ag])")
+    tc.assertRaises(ValueError, read, r"(;B[ag]([ah]))")
+    tc.assertRaises(ValueError, read, r"([ag])")
     tc.assertRaises(ValueError, read, r"(;B[ag]")
     tc.assertRaises(ValueError, read, r"(;B[ag)]")
     tc.assertRaises(ValueError, read, r"(;B[ag\])")
@@ -36,8 +42,10 @@ def test_malformed(tc):
     tc.assertRaises(ValueError, read, r"(;B;W[ah])")
     tc.assertRaises(ValueError, read, r"(;AddBlack[ag])")
 
-    # We don't reject this yet, because we stop at first close-paren
+    # We don't reject these yet, because we don't track parens
     #tc.assertRaises(ValueError, read, r"(;B[ag];W[ah](;B[ai])")
+    #tc.assertRaises(ValueError, read, r"(;)")
+    #tc.assertRaises(ValueError, read, r"(;B[ag]())")
 
 def test_parsing(tc):
     def check(s):
