@@ -110,6 +110,8 @@ class Node(object):
     and it's up to the client to specify the escaping required.
 
     """
+    __slots__ = ('props_by_id', 'size')
+
     def __init__(self):
         # Map identifier (PropIdent) -> list of raw values
         self.props_by_id = {}
