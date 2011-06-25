@@ -364,9 +364,7 @@ def _tokenise(s):
 
     Skips leading junk.
 
-    Yields nothing if there is no SGF content.
-
-    Yields pairs of strings (token type, contents)
+    Returns a list of pairs of strings (token type, contents)
 
     token types and contents:
       I -- PropIdent: upper-case letters
@@ -380,32 +378,18 @@ def _tokenise(s):
     start of the content).
 
     """
+    result = []
     m = _find_start_re.search(s)
     if not m:
-        return
+        return []
     i = m.start()
     while True:
         m = _tokenise_re.match(s, i)
         if not m:
             break
-        yield (m.lastgroup, m.group(m.lastindex))
+        result.append((m.lastgroup, m.group(m.lastindex)))
         i = m.end()
-
-class _Scanner(object):
-    """Support one-token lookahead on a token stream."""
-    def __init__(self, stream):
-        self.stream = stream
-        self.next_token = None
-
-    def peek(self):
-        if self.next_token is None:
-            self.next_token = self.stream.next()
-        return self.next_token
-
-    def eat(self):
-        assert self.next_token is not None
-        self.next_token = None
-
+    return result
 
 def read_sgf(s):
     """Interpret an SGF file from a string.
@@ -423,36 +407,37 @@ def read_sgf(s):
 
     """
     result = Sgf_game_tree()
-    scanner = _Scanner(_tokenise(s))
+    tokens = _tokenise(s)
+    index = 0
     try:
         while True:
-            token_type, contents = scanner.peek()
+            token_type, contents = tokens[index]
             if token_type == 'V':
                 raise ValueError("unexpected value")
             if token_type == 'D':
                 if contents == ')':
                     break
                 if contents == '(':
-                    scanner.eat()
+                    index += 1
                     continue
                 if contents == ';':
-                    scanner.eat()
+                    index += 1
                     node = result.new_node()
                     continue
-            assert token_type == 'I'
+            #assert token_type == 'I'
             prop_ident = contents
-            scanner.eat()
+            index += 1
             prop_values = []
             while True:
-                token_type, contents = scanner.peek()
+                token_type, contents = tokens[index]
                 if token_type != 'V':
                     break
-                scanner.eat()
+                index += 1
                 prop_values.append(contents)
             if not prop_values:
                 raise ValueError("property with no values")
             node.add(Prop(prop_ident, prop_values))
-    except StopIteration:
+    except IndexError:
         raise ValueError("unexpected end of SGF data")
     return result
 
