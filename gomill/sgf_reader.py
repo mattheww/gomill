@@ -12,7 +12,7 @@ def escape_text(s):
 
 _newline_re = re.compile("\n\r|\r\n|\n|\r")
 
-def unescape_text(s):
+def value_as_text(s):
     """Convert a raw Text value to the string it represents.
 
     This interprets escape characters, and does whitespace mapping.
@@ -151,7 +151,7 @@ class Node(object):
         property was an empty elist, this returns an empty string.
 
         """
-        return unescape_text(self.props_by_id[identifier].values[0])
+        return value_as_text(self.props_by_id[identifier].values[0])
 
     def get_list(self, identifier):
         """Return the list value of the specified property.
@@ -168,7 +168,7 @@ class Node(object):
         if l == [""]:
             return []
         else:
-            return map(unescape_text, l)
+            return map(value_as_text, l)
 
     def has_prop(self, identifier):
         return identifier in self.props_by_id
