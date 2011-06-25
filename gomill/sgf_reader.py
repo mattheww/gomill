@@ -106,11 +106,10 @@ class Node(object):
     and it's up to the client to specify the escaping required.
 
     """
-    def __init__(self, owner):
+    def __init__(self):
         # Map identifier (PropIdent) -> list of raw values
         self.props_by_id = {}
-        # Owning Sgf_game_tree (needed to find board size to interpret moves)
-        self.owner = owner
+        # self.size is filled in by Sgf_game_tree._setup()
 
     def _add(self, identifier, values):
         self.props_by_id[identifier] = values
@@ -180,7 +179,6 @@ class Node(object):
         Returns None, None if the node contains no B or W property.
 
         """
-        size = self.owner.get_size()
         values = self.props_by_id.get("B")
         if values is not None:
             colour = "b"
@@ -190,7 +188,7 @@ class Node(object):
                 colour = "w"
             else:
                 return None, None
-        return colour, interpret_point(values[0], size)
+        return colour, interpret_point(values[0], self.size)
 
     def get_setup_commands(self):
         """Retrieve Add Black / Add White / Add Empty properties from a node.
@@ -200,17 +198,16 @@ class Node(object):
         Each value is a set of pairs (row, col).
 
         """
-        size = self.owner.get_size()
         try:
-            bp = interpret_compressed_point_list(self.get_list("AB"), size)
+            bp = interpret_compressed_point_list(self.get_list("AB"), self.size)
         except KeyError:
             bp = set()
         try:
-            wp = interpret_compressed_point_list(self.get_list("AW"), size)
+            wp = interpret_compressed_point_list(self.get_list("AW"), self.size)
         except KeyError:
             wp = set()
         try:
-            ep = interpret_compressed_point_list(self.get_list("AE"), size)
+            ep = interpret_compressed_point_list(self.get_list("AE"), self.size)
         except KeyError:
             ep = set()
         return bp, wp, ep
@@ -246,9 +243,12 @@ class Sgf_game_tree(object):
         """
         self.root = self._nodes[0]
         try:
-            self.size = int(self.root.get_raw("SZ"))
+            size = int(self.root.get_raw("SZ"))
         except KeyError:
-            self.size = 19
+            size = 19
+        self.size = size
+        for node in self._nodes:
+            node.size = size
 
     def get_root_node(self):
         """Return the root Node."""
@@ -432,7 +432,7 @@ def parse_sgf(s):
                 if contents == '(':
                     pass
                 if contents == ';':
-                    node = _Node(tree)
+                    node = _Node()
                     _add_node(node)
             else:
                 # assert token_type == 'I'
