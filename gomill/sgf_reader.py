@@ -9,14 +9,18 @@ def escape_text(s):
     """Apply the escaping rules for Text."""
     return s.replace("\\", "\\\\").replace("]", "\\]")
 
+
+_newline_re = re.compile("\n\r|\r\n|\n|\r")
+
 def unescape_text(s):
     """Convert a raw Text value to the string it represents.
 
     This interprets escape characters, and does whitespace mapping.
 
-    FIXME: It only handles LF line breaks.
+    Linebreaks (LF, CR, LFCR, CRLF) are converted to \n.
 
     """
+    s = _newline_re.sub("\n", s)
     is_escaped = False
     result = []
     i = 0
@@ -416,8 +420,6 @@ def read_sgf(s):
     following the first sequence from the first game.
 
     Raises ValueError if can't parse the string.
-
-    FIXME The string should use LF to represent a line break.
 
     """
     result = Sgf_game_tree()

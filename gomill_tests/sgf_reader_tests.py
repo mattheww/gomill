@@ -92,3 +92,12 @@ def test_string_handling(tc):
     tc.assertEqual(check("(;C[ab\\\nc])"), "abc")
     tc.assertEqual(check("(;C[ab\\\\\nc])"), "ab\\\nc")
     tc.assertEqual(check("(;C[ab\xa0c])"), "ab\xa0c")
+
+    tc.assertEqual(check("(;C[ab\rc])"), "ab\nc")
+    tc.assertEqual(check("(;C[ab\r\nc])"), "ab\nc")
+    tc.assertEqual(check("(;C[ab\n\rc])"), "ab\nc")
+    tc.assertEqual(check("(;C[ab\r\n\r\nc])"), "ab\n\nc")
+    tc.assertEqual(check("(;C[ab\r\n\r\n\rc])"), "ab\n\n\nc")
+    tc.assertEqual(check("(;C[ab\\\r\nc])"), "abc")
+    tc.assertEqual(check("(;C[ab\\\n\nc])"), "ab\nc")
+
