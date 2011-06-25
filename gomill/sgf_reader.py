@@ -129,9 +129,9 @@ class Node(object):
     """
 
     def __init__(self, owner):
-        # Owning SGF file: used to find board size to interpret moves.
-        self.owner = owner
         self.props_by_id = {}
+        # Owning Sgf_game_tree (needed to find board size to interpret moves)
+        self.owner = owner
 
     def add(self, prop):
         self.props_by_id[prop.identifier] = prop
@@ -229,11 +229,6 @@ class Sgf_game_tree(object):
 
     def __init__(self):
         self.nodes = []
-
-    def new_node(self):
-        node = Node(self)
-        self.nodes.append(node)
-        return node
 
     def get_root_prop(self, prop):
         """Return a root-node property as a string.
@@ -397,7 +392,10 @@ def read_sgf(s):
     Raises ValueError if can't parse the string.
 
     """
-    result = Sgf_game_tree()
+    _Node = Node
+    _Prop = Prop
+    tree = Sgf_game_tree()
+    _add_node = tree.nodes.append
     tokens = _tokenise(s)
     index = 0
     try:
@@ -412,7 +410,8 @@ def read_sgf(s):
                 if contents == '(':
                     pass
                 if contents == ';':
-                    node = result.new_node()
+                    node = _Node(tree)
+                    _add_node(node)
             else:
                 # assert token_type == 'I'
                 prop_ident = contents
@@ -425,8 +424,8 @@ def read_sgf(s):
                     prop_values.append(contents)
                 if not prop_values:
                     raise ValueError("property with no values")
-                node.add(Prop(prop_ident, prop_values))
+                node.add(_Prop(prop_ident, prop_values))
     except IndexError:
         raise ValueError("unexpected end of SGF data")
-    return result
+    return tree
 
