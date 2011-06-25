@@ -431,7 +431,7 @@ class Gtp_state(object):
         except EnvironmentError:
             raise GtpError("cannot load file")
         try:
-            sgf = sgf_reader.read_sgf(s)
+            sgf = sgf_reader.parse_sgf(s)
         except ValueError:
             raise GtpError("cannot load file")
         new_size = sgf.get_size()

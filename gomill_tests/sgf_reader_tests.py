@@ -13,7 +13,7 @@ def make_tests(suite):
 
 def test_parsing(tc):
     def check(s):
-        sgf = sgf_reader.read_sgf(s)
+        sgf = sgf_reader.parse_sgf(s)
         return len(sgf.get_main_sequence())
     tc.assertEqual(check("(;C[abc]KO[];B[bc])"), 2)
     tc.assertEqual(check("initial junk (;C[abc]KO[];B[bc])"), 2)
@@ -35,7 +35,7 @@ def test_parsing(tc):
 
 def test_malformed(tc):
     def read(s):
-        sgf_reader.read_sgf(s)
+        sgf_reader.parse_sgf(s)
     tc.assertRaises(ValueError, read, r"")
     tc.assertRaises(ValueError, read, r"B[ag]")
     tc.assertRaises(ValueError, read, r"[ag]")
@@ -62,7 +62,7 @@ def test_malformed(tc):
 
 def test_value_escaping(tc):
     def check(s):
-        sgf = sgf_reader.read_sgf(s)
+        sgf = sgf_reader.parse_sgf(s)
         return sgf.root.get("C")
     tc.assertEqual(check(r"(;C[abc]KO[])"), r"abc")
     tc.assertEqual(check(r"(;C[a\\bc]KO[])"), r"a\bc")
@@ -72,7 +72,7 @@ def test_value_escaping(tc):
 
 def test_string_handling(tc):
     def check(s):
-        sgf = sgf_reader.read_sgf(s)
+        sgf = sgf_reader.parse_sgf(s)
         return sgf.root.get("C")
     tc.assertEqual(check("(;C[abc ])"), "abc ")
     tc.assertEqual(check("(;C[ab c])"), "ab c")
@@ -102,7 +102,7 @@ on two lines];B[];W[tt]C[Final comment])
 """
 
 def test_node(tc):
-    sgf = sgf_reader.read_sgf(
+    sgf = sgf_reader.parse_sgf(
         r"(;KM[6.5]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
     node0 = sgf.get_root_node()
     node1 = sgf.get_main_sequence()[1]
@@ -122,7 +122,7 @@ def test_node(tc):
     tc.assertRaises(KeyError, node0.get, 'XX')
 
 def test_node_string(tc):
-    sgf = sgf_reader.read_sgf(SAMPLE_SGF)
+    sgf = sgf_reader.parse_sgf(SAMPLE_SGF)
     node = sgf.get_root_node()
     tc.assertMultiLineEqual(str(node), dedent("""\
     AB[ai][bh][ee]
@@ -141,7 +141,7 @@ def test_node_string(tc):
     """))
 
 def test_get_move(tc):
-    sgf = sgf_reader.read_sgf(SAMPLE_SGF)
+    sgf = sgf_reader.parse_sgf(SAMPLE_SGF)
     nodes = sgf.get_main_sequence()
     tc.assertEqual(nodes[0].get_move(), (None, None))
     tc.assertEqual(nodes[1].get_move(), ('b', (2, 3)))
@@ -150,7 +150,7 @@ def test_get_move(tc):
     tc.assertEqual(nodes[4].get_move(), ('w', None))
 
 def test_node_setup_commands(tc):
-    sgf = sgf_reader.read_sgf(
+    sgf = sgf_reader.parse_sgf(
         r"(;KM[6.5]SZ[9]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
     node0 = sgf.get_root_node()
     node1 = sgf.get_main_sequence()[1]
@@ -162,7 +162,7 @@ def test_node_setup_commands(tc):
                    (set(), set(), set()))
 
 def test_sgf_tree(tc):
-    sgf = sgf_reader.read_sgf(SAMPLE_SGF)
+    sgf = sgf_reader.parse_sgf(SAMPLE_SGF)
     root = sgf.get_root_node()
     nodes = sgf.get_main_sequence()
     tc.assertEqual(len(nodes), 5)
@@ -191,7 +191,7 @@ _setup_expected = """\
 """
 
 def test_get_setup_and_moves(tc):
-    sgf = sgf_reader.read_sgf(SAMPLE_SGF)
+    sgf = sgf_reader.parse_sgf(SAMPLE_SGF)
     board, moves = sgf.get_setup_and_moves()
     tc.assertDiagramEqual(ascii_boards.render_board(board), _setup_expected)
     tc.assertEqual(moves,

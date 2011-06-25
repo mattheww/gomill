@@ -232,7 +232,7 @@ class Node(object):
 class Sgf_game_tree(object):
     """An SGF game tree.
 
-    Do not instantiate these directly; use read_sgf()
+    Do not instantiate these directly; use parse_sgf().
 
     """
     def __init__(self):
@@ -398,8 +398,8 @@ def _tokenise(s):
         i = m.end()
     return result
 
-def read_sgf(s):
-    """Interpret SGF date from a string.
+def parse_sgf(s):
+    """Interpret SGF data from a string.
 
     s -- 8-bit string
 
