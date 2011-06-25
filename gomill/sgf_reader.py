@@ -1,6 +1,7 @@
 """Read sgf files."""
 
 import re
+import string
 
 from gomill import boards
 
@@ -11,40 +12,32 @@ def escape_text(s):
 
 
 _newline_re = re.compile("\n\r|\r\n|\n|\r")
+_whitespace_table = string.maketrans("\t\f\v", "   ")
 
 def value_as_text(s):
     """Convert a raw Text value to the string it represents.
 
-    This interprets escape characters, and does whitespace mapping.
+    This interprets escape characters, and does whitespace mapping:
 
-    Linebreaks (LF, CR, LFCR, CRLF) are converted to \n.
+    - linebreak (LF, CR, LFCR, or CRLF) is converted to \n
+    - any other whitespace character is replaced by a space
+    - backslash followed by linebreak disappears
+    - other backslashes disappear (but double-backslash -> single-backslash)
 
     """
     s = _newline_re.sub("\n", s)
+    s = s.translate(_whitespace_table)
     is_escaped = False
     result = []
-    i = 0
-    try:
-        while True:
-            c = s[i]
-            if c != "\n" and c.isspace():
-                c = " "
-            if is_escaped:
-                if c != "\n":
-                    result.append(c)
-                i += 1
-                is_escaped = False
-                continue
-            if c == "\\":
-                is_escaped = True
-                i += 1
-                continue
-            if c == "]":
-                raise AssertionError
+    for c in s:
+        if is_escaped:
+            if c != "\n":
+                result.append(c)
+            is_escaped = False
+        elif c == "\\":
+            is_escaped = True
+        else:
             result.append(c)
-            i += 1
-    except IndexError:
-        pass
     return "".join(result)
 
 def interpret_point(s, size):
