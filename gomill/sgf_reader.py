@@ -342,9 +342,9 @@ _find_start_re = re.compile(r"\(\s*;")
 _tokenise_re = re.compile(r"""
 \s*
 (?:
-    (?P<D> [;\(\)])                          # delimiter
+    (?P<D> [;()] )                           # delimiter
     |
-    (?P<I> [A-Z]{1,8})                       # PropIdent
+    (?P<I> [A-Z]{1,8} )                      # PropIdent
     |
     \[ (?P<V> .*? (?<!\\) (?:\\\\)* ) \]     # PropValue
 )
