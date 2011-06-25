@@ -23,7 +23,7 @@ def test_basic_reader(tc):
     tc.assertEqual(sgf.get_player('b'), "Black engine")
     tc.assertEqual(sgf.get_player('w'), "White engine")
     tc.assertEqual(sgf.get_winner(), 'w')
-    tc.assertEqual(sgf.get_root_prop('AP'), "testsuite")
+    tc.assertEqual(sgf.root.get('AP'), "testsuite")
     tc.assertEqual(len(sgf.nodes), 5)
     tc.assertEqual(sgf.nodes[2].get('C'), "comment\non two lines")
     tc.assertEqual(sgf.nodes[4].get('C'), "Final comment")
@@ -107,7 +107,7 @@ def test_parsing(tc):
 def test_value_escaping(tc):
     def check(s):
         sgf = sgf_reader.read_sgf(s)
-        return sgf.get_root_prop("C")
+        return sgf.root.get("C")
     tc.assertEqual(check(r"(;C[abc]KO[])"), r"abc")
     tc.assertEqual(check(r"(;C[a\\bc]KO[])"), r"a\bc")
     tc.assertEqual(check(r"(;C[a\\bc\]KO[])"), r"a\bc]KO[")
@@ -118,7 +118,7 @@ def test_string_handling(tc):
     # NB, read_sgf() currently documents that line endings must be \n
     def check(s):
         sgf = sgf_reader.read_sgf(s)
-        return sgf.get_root_prop("C")
+        return sgf.root.get("C")
     tc.assertEqual(check("(;C[abc ])"), "abc ")
     tc.assertEqual(check("(;C[ab c])"), "ab c")
     tc.assertEqual(check("(;C[ab\tc])"), "ab c")
