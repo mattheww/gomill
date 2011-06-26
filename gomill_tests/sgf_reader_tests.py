@@ -11,89 +11,146 @@ def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
-def test_parsing(tc):
-    def check(s):
-        sgf = sgf_reader.parse_sgf(s)
+def test_value_as_text(tc):
+    value_as_text = sgf_reader.value_as_text
+    tc.assertEqual(value_as_text("abc "), "abc ")
+    tc.assertEqual(value_as_text("ab c"), "ab c")
+    tc.assertEqual(value_as_text("ab\tc"), "ab c")
+    tc.assertEqual(value_as_text("ab \tc"), "ab  c")
+    tc.assertEqual(value_as_text("ab\nc"), "ab\nc")
+    tc.assertEqual(value_as_text("ab\\\nc"), "abc")
+    tc.assertEqual(value_as_text("ab\\\\\nc"), "ab\\\nc")
+    tc.assertEqual(value_as_text("ab\xa0c"), "ab\xa0c")
+
+    tc.assertEqual(value_as_text("ab\rc"), "ab\nc")
+    tc.assertEqual(value_as_text("ab\r\nc"), "ab\nc")
+    tc.assertEqual(value_as_text("ab\n\rc"), "ab\nc")
+    tc.assertEqual(value_as_text("ab\r\n\r\nc"), "ab\n\nc")
+    tc.assertEqual(value_as_text("ab\r\n\r\n\rc"), "ab\n\n\nc")
+    tc.assertEqual(value_as_text("ab\\\r\nc"), "abc")
+    tc.assertEqual(value_as_text("ab\\\n\nc"), "ab\nc")
+
+    tc.assertEqual(value_as_text("ab\\\tc"), "ab c")
+
+    # These can't actually appear as SGF PropValues; anything sane will do
+    tc.assertEqual(value_as_text("abc\\"), "abc")
+    tc.assertEqual(value_as_text("abc]"), "abc]")
+
+
+def test_tokeniser(tc):
+    tokenise = sgf_reader._tokenise
+
+    tc.assertEqual(tokenise(r"(;B[ah][])")[0],
+                   [('D', '('),
+                    ('D', ';'),
+                    ('I', 'B'),
+                    ('V', 'ah'),
+                    ('V', ''),
+                    ('D', ')')])
+
+    def check_complete(s):
+        tokens, tail_index = tokenise(s)
+        tc.assertEqual(tail_index, len(s))
+        return len(tokens)
+
+    def check_incomplete(s):
+        tokens, tail_index = tokenise(s)
+        return len(tokens), tail_index
+
+    tc.assertEqual(check_complete(""), 0)
+    tc.assertEqual(check_complete("junk (;B[ah])"), 5)
+    tc.assertEqual(check_incomplete("junk"), (0, 0))
+    tc.assertEqual(check_incomplete("junk (B[ah])"), (0, 0))
+    tc.assertEqual(check_incomplete("(;B[ah]) junk"), (5, 8))
+    tc.assertEqual(check_complete("(;))(([ag]B C[ah])"), 11)
+
+    tc.assertEqual(check_complete("(;XX[abc][def]KO[];B[bc])"), 11)
+    tc.assertEqual(check_complete("( ;XX[abc][def]KO[];B[bc])"), 11)
+    tc.assertEqual(check_complete("(; XX[abc][def]KO[];B[bc])"), 11)
+    tc.assertEqual(check_complete("(;XX [abc][def]KO[];B[bc])"), 11)
+    tc.assertEqual(check_complete("(;XX[abc] [def]KO[];B[bc])"), 11)
+    tc.assertEqual(check_complete("(;XX[abc][def] KO[];B[bc])"), 11)
+    tc.assertEqual(check_complete("(;XX[abc][def]KO [];B[bc])"), 11)
+    tc.assertEqual(check_complete("(;XX[abc][def]KO[] ;B[bc])"), 11)
+    tc.assertEqual(check_complete("(;XX[abc][def]KO[]; B[bc])"), 11)
+    tc.assertEqual(check_complete("(;XX[abc][def]KO[];B [bc])"), 11)
+    tc.assertEqual(check_complete("(;XX[abc][def]KO[];B[bc] )"), 11)
+
+    tc.assertEqual(check_complete("( ;\nB\t[ah]\f[ef]\v)"), 6)
+    tc.assertEqual(check_complete("(;[Random :\nstu@ff][ef]"), 4)
+    tc.assertEqual(check_complete("(;[ah)])"), 4)
+
+    tc.assertEqual(check_incomplete("(;B[ag"), (3, 3))
+    tc.assertEqual(check_incomplete("(;B[ag)"), (3, 3))
+    tc.assertEqual(check_incomplete("(;AddBlack[ag])"), (3, 3))
+    tc.assertEqual(check_incomplete("(;+B[ag])"), (2, 2))
+    tc.assertEqual(check_incomplete("(;B+[ag])"), (3, 3))
+    tc.assertEqual(check_incomplete("(;B[ag]+)"), (4, 7))
+
+    tc.assertEqual(check_complete(r"(;[ab \] cd][ef]"), 4)
+    tc.assertEqual(check_complete(r"(;[ab \] cd\\][ef]"), 4)
+    tc.assertEqual(check_complete(r"(;[ab \] cd\\\\][ef]"), 4)
+    tc.assertEqual(check_complete(r"(;[ab \] \\\] cd][ef]"), 4)
+    tc.assertEqual(check_incomplete(r"(;B[ag\])"), (3, 3))
+    tc.assertEqual(check_incomplete(r"(;B[ag\\\])"), (3, 3))
+
+def test_parser(tc):
+    parse_sgf = sgf_reader.parse_sgf
+
+    def parse_len(s):
+        sgf = parse_sgf(s)
         return len(sgf.get_main_sequence())
-    tc.assertEqual(check("(;C[abc]KO[];B[bc])"), 2)
-    tc.assertEqual(check("initial junk (;C[abc]KO[];B[bc])"), 2)
-    tc.assertEqual(check("(;C[abc]KO[];B[bc]) final junk"), 2)
 
-    tc.assertEqual(check("( ;C[abc]KO[];B[bc])"), 2)
-    tc.assertEqual(check("(; C[abc]KO[];B[bc])"), 2)
-    tc.assertEqual(check("(;C[abc] KO[];B[bc])"), 2)
-    tc.assertEqual(check("(;C[abc]KO[] ;B[bc])"), 2)
-    tc.assertEqual(check("(;C[abc]KO[]; B[bc])"), 2)
-    tc.assertEqual(check("(;C [abc]KO[];B[bc])"), 2)
+    tc.assertEqual(parse_len("(;C[abc]KO[];B[bc])"), 2)
+    tc.assertEqual(parse_len("initial junk (;C[abc]KO[];B[bc])"), 2)
+    tc.assertEqual(parse_len("(;C[abc]KO[];B[bc]) final junk"), 2)
+    tc.assertEqual(parse_len("(;C[abc]KO[];B[bc]) (;B[ag])"), 2)
 
-    tc.assertEqual(check("(;C[abc]AB[ab][bc];B[bc])"), 2)
-    tc.assertEqual(check("(;C[abc]AB[ab] [bc];B[bc])"), 2)
+    tc.assertRaises(ValueError, parse_sgf, r"")
+    tc.assertRaises(ValueError, parse_sgf, r"junk")
+    tc.assertRaises(ValueError, parse_sgf, r"()")
+    tc.assertRaises(ValueError, parse_sgf, r"(B[ag])")
+    tc.assertRaises(ValueError, parse_sgf, r"B[ag]")
+    tc.assertRaises(ValueError, parse_sgf, r"[ag]")
 
-    tc.assertEqual(check("(;C[abc]\nAB[ab]\t[bc];B[bc])"), 2)
+    tc.assertEqual(parse_len("(;C[abc]AB[ab][bc];B[bc])"), 2)
+    tc.assertEqual(parse_len("(;C[abc] AB[ab]\n[bc]\t;B[bc])"), 2)
+    tc.assertEqual(parse_len("(;C[abc]AB[ab](;B[bc]))"), 2)
+    tc.assertEqual(parse_len("(;C[abc]KO[];;B[bc])"), 3)
+    tc.assertEqual(parse_len("(;)"), 1)
 
-    tc.assertEqual(check("(;C[abc]AB[ab][bc](;B[bc]))"), 2)
-
-def test_malformed(tc):
-    def read(s):
-        sgf_reader.parse_sgf(s)
-    tc.assertRaises(ValueError, read, r"")
-    tc.assertRaises(ValueError, read, r"B[ag]")
-    tc.assertRaises(ValueError, read, r"[ag]")
-    tc.assertRaises(ValueError, read, r"(B[ag])")
-    tc.assertRaises(ValueError, read, r"([ag])")
-    tc.assertRaises(ValueError, read, r"([ag][ah])")
-    tc.assertRaises(ValueError, read, r"(;[ag])")
-    tc.assertRaises(ValueError, read, r"(;[ag][ah])")
-    tc.assertRaises(ValueError, read, r"(;B[ag]([ah]))")
-    tc.assertRaises(ValueError, read, r"(;B[ag]")
-    tc.assertRaises(ValueError, read, r"(;B[ag)]")
-    tc.assertRaises(ValueError, read, r"(;B[ag\])")
-    tc.assertRaises(ValueError, read, r"(;B)")
-    tc.assertRaises(ValueError, read, r"(;B;W[ah])")
-    tc.assertRaises(ValueError, read, r"(;AddBlack[ag])")
-    tc.assertRaises(ValueError, read, r"(;+B[ag])")
-    tc.assertRaises(ValueError, read, r"(;B+[ag])")
-    tc.assertRaises(ValueError, read, r"(;[B][ag])")
-    tc.assertRaises(ValueError, read, r"(;B W[ag])")
+    tc.assertRaises(ValueError, parse_sgf, r"(;B)")
+    tc.assertRaises(ValueError, parse_sgf, r"(;[ag])")
+    tc.assertRaises(ValueError, parse_sgf, r"(;[ag][ah])")
+    tc.assertRaises(ValueError, parse_sgf, r"(;[B][ag])")
+    tc.assertRaises(ValueError, parse_sgf, r"(;B[ag]")
+    tc.assertRaises(ValueError, parse_sgf, r"(;B[ag][)]")
+    tc.assertRaises(ValueError, parse_sgf, r"(;B;W[ah])")
+    tc.assertRaises(ValueError, parse_sgf, r"(;B[ag](;[ah]))")
+    tc.assertRaises(ValueError, parse_sgf, r"(;B W[ag])")
 
     # We don't reject these yet, because we don't track parens
-    #tc.assertRaises(ValueError, read, r"(;B[ag];W[ah](;B[ai])")
-    #tc.assertRaises(ValueError, read, r"(;)")
-    #tc.assertRaises(ValueError, read, r"(;B[ag]())")
+    #tc.assertRaises(ValueError, parse_sgf, "(;B[ag];W[ah](;B[ai])")
+    #tc.assertRaises(ValueError, parse_sgf, "(;B[ag];(W[ah];B[ai])")
+    #tc.assertRaises(ValueError, parse_sgf, "(;B[ag];())")
+    #tc.assertRaises(ValueError, parse_sgf, "(;B[ag]())")
 
-def test_value_escaping(tc):
+def test_text_values(tc):
     def check(s):
         sgf = sgf_reader.parse_sgf(s)
-        return sgf.root.get("C")
+        return sgf.get_root_node().get("C")
+    # Round-trip check of Text values through tokeniser, parser, and
+    # value_as_text().
     tc.assertEqual(check(r"(;C[abc]KO[])"), r"abc")
     tc.assertEqual(check(r"(;C[a\\bc]KO[])"), r"a\bc")
     tc.assertEqual(check(r"(;C[a\\bc\]KO[])"), r"a\bc]KO[")
     tc.assertEqual(check(r"(;C[abc\\]KO[])"), r"abc" + "\\")
+    tc.assertEqual(check(r"(;C[abc\\\]KO[])"), r"abc\]KO[")
+    tc.assertEqual(check(r"(;C[abc\\\\]KO[])"), r"abc" + "\\\\")
+    tc.assertEqual(check(r"(;C[abc\\\\\]KO[])"), r"abc\\]KO[")
     tc.assertEqual(check(r"(;C[xxx :\) yyy]KO[])"), r"xxx :) yyy")
-
-def test_string_handling(tc):
-    def check(s):
-        sgf = sgf_reader.parse_sgf(s)
-        return sgf.root.get("C")
-    tc.assertEqual(check("(;C[abc ])"), "abc ")
-    tc.assertEqual(check("(;C[ab c])"), "ab c")
-    tc.assertEqual(check("(;C[ab\tc])"), "ab c")
-    tc.assertEqual(check("(;C[ab \tc])"), "ab  c")
-    tc.assertEqual(check("(;C[ab\nc])"), "ab\nc")
     tc.assertEqual(check("(;C[ab\\\nc])"), "abc")
-    tc.assertEqual(check("(;C[ab\\\\\nc])"), "ab\\\nc")
-    tc.assertEqual(check("(;C[ab\xa0c])"), "ab\xa0c")
-
-    tc.assertEqual(check("(;C[ab\rc])"), "ab\nc")
-    tc.assertEqual(check("(;C[ab\r\nc])"), "ab\nc")
-    tc.assertEqual(check("(;C[ab\n\rc])"), "ab\nc")
-    tc.assertEqual(check("(;C[ab\r\n\r\nc])"), "ab\n\nc")
-    tc.assertEqual(check("(;C[ab\r\n\r\n\rc])"), "ab\n\n\nc")
-    tc.assertEqual(check("(;C[ab\\\r\nc])"), "abc")
-    tc.assertEqual(check("(;C[ab\\\n\nc])"), "ab\nc")
-
-    tc.assertEqual(check("(;C[ab\\\tc])"), "ab c")
-
+    tc.assertEqual(check("(;C[ab\nc])"), "ab\nc")
 
 
 SAMPLE_SGF = """\

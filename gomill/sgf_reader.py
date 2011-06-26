@@ -377,7 +377,8 @@ def _tokenise(s):
 
     Skips leading junk.
 
-    Returns a list of pairs of strings (token type, contents)
+    Returns a list of pairs of strings (token type, contents), and also the
+    index in 's' of the start of the unmatched 'tail'
 
     token types and contents:
       I -- PropIdent: upper-case letters
@@ -394,7 +395,7 @@ def _tokenise(s):
     result = []
     m = _find_start_re.search(s)
     if not m:
-        return []
+        return [], 0
     i = m.start()
     while True:
         m = _tokenise_re.match(s, i)
@@ -402,7 +403,7 @@ def _tokenise(s):
             break
         result.append((m.lastgroup, m.group(m.lastindex)))
         i = m.end()
-    return result
+    return result, i
 
 def parse_sgf(s):
     """Interpret SGF data from a string.
@@ -427,7 +428,7 @@ def parse_sgf(s):
     _Node = Node
     tree = Sgf_game_tree()
     _add_node = tree._nodes.append
-    tokens = _tokenise(s)
+    tokens, _ = _tokenise(s)
     index = 0
     try:
         while True:
