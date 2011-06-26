@@ -36,6 +36,31 @@ def test_value_as_text(tc):
     tc.assertEqual(value_as_text("abc\\"), "abc")
     tc.assertEqual(value_as_text("abc]"), "abc]")
 
+def test_value_as_simpletext(tc):
+    value_as_simpletext = sgf_reader.value_as_simpletext
+    tc.assertEqual(value_as_simpletext("abc "), "abc ")
+    tc.assertEqual(value_as_simpletext("ab c"), "ab c")
+    tc.assertEqual(value_as_simpletext("ab\tc"), "ab c")
+    tc.assertEqual(value_as_simpletext("ab \tc"), "ab  c")
+    tc.assertEqual(value_as_simpletext("ab\nc"), "ab c")
+    tc.assertEqual(value_as_simpletext("ab\\\nc"), "abc")
+    tc.assertEqual(value_as_simpletext("ab\\\\\nc"), "ab\\ c")
+    tc.assertEqual(value_as_simpletext("ab\xa0c"), "ab\xa0c")
+
+    tc.assertEqual(value_as_simpletext("ab\rc"), "ab c")
+    tc.assertEqual(value_as_simpletext("ab\r\nc"), "ab c")
+    tc.assertEqual(value_as_simpletext("ab\n\rc"), "ab c")
+    tc.assertEqual(value_as_simpletext("ab\r\n\r\nc"), "ab  c")
+    tc.assertEqual(value_as_simpletext("ab\r\n\r\n\rc"), "ab   c")
+    tc.assertEqual(value_as_simpletext("ab\\\r\nc"), "abc")
+    tc.assertEqual(value_as_simpletext("ab\\\n\nc"), "ab c")
+
+    tc.assertEqual(value_as_simpletext("ab\\\tc"), "ab c")
+
+    # These can't actually appear as SGF PropValues; anything sane will do
+    tc.assertEqual(value_as_simpletext("abc\\"), "abc")
+    tc.assertEqual(value_as_simpletext("abc]"), "abc]")
+
 
 def test_tokeniser(tc):
     tokenise = sgf_reader._tokenise

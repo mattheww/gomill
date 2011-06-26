@@ -40,6 +40,34 @@ def value_as_text(s):
             result.append(chunk)
     return "".join(result)
 
+def value_as_simpletext(s):
+    """Convert a raw SimpleText value to the string it represents.
+
+    This interprets escape characters, and does whitespace mapping:
+
+    - backslash followed by linebreak (LF, CR, LFCR, or CRLF) disappears
+    - any other linebreak is replaced by a space
+    - any other whitespace character is replaced by a space
+    - other backslashes disappear (but double-backslash -> single-backslash)
+
+    """
+    s = _newline_re.sub("\n", s)
+    s = s.translate(_whitespace_table)
+    is_escaped = False
+    result = []
+    for chunk in _chunk_re.findall(s):
+        if is_escaped:
+            if chunk != "\n":
+                result.append(chunk)
+            is_escaped = False
+        elif chunk == "\\":
+            is_escaped = True
+        elif chunk == "\n":
+            result.append(" ")
+        else:
+            result.append(chunk)
+    return "".join(result)
+
 def interpret_point(s, size):
     """Interpret an SGF Point, Move, or Stone value.
 
