@@ -364,11 +364,11 @@ _find_start_re = re.compile(r"\(\s*;")
 _tokenise_re = re.compile(r"""
 \s*
 (?:
-    \[ (?P<V> (?: [^\\\]] | \\. )* ) \]      # PropValue
+    \[ (?P<V> [^\\\]]* (?: \\. [^\\\]]* )* ) \]   # PropValue
     |
-    (?P<I> [A-Z]{1,8} )                      # PropIdent
+    (?P<I> [A-Z]{1,8} )                           # PropIdent
     |
-    (?P<D> [;()] )                           # delimiter
+    (?P<D> [;()] )                                # delimiter
 )
 """, re.VERBOSE | re.DOTALL)
 
