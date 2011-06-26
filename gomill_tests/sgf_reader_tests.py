@@ -179,7 +179,7 @@ def test_text_values(tc):
 
 
 SAMPLE_SGF = """\
-(;AP[testsuite]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
+(;AP[testsuite:0]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
 PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc];B[dg];W[ef]C[comment
 on two lines];B[];W[tt]C[Final comment])
 """
@@ -200,8 +200,6 @@ def test_node(tc):
     tc.assertEqual(node0.get_list('AB'), ['ai', 'bh', 'ee'])
     tc.assertEqual(node0.get_list('AE'), [])
     tc.assertRaises(KeyError, node0.get_list, 'XX')
-    tc.assertEqual(node0.get('C'), "sample: comment")
-    tc.assertEqual(node0.get('AB'), "ai")
     tc.assertRaises(KeyError, node0.get, 'XX')
 
 def test_node_string(tc):
@@ -209,7 +207,7 @@ def test_node_string(tc):
     node = sgf.get_root_node()
     tc.assertMultiLineEqual(str(node), dedent("""\
     AB[ai][bh][ee]
-    AP[testsuite]
+    AP[testsuite:0]
     AW[fd][gc]
     CA[utf-8]
     DT[2009-06-06]
@@ -223,7 +221,30 @@ def test_node_string(tc):
     SZ[9]
     """))
 
-def test_get_move(tc):
+def test_node_get(tc):
+    sgf = sgf_reader.parse_sgf(dedent(r"""
+    (;AP[testsuite:0]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
+    PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]BM[2]
+    EV[Test
+    event]
+    C[123:\)
+    abc];
+    B[dg]KO[])
+    """))
+    root = sgf.get_root_node()
+    node1 = sgf.get_main_sequence()[1]
+    tc.assertEqual(root.get('C'), "123:)\nabc")      # Text
+    tc.assertEqual(root.get('EV'), "Test event")     # Simpletext
+    tc.assertEqual(root.get('BM'), 2)                # Double
+    tc.assertIs(node1.get('KO'), True)               # None
+    tc.assertEqual(root.get('KM'), 7.5)              # Real
+    tc.assertEqual(root.get('GM'), 1)                # Number
+    tc.assertEqual(root.get('PL'), 'b')              # Color
+    tc.assertEqual(node1.get('B'), (2, 3))           # Point
+    tc.assertEqual(root.get('AB'),
+                   set([(0, 0), (1, 1), (4, 4)]))    # List of Point
+
+def test_node_get_move(tc):
     sgf = sgf_reader.parse_sgf(SAMPLE_SGF)
     nodes = sgf.get_main_sequence()
     tc.assertEqual(nodes[0].get_move(), (None, None))
@@ -256,7 +277,7 @@ def test_sgf_tree(tc):
     tc.assertEqual(sgf.get_player('b'), "Black engine")
     tc.assertEqual(sgf.get_player('w'), "White engine")
     tc.assertEqual(sgf.get_winner(), 'w')
-    tc.assertEqual(root.get('AP'), "testsuite")
+    tc.assertEqual(root.get('AP'), "testsuite:0")
     tc.assertEqual(nodes[2].get('C'), "comment\non two lines")
     tc.assertEqual(nodes[4].get('C'), "Final comment")
 

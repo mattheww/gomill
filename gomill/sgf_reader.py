@@ -17,6 +17,8 @@ _chunk_re = re.compile(r" [^\n\\]+ | [\n\\] ", re.VERBOSE)
 def value_as_text(s):
     """Convert a raw Text value to the string it represents.
 
+    Returns an 8-bit string, in the encoding of the original SGF string.
+
     This interprets escape characters, and does whitespace mapping:
 
     - linebreak (LF, CR, LFCR, or CRLF) is converted to \n
@@ -43,6 +45,8 @@ def value_as_text(s):
 def value_as_simpletext(s):
     """Convert a raw SimpleText value to the string it represents.
 
+    Returns an 8-bit string, in the encoding of the original SGF string.
+
     This interprets escape characters, and does whitespace mapping:
 
     - backslash followed by linebreak (LF, CR, LFCR, or CRLF) disappears
@@ -68,8 +72,53 @@ def value_as_simpletext(s):
             result.append(chunk)
     return "".join(result)
 
+def value_as_none(s):
+    """Convert a raw None value to a boolean.
+
+    That is, unconditionally returns True.
+
+    """
+    return True
+
+def value_as_number(s):
+    """Convert a raw Number value to the integer it represents."""
+    return int(s)
+
+def value_as_real(s):
+    """Convert a raw Real value to the float it represents.
+
+    This is more lenient than the SGF spec: it accepts strings accepted as a
+    float by the platform libc.
+
+    """
+    # Would be nice to at least reject Inf and NaN, but Python 2.5 is deficient
+    # here.
+    return float(s)
+
+def value_as_double(s):
+    """Convert a raw Double value to an integer.
+
+    Returns 1 or 2.
+
+    """
+    if s.strip() == "2":
+        return 2
+    else:
+        return 1
+
+def value_as_colour(s):
+    """Convert a raw Color value to a gomill colour.
+
+    Returns 'b' or 'w'
+
+    """
+    colour = s.lower()
+    if colour not in ('b', 'w'):
+        raise ValueError
+    return colour
+
 def interpret_point(s, size):
-    """Interpret an SGF Point, Move, or Stone value.
+    """Convert a raw SGF Point, Move, or Stone value to coordinates.
 
     s    -- string
     size -- board size (int)
@@ -87,10 +136,8 @@ def interpret_point(s, size):
     """
     if s == "" or (s == "tt" and size <= 19):
         return None
-    try:
-        col_s, row_s = s
-    except TypeError:
-        raise ValueError
+    # May propagate ValueError
+    col_s, row_s = s
     col = ord(col_s) - 97 # 97 == ord("a")
     row = size - ord(row_s) + 96
     if not (0 <= col < size) and (0 <= row < size):
@@ -98,7 +145,7 @@ def interpret_point(s, size):
     return row, col
 
 def interpret_compressed_point_list(values, size):
-    """Interpret an SGF list or elist of Points.
+    """Convert a raw SGF list or elist of Points to a set of coordinates.
 
     values -- list of strings
 
@@ -129,6 +176,87 @@ def interpret_compressed_point_list(values, size):
                 raise ValueError
             result.add(pt)
     return result
+
+
+class _Property(object):
+    """Description of a property type."""
+    def __init__(self, interpreter, uses_list=False):
+        self.interpreter = interpreter
+        self.uses_list = uses_list
+
+P = _Property
+LIST = ELIST = True
+_properties = {
+  'AB' : P(interpret_compressed_point_list, LIST),  # setup      Add Black
+  'AE' : P(interpret_compressed_point_list, LIST),  # setup      Add Empty
+  'AN' : P(value_as_simpletext),                    # game-info  Annotation
+# 'AP' : #   composed simpletext ':' simpletext     # root       Application
+# 'AR' : #   list of composed point ':' point       # -          Arrow
+  'AW' : P(interpret_compressed_point_list, LIST),  # setup      Add White
+  'B'  : P(interpret_point),                        # move       Black
+  'BL' : P(value_as_real),                          # move       Black time left
+  'BM' : P(value_as_double),                        # move       Bad move
+  'BR' : P(value_as_simpletext),                    # game-info  Black rank
+  'BT' : P(value_as_simpletext),                    # game-info  Black team
+  'C'  : P(value_as_text),                          # -          Comment
+  'CA' : P(value_as_simpletext),                    # root       Charset
+  'CP' : P(value_as_simpletext),                    # game-info  Copyright
+  'CR' : P(interpret_compressed_point_list, LIST),  # -          Circle
+  'DD' : P(interpret_compressed_point_list, ELIST), # - (inherit)Dim points
+  'DM' : P(value_as_double),                        # -          Even position
+  'DO' : P(value_as_none),                          # move       Doubtful
+  'DT' : P(value_as_simpletext),                    # game-info  Date
+  'EV' : P(value_as_simpletext),                    # game-info  Event
+  'FF' : P(value_as_number),                        # root       Fileformat
+# 'FG' : #   none | composed number ":" simpletext  # -          Figure
+  'GB' : P(value_as_double),                        # -          Good for Black
+  'GC' : P(value_as_text),                          # game-info  Game comment
+  'GM' : P(value_as_number),                        # root       Game
+  'GN' : P(value_as_simpletext),                    # game-info  Game name
+  'GW' : P(value_as_double),                        # -          Good for White
+  'HA' : P(value_as_number),                        # game-info  Handicap
+  'HO' : P(value_as_double),                        # -          Hotspot
+  'IT' : P(value_as_none),                          # move       Interesting
+  'KM' : P(value_as_real),                          # game-info  Komi
+  'KO' : P(value_as_none),                          # move       Ko
+# 'LB' : #   list of composed point ':' simpletext  # -          Label
+# 'LN' : #   list of composed point ':' point       # -          Line
+  'MA' : P(interpret_compressed_point_list, LIST),  # -          Mark
+  'MN' : P(value_as_number),                        # move       set move number
+  'N'  : P(value_as_simpletext),                    # -          Nodename
+  'OB' : P(value_as_number),                        # move       OtStones Black
+  'ON' : P(value_as_simpletext),                    # game-info  Opening
+  'OT' : P(value_as_simpletext),                    # game-info  Overtime
+  'OW' : P(value_as_number),                        # move       OtStones White
+  'PB' : P(value_as_simpletext),                    # game-info  Player Black
+  'PC' : P(value_as_simpletext),                    # game-info  Place
+  'PL' : P(value_as_colour),                        # setup      Player to play
+  'PM' : P(value_as_number),                        # - (inherit)Print move mode
+  'PW' : P(value_as_simpletext),                    # game-info  Player White
+  'RE' : P(value_as_simpletext),                    # game-info  Result
+  'RO' : P(value_as_simpletext),                    # game-info  Round
+  'RU' : P(value_as_simpletext),                    # game-info  Rules
+  'SL' : P(interpret_compressed_point_list, LIST),  # -          Selected
+  'SO' : P(value_as_simpletext),                    # game-info  Source
+  'SQ' : P(interpret_compressed_point_list, LIST),  # -          Square
+  'ST' : P(value_as_number),                        # root       Style
+  'SZ' : P(value_as_number),                        # root       Size
+  'TB' : P(interpret_compressed_point_list, ELIST), # -          Territory Black
+  'TE' : P(value_as_double),                        # move       Tesuji
+  'TM' : P(value_as_real),                          # game-info  Timelimit
+  'TR' : P(interpret_compressed_point_list, LIST),  # -          Triangle
+  'TW' : P(interpret_compressed_point_list, ELIST), # -          Territory White
+  'UC' : P(value_as_double),                        # -          Unclear pos
+  'US' : P(value_as_simpletext),                    # game-info  User
+  'V'  : P(value_as_real),                          # -          Value
+  'VW' : P(interpret_compressed_point_list, ELIST), # - (inherit)View
+  'W'  : P(interpret_point),                        # move       White
+  'WL' : P(value_as_real),                          # move       White time left
+  'WR' : P(value_as_simpletext),                    # game-info  White rank
+  'WT' : P(value_as_simpletext),                    # game-info  White team
+}
+_private_property = P(value_as_text)
+del P, LIST, ELIST
 
 
 class Node(object):
@@ -186,20 +314,29 @@ class Node(object):
             return l
 
     def get(self, identifier):
-        """Return the value of the specified property, interpreted as text.
+        """Return the interpreted value of the specified property.
 
-        Applies the formatting and escaping rules defined for SGF Text (see
-        value_as_text() for details).
-
-        Returns an 8-bit string, in the encoding of the original SGF string.
+        Treats unknown (private) properties as if they had type Text.
 
         Raises KeyError if there was no property with the given identifier.
 
-        If the property had multiple values, this returns the first. If the
-        property was an empty elist, this returns an empty string.
+        FIXME: May raise ValueError, but fixes up where possible.
+
+        FIXME: See the value_as... and interpret... functions above for details.
+        Doc what the known properties and their types are??
 
         """
-        return value_as_text(self.props_by_id[identifier][0])
+        prop = _properties.get(identifier, _private_property)
+        interpreter = prop.interpreter
+        if prop.uses_list:
+            raw = self.props_by_id[identifier]
+        else:
+            raw = self.props_by_id[identifier][0]
+        if (interpreter is interpret_point or
+            interpreter is interpret_compressed_point_list):
+            return interpreter(raw, self.size)
+        else:
+            return interpreter(raw)
 
     def get_move(self):
         """Retrieve the move from a node.
