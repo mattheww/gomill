@@ -177,6 +177,26 @@ def interpret_compressed_point_list(values, size):
             result.add(pt)
     return result
 
+_split_composed_re = re.compile(
+    r"( (?: [^\\:] | \\. )* ) :",
+    re.VERBOSE | re.DOTALL)
+
+def interpret_compose(s):
+    """Split the parts of an SGF Compose value.
+
+    If the value is a well-formed Compose, returns a pair of strings.
+
+    If it isn't (ie, there is no delimiter), returns the complete string and
+    None.
+
+    Interprets backslash escapes in order to find the delimiter, but leaves
+    backslash escapes unchanged in the returned strings.
+
+    """
+    m = _split_composed_re.match(s)
+    if not m:
+        return s, None
+    return m.group(1), s[m.end():]
 
 class _Property(object):
     """Description of a property type."""

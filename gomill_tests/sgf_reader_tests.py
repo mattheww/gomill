@@ -61,6 +61,19 @@ def test_value_as_simpletext(tc):
     tc.assertEqual(value_as_simpletext("abc\\"), "abc")
     tc.assertEqual(value_as_simpletext("abc]"), "abc]")
 
+def test_interpret_compose(tc):
+    ic = sgf_reader.interpret_compose
+    tc.assertEqual(ic("word"), ("word", None))
+    tc.assertEqual(ic("word:"), ("word", ""))
+    tc.assertEqual(ic("word:?"), ("word", "?"))
+    tc.assertEqual(ic("word:123"), ("word", "123"))
+    tc.assertEqual(ic("word:123:456"), ("word", "123:456"))
+    tc.assertEqual(ic(":123"), ("", "123"))
+    tc.assertEqual(ic(r"word\:more"), (r"word\:more", None))
+    tc.assertEqual(ic(r"word\:more:?"), (r"word\:more", "?"))
+    tc.assertEqual(ic(r"word\\:more:?"), ("word\\\\", "more:?"))
+    tc.assertEqual(ic(r"word\\\:more:?"), (r"word\\\:more", "?"))
+    tc.assertEqual(ic("word\\\nmore:123"), ("word\\\nmore", "123"))
 
 def test_tokeniser(tc):
     tokenise = sgf_reader._tokenise
