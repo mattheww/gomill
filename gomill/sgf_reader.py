@@ -198,11 +198,62 @@ def interpret_compose(s):
         return s, None
     return m.group(1), s[m.end():]
 
+def interpret_AP(s):
+    """Interpret an AP (application) property value.
+
+    Returns a pair of strings (but if there is no delimiter, the second value
+    is None)
+
+    """
+    application, version = interpret_compose(s)
+    if version is not None:
+        version = value_as_simpletext(version)
+    return value_as_simpletext(application), version
+
+def interpret_ARLN(values, size):
+    """Interpret an AR (arrow) or LN (line) property value.
+
+    Returns a list of pairs (coords, coords).
+
+    """
+    result = []
+    for s in values:
+        p1, p2 = interpret_compose(s)
+        result.append((interpret_point(p1, size), interpret_point(p2, size)))
+    return result
+
+def interpret_FG(s):
+    """Interpret a FG (figure) property value.
+
+    Returns a pair (flags, string), or None.
+
+    flags is an integer; see http://www.red-bean.com/sgf/properties.html#FG
+
+    """
+    if s == "":
+        return None
+    flags, name = interpret_compose(s)
+    return int(flags), value_as_simpletext(name)
+
+def interpret_LB(values, size):
+    """Interpret an LB (label) property value.
+
+    Returns a list of pairs (coords, string).
+
+    """
+    result = []
+    for s in values:
+        point, label = interpret_compose(s)
+        result.append((interpret_point(point, size),
+                       value_as_simpletext(label)))
+    return result
+
 class _Property(object):
     """Description of a property type."""
     def __init__(self, interpreter, uses_list=False):
         self.interpreter = interpreter
         self.uses_list = uses_list
+        self.uses_size = (interpreter.func_code.co_argcount == 2)
 
 P = _Property
 LIST = ELIST = True
@@ -210,8 +261,8 @@ _properties = {
   'AB' : P(interpret_compressed_point_list, LIST),  # setup      Add Black
   'AE' : P(interpret_compressed_point_list, LIST),  # setup      Add Empty
   'AN' : P(value_as_simpletext),                    # game-info  Annotation
-# 'AP' : #   composed simpletext ':' simpletext     # root       Application
-# 'AR' : #   list of composed point ':' point       # -          Arrow
+  'AP' : P(interpret_AP),                           # root       Application
+  'AR' : P(interpret_ARLN, LIST),                   # -          Arrow
   'AW' : P(interpret_compressed_point_list, LIST),  # setup      Add White
   'B'  : P(interpret_point),                        # move       Black
   'BL' : P(value_as_real),                          # move       Black time left
@@ -228,7 +279,7 @@ _properties = {
   'DT' : P(value_as_simpletext),                    # game-info  Date
   'EV' : P(value_as_simpletext),                    # game-info  Event
   'FF' : P(value_as_number),                        # root       Fileformat
-# 'FG' : #   none | composed number ":" simpletext  # -          Figure
+  'FG' : P(interpret_FG),                           # -          Figure
   'GB' : P(value_as_double),                        # -          Good for Black
   'GC' : P(value_as_text),                          # game-info  Game comment
   'GM' : P(value_as_number),                        # root       Game
@@ -239,8 +290,8 @@ _properties = {
   'IT' : P(value_as_none),                          # move       Interesting
   'KM' : P(value_as_real),                          # game-info  Komi
   'KO' : P(value_as_none),                          # move       Ko
-# 'LB' : #   list of composed point ':' simpletext  # -          Label
-# 'LN' : #   list of composed point ':' point       # -          Line
+  'LB' : P(interpret_LB, LIST),                     # -          Label
+  'LN' : P(interpret_ARLN, LIST),                   # -          Line
   'MA' : P(interpret_compressed_point_list, LIST),  # -          Mark
   'MN' : P(value_as_number),                        # move       set move number
   'N'  : P(value_as_simpletext),                    # -          Nodename
@@ -352,8 +403,7 @@ class Node(object):
             raw = self.props_by_id[identifier]
         else:
             raw = self.props_by_id[identifier][0]
-        if (interpreter is interpret_point or
-            interpreter is interpret_compressed_point_list):
+        if prop.uses_size:
             return interpreter(raw, self.size)
         else:
             return interpreter(raw)

@@ -242,20 +242,27 @@ def test_node_get(tc):
     event]
     C[123:\)
     abc];
-    B[dg]KO[])
+    B[dg]KO[]AR[ab:cd][de:fg]FG[515:first move]
+    LB[ac:lbl][bc:lbl2])
     """))
     root = sgf.get_root_node()
     node1 = sgf.get_main_sequence()[1]
-    tc.assertEqual(root.get('C'), "123:)\nabc")      # Text
-    tc.assertEqual(root.get('EV'), "Test event")     # Simpletext
-    tc.assertEqual(root.get('BM'), 2)                # Double
-    tc.assertIs(node1.get('KO'), True)               # None
-    tc.assertEqual(root.get('KM'), 7.5)              # Real
-    tc.assertEqual(root.get('GM'), 1)                # Number
-    tc.assertEqual(root.get('PL'), 'b')              # Color
-    tc.assertEqual(node1.get('B'), (2, 3))           # Point
+    tc.assertEqual(root.get('C'), "123:)\nabc")          # Text
+    tc.assertEqual(root.get('EV'), "Test event")         # Simpletext
+    tc.assertEqual(root.get('BM'), 2)                    # Double
+    tc.assertIs(node1.get('KO'), True)                   # None
+    tc.assertEqual(root.get('KM'), 7.5)                  # Real
+    tc.assertEqual(root.get('GM'), 1)                    # Number
+    tc.assertEqual(root.get('PL'), 'b')                  # Color
+    tc.assertEqual(node1.get('B'), (2, 3))               # Point
     tc.assertEqual(root.get('AB'),
-                   set([(0, 0), (1, 1), (4, 4)]))    # List of Point
+                   set([(0, 0), (1, 1), (4, 4)]))        # List of Point
+    tc.assertEqual(root.get('AP'), ("testsuite", "0"))   # Application
+    tc.assertEqual(node1.get('AR'),
+                   [((7, 0), (5, 2)), ((4, 3), (2, 5))]) # Arrow
+    tc.assertEqual(node1.get('FG'), (515, "first move")) # Figure
+    tc.assertEqual(node1.get('LB'),
+                   [((6, 0), "lbl"), ((6, 1), "lbl2")])  # Label
 
 def test_node_get_move(tc):
     sgf = sgf_reader.parse_sgf(SAMPLE_SGF)
@@ -290,7 +297,6 @@ def test_sgf_tree(tc):
     tc.assertEqual(sgf.get_player('b'), "Black engine")
     tc.assertEqual(sgf.get_player('w'), "White engine")
     tc.assertEqual(sgf.get_winner(), 'w')
-    tc.assertEqual(root.get('AP'), "testsuite:0")
     tc.assertEqual(nodes[2].get('C'), "comment\non two lines")
     tc.assertEqual(nodes[4].get('C'), "Final comment")
 
