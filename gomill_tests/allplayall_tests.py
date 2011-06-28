@@ -169,7 +169,7 @@ def test_play(tc):
     tc.assertEqual(job1.komi, 7.5)
     tc.assertEqual(job1.move_limit, 1000)
     tc.assertIs(job1.use_internal_scorer, False)
-    tc.assertIs(job1.internal_scorer_handicap_compensation, 'full')
+    tc.assertEqual(job1.internal_scorer_handicap_compensation, 'full')
     tc.assertEqual(job1.game_data, ('AvB', 0))
     tc.assertIsNone(job1.sgf_filename)
     tc.assertIsNone(job1.sgf_dirname)
