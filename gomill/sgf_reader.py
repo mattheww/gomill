@@ -331,21 +331,13 @@ del P, LIST, ELIST
 
 
 class Node(object):
-    """An SGF node.
-
-    This doesn't know the types of different properties; it stores raw values,
-    and it's up to the client to specify the escaping required.
-
-    """
+    """An SGF node."""
     __slots__ = ('props_by_id', 'size')
 
-    def __init__(self):
+    def __init__(self, properties, size):
         # Map identifier (PropIdent) -> list of raw values
-        self.props_by_id = {}
-        # self.size is filled in by Sgf_game_tree._setup()
-
-    def _add(self, identifier, values):
-        self.props_by_id[identifier] = values
+        self.props_by_id = properties
+        self.size = size
 
     def has_property(self, identifier):
         """Check whether the node has the specified property."""
@@ -408,6 +400,19 @@ class Node(object):
         else:
             return interpreter(raw)
 
+    def get_raw_move(self):
+        """FIXME"""
+        values = self.props_by_id.get("B")
+        if values is not None:
+            colour = "b"
+        else:
+            values = self.props_by_id.get("W")
+            if values is not None:
+                colour = "w"
+            else:
+                return None, None
+        return colour, values[0]
+
     def get_move(self):
         """Retrieve the move from a node.
 
@@ -420,16 +425,10 @@ class Node(object):
         Returns None, None if the node contains no B or W property.
 
         """
-        values = self.props_by_id.get("B")
-        if values is not None:
-            colour = "b"
-        else:
-            values = self.props_by_id.get("W")
-            if values is not None:
-                colour = "w"
-            else:
-                return None, None
-        return colour, interpret_point(values[0], self.size)
+        colour, raw = self.get_raw_move()
+        if colour is None:
+            return None, None
+        return colour, interpret_point(raw, self.size)
 
     def get_setup_commands(self):
         """Retrieve Add Black / Add White / Add Empty properties from a node.
@@ -466,30 +465,56 @@ class Node(object):
             for (ident, values) in sorted(self.props_by_id.items())) \
             + "\n"
 
+# FIXME: Not used?
+class Game_node(object):
+    __slots__ = ('game_tree', 'index')
 
-class Sgf_game_tree(object):
+    def __init__(self, game_tree, index):
+        self.game_tree = game_tree
+        self.index = index
+
+    def node(self):
+        return self.game_tree.sequence[self.index]
+
+    def children(self):
+        result = []
+        if self.index < len(self.game_tree.sequence) - 1:
+            return [Game_node(self.game_tree, self.index + 1)]
+        else:
+            return [Game_node(child_tree, 0)
+                    for child_tree in self.game_tree.children]
+
+
+class Game_tree(object):
+    __slots__ = ('sequence', 'children')
+
+    def __init__(self):
+        self.sequence = [] # must be at least one node
+        self.children = [] # may be empty
+
+    # FIXME: not used?
+    def gn_root(self):
+        return Game_node(self, 0)
+
+class Sgf_game_tree(Game_tree):
     """An SGF game tree.
 
+    FIXME
     Do not instantiate these directly; use parse_sgf().
 
     """
-    def __init__(self):
-        self._nodes = []
-
     def _setup(self):
         """Finish initialisation, after loading all nodes.
 
         Raises ValueError if vital properties are corrupt.
 
         """
-        self.root = self._nodes[0]
         try:
-            size = int(self.root.get_raw("SZ"))
+            size = int(self.sequence[0]['SZ'][0])
         except KeyError:
             size = 19
         self.size = size
-        for node in self._nodes:
-            node.size = size
+        self.root = Node(self.sequence[0], size)
 
     def get_root_node(self):
         """Return the root Node."""
@@ -501,7 +526,16 @@ class Sgf_game_tree(object):
         Do not modify the returned list.
 
         """
-        return self._nodes
+        size = self.size
+        result = []
+        tree = self
+        while True:
+            result.extend([Node(properties, size)
+                           for properties in tree.sequence])
+            if not tree.children:
+                break
+            tree = tree.children[0]
+        return result
 
     def get_size(self):
         """Return the board size as an integer."""
@@ -579,20 +613,23 @@ class Sgf_game_tree(object):
         Doesn't check whether the moves are legal.
 
         """
-        board = boards.Board(self.get_size())
+        size = self.get_size()
+        board = boards.Board(size)
         ab, aw, ae = self.root.get_setup_commands()
         if ab or aw:
             is_legal = board.apply_setup(ab, aw, ae)
             if not is_legal:
                 raise ValueError("setup position not legal")
         moves = []
-        for node in self._nodes[1:]:
+        for node in self.get_main_sequence()[1:]:
             if node.has_setup_commands():
                 raise ValueError("setup commands after the root node")
-            colour, coords = node.get_move()
+            colour, raw = node.get_raw_move()
             if colour is not None:
-                moves.append((colour, coords))
+                moves.append((colour, interpret_point(raw, size)))
         return board, moves
+
+
 
 
 _find_start_re = re.compile(r"\(\s*;")
@@ -641,28 +678,10 @@ def _tokenise(s):
     return result, i
 
 def parse_sgf(s):
-    """Interpret SGF data from a string.
-
-    s -- 8-bit string
-
-    Returns an Sgf_game_tree.
-
-    Reads only the first sequence from the first game in the string (ie, it
-    reads a GameTree not a Collection, and any variations are ignored).
-
-    Identifies the start of the SGF content by looking for '(;' (with possible
-    whitespace between); ignores everything preceding that. Ignores everything
-    following the first sequence from the first game.
-
-    Doesn't pay any attention to the FF[n] property; always applies the rules
-    for FF[4].
-
-    Raises ValueError if can't parse the string.
-
-    """
-    _Node = Node
-    tree = Sgf_game_tree()
-    _add_node = tree._nodes.append
+    """FIXME"""
+    game_tree = None
+    result = None
+    stack = []
     tokens, _ = _tokenise(s)
     index = 0
     try:
@@ -673,12 +692,25 @@ def parse_sgf(s):
                 raise ValueError("unexpected value")
             if token_type == 'D':
                 if contents == ')':
-                    break
+                    parent = stack.pop()
+                    if parent is None:
+                        result = game_tree
+                        break
+                    else:
+                        parent.children.append(game_tree)
+                    game_tree = parent
                 if contents == '(':
-                    pass
+                    if game_tree is not None and not game_tree.sequence:
+                        raise ValueError("empty sequence")
+                    stack.append(game_tree)
+                    # FIXME: ugly
+                    if game_tree is None:
+                        game_tree = Sgf_game_tree()
+                    else:
+                        game_tree = Game_tree()
                 if contents == ';':
-                    node = _Node()
-                    _add_node(node)
+                    properties = {}
+                    game_tree.sequence.append(properties)
             else:
                 # assert token_type == 'I'
                 prop_ident = contents
@@ -691,9 +723,10 @@ def parse_sgf(s):
                     prop_values.append(contents)
                 if not prop_values:
                     raise ValueError("property with no values")
-                node._add(prop_ident, prop_values)
+                # FIXME: should reject or combine repeated properties.
+                properties[prop_ident] = prop_values
     except IndexError:
         raise ValueError("unexpected end of SGF data")
-    tree._setup()
-    return tree
+    result._setup()
+    return result
 

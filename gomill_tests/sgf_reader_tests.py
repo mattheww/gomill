@@ -290,7 +290,8 @@ def test_sgf_tree(tc):
     root = sgf.get_root_node()
     nodes = sgf.get_main_sequence()
     tc.assertEqual(len(nodes), 5)
-    tc.assertIs(root, nodes[0])
+    # FIXME: find a better test?
+    tc.assertIs(root.props_by_id, nodes[0].props_by_id)
     tc.assertEqual(sgf.get_size(), 9)
     tc.assertEqual(sgf.get_komi(), 7.5)
     tc.assertIs(sgf.get_handicap(), None)
