@@ -151,9 +151,15 @@ def test_scale_check(tc):
         comp.initialise_from_control_file(config)
     tc.assertTracebackStringEqual(str(ar.exception), dedent("""\
     parameter bad: error from scale (applied to 0.05)
-    TypeError: descriptor 'split' requires a 'str' object but received a 'float'
+    TypeError: split-wants-float-not-str
     traceback (most recent call last):
-    """))
+    """), fixups=[
+     ("descriptor 'split' requires a 'str' object but received a 'float'",
+      "split-wants-float-not-str"),
+     ("unbound method split() must be called with str instance as "
+      "first argument (got float instance instead)",
+      "split-wants-float-not-str"),
+     ])
 
 def test_format_validation(tc):
     comp = mcts_tuners.Mcts_tuner('mctstest')

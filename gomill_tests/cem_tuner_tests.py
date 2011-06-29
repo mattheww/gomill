@@ -75,12 +75,15 @@ def test_parameter_config(tc):
         comp.transform_parameters((0.5, None))
     tc.assertTracebackStringEqual(str(ar.exception), dedent("""\
     error from transform for axisb
-    TypeError: float() argument must be a string or a number
+    TypeError: expected-float
     traceback (most recent call last):
     cem_tuner_tests|clip_axisb
     failing line:
     f = float(f)
-    """))
+    """), fixups=[
+    ("float() argument must be a string or a number", "expected-float"),
+    ("expected float, got NoneType object", "expected-float"),
+    ])
 
     tc.assertRaisesRegexp(
         ValueError, "'initial_variance': must be nonnegative",
@@ -114,9 +117,15 @@ def test_transform_check(tc):
         comp.initialise_from_control_file(config)
     tc.assertTracebackStringEqual(str(ar.exception), dedent("""\
     parameter axisa: error from transform (applied to initial_mean)
-    TypeError: descriptor 'split' requires a 'str' object but received a 'float'
+    TypeError: split-wants-float-not-str
     traceback (most recent call last):
-    """))
+    """), fixups=[
+     ("descriptor 'split' requires a 'str' object but received a 'float'",
+      "split-wants-float-not-str"),
+     ("unbound method split() must be called with str instance as "
+      "first argument (got float instance instead)",
+      "split-wants-float-not-str"),
+     ])
 
 def test_format_validation(tc):
     comp = cem_tuners.Cem_tuner('cemtest')
