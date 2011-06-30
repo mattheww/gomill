@@ -671,7 +671,6 @@ def parse_sgf(s):
 
     """
     game_tree = None
-    result = None
     stack = []
     tokens, _ = _tokenise(s)
     index = 0
@@ -683,21 +682,18 @@ def parse_sgf(s):
                 raise ValueError("unexpected value")
             if token_type == 'D':
                 if contents == ')':
-                    parent = stack.pop()
-                    if parent is None:
-                        result = game_tree
+                    if not stack:
                         break
-                    else:
-                        parent.children.append(game_tree)
+                    parent = stack.pop()
+                    parent.children.append(game_tree)
                     game_tree = parent
                 if contents == '(':
-                    if game_tree is not None and not game_tree.sequence:
-                        raise ValueError("empty sequence")
-                    stack.append(game_tree)
-                    # FIXME: ugly
                     if game_tree is None:
                         game_tree = Sgf_game_tree()
                     else:
+                        if not game_tree.sequence:
+                            raise ValueError("empty sequence")
+                        stack.append(game_tree)
                         game_tree = Game_tree()
                 if contents == ';':
                     properties = {}
@@ -718,8 +714,8 @@ def parse_sgf(s):
                 properties[prop_ident] = prop_values
     except IndexError:
         raise ValueError("unexpected end of SGF data")
-    result._setup()
-    return result
+    game_tree._setup()
+    return game_tree
 
 
 class Tree_view_node(object):
