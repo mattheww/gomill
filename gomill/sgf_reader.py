@@ -465,25 +465,6 @@ class Node(object):
             for (ident, values) in sorted(self.props_by_id.items())) \
             + "\n"
 
-# FIXME: Not used?
-class Game_node(object):
-    __slots__ = ('game_tree', 'index')
-
-    def __init__(self, game_tree, index):
-        self.game_tree = game_tree
-        self.index = index
-
-    def node(self):
-        return self.game_tree.sequence[self.index]
-
-    def children(self):
-        result = []
-        if self.index < len(self.game_tree.sequence) - 1:
-            return [Game_node(self.game_tree, self.index + 1)]
-        else:
-            return [Game_node(child_tree, 0)
-                    for child_tree in self.game_tree.children]
-
 
 class Game_tree(object):
     __slots__ = ('sequence', 'children')
@@ -491,10 +472,6 @@ class Game_tree(object):
     def __init__(self):
         self.sequence = [] # must be at least one node
         self.children = [] # may be empty
-
-    # FIXME: not used?
-    def gn_root(self):
-        return Game_node(self, 0)
 
 class Sgf_game_tree(Game_tree):
     """An SGF game tree.
@@ -729,4 +706,27 @@ def parse_sgf(s):
         raise ValueError("unexpected end of SGF data")
     result._setup()
     return result
+
+
+class Tree_view_node(object):
+    __slots__ = ('base_tree', 'game_tree', 'index')
+
+    def __init__(self, base_tree, game_tree, index):
+        self.base_tree = base_tree
+        self.game_tree = game_tree
+        self.index = index
+
+    def node(self):
+        return Node(self.game_tree.sequence[self.index], self.base_tree.size)
+
+    def children(self):
+        result = []
+        if self.index < len(self.game_tree.sequence) - 1:
+            return [Tree_view_node(self.base_tree, self.game_tree, self.index + 1)]
+        else:
+            return [Tree_view_node(self.base_tree, child_tree, 0)
+                    for child_tree in self.game_tree.children]
+
+def tree_view(sgf_game_tree):
+    return Tree_view_node(sgf_game_tree, sgf_game_tree, 0)
 
