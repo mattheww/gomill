@@ -476,7 +476,6 @@ class Game_tree(object):
 class Sgf_game_tree(Game_tree):
     """An SGF game tree.
 
-    FIXME
     Do not instantiate these directly; use parse_sgf().
 
     """
@@ -655,7 +654,22 @@ def _tokenise(s):
     return result, i
 
 def parse_sgf(s):
-    """FIXME"""
+    """Interpret SGF data from a string.
+
+    s -- 8-bit string
+
+    Returns an Sgf_game_tree.
+
+    Identifies the start of the SGF content by looking for '(;' (with possible
+    whitespace between); ignores everything preceding that. Ignores everything
+    following the first sequence from the first game.
+
+    Doesn't pay any attention to the FF[n] property; always applies the rules
+    for FF[4].
+
+    Raises ValueError if can't parse the string.
+
+    """
     game_tree = None
     result = None
     stack = []
