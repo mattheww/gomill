@@ -531,9 +531,9 @@ class Sgf_game(object):
         return self.root
 
     def get_main_sequence(self):
-        """Return a list of Nodes representing the first Sequence in the game.
+        """Return a list of Nodes representing the 'leftmost' variation.
 
-        Do not modify the returned list.
+        Note that these are plain Nodes, not Tree_nodes.
 
         """
         size = self.size
