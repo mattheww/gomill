@@ -686,6 +686,8 @@ def parse_sgf(s):
                 raise ValueError("unexpected value")
             if token_type == 'D':
                 if contents == ')':
+                    if not game_tree.sequence:
+                        raise ValueError("empty sequence")
                     if not stack:
                         break
                     parent = stack.pop()
