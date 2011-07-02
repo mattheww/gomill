@@ -243,6 +243,12 @@ def test_node(tc):
     tc.assertRaises(KeyError, node0.get_list, 'XX')
     tc.assertRaises(KeyError, node0.get, 'XX')
 
+def test_property_combination(tc):
+    sgf = sgf_reader.parse_sgf_game("(;XX[1]YY[2]XX[3]YY[4])")
+    node0 = sgf.get_root_node()
+    tc.assertEqual(node0.get_list("XX"), ["1", "3"])
+    tc.assertEqual(node0.get_list("YY"), ["2", "4"])
+
 def test_node_string(tc):
     sgf = sgf_reader.parse_sgf_game(SAMPLE_SGF)
     node = sgf.get_root_node()

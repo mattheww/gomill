@@ -727,9 +727,11 @@ def parse_sgf_game(s):
                     prop_values.append(token)
                 if not prop_values:
                     raise ValueError("property with no values")
-                # FIXME: should reject or combine repeated properties.
                 try:
-                    properties[prop_ident] = prop_values
+                    if prop_ident in properties:
+                        properties[prop_ident] += prop_values
+                    else:
+                        properties[prop_ident] = prop_values
                 except TypeError:
                     raise ValueError("property value outside a node")
     except IndexError:
