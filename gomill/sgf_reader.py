@@ -467,14 +467,18 @@ class Node(object):
 
 
 class Game_tree(object):
+    """An SGF game tree (or sub-tree)."""
     __slots__ = ('sequence', 'children')
 
     def __init__(self):
         self.sequence = [] # must be at least one node
         self.children = [] # may be empty
 
-class Sgf_game_tree(Game_tree):
-    """An SGF game tree.
+class Root_game_tree(Game_tree):
+    """An SGF game tree containing a root node.
+
+    This represents a GameTree which is a child of a collection, which means
+    its first node may have properties of type 'root'.
 
     Do not instantiate these directly; use parse_sgf().
 
@@ -658,7 +662,7 @@ def parse_sgf(s):
 
     s -- 8-bit string
 
-    Returns an Sgf_game_tree.
+    Returns a Root_game_tree.
 
     Identifies the start of the SGF content by looking for '(;' (with possible
     whitespace between); ignores everything preceding that. Ignores everything
@@ -689,7 +693,7 @@ def parse_sgf(s):
                     game_tree = parent
                 if contents == '(':
                     if game_tree is None:
-                        game_tree = Sgf_game_tree()
+                        game_tree = Root_game_tree()
                     else:
                         if not game_tree.sequence:
                             raise ValueError("empty sequence")
@@ -721,22 +725,22 @@ def parse_sgf(s):
 class Tree_view_node(object):
     __slots__ = ('base_tree', 'game_tree', 'index')
 
-    def __init__(self, base_tree, game_tree, index):
-        self.base_tree = base_tree
+    def __init__(self, root_tree, game_tree, index):
+        self.root_tree = root_tree
         self.game_tree = game_tree
         self.index = index
 
     def node(self):
-        return Node(self.game_tree.sequence[self.index], self.base_tree.size)
+        return Node(self.game_tree.sequence[self.index], self.root_tree.size)
 
     def children(self):
         result = []
         if self.index < len(self.game_tree.sequence) - 1:
-            return [Tree_view_node(self.base_tree, self.game_tree, self.index + 1)]
+            return [Tree_view_node(self.root_tree, self.game_tree, self.index + 1)]
         else:
-            return [Tree_view_node(self.base_tree, child_tree, 0)
+            return [Tree_view_node(self.root_tree, child_tree, 0)
                     for child_tree in self.game_tree.children]
 
-def tree_view(sgf_game_tree):
-    return Tree_view_node(sgf_game_tree, sgf_game_tree, 0)
+def tree_view(root_game_tree):
+    return Tree_view_node(root_game_tree, root_game_tree, 0)
 
