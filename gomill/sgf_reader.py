@@ -616,6 +616,50 @@ def parse_sgf_game(s):
     return variation
 
 
+
+# FIXME: rename, fix docstring.
+class Tree_view_node(Node):
+    """A node in an SGF game tree.
+
+    Do not instantiate directly; retrieve from an Sgf_game or another node.
+
+    Tree view nodes can be indexed and iterated over like lists. A node with no
+    children is treated as having truth value false.
+
+    """
+    __slots__ = ('props_by_id', 'size',
+                 'sgf_game', 'game_tree', 'index', '_children')
+
+    def __init__(self, game_tree, index, size):
+        self.size = size
+        self.game_tree = game_tree
+        self.index = index
+        super(Tree_view_node, self).__init__(
+            self.game_tree.sequence[index], size)
+        self._children = None
+
+    def children(self):
+        """Return the children of this node.
+
+        Returns a list of Tree_view_nodes (the same node objects each time you
+        call it, but not the same list).
+
+        """
+        if self._children is None:
+            if self.index < len(self.game_tree.sequence) - 1:
+                self._children = [Tree_view_node(
+                    self.game_tree, self.index + 1, self.size)]
+            else:
+                self._children = [Tree_view_node(child_tree, 0, self.size)
+                                  for child_tree in self.game_tree.children]
+        return self._children[:]
+
+    def __len__(self):
+        return len(self.children())
+
+    def __getitem__(self, key):
+        return self.children()[key]
+
 class Sgf_game(object):
     """An SGF game.
 
@@ -629,7 +673,7 @@ class Sgf_game(object):
         except KeyError:
             size = 19
         self.size = size
-        self.root = Node(parsed_game.sequence[0], size)
+        self.root = Tree_view_node(parsed_game, 0, size)
 
     def get_root_node(self):
         """Return the root Node."""
@@ -756,54 +800,4 @@ def sgf_game_from_string(s):
 
     """
     return Sgf_game(parse_sgf_game(s))
-
-
-
-class Tree_view_node(Node):
-    """A node in an SGF game tree.
-
-    FIXME (or whatever the API becomes)
-    Do not instantiate directly; use tree_view().
-
-    Tree view nodes can be indexed and iterated over like lists. A node with no
-    children is treated as having truth value false.
-
-    """
-    __slots__ = ('props_by_id', 'size',
-                 'sgf_game', 'game_tree', 'index', '_children')
-
-    def __init__(self, sgf_game, game_tree, index):
-        self.sgf_game = sgf_game
-        self.game_tree = game_tree
-        self.index = index
-        super(Tree_view_node, self).__init__(
-            self.game_tree.sequence[index], sgf_game.size)
-        self._children = None
-
-    def children(self):
-        """Return the children of this node.
-
-        Returns a list of Tree_view_nodes (the same node objects each time you
-        call it, but not the same list).
-
-        """
-        if self._children is None:
-            if self.index < len(self.game_tree.sequence) - 1:
-                self._children = [Tree_view_node(
-                    self.sgf_game, self.game_tree, self.index + 1)]
-            else:
-                self._children = [Tree_view_node(self.sgf_game, child_tree, 0)
-                                  for child_tree in self.game_tree.children]
-        return self._children[:]
-
-    def __len__(self):
-        return len(self.children())
-
-    def __getitem__(self, key):
-        return self.children()[key]
-
-
-def tree_view(sgf_game):
-    # FIXME: don't like direct parsed_game access.
-    return Tree_view_node(sgf_game, sgf_game.parsed_game, 0)
 
