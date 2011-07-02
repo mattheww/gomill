@@ -674,13 +674,14 @@ def parse_sgf(s):
     Raises ValueError if can't parse the string.
 
     """
-    game_tree = None
-    stack = []
     tokens, _ = _tokenise(s)
     if not tokens:
         raise ValueError("no SGF data found")
-    index = 0
+    stack = []
+    game_tree = None
+    sequence = None
     properties = None
+    index = 0
     try:
         while True:
             token_type, contents = tokens[index]
@@ -688,29 +689,34 @@ def parse_sgf(s):
             if token_type == 'V':
                 raise ValueError("unexpected value")
             if token_type == 'D':
-                if contents == ')':
-                    if not game_tree.sequence:
-                        raise ValueError("empty sequence")
-                    if not stack:
-                        break
-                    parent = stack.pop()
-                    parent.children.append(game_tree)
-                    game_tree = parent
-                    properties = None
-                if contents == '(':
-                    if game_tree is None:
-                        game_tree = Root_game_tree()
-                    else:
-                        if not game_tree.sequence:
-                            raise ValueError("empty sequence")
-                        stack.append(game_tree)
-                        game_tree = Game_tree()
-                    properties = None
                 if contents == ';':
+                    if sequence is None:
+                        raise ValueError("unexpected node")
                     properties = {}
-                    game_tree.sequence.append(properties)
+                    sequence.append(properties)
+                else:
+                    if sequence is not None:
+                        if not sequence:
+                            raise ValueError("empty sequence")
+                        game_tree.sequence = sequence
+                        sequence = None
+                    if contents == '(':
+                        if game_tree is None:
+                            game_tree = Root_game_tree()
+                        else:
+                            stack.append(game_tree)
+                            game_tree = Game_tree()
+                        sequence = []
+                    else:
+                        # contents == ')'
+                        if not stack:
+                            break
+                        variation = game_tree
+                        game_tree = stack.pop()
+                        game_tree.children.append(variation)
+                    properties = None
             else:
-                # assert token_type == 'I'
+                # token_type == 'I'
                 prop_ident = contents
                 prop_values = []
                 while True:

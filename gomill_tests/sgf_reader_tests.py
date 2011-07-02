@@ -187,7 +187,9 @@ def test_parser(tc):
     tc.assertRaisesRegexp(ValueError, "property value outside a node",
                           parse_sgf, "(;B[ag](;W[ah];)B[ai])")
 
+    tc.assertEqual(parse_len("(;C[abc]AB[ab](;B[bc])(;B[bd]))"), 2)
     tc.assertEqual(parse_len("(;C[abc]AB[ab](;B[bc])))"), 2)
+
     tc.assertRaisesRegexp(ValueError, "unexpected end of SGF data",
                           parse_sgf, "(;B[ag];W[ah](;B[ai])")
     tc.assertRaisesRegexp(ValueError, "empty sequence",
@@ -196,6 +198,8 @@ def test_parser(tc):
                           parse_sgf, "(;B[ag]())")
     tc.assertRaisesRegexp(ValueError, "empty sequence",
                           parse_sgf, "(;B[ag]((;W[ah])(;W[ai]))")
+    tc.assertRaisesRegexp(ValueError, "unexpected node",
+                          parse_sgf, "(;B[ag];W[ah](;B[ai]);W[bd])")
 
 def test_text_values(tc):
     def check(s):
