@@ -684,12 +684,12 @@ def parse_sgf(s):
     index = 0
     try:
         while True:
-            token_type, contents = tokens[index]
+            token_type, token = tokens[index]
             index += 1
             if token_type == 'V':
                 raise ValueError("unexpected value")
             if token_type == 'D':
-                if contents == ';':
+                if token == ';':
                     if sequence is None:
                         raise ValueError("unexpected node")
                     properties = {}
@@ -700,7 +700,7 @@ def parse_sgf(s):
                             raise ValueError("empty sequence")
                         game_tree.sequence = sequence
                         sequence = None
-                    if contents == '(':
+                    if token == '(':
                         if game_tree is None:
                             game_tree = Root_game_tree()
                         else:
@@ -708,7 +708,7 @@ def parse_sgf(s):
                             game_tree = Game_tree()
                         sequence = []
                     else:
-                        # contents == ')'
+                        # token == ')'
                         if not stack:
                             break
                         variation = game_tree
@@ -717,14 +717,14 @@ def parse_sgf(s):
                     properties = None
             else:
                 # token_type == 'I'
-                prop_ident = contents
+                prop_ident = token
                 prop_values = []
                 while True:
-                    token_type, contents = tokens[index]
+                    token_type, token = tokens[index]
                     if token_type != 'V':
                         break
                     index += 1
-                    prop_values.append(contents)
+                    prop_values.append(token)
                 if not prop_values:
                     raise ValueError("property with no values")
                 # FIXME: should reject or combine repeated properties.
