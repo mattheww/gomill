@@ -662,7 +662,7 @@ def parse_sgf(s):
 
     Identifies the start of the SGF content by looking for '(;' (with possible
     whitespace between); ignores everything preceding that. Ignores everything
-    following the first sequence from the first game.
+    following the first game.
 
     Doesn't pay any attention to the FF[n] property; always applies the rules
     for FF[4].
