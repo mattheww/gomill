@@ -135,8 +135,9 @@ def test_tokeniser(tc):
 def test_parser(tc):
     parse_sgf_game = sgf_reader.parse_sgf_game
 
+    # FIXME: Rewrite to use only the parser-level API
     def parse_len(s):
-        sgf = parse_sgf_game(s)
+        sgf = sgf_reader.sgf_game_from_string(s)
         return len(sgf.get_main_sequence())
 
     tc.assertEqual(parse_len("(;C[abc]KO[];B[bc])"), 2)
@@ -203,7 +204,7 @@ def test_parser(tc):
 
 def test_text_values(tc):
     def check(s):
-        sgf = sgf_reader.parse_sgf_game(s)
+        sgf = sgf_reader.sgf_game_from_string(s)
         return sgf.get_root_node().get("C")
     # Round-trip check of Text values through tokeniser, parser, and
     # value_as_text().
@@ -226,7 +227,7 @@ on two lines];B[];W[tt]C[Final comment])
 """
 
 def test_node(tc):
-    sgf = sgf_reader.parse_sgf_game(
+    sgf = sgf_reader.sgf_game_from_string(
         r"(;KM[6.5]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
     node0 = sgf.get_root_node()
     node1 = sgf.get_main_sequence()[1]
@@ -244,13 +245,13 @@ def test_node(tc):
     tc.assertRaises(KeyError, node0.get_raw, 'XX')
 
 def test_property_combination(tc):
-    sgf = sgf_reader.parse_sgf_game("(;XX[1]YY[2]XX[3]YY[4])")
+    sgf = sgf_reader.sgf_game_from_string("(;XX[1]YY[2]XX[3]YY[4])")
     node0 = sgf.get_root_node()
     tc.assertEqual(node0.get_list("XX"), ["1", "3"])
     tc.assertEqual(node0.get_list("YY"), ["2", "4"])
 
 def test_node_string(tc):
-    sgf = sgf_reader.parse_sgf_game(SAMPLE_SGF)
+    sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
     node = sgf.get_root_node()
     tc.assertMultiLineEqual(str(node), dedent("""\
     AB[ai][bh][ee]
@@ -269,7 +270,7 @@ def test_node_string(tc):
     """))
 
 def test_node_get(tc):
-    sgf = sgf_reader.parse_sgf_game(dedent(r"""
+    sgf = sgf_reader.sgf_game_from_string(dedent(r"""
     (;AP[testsuite:0]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
     PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]BM[2]
     EV[Test
@@ -300,7 +301,7 @@ def test_node_get(tc):
                    [((6, 0), "lbl"), ((6, 1), "lbl2")])  # Label
 
 def test_node_get_move(tc):
-    sgf = sgf_reader.parse_sgf_game(SAMPLE_SGF)
+    sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
     nodes = sgf.get_main_sequence()
     tc.assertEqual(nodes[0].get_move(), (None, None))
     tc.assertEqual(nodes[1].get_move(), ('b', (2, 3)))
@@ -309,7 +310,7 @@ def test_node_get_move(tc):
     tc.assertEqual(nodes[4].get_move(), ('w', None))
 
 def test_node_setup_commands(tc):
-    sgf = sgf_reader.parse_sgf_game(
+    sgf = sgf_reader.sgf_game_from_string(
         r"(;KM[6.5]SZ[9]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
     node0 = sgf.get_root_node()
     node1 = sgf.get_main_sequence()[1]
@@ -320,8 +321,8 @@ def test_node_setup_commands(tc):
     tc.assertEqual(node1.get_setup_commands(),
                    (set(), set(), set()))
 
-def test_root_game_tree(tc):
-    sgf = sgf_reader.parse_sgf_game(SAMPLE_SGF)
+def test_sgf_game(tc):
+    sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
     root = sgf.get_root_node()
     nodes = sgf.get_main_sequence()
     tc.assertEqual(len(nodes), 5)
@@ -350,7 +351,7 @@ _setup_expected = """\
 """
 
 def test_get_setup_and_moves(tc):
-    sgf = sgf_reader.parse_sgf_game(SAMPLE_SGF)
+    sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
     board, moves = sgf.get_setup_and_moves()
     tc.assertDiagramEqual(ascii_boards.render_board(board), _setup_expected)
     tc.assertEqual(moves,
@@ -358,7 +359,7 @@ def test_get_setup_and_moves(tc):
 
 def test_tree_view(tc):
     # FIXME: Test with a branching tree!
-    sgf = sgf_reader.parse_sgf_game(SAMPLE_SGF)
+    sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
     tree = sgf_reader.tree_view(sgf)
     tc.assertEqual(len(tree.children()), 1)
     tc.assertEqual(tree.children()[0].get_raw('B'), "dg")

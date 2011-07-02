@@ -513,10 +513,23 @@ def _tokenise(s):
     return result, i
 
 
-class Parsed_game(object):
+class Parsed_game_tree(object):
     """An SGF GameTree.
 
-    FIXME: doc
+    This is a direct representation of the SGF parse tree. The 'children' are
+    variations, not nodes.
+
+    Public attributes
+      sequence -- nonempty list of property maps
+      children -- list of Parsed_game_trees
+
+    The sequence represents the nodes before the variations.
+
+    A property map is a dict mapping a PropIdent to a nonempty list of raw
+    property values.
+
+    A raw property value is an 8-bit string containing a PropValue without its
+    enclosing brackets, but with backslashes and line endings left untouched.
 
     """
     __slots__ = ('sequence', 'children')
@@ -525,19 +538,18 @@ class Parsed_game(object):
         self.sequence = [] # must be at least one node
         self.children = [] # may be empty
 
-def FIXMEparse_sgf_game(s):
-    """Read a single SGF game from a string.
+def parse_sgf_game(s):
+    """Read a single SGF game from a string, returning the parse tree.
 
     s -- 8-bit string
 
-    Returns a Parsed_game.
+    Returns a Parsed_game_tree.
 
     Identifies the start of the SGF content by looking for '(;' (with possible
     whitespace between); ignores everything preceding that. Ignores everything
     following the first game.
 
-    Doesn't pay any attention to the FF[n] property; always applies the rules
-    for FF[4].
+    Applies the rules for FF[4].
 
     Raises ValueError if can't parse the string.
 
@@ -570,7 +582,7 @@ def FIXMEparse_sgf_game(s):
                         sequence = None
                     if token == '(':
                         stack.append(game_tree)
-                        game_tree = Parsed_game()
+                        game_tree = Parsed_game_tree()
                         sequence = []
                     else:
                         # token == ')'
@@ -604,14 +616,10 @@ def FIXMEparse_sgf_game(s):
     return variation
 
 
-# FIXME: better name
-class Root_game_tree(object):
-    """An SGF game tree containing a root node.
+class Sgf_game(object):
+    """An SGF game.
 
-    This represents a GameTree which is a child of a collection, which means
-    its first node may have properties of type 'root'.
-
-    Instantiate with a Parsed_game
+    Instantiate with a Parsed_game_tree.
 
     """
     def __init__(self, parsed_game):
@@ -736,11 +744,19 @@ class Root_game_tree(object):
                 moves.append((colour, interpret_point(raw, size)))
         return board, moves
 
+def sgf_game_from_string(s):
+    """Read a single SGF game from a string.
 
-#def sgf_game_from_string(s):
-def parse_sgf_game(s):
-    """FIXME"""
-    return Root_game_tree(FIXMEparse_sgf_game(s))
+    s -- 8-bit string
+
+    Returns an Sgf_game.
+
+    Raises ValueError if it can't parse the string. See parse_sgf_game() for
+    details.
+
+    """
+    return Sgf_game(parse_sgf_game(s))
+
 
 
 class Tree_view_node(Node):
@@ -754,15 +770,14 @@ class Tree_view_node(Node):
 
     """
     __slots__ = ('props_by_id', 'size',
-                 'root_tree', 'game_tree', 'index', '_children')
+                 'sgf_game', 'game_tree', 'index', '_children')
 
-    # FIXME: wants some renaming
-    def __init__(self, root_tree, game_tree, index):
-        self.root_tree = root_tree
+    def __init__(self, sgf_game, game_tree, index):
+        self.sgf_game = sgf_game
         self.game_tree = game_tree
         self.index = index
         super(Tree_view_node, self).__init__(
-            self.game_tree.sequence[index], root_tree.size)
+            self.game_tree.sequence[index], sgf_game.size)
         self._children = None
 
     def children(self):
@@ -775,9 +790,9 @@ class Tree_view_node(Node):
         if self._children is None:
             if self.index < len(self.game_tree.sequence) - 1:
                 self._children = [Tree_view_node(
-                    self.root_tree, self.game_tree, self.index + 1)]
+                    self.sgf_game, self.game_tree, self.index + 1)]
             else:
-                self._children = [Tree_view_node(self.root_tree, child_tree, 0)
+                self._children = [Tree_view_node(self.sgf_game, child_tree, 0)
                                   for child_tree in self.game_tree.children]
         return self._children[:]
 
@@ -788,7 +803,7 @@ class Tree_view_node(Node):
         return self.children()[key]
 
 
-def tree_view(root_game_tree):
-    # FIXME
-    return Tree_view_node(root_game_tree, root_game_tree.parsed_game, 0)
+def tree_view(sgf_game):
+    # FIXME: don't like direct parsed_game access.
+    return Tree_view_node(sgf_game, sgf_game.parsed_game, 0)
 
