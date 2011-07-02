@@ -740,19 +740,18 @@ def parse_sgf_game(s):
     return game_tree
 
 
-class Tree_view_node(object):
-    __slots__ = ('root_tree', 'game_tree', 'index')
+class Tree_view_node(Node):
+    __slots__ = ('props_by_id', 'size',
+                 'root_tree', 'game_tree', 'index')
 
     def __init__(self, root_tree, game_tree, index):
         self.root_tree = root_tree
         self.game_tree = game_tree
         self.index = index
-
-    def node(self):
-        return Node(self.game_tree.sequence[self.index], self.root_tree.size)
+        super(Tree_view_node, self).__init__(
+            self.game_tree.sequence[index], root_tree.size)
 
     def children(self):
-        result = []
         if self.index < len(self.game_tree.sequence) - 1:
             return [Tree_view_node(self.root_tree, self.game_tree, self.index + 1)]
         else:
