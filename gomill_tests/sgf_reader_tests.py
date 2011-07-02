@@ -144,12 +144,18 @@ def test_parser(tc):
     tc.assertEqual(parse_len("(;C[abc]KO[];B[bc]) final junk"), 2)
     tc.assertEqual(parse_len("(;C[abc]KO[];B[bc]) (;B[ag])"), 2)
 
-    tc.assertRaises(ValueError, parse_sgf, r"")
-    tc.assertRaises(ValueError, parse_sgf, r"junk")
-    tc.assertRaises(ValueError, parse_sgf, r"()")
-    tc.assertRaises(ValueError, parse_sgf, r"(B[ag])")
-    tc.assertRaises(ValueError, parse_sgf, r"B[ag]")
-    tc.assertRaises(ValueError, parse_sgf, r"[ag]")
+    tc.assertRaisesRegexp(ValueError, "no SGF data found",
+                          parse_sgf, r"")
+    tc.assertRaisesRegexp(ValueError, "no SGF data found",
+                          parse_sgf, r"junk")
+    tc.assertRaisesRegexp(ValueError, "no SGF data found",
+                          parse_sgf, r"()")
+    tc.assertRaisesRegexp(ValueError, "no SGF data found",
+                          parse_sgf, r"(B[ag])")
+    tc.assertRaisesRegexp(ValueError, "no SGF data found",
+                          parse_sgf, r"B[ag]")
+    tc.assertRaisesRegexp(ValueError, "no SGF data found",
+                          parse_sgf, r"[ag]")
 
     tc.assertEqual(parse_len("(;C[abc]AB[ab][bc];B[bc])"), 2)
     tc.assertEqual(parse_len("(;C[abc] AB[ab]\n[bc]\t;B[bc])"), 2)
@@ -157,15 +163,24 @@ def test_parser(tc):
     tc.assertEqual(parse_len("(;C[abc]KO[];;B[bc])"), 3)
     tc.assertEqual(parse_len("(;)"), 1)
 
-    tc.assertRaises(ValueError, parse_sgf, r"(;B)")
-    tc.assertRaises(ValueError, parse_sgf, r"(;[ag])")
-    tc.assertRaises(ValueError, parse_sgf, r"(;[ag][ah])")
-    tc.assertRaises(ValueError, parse_sgf, r"(;[B][ag])")
-    tc.assertRaises(ValueError, parse_sgf, r"(;B[ag]")
-    tc.assertRaises(ValueError, parse_sgf, r"(;B[ag][)]")
-    tc.assertRaises(ValueError, parse_sgf, r"(;B;W[ah])")
-    tc.assertRaises(ValueError, parse_sgf, r"(;B[ag](;[ah]))")
-    tc.assertRaises(ValueError, parse_sgf, r"(;B W[ag])")
+    tc.assertRaisesRegexp(ValueError, "property with no values",
+                          parse_sgf, r"(;B)")
+    tc.assertRaisesRegexp(ValueError, "unexpected value",
+                          parse_sgf, r"(;[ag])")
+    tc.assertRaisesRegexp(ValueError, "unexpected value",
+                          parse_sgf, r"(;[ag][ah])")
+    tc.assertRaisesRegexp(ValueError, "unexpected value",
+                          parse_sgf, r"(;[B][ag])")
+    tc.assertRaisesRegexp(ValueError, "unexpected end of SGF data",
+                          parse_sgf, r"(;B[ag]")
+    tc.assertRaisesRegexp(ValueError, "unexpected end of SGF data",
+                          parse_sgf, r"(;B[ag][)]")
+    tc.assertRaisesRegexp(ValueError, "property with no values",
+                          parse_sgf, r"(;B;W[ah])")
+    tc.assertRaisesRegexp(ValueError, "unexpected value",
+                          parse_sgf, r"(;B[ag](;[ah]))")
+    tc.assertRaisesRegexp(ValueError, "property with no values",
+                          parse_sgf, r"(;B W[ag])")
 
     tc.assertRaisesRegexp(ValueError, "property value outside a node",
                           parse_sgf, "(;B[ag];(W[ah];B[ai]))")

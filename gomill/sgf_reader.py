@@ -677,6 +677,8 @@ def parse_sgf(s):
     game_tree = None
     stack = []
     tokens, _ = _tokenise(s)
+    if not tokens:
+        raise ValueError("no SGF data found")
     index = 0
     properties = None
     try:
