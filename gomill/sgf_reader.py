@@ -733,7 +733,7 @@ def parse_sgf(s):
 
 
 class Tree_view_node(object):
-    __slots__ = ('base_tree', 'game_tree', 'index')
+    __slots__ = ('root_tree', 'game_tree', 'index')
 
     def __init__(self, root_tree, game_tree, index):
         self.root_tree = root_tree
