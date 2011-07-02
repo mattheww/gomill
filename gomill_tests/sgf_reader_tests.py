@@ -167,6 +167,9 @@ def test_parser(tc):
     tc.assertRaises(ValueError, parse_sgf, r"(;B[ag](;[ah]))")
     tc.assertRaises(ValueError, parse_sgf, r"(;B W[ag])")
 
+    tc.assertRaises(ValueError, parse_sgf, "(;B[ag];(W[ah];B[ai]))")
+    tc.assertRaises(ValueError, parse_sgf, "(;B[ag](;W[ah];)B[ai])")
+
     tc.assertEqual(parse_len("(;C[abc]AB[ab](;B[bc])))"), 2)
     tc.assertRaises(ValueError, parse_sgf, "(;B[ag];W[ah](;B[ai])")
     tc.assertRaises(ValueError, parse_sgf, "(;B[ag];(W[ah];B[ai])")

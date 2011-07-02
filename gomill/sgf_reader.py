@@ -678,6 +678,7 @@ def parse_sgf(s):
     stack = []
     tokens, _ = _tokenise(s)
     index = 0
+    properties = None
     try:
         while True:
             token_type, contents = tokens[index]
@@ -693,6 +694,7 @@ def parse_sgf(s):
                     parent = stack.pop()
                     parent.children.append(game_tree)
                     game_tree = parent
+                    properties = None
                 if contents == '(':
                     if game_tree is None:
                         game_tree = Root_game_tree()
@@ -701,6 +703,7 @@ def parse_sgf(s):
                             raise ValueError("empty sequence")
                         stack.append(game_tree)
                         game_tree = Game_tree()
+                    properties = None
                 if contents == ';':
                     properties = {}
                     game_tree.sequence.append(properties)
@@ -717,7 +720,10 @@ def parse_sgf(s):
                 if not prop_values:
                     raise ValueError("property with no values")
                 # FIXME: should reject or combine repeated properties.
-                properties[prop_ident] = prop_values
+                try:
+                    properties[prop_ident] = prop_values
+                except TypeError:
+                    raise ValueError("property value outside a node")
     except IndexError:
         raise ValueError("unexpected end of SGF data")
     game_tree._setup()
