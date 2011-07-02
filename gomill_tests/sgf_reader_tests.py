@@ -320,7 +320,7 @@ def test_node_setup_commands(tc):
     tc.assertEqual(node1.get_setup_commands(),
                    (set(), set(), set()))
 
-def test_sgf_tree(tc):
+def test_root_game_tree(tc):
     sgf = sgf_reader.parse_sgf_game(SAMPLE_SGF)
     root = sgf.get_root_node()
     nodes = sgf.get_main_sequence()
