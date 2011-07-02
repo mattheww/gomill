@@ -133,7 +133,7 @@ def test_tokeniser(tc):
     tc.assertEqual(check_incomplete(r"(;B[ag\])"), (3, 3))
     tc.assertEqual(check_incomplete(r"(;B[ag\\\])"), (3, 3))
 
-def test_parser(tc):
+def test_parser_structure(tc):
     parse_sgf_game = sgf_parser.parse_sgf_game
 
     def shape(s):
@@ -201,6 +201,24 @@ def test_parser(tc):
                           parse_sgf_game, "(;B[ag]((;W[ah])(;W[ai]))")
     tc.assertRaisesRegexp(ValueError, "unexpected node",
                           parse_sgf_game, "(;B[ag];W[ah](;B[ai]);W[bd])")
+
+def test_parser_properties(tc):
+    parse_sgf_game = sgf_parser.parse_sgf_game
+
+    def props(s):
+        parsed_game = parse_sgf_game(s)
+        return parsed_game.sequence
+
+    tc.assertEqual(props("(;C[abc]KO[]AB[ai][bh][ee];B[ bc])"),
+                   [{'C': ['abc'], 'KO': [''], 'AB': ['ai', 'bh', 'ee']},
+                    {'B': [' bc']}])
+
+    tc.assertEqual(props(r"(;C[ab \] \) cd\\])"),
+                   [{'C': [r"ab \] \) cd\\"]}])
+
+    tc.assertEqual(props("(;XX[1]YY[2]XX[3]YY[4])"),
+                   [{'XX': ['1', '3'], 'YY' : ['2', '4']}])
+
 
 def test_text_values(tc):
     def check(s):
