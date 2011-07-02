@@ -657,8 +657,8 @@ def _tokenise(s):
         i = m.end()
     return result, i
 
-def parse_sgf(s):
-    """Interpret SGF data from a string.
+def parse_sgf_game(s):
+    """Read a single SGF game from a string.
 
     s -- 8-bit string
 
