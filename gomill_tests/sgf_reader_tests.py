@@ -356,3 +356,26 @@ def test_get_setup_and_moves(tc):
     tc.assertEqual(moves,
                    [('b', (2, 3)), ('w', (3, 4)), ('b', None), ('w', None)])
 
+def test_tree_view(tc):
+    # FIXME: Test with a branching tree!
+    sgf = sgf_reader.parse_sgf_game(SAMPLE_SGF)
+    tree = sgf_reader.tree_view(sgf)
+    tc.assertEqual(len(tree.children()), 1)
+    tc.assertEqual(tree.children()[0].get_raw('B'), "dg")
+    tc.assertFalse(tree.children() is tree.children())
+
+    tc.assertIs(tree.children()[0], tree[0])
+    tc.assertIs(tree.children()[0], tree[-1])
+    tc.assertEqual(len(tree), 1)
+    tc.assertEqual([node for node in tree], tree.children())
+    with tc.assertRaises(IndexError):
+        tree[1]
+    tc.assertTrue(tree)
+    leaf = tree[0][0][0][0]
+    tc.assertEqual(len(leaf), 0)
+    tc.assertFalse(leaf)
+
+    # check ok when first retrieval is by index
+    tree2 = sgf_reader.tree_view(sgf)
+    tc.assertIs(tree[0], tree.children()[0])
+

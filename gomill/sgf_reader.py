@@ -746,6 +746,9 @@ class Tree_view_node(Node):
     FIXME (or whatever the API becomes)
     Do not instantiate directly; use tree_view().
 
+    Tree view nodes can be indexed and iterated over like lists. A node with no
+    children is treated as having truth value false.
+
     """
     __slots__ = ('props_by_id', 'size',
                  'root_tree', 'game_tree', 'index', '_children')
@@ -773,6 +776,13 @@ class Tree_view_node(Node):
                 self._children = [Tree_view_node(self.root_tree, child_tree, 0)
                                   for child_tree in self.game_tree.children]
         return self._children[:]
+
+    def __len__(self):
+        return len(self.children())
+
+    def __getitem__(self, key):
+        return self.children()[key]
+
 
 def tree_view(root_game_tree):
     return Tree_view_node(root_game_tree, root_game_tree, 0)
