@@ -467,13 +467,14 @@ class Node(object):
             + "\n"
 
 
-# FIXME: rename, fix docstring.
-class Tree_view_node(Node):
-    """A node in an SGF game tree.
+class Tree_node(Node):
+    """A node embedded in an SGF game tree.
+
+    A Tree_node is a Node that also knows its position within an Sgf_game.
 
     Do not instantiate directly; retrieve from an Sgf_game or another node.
 
-    Tree view nodes can be indexed and iterated over like lists. A node with no
+    Tree_nodes can be indexed and iterated over like lists. A node with no
     children is treated as having truth value false.
 
     """
@@ -484,23 +485,22 @@ class Tree_view_node(Node):
         self.size = size
         self.game_tree = game_tree
         self.index = index
-        super(Tree_view_node, self).__init__(
-            self.game_tree.sequence[index], size)
+        super(Tree_node, self).__init__(self.game_tree.sequence[index], size)
         self._children = None
 
     def children(self):
         """Return the children of this node.
 
-        Returns a list of Tree_view_nodes (the same node objects each time you
+        Returns a list of Tree_nodes (the same node objects each time you
         call it, but not the same list).
 
         """
         if self._children is None:
             if self.index < len(self.game_tree.sequence) - 1:
-                self._children = [Tree_view_node(
+                self._children = [Tree_node(
                     self.game_tree, self.index + 1, self.size)]
             else:
-                self._children = [Tree_view_node(child_tree, 0, self.size)
+                self._children = [Tree_node(child_tree, 0, self.size)
                                   for child_tree in self.game_tree.children]
         return self._children[:]
 
@@ -523,10 +523,10 @@ class Sgf_game(object):
         except KeyError:
             size = 19
         self.size = size
-        self.root = Tree_view_node(parsed_game, 0, size)
+        self.root = Tree_node(parsed_game, 0, size)
 
     def get_root_node(self):
-        """Return the root Node."""
+        """Return the root node (as a Tree_node)."""
         return self.root
 
     def get_main_sequence(self):
