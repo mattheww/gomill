@@ -182,14 +182,43 @@ def test_parser_structure(tc):
     tc.assertRaisesRegexp(ValueError, "property with no values",
                           parse_sgf_game, r"(;B W[ag])")
 
-    tc.assertRaisesRegexp(ValueError, "property value outside a node",
-                          parse_sgf_game, "(;B[ag];(W[ah];B[ai]))")
-    tc.assertRaisesRegexp(ValueError, "property value outside a node",
-                          parse_sgf_game, "(;B[ag](;W[ah];)B[ai])")
+def test_parser_tree_structure(tc):
+    parse_sgf_game = sgf_parser.parse_sgf_game
+
+    def shape(s):
+        parsed_game = parse_sgf_game(s)
+        return len(parsed_game.sequence), len(parsed_game.children)
 
     tc.assertEqual(shape("(;C[abc]AB[ab](;B[bc]))"), (1, 1))
     tc.assertEqual(shape("(;C[abc]AB[ab](;B[bc])))"), (1, 1))
     tc.assertEqual(shape("(;C[abc]AB[ab](;B[bc])(;B[bd]))"), (1, 2))
+
+    def shapetree(s):
+        def _shapetree(parsed_game):
+            return (
+                len(parsed_game.sequence),
+                [_shapetree(pg) for pg in parsed_game.children])
+        return _shapetree(parse_sgf_game(s))
+
+    tc.assertEqual(shapetree("(;C[abc]AB[ab](;B[bc])))"),
+                   (1, [(1, [])])
+                   )
+    tc.assertEqual(shapetree("(;C[abc]AB[ab](;B[bc]))))"),
+                   (1, [(1, [])])
+                   )
+    tc.assertEqual(shapetree("(;C[abc]AB[ab](;B[bc])(;B[bd])))"),
+                   (1, [(1, []), (1, [])])
+                   )
+    tc.assertEqual(shapetree("""
+        (;C[abc]AB[ab];C[];C[]
+          (;B[bc])
+          (;B[bd];W[ca] (;B[da])(;B[db];W[ea]) )
+        )"""),
+        (3, [
+            (1, []),
+            (2, [(1, []), (2, [])])
+        ])
+    )
 
     tc.assertRaisesRegexp(ValueError, "unexpected end of SGF data",
                           parse_sgf_game, "(;B[ag];W[ah](;B[ai])")
@@ -201,6 +230,12 @@ def test_parser_structure(tc):
                           parse_sgf_game, "(;B[ag]((;W[ah])(;W[ai]))")
     tc.assertRaisesRegexp(ValueError, "unexpected node",
                           parse_sgf_game, "(;B[ag];W[ah](;B[ai]);W[bd])")
+    tc.assertRaisesRegexp(ValueError, "property value outside a node",
+                          parse_sgf_game, "(;B[ag];(W[ah];B[ai]))")
+    tc.assertRaisesRegexp(ValueError, "property value outside a node",
+                          parse_sgf_game, "(;B[ag](;W[ah];)B[ai])")
+    tc.assertRaisesRegexp(ValueError, "property value outside a node",
+                          parse_sgf_game, "(;B[ag](;W[ah])(B[ai]))")
 
 def test_parser_properties(tc):
     parse_sgf_game = sgf_parser.parse_sgf_game
