@@ -15,7 +15,7 @@ def show_sgf_file(pathname, move_number):
     sgf_src = f.read()
     f.close()
     try:
-        sgf = sgf_reader.read_sgf(sgf_src)
+        sgf = sgf_reader.sgf_game_from_string(sgf_src)
     except ValueError:
         raise StandardError("bad sgf file")
 
