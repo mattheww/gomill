@@ -136,15 +136,14 @@ def test_tokeniser(tc):
 def test_parser(tc):
     parse_sgf_game = sgf_parser.parse_sgf_game
 
-    # FIXME: Rewrite to use only the parser-level API
-    def parse_len(s):
-        sgf = sgf_reader.sgf_game_from_string(s)
-        return len(sgf.get_main_sequence())
+    def shape(s):
+        parsed_game = parse_sgf_game(s)
+        return len(parsed_game.sequence), len(parsed_game.children)
 
-    tc.assertEqual(parse_len("(;C[abc]KO[];B[bc])"), 2)
-    tc.assertEqual(parse_len("initial junk (;C[abc]KO[];B[bc])"), 2)
-    tc.assertEqual(parse_len("(;C[abc]KO[];B[bc]) final junk"), 2)
-    tc.assertEqual(parse_len("(;C[abc]KO[];B[bc]) (;B[ag])"), 2)
+    tc.assertEqual(shape("(;C[abc]KO[];B[bc])"), (2, 0))
+    tc.assertEqual(shape("initial junk (;C[abc]KO[];B[bc])"), (2, 0))
+    tc.assertEqual(shape("(;C[abc]KO[];B[bc]) final junk"), (2, 0))
+    tc.assertEqual(shape("(;C[abc]KO[];B[bc]) (;B[ag])"), (2, 0))
 
     tc.assertRaisesRegexp(ValueError, "no SGF data found",
                           parse_sgf_game, r"")
@@ -159,11 +158,10 @@ def test_parser(tc):
     tc.assertRaisesRegexp(ValueError, "no SGF data found",
                           parse_sgf_game, r"[ag]")
 
-    tc.assertEqual(parse_len("(;C[abc]AB[ab][bc];B[bc])"), 2)
-    tc.assertEqual(parse_len("(;C[abc] AB[ab]\n[bc]\t;B[bc])"), 2)
-    tc.assertEqual(parse_len("(;C[abc]AB[ab](;B[bc]))"), 2)
-    tc.assertEqual(parse_len("(;C[abc]KO[];;B[bc])"), 3)
-    tc.assertEqual(parse_len("(;)"), 1)
+    tc.assertEqual(shape("(;C[abc]AB[ab][bc];B[bc])"), (2, 0))
+    tc.assertEqual(shape("(;C[abc] AB[ab]\n[bc]\t;B[bc])"), (2, 0))
+    tc.assertEqual(shape("(;C[abc]KO[];;B[bc])"), (3, 0))
+    tc.assertEqual(shape("(;)"), (1, 0))
 
     tc.assertRaisesRegexp(ValueError, "property with no values",
                           parse_sgf_game, r"(;B)")
@@ -189,8 +187,9 @@ def test_parser(tc):
     tc.assertRaisesRegexp(ValueError, "property value outside a node",
                           parse_sgf_game, "(;B[ag](;W[ah];)B[ai])")
 
-    tc.assertEqual(parse_len("(;C[abc]AB[ab](;B[bc])(;B[bd]))"), 2)
-    tc.assertEqual(parse_len("(;C[abc]AB[ab](;B[bc])))"), 2)
+    tc.assertEqual(shape("(;C[abc]AB[ab](;B[bc]))"), (1, 1))
+    tc.assertEqual(shape("(;C[abc]AB[ab](;B[bc])))"), (1, 1))
+    tc.assertEqual(shape("(;C[abc]AB[ab](;B[bc])(;B[bd]))"), (1, 2))
 
     tc.assertRaisesRegexp(ValueError, "unexpected end of SGF data",
                           parse_sgf_game, "(;B[ag];W[ah](;B[ai])")
