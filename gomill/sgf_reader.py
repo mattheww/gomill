@@ -482,7 +482,6 @@ class Tree_node(Node):
                  'sgf_game', 'game_tree', 'index', '_children')
 
     def __init__(self, game_tree, index, size):
-        self.size = size
         self.game_tree = game_tree
         self.index = index
         super(Tree_node, self).__init__(self.game_tree.sequence[index], size)
