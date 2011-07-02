@@ -466,35 +466,162 @@ class Node(object):
             + "\n"
 
 
-class Game_tree(object):
-    """An SGF game tree (or sub-tree)."""
+
+_find_start_re = re.compile(r"\(\s*;")
+_tokenise_re = re.compile(r"""
+\s*
+(?:
+    \[ (?P<V> [^\\\]]* (?: \\. [^\\\]]* )* ) \]   # PropValue
+    |
+    (?P<I> [A-Z]{1,8} )                           # PropIdent
+    |
+    (?P<D> [;()] )                                # delimiter
+)
+""", re.VERBOSE | re.DOTALL)
+
+def _tokenise(s):
+    """Tokenise a string containing SGF data.
+
+    Skips leading junk.
+
+    Returns a list of pairs of strings (token type, contents), and also the
+    index in 's' of the start of the unmatched 'tail'
+
+    token types and contents:
+      I -- PropIdent: upper-case letters
+      V -- PropValue: raw value, without the enclosing brackets
+      D -- delimiter: ';', '(', or ')'
+
+    Stops at the end of the string, or when it first finds something it can't
+    tokenise.
+
+    The first two tokens are always '(' and ';' (otherwise it won't find the
+    start of the content).
+
+    """
+    result = []
+    m = _find_start_re.search(s)
+    if not m:
+        return [], 0
+    i = m.start()
+    while True:
+        m = _tokenise_re.match(s, i)
+        if not m:
+            break
+        result.append((m.lastgroup, m.group(m.lastindex)))
+        i = m.end()
+    return result, i
+
+
+class Parsed_game(object):
+    """An SGF GameTree.
+
+    FIXME: doc
+
+    """
     __slots__ = ('sequence', 'children')
 
     def __init__(self):
         self.sequence = [] # must be at least one node
         self.children = [] # may be empty
 
-class Root_game_tree(Game_tree):
+def FIXMEparse_sgf_game(s):
+    """Read a single SGF game from a string.
+
+    s -- 8-bit string
+
+    Returns a Parsed_game.
+
+    Identifies the start of the SGF content by looking for '(;' (with possible
+    whitespace between); ignores everything preceding that. Ignores everything
+    following the first game.
+
+    Doesn't pay any attention to the FF[n] property; always applies the rules
+    for FF[4].
+
+    Raises ValueError if can't parse the string.
+
+    """
+    tokens, _ = _tokenise(s)
+    if not tokens:
+        raise ValueError("no SGF data found")
+    stack = []
+    game_tree = None
+    sequence = None
+    properties = None
+    index = 0
+    try:
+        while True:
+            token_type, token = tokens[index]
+            index += 1
+            if token_type == 'V':
+                raise ValueError("unexpected value")
+            if token_type == 'D':
+                if token == ';':
+                    if sequence is None:
+                        raise ValueError("unexpected node")
+                    properties = {}
+                    sequence.append(properties)
+                else:
+                    if sequence is not None:
+                        if not sequence:
+                            raise ValueError("empty sequence")
+                        game_tree.sequence = sequence
+                        sequence = None
+                    if token == '(':
+                        stack.append(game_tree)
+                        game_tree = Parsed_game()
+                        sequence = []
+                    else:
+                        # token == ')'
+                        variation = game_tree
+                        game_tree = stack.pop()
+                        if game_tree is None:
+                            break
+                        game_tree.children.append(variation)
+                    properties = None
+            else:
+                # token_type == 'I'
+                prop_ident = token
+                prop_values = []
+                while True:
+                    token_type, token = tokens[index]
+                    if token_type != 'V':
+                        break
+                    index += 1
+                    prop_values.append(token)
+                if not prop_values:
+                    raise ValueError("property with no values")
+                try:
+                    if prop_ident in properties:
+                        properties[prop_ident] += prop_values
+                    else:
+                        properties[prop_ident] = prop_values
+                except TypeError:
+                    raise ValueError("property value outside a node")
+    except IndexError:
+        raise ValueError("unexpected end of SGF data")
+    return variation
+
+
+# FIXME: better name
+class Root_game_tree(object):
     """An SGF game tree containing a root node.
 
     This represents a GameTree which is a child of a collection, which means
     its first node may have properties of type 'root'.
 
-    Do not instantiate these directly; use parse_sgf().
+    Instantiate with a Parsed_game
 
     """
-    def _setup(self):
-        """Finish initialisation, after loading all nodes.
-
-        Raises ValueError if vital properties are corrupt.
-
-        """
+    def __init__(self, parsed_game):
+        self.parsed_game = parsed_game
         try:
-            size = int(self.sequence[0]['SZ'][0])
+            size = int(parsed_game.sequence[0]['SZ'][0])
         except KeyError:
             size = 19
         self.size = size
-        self.root = Node(self.sequence[0], size)
+        self.root = Node(parsed_game.sequence[0], size)
 
     def get_root_node(self):
         """Return the root Node."""
@@ -508,7 +635,7 @@ class Root_game_tree(Game_tree):
         """
         size = self.size
         result = []
-        tree = self
+        tree = self.parsed_game
         while True:
             result.extend([Node(properties, size)
                            for properties in tree.sequence])
@@ -610,134 +737,10 @@ class Root_game_tree(Game_tree):
         return board, moves
 
 
-
-
-_find_start_re = re.compile(r"\(\s*;")
-_tokenise_re = re.compile(r"""
-\s*
-(?:
-    \[ (?P<V> [^\\\]]* (?: \\. [^\\\]]* )* ) \]   # PropValue
-    |
-    (?P<I> [A-Z]{1,8} )                           # PropIdent
-    |
-    (?P<D> [;()] )                                # delimiter
-)
-""", re.VERBOSE | re.DOTALL)
-
-def _tokenise(s):
-    """Tokenise a string containing SGF data.
-
-    Skips leading junk.
-
-    Returns a list of pairs of strings (token type, contents), and also the
-    index in 's' of the start of the unmatched 'tail'
-
-    token types and contents:
-      I -- PropIdent: upper-case letters
-      V -- PropValue: raw value, without the enclosing brackets
-      D -- delimiter: ';', '(', or ')'
-
-    Stops at the end of the string, or when it first finds something it can't
-    tokenise.
-
-    The first two tokens are always '(' and ';' (otherwise it won't find the
-    start of the content).
-
-    """
-    result = []
-    m = _find_start_re.search(s)
-    if not m:
-        return [], 0
-    i = m.start()
-    while True:
-        m = _tokenise_re.match(s, i)
-        if not m:
-            break
-        result.append((m.lastgroup, m.group(m.lastindex)))
-        i = m.end()
-    return result, i
-
+#def sgf_game_from_string(s):
 def parse_sgf_game(s):
-    """Read a single SGF game from a string.
-
-    s -- 8-bit string
-
-    Returns a Root_game_tree.
-
-    Identifies the start of the SGF content by looking for '(;' (with possible
-    whitespace between); ignores everything preceding that. Ignores everything
-    following the first game.
-
-    Doesn't pay any attention to the FF[n] property; always applies the rules
-    for FF[4].
-
-    Raises ValueError if can't parse the string.
-
-    """
-    tokens, _ = _tokenise(s)
-    if not tokens:
-        raise ValueError("no SGF data found")
-    stack = []
-    game_tree = None
-    sequence = None
-    properties = None
-    index = 0
-    try:
-        while True:
-            token_type, token = tokens[index]
-            index += 1
-            if token_type == 'V':
-                raise ValueError("unexpected value")
-            if token_type == 'D':
-                if token == ';':
-                    if sequence is None:
-                        raise ValueError("unexpected node")
-                    properties = {}
-                    sequence.append(properties)
-                else:
-                    if sequence is not None:
-                        if not sequence:
-                            raise ValueError("empty sequence")
-                        game_tree.sequence = sequence
-                        sequence = None
-                    if token == '(':
-                        if game_tree is None:
-                            game_tree = Root_game_tree()
-                        else:
-                            stack.append(game_tree)
-                            game_tree = Game_tree()
-                        sequence = []
-                    else:
-                        # token == ')'
-                        if not stack:
-                            break
-                        variation = game_tree
-                        game_tree = stack.pop()
-                        game_tree.children.append(variation)
-                    properties = None
-            else:
-                # token_type == 'I'
-                prop_ident = token
-                prop_values = []
-                while True:
-                    token_type, token = tokens[index]
-                    if token_type != 'V':
-                        break
-                    index += 1
-                    prop_values.append(token)
-                if not prop_values:
-                    raise ValueError("property with no values")
-                try:
-                    if prop_ident in properties:
-                        properties[prop_ident] += prop_values
-                    else:
-                        properties[prop_ident] = prop_values
-                except TypeError:
-                    raise ValueError("property value outside a node")
-    except IndexError:
-        raise ValueError("unexpected end of SGF data")
-    game_tree._setup()
-    return game_tree
+    """FIXME"""
+    return Root_game_tree(FIXMEparse_sgf_game(s))
 
 
 class Tree_view_node(Node):
@@ -753,6 +756,7 @@ class Tree_view_node(Node):
     __slots__ = ('props_by_id', 'size',
                  'root_tree', 'game_tree', 'index', '_children')
 
+    # FIXME: wants some renaming
     def __init__(self, root_tree, game_tree, index):
         self.root_tree = root_tree
         self.game_tree = game_tree
@@ -785,5 +789,6 @@ class Tree_view_node(Node):
 
 
 def tree_view(root_game_tree):
-    return Tree_view_node(root_game_tree, root_game_tree, 0)
+    # FIXME
+    return Tree_view_node(root_game_tree, root_game_tree.parsed_game, 0)
 
