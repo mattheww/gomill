@@ -194,6 +194,8 @@ def test_parser(tc):
                           parse_sgf, "(;B[ag];())")
     tc.assertRaisesRegexp(ValueError, "empty sequence",
                           parse_sgf, "(;B[ag]())")
+    tc.assertRaisesRegexp(ValueError, "empty sequence",
+                          parse_sgf, "(;B[ag]((;W[ah])(;W[ai]))")
 
 def test_text_values(tc):
     def check(s):
