@@ -70,8 +70,6 @@ class Parsed_game_tree(object):
     enclosing brackets, but with backslashes and line endings left untouched.
 
     """
-    __slots__ = ('sequence', 'children')
-
     def __init__(self):
         self.sequence = [] # must be at least one node
         self.children = [] # may be empty

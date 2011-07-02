@@ -481,9 +481,6 @@ class Tree_node(Node):
       owner -- the node's Sgf_game
 
     """
-    __slots__ = ('props_by_id', 'size',
-                 'owner', 'game_tree', 'index', '_children')
-
     def __init__(self, owner, game_tree, index, size):
         self.owner = owner
         self.game_tree = game_tree
