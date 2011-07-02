@@ -40,12 +40,12 @@ def get_test_modules():
     """
     return [get_test_module(name) for name in test_modules]
 
-def run_testsuite(module_name, failfast, buffer):
+def run_testsuite(module_names, failfast, buffer):
     """Run the gomill testsuite.
 
-    module_name -- name of a module from gomill_tests, or None for all
-    failfast    -- bool (stop at first failing test)
-    buffer      -- bool (show stderr/stdout only for failing tests)
+    module_names -- names of modules from gomill_tests, or None for all
+    failfast     -- bool (stop at first failing test)
+    buffer       -- bool (show stderr/stdout only for failing tests)
 
     Output is to stderr
 
@@ -55,10 +55,10 @@ def run_testsuite(module_name, failfast, buffer):
         unittest2.signals.installHandler()
     except Exception:
         pass
-    if module_name is None:
+    if module_names is None:
         modules = get_test_modules()
     else:
-        modules = [get_test_module(module_name)]
+        modules = [get_test_module(name) for name in module_names]
     suite = unittest2.TestSuite()
     for mdl in modules:
         mdl.make_tests(suite)
@@ -66,19 +66,20 @@ def run_testsuite(module_name, failfast, buffer):
     runner.run(suite)
 
 def run(argv):
-    parser = OptionParser(usage="%prog [options] [module]")
+    parser = OptionParser(usage="%prog [options] [module] ...")
     parser.add_option("-f", "--failfast", action="store_true",
                       help="stop after first test")
     parser.add_option("-p", "--nobuffer", action="store_true",
                       help="show stderr/stdout for successful tests")
     (options, args) = parser.parse_args(argv)
     if args:
-        module_name = args[0]
-        if module_name not in test_modules:
-            parser.error("unknown module: %s" % module_name)
+        module_names = args
+        for module_name in module_names:
+            if module_name not in test_modules:
+                parser.error("unknown module: %s" % module_name)
     else:
-        module_name = None
-    run_testsuite(module_name, options.failfast, not options.nobuffer)
+        module_names = None
+    run_testsuite(module_names, options.failfast, not options.nobuffer)
 
 def import_unittest():
     """Import unittest2 into global scope.
