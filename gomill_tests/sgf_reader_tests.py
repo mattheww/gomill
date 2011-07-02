@@ -77,7 +77,7 @@ def test_interpret_compose(tc):
     tc.assertEqual(ic("word\\\nmore:123"), ("word\\\nmore", "123"))
 
 def test_tokeniser(tc):
-    tokenise = sgf_parser._tokenise
+    tokenise = sgf_parser.tokenise
 
     tc.assertEqual(tokenise(r"(;B[ah][])")[0],
                    [('D', '('),

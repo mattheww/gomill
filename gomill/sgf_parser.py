@@ -18,7 +18,7 @@ _tokenise_re = re.compile(r"""
 )
 """, re.VERBOSE | re.DOTALL)
 
-def _tokenise(s):
+def tokenise(s):
     """Tokenise a string containing SGF data.
 
     Skips leading junk.
@@ -92,7 +92,7 @@ def parse_sgf_game(s):
     Raises ValueError if can't parse the string.
 
     """
-    tokens, _ = _tokenise(s)
+    tokens, _ = tokenise(s)
     if not tokens:
         raise ValueError("no SGF data found")
     stack = []
