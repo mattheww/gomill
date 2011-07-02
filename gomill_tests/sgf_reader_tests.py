@@ -241,7 +241,7 @@ def test_node(tc):
     tc.assertEqual(node0.get_list('AB'), ['ai', 'bh', 'ee'])
     tc.assertEqual(node0.get_list('AE'), [])
     tc.assertRaises(KeyError, node0.get_list, 'XX')
-    tc.assertRaises(KeyError, node0.get, 'XX')
+    tc.assertRaises(KeyError, node0.get_raw, 'XX')
 
 def test_property_combination(tc):
     sgf = sgf_reader.parse_sgf_game("(;XX[1]YY[2]XX[3]YY[4])")
@@ -281,6 +281,7 @@ def test_node_get(tc):
     """))
     root = sgf.get_root_node()
     node1 = sgf.get_main_sequence()[1]
+    tc.assertRaises(KeyError, root.get, 'XX')
     tc.assertEqual(root.get('C'), "123:)\nabc")          # Text
     tc.assertEqual(root.get('EV'), "Test event")         # Simpletext
     tc.assertEqual(root.get('BM'), 2)                    # Double
