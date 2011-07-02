@@ -167,14 +167,18 @@ def test_parser(tc):
     tc.assertRaises(ValueError, parse_sgf, r"(;B[ag](;[ah]))")
     tc.assertRaises(ValueError, parse_sgf, r"(;B W[ag])")
 
-    tc.assertRaises(ValueError, parse_sgf, "(;B[ag];(W[ah];B[ai]))")
-    tc.assertRaises(ValueError, parse_sgf, "(;B[ag](;W[ah];)B[ai])")
+    tc.assertRaisesRegexp(ValueError, "property value outside a node",
+                          parse_sgf, "(;B[ag];(W[ah];B[ai]))")
+    tc.assertRaisesRegexp(ValueError, "property value outside a node",
+                          parse_sgf, "(;B[ag](;W[ah];)B[ai])")
 
     tc.assertEqual(parse_len("(;C[abc]AB[ab](;B[bc])))"), 2)
-    tc.assertRaises(ValueError, parse_sgf, "(;B[ag];W[ah](;B[ai])")
-    tc.assertRaises(ValueError, parse_sgf, "(;B[ag];(W[ah];B[ai])")
-    tc.assertRaises(ValueError, parse_sgf, "(;B[ag];())")
-    tc.assertRaises(ValueError, parse_sgf, "(;B[ag]())")
+    tc.assertRaisesRegexp(ValueError, "unexpected end of SGF data",
+                          parse_sgf, "(;B[ag];W[ah](;B[ai])")
+    tc.assertRaisesRegexp(ValueError, "empty sequence",
+                          parse_sgf, "(;B[ag];())")
+    tc.assertRaisesRegexp(ValueError, "empty sequence",
+                          parse_sgf, "(;B[ag]())")
 
 def test_text_values(tc):
     def check(s):
