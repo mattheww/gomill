@@ -167,11 +167,11 @@ def test_parser(tc):
     tc.assertRaises(ValueError, parse_sgf, r"(;B[ag](;[ah]))")
     tc.assertRaises(ValueError, parse_sgf, r"(;B W[ag])")
 
-    # We don't reject these yet, because we don't track parens
-    #tc.assertRaises(ValueError, parse_sgf, "(;B[ag];W[ah](;B[ai])")
-    #tc.assertRaises(ValueError, parse_sgf, "(;B[ag];(W[ah];B[ai])")
-    #tc.assertRaises(ValueError, parse_sgf, "(;B[ag];())")
-    #tc.assertRaises(ValueError, parse_sgf, "(;B[ag]())")
+    tc.assertEqual(parse_len("(;C[abc]AB[ab](;B[bc])))"), 2)
+    tc.assertRaises(ValueError, parse_sgf, "(;B[ag];W[ah](;B[ai])")
+    tc.assertRaises(ValueError, parse_sgf, "(;B[ag];(W[ah];B[ai])")
+    tc.assertRaises(ValueError, parse_sgf, "(;B[ag];())")
+    tc.assertRaises(ValueError, parse_sgf, "(;B[ag]())")
 
 def test_text_values(tc):
     def check(s):
