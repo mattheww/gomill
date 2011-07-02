@@ -5,6 +5,7 @@ from textwrap import dedent
 from gomill_tests import gomill_test_support
 
 from gomill import ascii_boards
+from gomill import sgf_parser
 from gomill import sgf_reader
 
 def make_tests(suite):
@@ -76,7 +77,7 @@ def test_interpret_compose(tc):
     tc.assertEqual(ic("word\\\nmore:123"), ("word\\\nmore", "123"))
 
 def test_tokeniser(tc):
-    tokenise = sgf_reader._tokenise
+    tokenise = sgf_parser._tokenise
 
     tc.assertEqual(tokenise(r"(;B[ah][])")[0],
                    [('D', '('),
@@ -133,7 +134,7 @@ def test_tokeniser(tc):
     tc.assertEqual(check_incomplete(r"(;B[ag\\\])"), (3, 3))
 
 def test_parser(tc):
-    parse_sgf_game = sgf_reader.parse_sgf_game
+    parse_sgf_game = sgf_parser.parse_sgf_game
 
     # FIXME: Rewrite to use only the parser-level API
     def parse_len(s):
