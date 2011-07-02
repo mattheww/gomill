@@ -741,8 +741,14 @@ def parse_sgf_game(s):
 
 
 class Tree_view_node(Node):
+    """A node in an SGF game tree.
+
+    FIXME (or whatever the API becomes)
+    Do not instantiate directly; use tree_view().
+
+    """
     __slots__ = ('props_by_id', 'size',
-                 'root_tree', 'game_tree', 'index')
+                 'root_tree', 'game_tree', 'index', '_children')
 
     def __init__(self, root_tree, game_tree, index):
         self.root_tree = root_tree
@@ -750,13 +756,23 @@ class Tree_view_node(Node):
         self.index = index
         super(Tree_view_node, self).__init__(
             self.game_tree.sequence[index], root_tree.size)
+        self._children = None
 
     def children(self):
-        if self.index < len(self.game_tree.sequence) - 1:
-            return [Tree_view_node(self.root_tree, self.game_tree, self.index + 1)]
-        else:
-            return [Tree_view_node(self.root_tree, child_tree, 0)
-                    for child_tree in self.game_tree.children]
+        """Return the children of this node.
+
+        Returns a list of Tree_view_nodes (the same node objects each time you
+        call it, but not the same list).
+
+        """
+        if self._children is None:
+            if self.index < len(self.game_tree.sequence) - 1:
+                self._children = [Tree_view_node(
+                    self.root_tree, self.game_tree, self.index + 1)]
+            else:
+                self._children = [Tree_view_node(self.root_tree, child_tree, 0)
+                                  for child_tree in self.game_tree.children]
+        return self._children[:]
 
 def tree_view(root_game_tree):
     return Tree_view_node(root_game_tree, root_game_tree, 0)
