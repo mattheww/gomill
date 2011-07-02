@@ -468,7 +468,7 @@ class Node(object):
 
 
 class Tree_node(Node):
-    """A node embedded in an SGF game tree.
+    """A node embedded in an SGF game.
 
     A Tree_node is a Node that also knows its position within an Sgf_game.
 
@@ -477,15 +477,19 @@ class Tree_node(Node):
     Tree_nodes can be indexed and iterated over like lists. A node with no
     children is treated as having truth value false.
 
+    Public attributes (treat as read-only):
+      owner -- the node's Sgf_game
+
     """
     __slots__ = ('props_by_id', 'size',
-                 'sgf_game', 'game_tree', 'index', '_children')
+                 'owner', 'game_tree', 'index', '_children')
 
-    def __init__(self, game_tree, index, size):
+    def __init__(self, owner, game_tree, index, size):
+        self.owner = owner
         self.game_tree = game_tree
         self.index = index
-        super(Tree_node, self).__init__(self.game_tree.sequence[index], size)
         self._children = None
+        super(Tree_node, self).__init__(self.game_tree.sequence[index], size)
 
     def children(self):
         """Return the children of this node.
@@ -497,10 +501,11 @@ class Tree_node(Node):
         if self._children is None:
             if self.index < len(self.game_tree.sequence) - 1:
                 self._children = [Tree_node(
-                    self.game_tree, self.index + 1, self.size)]
+                    self.owner, self.game_tree, self.index + 1, self.size)]
             else:
-                self._children = [Tree_node(child_tree, 0, self.size)
-                                  for child_tree in self.game_tree.children]
+                self._children = [
+                    Tree_node(self.owner, child_tree, 0, self.size)
+                    for child_tree in self.game_tree.children]
         return self._children[:]
 
     def __len__(self):
@@ -522,7 +527,7 @@ class Sgf_game(object):
         except KeyError:
             size = 19
         self.size = size
-        self.root = Tree_node(parsed_game, 0, size)
+        self.root = Tree_node(self, parsed_game, 0, size)
 
     def get_root_node(self):
         """Return the root node (as a Tree_node)."""
