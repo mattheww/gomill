@@ -93,6 +93,9 @@ def parse_sgf_game(s):
 
     Raises ValueError if can't parse the string.
 
+    If a property appears more than once in a node (which is not permitted by
+    the spec), treats it the same as a single property with multiple values.
+
     """
     tokens, _ = tokenise(s)
     if not tokens:
