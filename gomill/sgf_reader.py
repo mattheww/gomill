@@ -99,7 +99,7 @@ def value_as_real(s):
 def value_as_double(s):
     """Convert a raw Double value to an integer.
 
-    Returns 1 or 2.
+    Returns 1 or 2 (unknown values are treated as 1).
 
     """
     if s.strip() == "2":
@@ -384,10 +384,16 @@ class Node(object):
 
         Raises KeyError if there was no property with the given identifier.
 
-        FIXME: May raise ValueError, but fixes up where possible.
+        Raises ValueError if it cannot interpret the value.
 
-        FIXME: See the value_as... and interpret... functions above for details.
-        Doc what the known properties and their types are??
+        FIXME: rename these functions?
+
+        See the value_as... and interpret... functions above for details of how
+        values are represented as Python types. Note that in some cases these
+        functions accept values which are not strictly permitted by the
+        specification.
+
+        FIXME: Doc what the known properties and their types are?
 
         """
         prop = _properties.get(identifier, _private_property)
