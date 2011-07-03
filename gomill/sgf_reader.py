@@ -636,26 +636,26 @@ class Sgf_game(object):
         result.reverse()
         return result
 
-    def get_main_sequence_light(self):
-        """Return the 'leftmost' variation, without building the tree.
+    def main_sequence_iter(self):
+        """Provide the 'leftmost' variation as an iterable.
 
-        Returns a list of Nodes (not Tree_nodes), from the root to a leaf.
+        Returns an iterable of Node instances, from the root to a leaf.
+
+        The Node instances may or may not be Tree_nodes.
 
         If you know the game has no variations, or you're only interested in
-        the 'leftmost' variation, you can use this function to save a little
-        time and memory
+        the 'leftmost' variation, you can use this function to avoid building
+        the entire game tree.
 
         """
         size = self.size
-        result = []
         tree = self._parsed_game
         while True:
-            result.extend([Node(properties, size)
-                           for properties in tree.sequence])
+            for properties in tree.sequence:
+                yield Node(properties, size)
             if not tree.children:
                 break
             tree = tree.children[0]
-        return result
 
     def get_size(self):
         """Return the board size as an integer."""
@@ -743,7 +743,9 @@ class Sgf_game(object):
             if not is_legal:
                 raise ValueError("setup position not legal")
         moves = []
-        for node in self.get_main_sequence_light()[1:]:
+        nodes = self.main_sequence_iter()
+        nodes.next()
+        for node in nodes:
             if node.has_setup_commands():
                 raise ValueError("setup commands after the root node")
             colour, raw = node.get_raw_move()

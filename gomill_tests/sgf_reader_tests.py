@@ -98,7 +98,7 @@ def test_node(tc):
     sgf = sgf_reader.sgf_game_from_string(
         r"(;KM[6.5]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
     node0 = sgf.get_root_node()
-    node1 = sgf.get_main_sequence_light()[1]
+    node1 = list(sgf.main_sequence_iter())[1]
     tc.assertIs(node0.has_property('KM'), True)
     tc.assertIs(node0.has_property('XX'), False)
     tc.assertIs(node1.has_property('KM'), False)
@@ -130,7 +130,7 @@ def test_node_get(tc):
     LB[ac:lbl][bc:lbl2])
     """))
     root = sgf.get_root_node()
-    node1 = sgf.get_main_sequence()[1]
+    node1 = list(sgf.main_sequence_iter())[1]
     tc.assertRaises(KeyError, root.get, 'XX')
     tc.assertEqual(root.get('C'), "123:)\nabc")          # Text
     tc.assertEqual(root.get('EV'), "Test event")         # Simpletext
@@ -193,7 +193,7 @@ def test_node_string(tc):
 
 def test_node_get_move(tc):
     sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
-    nodes = sgf.get_main_sequence()
+    nodes = list(sgf.main_sequence_iter())
     tc.assertEqual(nodes[0].get_move(), (None, None))
     tc.assertEqual(nodes[1].get_move(), ('b', (2, 3)))
     tc.assertEqual(nodes[2].get_move(), ('w', (3, 4)))
@@ -204,7 +204,7 @@ def test_node_setup_commands(tc):
     sgf = sgf_reader.sgf_game_from_string(
         r"(;KM[6.5]SZ[9]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
     node0 = sgf.get_root_node()
-    node1 = sgf.get_main_sequence()[1]
+    node1 = list(sgf.main_sequence_iter())[1]
     tc.assertIs(node0.has_setup_commands(), True)
     tc.assertIs(node1.has_setup_commands(), False)
     tc.assertEqual(node0.get_setup_commands(),
@@ -214,7 +214,7 @@ def test_node_setup_commands(tc):
 
 def test_sgf_game(tc):
     sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
-    nodes = sgf.get_main_sequence()
+    nodes = list(sgf.main_sequence_iter())
     tc.assertEqual(sgf.get_size(), 9)
     tc.assertEqual(sgf.get_komi(), 7.5)
     tc.assertIs(sgf.get_handicap(), None)
@@ -316,7 +316,7 @@ def test_main_sequence(tc):
     sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
     root = sgf.get_root_node()
 
-    nodes = sgf.get_main_sequence_light()
+    nodes = list(sgf.main_sequence_iter())
     tc.assertEqual(len(nodes), 8)
     tc.assertIs(root.props_by_id, nodes[0].props_by_id)
     with tc.assertRaises(AttributeError):
