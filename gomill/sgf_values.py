@@ -98,7 +98,7 @@ def interpret_point(s, size):
     col_s, row_s = s
     col = ord(col_s) - 97 # 97 == ord("a")
     row = size - ord(row_s) + 96
-    if not (0 <= col < size) and (0 <= row < size):
+    if not ((0 <= col < size) and (0 <= row < size)):
         raise ValueError
     return row, col
 
