@@ -536,24 +536,23 @@ class Tree_node(Node):
         return node.get(identifier)
 
 
-def _build_tree(node, game_tree, index):
-    """FIXME
-
-    Sets node._children.
-
-    """
-    if index < len(game_tree.sequence) - 1:
-        child = Tree_node(node.owner, node,
-                          game_tree.sequence[index+1], node.size)
-        node._children = [child]
-        _build_tree(child, game_tree, index+1)
-    else:
-        node._children = []
-        for child_tree in game_tree.children:
+def _build_tree(node, game_tree):
+    """FIXME"""
+    to_build = [(node, game_tree, 0)]
+    while to_build:
+        node, game_tree, index = to_build.pop()
+        if index < len(game_tree.sequence) - 1:
             child = Tree_node(node.owner, node,
-                              child_tree.sequence[0], node.size)
-            node._children.append(child)
-            _build_tree(child, child_tree, 0)
+                              game_tree.sequence[index+1], node.size)
+            node._children = [child]
+            to_build.append((child, game_tree, index+1))
+        else:
+            node._children = []
+            for child_tree in game_tree.children:
+                child = Tree_node(node.owner, node,
+                                  child_tree.sequence[0], node.size)
+                node._children.append(child)
+                to_build.append((child, child_tree, 0))
 
 class Root_tree_node(Tree_node):
     """Variant of Tree_node used for a game root."""
@@ -566,7 +565,7 @@ class Root_tree_node(Tree_node):
 
     def _ensure_expanded(self):
         if self._children is None:
-            _build_tree(self, self._game_tree, 0)
+            _build_tree(self, self._game_tree)
 
     def children(self):
         self._ensure_expanded()
