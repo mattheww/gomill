@@ -150,3 +150,35 @@ def parse_sgf_game(s):
     except IndexError:
         raise ValueError("unexpected end of SGF data")
     return variation
+
+
+def make_tree(game_tree, root, node_builder, node_adder):
+    """Construct a node tree from a Parsed_game_tree.
+
+    game_tree    -- Parsed_game_tree
+    root         -- node
+    node_builder -- function taking parameters (parent node, property map)
+                    returning a node
+    node_adder   -- function taking a pair (parent node, child node)
+
+    Builds a tree of nodes corresponding to this GameTree, calling
+    node_builder() to make new nodes and node_adder() to add child nodes to
+    their parent.
+
+    Makes no further assumptions about the node type.
+
+    """
+    to_build = [(root, game_tree, 0)]
+    while to_build:
+        node, game_tree, index = to_build.pop()
+        if index < len(game_tree.sequence) - 1:
+            child = node_builder(node, game_tree.sequence[index+1])
+            node_adder(node, child)
+            to_build.append((child, game_tree, index+1))
+        else:
+            node._children = []
+            for child_tree in game_tree.children:
+                child = node_builder(node, child_tree.sequence[0])
+                node_adder(node, child)
+                to_build.append((child, child_tree, 0))
+

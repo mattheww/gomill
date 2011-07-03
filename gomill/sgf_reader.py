@@ -487,6 +487,7 @@ class Tree_node(Node):
     def __init__(self, parent, properties):
         self.owner = parent.owner
         self.parent = parent
+        self._children = []
         Node.__init__(self, properties, parent.size)
 
     def children(self):
@@ -497,6 +498,9 @@ class Tree_node(Node):
 
         """
         return self._children[:]
+
+    def _add_child(self, node):
+        self._children.append(node)
 
     def __len__(self):
         return len(self._children)
@@ -535,23 +539,6 @@ class Tree_node(Node):
             raise KeyError
         return node.get(identifier)
 
-
-def _build_tree(node, game_tree):
-    """FIXME"""
-    to_build = [(node, game_tree, 0)]
-    while to_build:
-        node, game_tree, index = to_build.pop()
-        if index < len(game_tree.sequence) - 1:
-            child = Tree_node(node, game_tree.sequence[index+1])
-            node._children = [child]
-            to_build.append((child, game_tree, index+1))
-        else:
-            node._children = []
-            for child_tree in game_tree.children:
-                child = Tree_node(node, child_tree.sequence[0])
-                node._children.append(child)
-                to_build.append((child, child_tree, 0))
-
 class Root_tree_node(Tree_node):
     """Variant of Tree_node used for a game root."""
     def __init__(self, owner, game_tree, size):
@@ -563,7 +550,10 @@ class Root_tree_node(Tree_node):
 
     def _ensure_expanded(self):
         if self._children is None:
-            _build_tree(self, self._game_tree)
+            self._children = []
+            sgf_parser.make_tree(
+                self._game_tree, self, Tree_node, Tree_node._add_child)
+            self._game_tree = None
 
     def children(self):
         self._ensure_expanded()
