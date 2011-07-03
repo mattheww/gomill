@@ -109,13 +109,15 @@ def interpret_compressed_point_list(values, size):
 
     Returns a set of pairs (row, col).
 
-    Raises ValueError if the data is malformed.
+    Doesn't complain if there is overlap, or if a single point is specified as a
+    1x1 rectangle.
 
-    Doesn't complain if there is overlap.
+    Raises ValueError if the data is otherwise malformed.
 
     """
     result = set()
     for s in values:
+        # No need to use parse_compose(), as \: would always be an error.
         p1, is_rectangle, p2 = s.partition(":")
         if is_rectangle:
             try:
