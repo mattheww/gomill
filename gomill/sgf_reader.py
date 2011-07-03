@@ -484,13 +484,10 @@ class Tree_node(Node):
       parent -- the nodes's parent Tree_node (None for the root node)
 
     """
-    def __init__(self, owner, parent, game_tree, index, size):
+    def __init__(self, owner, parent, properties, size):
         self.owner = owner
         self.parent = parent
-        self.game_tree = game_tree
-        self.index = index
-        self._children = None
-        super(Tree_node, self).__init__(self.game_tree.sequence[index], size)
+        Node.__init__(self, properties, size)
 
     def children(self):
         """Return the children of this node.
@@ -499,21 +496,13 @@ class Tree_node(Node):
         call it, but not the same list).
 
         """
-        if self._children is None:
-            if self.index < len(self.game_tree.sequence) - 1:
-                self._children = [Tree_node(
-                    self.owner, self, self.game_tree, self.index+1, self.size)]
-            else:
-                self._children = [
-                    Tree_node(self.owner, self, child_tree, 0, self.size)
-                    for child_tree in self.game_tree.children]
         return self._children[:]
 
     def __len__(self):
-        return len(self.children())
+        return len(self._children)
 
     def __getitem__(self, key):
-        return self.children()[key]
+        return self._children[key]
 
     def find(self, identifier):
         """Find the nearest ancestor-or-self containing the specified property.
@@ -547,6 +536,51 @@ class Tree_node(Node):
         return node.get(identifier)
 
 
+def _build_tree(node, game_tree, index):
+    """FIXME
+
+    Sets node._children.
+
+    """
+    if index < len(game_tree.sequence) - 1:
+        child = Tree_node(node.owner, node,
+                          game_tree.sequence[index+1], node.size)
+        node._children = [child]
+        _build_tree(child, game_tree, index+1)
+    else:
+        node._children = []
+        for child_tree in game_tree.children:
+            child = Tree_node(node.owner, node,
+                              child_tree.sequence[0], node.size)
+            node._children.append(child)
+            _build_tree(child, child_tree, 0)
+
+class Root_tree_node(Tree_node):
+    """Variant of Tree_node used for a game root."""
+    def __init__(self, owner, game_tree, size):
+        self.owner = owner
+        self.parent = None
+        self._game_tree = game_tree
+        self._children = None
+        Node.__init__(self, game_tree.sequence[0], size)
+
+    def _ensure_expanded(self):
+        if self._children is None:
+            _build_tree(self, self._game_tree, 0)
+
+    def children(self):
+        self._ensure_expanded()
+        return self._children[:]
+
+    def __len__(self):
+        self._ensure_expanded()
+        return len(self._children)
+
+    def __getitem__(self, key):
+        self._ensure_expanded()
+        return self._children[key]
+
+
 class Sgf_game(object):
     """An SGF game.
 
@@ -560,7 +594,7 @@ class Sgf_game(object):
         except KeyError:
             size = 19
         self.size = size
-        self.root = Tree_node(self, None, parsed_game, 0, size)
+        self.root = Root_tree_node(self, parsed_game, size)
 
     def get_root_node(self):
         """Return the root node (as a Tree_node)."""
