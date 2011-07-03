@@ -394,6 +394,8 @@ class Node(object):
         interpreter = prop.interpreter
         if prop.uses_list:
             raw = self.props_by_id[identifier]
+            if raw == [""]:
+                raw = []
         else:
             raw = self.props_by_id[identifier][0]
         if prop.uses_size:

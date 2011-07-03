@@ -121,7 +121,7 @@ def test_property_combination(tc):
 def test_node_get(tc):
     sgf = sgf_reader.sgf_game_from_string(dedent(r"""
     (;AP[testsuite:0]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
-    PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]BM[2]
+    PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]BM[2]VW[]
     EV[Test
     event]
     C[123:\)
@@ -142,6 +142,7 @@ def test_node_get(tc):
     tc.assertEqual(node1.get('B'), (2, 3))               # Point
     tc.assertEqual(root.get('AB'),
                    set([(0, 0), (1, 1), (4, 4)]))        # List of Point
+    tc.assertEqual(root.get('VW'), set())                # Empty elist
     tc.assertEqual(root.get('AP'), ("testsuite", "0"))   # Application
     tc.assertEqual(node1.get('AR'),
                    [((7, 0), (5, 2)), ((4, 3), (2, 5))]) # Arrow
