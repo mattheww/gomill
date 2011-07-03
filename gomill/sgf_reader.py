@@ -558,12 +558,28 @@ class Sgf_game(object):
 
         """
         if node.owner is not self:
-            raise ValueError
+            raise ValueError("node doesn't belong to this game")
         result = []
         while node.parent is not None:
             node = node.parent
             result.append(node)
         result.reverse()
+        return result
+
+    def get_main_sequence_below(self, node):
+        """Return the 'leftmost' variation below the specified node.
+
+        node -- Tree_node
+
+        Returns a list of Tree_nodes, from the first child of 'node' to a leaf.
+
+        """
+        if node.owner is not self:
+            raise ValueError("node doesn't belong to this game")
+        result = []
+        while node:
+            node = node[0]
+            result.append(node)
         return result
 
     def get_size(self):

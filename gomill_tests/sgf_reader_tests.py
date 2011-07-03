@@ -285,13 +285,13 @@ def test_tree_view(tc):
 def test_get_sequence_above(tc):
     game = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
     root = game.get_root_node()
+    branchnode = root[0][0][0][0]
+    leaf = branchnode[1][0][1]
     tc.assertEqual(game.get_sequence_above(root), [])
 
-    branchnode = root[0][0][0][0]
     tc.assertEqual(game.get_sequence_above(branchnode),
                    [root, root[0], root[0][0], root[0][0][0]])
 
-    leaf = branchnode[1][0][1]
     tc.assertEqual(game.get_sequence_above(leaf),
                    [root, root[0], root[0][0], root[0][0][0],
                     branchnode, branchnode[1], branchnode[1][0]])
@@ -299,3 +299,22 @@ def test_get_sequence_above(tc):
     game2 = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
     tc.assertRaisesRegexp(ValueError, "node doesn't belong to this game",
                           game2.get_sequence_above, leaf)
+
+def test_get_main_sequence_below(tc):
+    game = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
+    root = game.get_root_node()
+    branchnode = root[0][0][0][0]
+    leaf = branchnode[1][0][1]
+    tc.assertEqual(game.get_main_sequence_below(leaf), [])
+
+    tc.assertEqual(game.get_main_sequence_below(branchnode),
+                   [branchnode[0], branchnode[0][0], branchnode[0][0][0]])
+
+    tc.assertEqual(game.get_main_sequence_below(root),
+                   [root[0], root[0][0], root[0][0][0], branchnode,
+                    branchnode[0], branchnode[0][0], branchnode[0][0][0]])
+
+    game2 = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
+    tc.assertRaisesRegexp(ValueError, "node doesn't belong to this game",
+                          game2.get_main_sequence_below, branchnode)
+
