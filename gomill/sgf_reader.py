@@ -644,18 +644,13 @@ class Sgf_game(object):
         The Node instances may or may not be Tree_nodes.
 
         If you know the game has no variations, or you're only interested in
-        the 'leftmost' variation, you can use this function to avoid building
-        the entire game tree.
+        the 'leftmost' variation, you can use this function to retrieve the
+        nodes without building the entire game tree.
 
         """
         size = self.size
-        tree = self._parsed_game
-        while True:
-            for properties in tree.sequence:
-                yield Node(properties, size)
-            if not tree.children:
-                break
-            tree = tree.children[0]
+        for properties in sgf_parser.main_sequence_iter(self._parsed_game):
+            yield Node(properties, size)
 
     def get_size(self):
         """Return the board size as an integer."""
