@@ -60,37 +60,17 @@ class Node(object):
 
         Returns the value as a suitable Python representation.
 
-        See the interpret... functions in the sgf_values module for details of
-        how values are represented as Python types. Note that in some cases
-        these functions accept values which are not strictly permitted by the
-        specification.
-
-        Doesn't enforce range restrictions on values with type Number.
-
-        See the properties_by_ident table in the sgf_values module for a list of
-        known properties.
-
-        Treats unknown (private) properties as if they had type Text.
-
         Raises KeyError if the node does not have a property with the given
         identifier.
 
         Raises ValueError if it cannot interpret the value.
 
+        See sgf_values.get_interpreted_value() for details.
+
+
         """
-        prop = sgf_values.properties_by_ident.get(
-            identifier, sgf_values.private_property)
-        interpreter = prop.interpreter
-        if prop.uses_list:
-            raw = self.props_by_id[identifier]
-            if raw == [""]:
-                raw = []
-        else:
-            raw = self.props_by_id[identifier][0]
-        if prop.uses_size:
-            return interpreter(raw, self.size)
-        else:
-            return interpreter(raw)
+        return sgf_values.get_interpreted_value(
+            identifier, self.props_by_id[identifier], self.size)
 
     def get_raw_move(self):
         """Return the raw value of the move from a node.

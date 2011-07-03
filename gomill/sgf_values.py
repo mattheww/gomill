@@ -272,3 +272,40 @@ properties_by_ident = {
 private_property = P(interpret_text)
 
 del P, LIST, ELIST
+
+
+def get_interpreted_value(identifier, raw_values, size):
+    """Return a Python representation of a property value.
+
+    identifier -- PropIdent
+    raw_values -- nonempty list of 8-bit strings
+    size       -- board size (int)
+
+    See the interpret_... functions above for details of how values are
+    represented as Python types.
+
+    Raises ValueError if it cannot interpret the value.
+
+    Note that in some cases the interpret_... functions accept values which are
+    not strictly permitted by the specification.
+
+    Doesn't enforce range restrictions on values with type Number.
+
+    See the properties_by_ident table above for a list of known properties.
+
+    Treats unknown (private) properties as if they had type Text.
+
+    """
+    prop = properties_by_ident.get(identifier, private_property)
+    interpreter = prop.interpreter
+    if prop.uses_list:
+        if raw_values == [""]:
+            raw = []
+        else:
+            raw = raw_values
+    else:
+        raw = raw_values[0]
+    if prop.uses_size:
+        return interpreter(raw, size)
+    else:
+        return interpreter(raw)
