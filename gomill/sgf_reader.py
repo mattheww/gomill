@@ -1,4 +1,4 @@
-"""Interpret SGF data.
+"""Represent SGF games.
 
 This is intended for use with SGF FF[4]; see http://www.red-bean.com/sgf/
 
@@ -58,18 +58,24 @@ class Node(object):
     def get(self, identifier):
         """Return the interpreted value of the specified property.
 
-        Treats unknown (private) properties as if they had type Text.
-
-        Raises KeyError if there was no property with the given identifier.
-
-        Raises ValueError if it cannot interpret the value.
+        Returns the value as a suitable Python representation.
 
         See the interpret... functions in the sgf_values module for details of
         how values are represented as Python types. Note that in some cases
         these functions accept values which are not strictly permitted by the
         specification.
 
-        FIXME: Doc what the known properties and their types are?
+        Doesn't enforce range restrictions on values with type Number.
+
+        See the properties_by_ident table in the sgf_values module for a list of
+        known properties.
+
+        Treats unknown (private) properties as if they had type Text.
+
+        Raises KeyError if the node does not have a property with the given
+        identifier.
+
+        Raises ValueError if it cannot interpret the value.
 
         """
         prop = sgf_values.properties_by_ident.get(
@@ -165,11 +171,11 @@ class Tree_node(Node):
 
     A Tree_node is a Node that also knows its position within an Sgf_game.
 
-    Do not instantiate directly; retrieve from an Sgf_game or another node.
+    Do not instantiate directly; retrieve from an Sgf_game or another Tree_node.
 
     A Tree_node is a list-like container of its children: it can be indexed,
-    sliced, and iterated over like a list. A node with no children is treated
-    as having truth value false.
+    sliced, and iterated over like a list. A Tree_node with no children is
+    treated as having truth value false.
 
     Public attributes (treat as read-only):
       owner  -- the node's Sgf_game
