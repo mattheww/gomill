@@ -358,7 +358,7 @@ class Node(object):
         """
         return self.props_by_id[identifier][0]
 
-    def get_list(self, identifier):
+    def get_raw_list(self, identifier):
         """Return the raw list value of the specified property.
 
         Returns a list of strings, containing 'raw' values (see get_raw()).
@@ -442,15 +442,15 @@ class Node(object):
 
         """
         try:
-            bp = interpret_compressed_point_list(self.get_list("AB"), self.size)
+            bp = self.get("AB")
         except KeyError:
             bp = set()
         try:
-            wp = interpret_compressed_point_list(self.get_list("AW"), self.size)
+            wp = self.get("AW")
         except KeyError:
             wp = set()
         try:
-            ep = interpret_compressed_point_list(self.get_list("AE"), self.size)
+            ep = self.get("AE")
         except KeyError:
             ep = set()
         return bp, wp, ep

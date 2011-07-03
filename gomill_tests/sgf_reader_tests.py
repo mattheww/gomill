@@ -106,17 +106,17 @@ def test_node(tc):
     tc.assertEqual(node0.get_raw('AB'), "ai")
     tc.assertEqual(node0.get_raw('AE'), "")
     tc.assertRaises(KeyError, node0.get_raw, 'XX')
-    tc.assertEqual(node0.get_list('KM'), ['6.5'])
-    tc.assertEqual(node0.get_list('AB'), ['ai', 'bh', 'ee'])
-    tc.assertEqual(node0.get_list('AE'), [])
-    tc.assertRaises(KeyError, node0.get_list, 'XX')
+    tc.assertEqual(node0.get_raw_list('KM'), ['6.5'])
+    tc.assertEqual(node0.get_raw_list('AB'), ['ai', 'bh', 'ee'])
+    tc.assertEqual(node0.get_raw_list('AE'), [])
+    tc.assertRaises(KeyError, node0.get_raw_list, 'XX')
     tc.assertRaises(KeyError, node0.get_raw, 'XX')
 
 def test_property_combination(tc):
     sgf = sgf_reader.sgf_game_from_string("(;XX[1]YY[2]XX[3]YY[4])")
     node0 = sgf.get_root()
-    tc.assertEqual(node0.get_list("XX"), ["1", "3"])
-    tc.assertEqual(node0.get_list("YY"), ["2", "4"])
+    tc.assertEqual(node0.get_raw_list("XX"), ["1", "3"])
+    tc.assertEqual(node0.get_raw_list("YY"), ["2", "4"])
 
 def test_node_get(tc):
     sgf = sgf_reader.sgf_game_from_string(dedent(r"""
