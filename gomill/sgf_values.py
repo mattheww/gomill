@@ -102,15 +102,17 @@ def interpret_point(s, size):
         raise ValueError
     return row, col
 
-def interpret_compressed_point_list(values, size):
+def interpret_point_list(values, size):
     """Convert a raw SGF list or elist of Points to a set of coordinates.
 
     values -- list of strings
 
     Returns a set of pairs (row, col).
 
-    Doesn't complain if there is overlap, or if a single point is specified as a
-    1x1 rectangle.
+    This interprets compressed point lists.
+
+    Doesn't complain if there is overlap, or if a single point is specified as
+    a 1x1 rectangle.
 
     Raises ValueError if the data is otherwise malformed.
 
@@ -199,12 +201,12 @@ class Property(object):
 P = Property
 LIST = ELIST = True
 properties_by_ident = {
-  'AB' : P(interpret_compressed_point_list, LIST),  # setup      Add Black
-  'AE' : P(interpret_compressed_point_list, LIST),  # setup      Add Empty
+  'AB' : P(interpret_point_list, LIST),             # setup      Add Black
+  'AE' : P(interpret_point_list, LIST),             # setup      Add Empty
   'AN' : P(interpret_simpletext),                   # game-info  Annotation
   'AP' : P(interpret_AP),                           # root       Application
   'AR' : P(interpret_ARLN, LIST),                   # -          Arrow
-  'AW' : P(interpret_compressed_point_list, LIST),  # setup      Add White
+  'AW' : P(interpret_point_list, LIST),             # setup      Add White
   'B'  : P(interpret_point),                        # move       Black
   'BL' : P(interpret_real),                         # move       Black time left
   'BM' : P(interpret_double),                       # move       Bad move
@@ -213,8 +215,8 @@ properties_by_ident = {
   'C'  : P(interpret_text),                         # -          Comment
   'CA' : P(interpret_simpletext),                   # root       Charset
   'CP' : P(interpret_simpletext),                   # game-info  Copyright
-  'CR' : P(interpret_compressed_point_list, LIST),  # -          Circle
-  'DD' : P(interpret_compressed_point_list, ELIST), # - (inherit)Dim points
+  'CR' : P(interpret_point_list, LIST),             # -          Circle
+  'DD' : P(interpret_point_list, ELIST),            # - (inherit)Dim points
   'DM' : P(interpret_double),                       # -          Even position
   'DO' : P(interpret_none),                         # move       Doubtful
   'DT' : P(interpret_simpletext),                   # game-info  Date
@@ -233,7 +235,7 @@ properties_by_ident = {
   'KO' : P(interpret_none),                         # move       Ko
   'LB' : P(interpret_LB, LIST),                     # -          Label
   'LN' : P(interpret_ARLN, LIST),                   # -          Line
-  'MA' : P(interpret_compressed_point_list, LIST),  # -          Mark
+  'MA' : P(interpret_point_list, LIST),             # -          Mark
   'MN' : P(interpret_number),                       # move       set move number
   'N'  : P(interpret_simpletext),                   # -          Nodename
   'OB' : P(interpret_number),                       # move       OtStones Black
@@ -248,20 +250,20 @@ properties_by_ident = {
   'RE' : P(interpret_simpletext),                   # game-info  Result
   'RO' : P(interpret_simpletext),                   # game-info  Round
   'RU' : P(interpret_simpletext),                   # game-info  Rules
-  'SL' : P(interpret_compressed_point_list, LIST),  # -          Selected
+  'SL' : P(interpret_point_list, LIST),             # -          Selected
   'SO' : P(interpret_simpletext),                   # game-info  Source
-  'SQ' : P(interpret_compressed_point_list, LIST),  # -          Square
+  'SQ' : P(interpret_point_list, LIST),             # -          Square
   'ST' : P(interpret_number),                       # root       Style
   'SZ' : P(interpret_number),                       # root       Size
-  'TB' : P(interpret_compressed_point_list, ELIST), # -          Territory Black
+  'TB' : P(interpret_point_list, ELIST),            # -          Territory Black
   'TE' : P(interpret_double),                       # move       Tesuji
   'TM' : P(interpret_real),                         # game-info  Timelimit
-  'TR' : P(interpret_compressed_point_list, LIST),  # -          Triangle
-  'TW' : P(interpret_compressed_point_list, ELIST), # -          Territory White
+  'TR' : P(interpret_point_list, LIST),             # -          Triangle
+  'TW' : P(interpret_point_list, ELIST),            # -          Territory White
   'UC' : P(interpret_double),                       # -          Unclear pos
   'US' : P(interpret_simpletext),                   # game-info  User
   'V'  : P(interpret_real),                         # -          Value
-  'VW' : P(interpret_compressed_point_list, ELIST), # - (inherit)View
+  'VW' : P(interpret_point_list, ELIST),            # - (inherit)View
   'W'  : P(interpret_point),                        # move       White
   'WL' : P(interpret_real),                         # move       White time left
   'WR' : P(interpret_simpletext),                   # game-info  White rank

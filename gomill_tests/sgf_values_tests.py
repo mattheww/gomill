@@ -33,8 +33,8 @@ def test_interpret_point(tc):
     tc.assertRaises(TypeError, interpret_point, None, 19)
     #tc.assertRaises(TypeError, interpret_point, ('a', 'a'), 19)
 
-def test_interpret_compressed_point_list(tc):
-    ipl = sgf_values.interpret_compressed_point_list
+def test_interpret_point_list(tc):
+    ipl = sgf_values.interpret_point_list
     tc.assertEqual(ipl([], 19),
                    set())
     tc.assertEqual(ipl(["aa"], 19),
@@ -73,7 +73,7 @@ def test_compressed_point_list_spec_example(tc):
         row_s = "abcdefghijklmnopqrstuvwxy"[row]
         return col_s + row_s
 
-    ipl = sgf_values.interpret_compressed_point_list
+    ipl = sgf_values.interpret_point_list
     tc.assertEqual(
         set(sgf_point(move, 9) for move in ipl(["ac:ic"], 9)),
         set(["ac", "bc", "cc", "dc", "ec", "fc", "gc", "hc", "ic"]))
