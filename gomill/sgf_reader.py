@@ -549,6 +549,23 @@ class Sgf_game(object):
             tree = tree.children[0]
         return result
 
+    def get_sequence_above(self, node):
+        """Return the partial variation leading to the specified node.
+
+        node -- Tree_node
+
+        Returns a list of Tree_nodes, from the root to the parent of 'node'.
+
+        """
+        if node.owner is not self:
+            raise ValueError
+        result = []
+        while node.parent is not None:
+            node = node.parent
+            result.append(node)
+        result.reverse()
+        return result
+
     def get_size(self):
         """Return the board size as an integer."""
         return self.size
