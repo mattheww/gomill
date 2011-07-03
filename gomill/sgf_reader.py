@@ -573,6 +573,9 @@ class Sgf_game(object):
 
     Instantiate with a Parsed_game_tree.
 
+    The nodes' property maps will be the same objects as the ones from the
+    Parsed_game_tree.
+
     """
     def __init__(self, parsed_game):
         self._parsed_game = parsed_game
