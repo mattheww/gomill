@@ -484,10 +484,10 @@ class Tree_node(Node):
       parent -- the nodes's parent Tree_node (None for the root node)
 
     """
-    def __init__(self, owner, parent, properties, size):
-        self.owner = owner
+    def __init__(self, parent, properties):
+        self.owner = parent.owner
         self.parent = parent
-        Node.__init__(self, properties, size)
+        Node.__init__(self, properties, parent.size)
 
     def children(self):
         """Return the children of this node.
@@ -542,15 +542,13 @@ def _build_tree(node, game_tree):
     while to_build:
         node, game_tree, index = to_build.pop()
         if index < len(game_tree.sequence) - 1:
-            child = Tree_node(node.owner, node,
-                              game_tree.sequence[index+1], node.size)
+            child = Tree_node(node, game_tree.sequence[index+1])
             node._children = [child]
             to_build.append((child, game_tree, index+1))
         else:
             node._children = []
             for child_tree in game_tree.children:
-                child = Tree_node(node.owner, node,
-                                  child_tree.sequence[0], node.size)
+                child = Tree_node(node, child_tree.sequence[0])
                 node._children.append(child)
                 to_build.append((child, child_tree, 0))
 
