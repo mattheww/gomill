@@ -347,7 +347,7 @@ class Node(object):
     def get_raw(self, identifier):
         """Return the raw scalar value of the specified property.
 
-        Returns the raw bytes that were between the square brakets, without
+        Returns the raw bytes that were between the square brackets, without
         interpreting escapes or performing any whitespace conversion.
 
         Raises KeyError if there was no property with the given identifier.
