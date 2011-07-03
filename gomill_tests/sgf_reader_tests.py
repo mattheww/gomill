@@ -241,6 +241,7 @@ _setup_expected = """\
 def test_tree_view(tc):
     game = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
     root = game.get_root_node()
+    tc.assertIsInstance(root, sgf_reader.Tree_node)
     tc.assertIs(root.parent, None)
     tc.assertEqual(len(root.children()), 1)
     tc.assertEqual(len(root), 1)
@@ -249,6 +250,7 @@ def test_tree_view(tc):
     tc.assertTrue(root)
 
     branchnode = root[0][0][0][0]
+    tc.assertIsInstance(branchnode, sgf_reader.Tree_node)
     tc.assertIs(branchnode.parent, root[0][0][0])
     tc.assertEqual(len(branchnode), 2)
     tc.assertIs(branchnode.children()[0], branchnode[0])
