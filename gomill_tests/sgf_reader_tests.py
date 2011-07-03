@@ -98,7 +98,7 @@ def test_node(tc):
     sgf = sgf_reader.sgf_game_from_string(
         r"(;KM[6.5]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
     node0 = sgf.get_root_node()
-    node1 = sgf.get_main_sequence()[1]
+    node1 = sgf.get_main_sequence_light()[1]
     tc.assertIs(node0.has_property('KM'), True)
     tc.assertIs(node0.has_property('XX'), False)
     tc.assertIs(node1.has_property('KM'), False)
@@ -213,11 +213,7 @@ def test_node_setup_commands(tc):
 
 def test_sgf_game(tc):
     sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
-    root = sgf.get_root_node()
     nodes = sgf.get_main_sequence()
-    tc.assertEqual(len(nodes), 8)
-    # FIXME: find a better test?
-    tc.assertIs(root.props_by_id, nodes[0].props_by_id)
     tc.assertEqual(sgf.get_size(), 9)
     tc.assertEqual(sgf.get_komi(), 7.5)
     tc.assertIs(sgf.get_handicap(), None)
@@ -226,6 +222,7 @@ def test_sgf_game(tc):
     tc.assertEqual(sgf.get_winner(), 'w')
     tc.assertEqual(nodes[2].get('C'), "comment\non two lines")
     tc.assertEqual(nodes[4].get('C'), "Nonfinal comment")
+
 
 _setup_expected = """\
 9  .  .  .  .  .  .  .  .  .
@@ -239,13 +236,6 @@ _setup_expected = """\
 1  #  .  .  .  .  .  .  .  .
    A  B  C  D  E  F  G  H  J\
 """
-
-def test_get_setup_and_moves(tc):
-    sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
-    board, moves = sgf.get_setup_and_moves()
-    tc.assertDiagramEqual(ascii_boards.render_board(board), _setup_expected)
-    tc.assertEqual(moves,
-                   [('b', (2, 3)), ('w', (3, 4)), ('b', None), ('w', None)])
 
 def test_tree_view(tc):
     game = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
@@ -317,4 +307,34 @@ def test_get_main_sequence_below(tc):
     game2 = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
     tc.assertRaisesRegexp(ValueError, "node doesn't belong to this game",
                           game2.get_main_sequence_below, branchnode)
+
+def test_main_sequence(tc):
+    # FIXME: find a better test than property-map identity?
+    sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
+    root = sgf.get_root_node()
+
+    nodes = sgf.get_main_sequence_light()
+    tc.assertEqual(len(nodes), 8)
+    tc.assertIs(root.props_by_id, nodes[0].props_by_id)
+    with tc.assertRaises(AttributeError):
+        nodes[1].parent
+
+    tree_nodes = sgf.get_main_sequence()
+    tc.assertEqual(len(tree_nodes), 8)
+    tc.assertIs(root.props_by_id, tree_nodes[0].props_by_id)
+    tc.assertIs(tree_nodes[0], root)
+    tc.assertIs(tree_nodes[2].parent, tree_nodes[1])
+
+    tree_node = root
+    for node in nodes:
+        tc.assertIs(tree_node.props_by_id, node.props_by_id)
+        if tree_node:
+            tree_node = tree_node[0]
+
+def test_get_setup_and_moves(tc):
+    sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
+    board, moves = sgf.get_setup_and_moves()
+    tc.assertDiagramEqual(ascii_boards.render_board(board), _setup_expected)
+    tc.assertEqual(moves,
+                   [('b', (2, 3)), ('w', (3, 4)), ('b', None), ('w', None)])
 

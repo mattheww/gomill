@@ -533,20 +533,32 @@ class Sgf_game(object):
         return self.root
 
     def get_main_sequence(self):
-        """Return a list of Nodes representing the 'leftmost' variation.
+        """Return the 'leftmost' variation.
 
-        Note that these are plain Nodes, not Tree_nodes.
+        Returns a list of Tree_nodes, from the root to a leaf.
 
         """
-        size = self.size
+        node = self.root
+        result = [node]
+        while node:
+            node = node[0]
+            result.append(node)
+        return result
+
+    def get_main_sequence_below(self, node):
+        """Return the 'leftmost' variation below the specified node.
+
+        node -- Tree_node
+
+        Returns a list of Tree_nodes, from the first child of 'node' to a leaf.
+
+        """
+        if node.owner is not self:
+            raise ValueError("node doesn't belong to this game")
         result = []
-        tree = self.parsed_game
-        while True:
-            result.extend([Node(properties, size)
-                           for properties in tree.sequence])
-            if not tree.children:
-                break
-            tree = tree.children[0]
+        while node:
+            node = node[0]
+            result.append(node)
         return result
 
     def get_sequence_above(self, node):
@@ -566,20 +578,25 @@ class Sgf_game(object):
         result.reverse()
         return result
 
-    def get_main_sequence_below(self, node):
-        """Return the 'leftmost' variation below the specified node.
+    def get_main_sequence_light(self):
+        """Return the 'leftmost' variation, without building the tree.
 
-        node -- Tree_node
+        Returns a list of Nodes (not Tree_nodes), from the root to a leaf.
 
-        Returns a list of Tree_nodes, from the first child of 'node' to a leaf.
+        If you know the game has no variations, or you're only interested in
+        the 'leftmost' variation, you can use this function to save a little
+        time and memory
 
         """
-        if node.owner is not self:
-            raise ValueError("node doesn't belong to this game")
+        size = self.size
         result = []
-        while node:
-            node = node[0]
-            result.append(node)
+        tree = self.parsed_game
+        while True:
+            result.extend([Node(properties, size)
+                           for properties in tree.sequence])
+            if not tree.children:
+                break
+            tree = tree.children[0]
         return result
 
     def get_size(self):
@@ -650,6 +667,8 @@ class Sgf_game(object):
         The board represents the position described by AB and/or AW properties
         in the root node.
 
+        The moves are from the game's 'leftmost' variation.
+
         Raises ValueError if this position isn't legal.
 
         Raises ValueError if there are any AB/AW/AE properties after the root
@@ -666,7 +685,7 @@ class Sgf_game(object):
             if not is_legal:
                 raise ValueError("setup position not legal")
         moves = []
-        for node in self.get_main_sequence()[1:]:
+        for node in self.get_main_sequence_light()[1:]:
             if node.has_setup_commands():
                 raise ValueError("setup commands after the root node")
             colour, raw = node.get_raw_move()
