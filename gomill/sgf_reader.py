@@ -575,7 +575,7 @@ class Sgf_game(object):
 
     """
     def __init__(self, parsed_game):
-        self.parsed_game = parsed_game
+        self._parsed_game = parsed_game
         try:
             size = int(parsed_game.sequence[0]['SZ'][0])
         except KeyError:
@@ -645,7 +645,7 @@ class Sgf_game(object):
         """
         size = self.size
         result = []
-        tree = self.parsed_game
+        tree = self._parsed_game
         while True:
             result.extend([Node(properties, size)
                            for properties in tree.sequence])
