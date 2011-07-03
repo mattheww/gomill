@@ -79,7 +79,7 @@ def test_interpret_compose(tc):
 def test_text_values(tc):
     def check(s):
         sgf = sgf_reader.sgf_game_from_string(s)
-        return sgf.get_root_node().get("C")
+        return sgf.get_root().get("C")
     # Round-trip check of Text values through tokeniser, parser, and
     # value_as_text().
     tc.assertEqual(check(r"(;C[abc]KO[])"), r"abc")
@@ -97,7 +97,7 @@ def test_text_values(tc):
 def test_node(tc):
     sgf = sgf_reader.sgf_game_from_string(
         r"(;KM[6.5]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
-    node0 = sgf.get_root_node()
+    node0 = sgf.get_root()
     node1 = list(sgf.main_sequence_iter())[1]
     tc.assertIs(node0.has_property('KM'), True)
     tc.assertIs(node0.has_property('XX'), False)
@@ -114,7 +114,7 @@ def test_node(tc):
 
 def test_property_combination(tc):
     sgf = sgf_reader.sgf_game_from_string("(;XX[1]YY[2]XX[3]YY[4])")
-    node0 = sgf.get_root_node()
+    node0 = sgf.get_root()
     tc.assertEqual(node0.get_list("XX"), ["1", "3"])
     tc.assertEqual(node0.get_list("YY"), ["2", "4"])
 
@@ -129,7 +129,7 @@ def test_node_get(tc):
     B[dg]KO[]AR[ab:cd][de:fg]FG[515:first move]
     LB[ac:lbl][bc:lbl2])
     """))
-    root = sgf.get_root_node()
+    root = sgf.get_root()
     node1 = list(sgf.main_sequence_iter())[1]
     tc.assertRaises(KeyError, root.get, 'XX')
     tc.assertEqual(root.get('C'), "123:)\nabc")          # Text
@@ -174,7 +174,7 @@ on two lines]
 
 def test_node_string(tc):
     sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
-    node = sgf.get_root_node()
+    node = sgf.get_root()
     tc.assertMultiLineEqual(str(node), dedent("""\
     AB[ai][bh][ee]
     AP[testsuite:0]
@@ -203,7 +203,7 @@ def test_node_get_move(tc):
 def test_node_setup_commands(tc):
     sgf = sgf_reader.sgf_game_from_string(
         r"(;KM[6.5]SZ[9]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
-    node0 = sgf.get_root_node()
+    node0 = sgf.get_root()
     node1 = list(sgf.main_sequence_iter())[1]
     tc.assertIs(node0.has_setup_commands(), True)
     tc.assertIs(node1.has_setup_commands(), False)
@@ -240,7 +240,7 @@ _setup_expected = """\
 
 def test_tree_view(tc):
     game = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
-    root = game.get_root_node()
+    root = game.get_root()
     tc.assertIsInstance(root, sgf_reader.Tree_node)
     tc.assertIs(root.parent, None)
     tc.assertEqual(len(root.children()), 1)
@@ -272,12 +272,12 @@ def test_tree_view(tc):
 
     # check nothing breaks when first retrieval is by index
     game2 = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
-    root2 = game2.get_root_node()
+    root2 = game2.get_root()
     tc.assertIs(root2[0], root2.children()[0])
 
 def test_get_sequence_above(tc):
     game = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
-    root = game.get_root_node()
+    root = game.get_root()
     branchnode = root[0][0][0][0]
     leaf = branchnode[1][0][1]
     tc.assertEqual(game.get_sequence_above(root), [])
@@ -295,7 +295,7 @@ def test_get_sequence_above(tc):
 
 def test_get_main_sequence_below(tc):
     game = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
-    root = game.get_root_node()
+    root = game.get_root()
     branchnode = root[0][0][0][0]
     leaf = branchnode[1][0][1]
     tc.assertEqual(game.get_main_sequence_below(leaf), [])
@@ -314,7 +314,7 @@ def test_get_main_sequence_below(tc):
 def test_main_sequence(tc):
     # FIXME: find a better test than property-map identity?
     sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
-    root = sgf.get_root_node()
+    root = sgf.get_root()
 
     nodes = list(sgf.main_sequence_iter())
     tc.assertEqual(len(nodes), 8)
@@ -343,7 +343,7 @@ def test_get_setup_and_moves(tc):
 
 def test_find(tc):
     sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
-    root = sgf.get_root_node()
+    root = sgf.get_root()
     branchnode = root[0][0][0][0]
     leaf = branchnode[1][0][1]
 

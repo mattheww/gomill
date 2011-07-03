@@ -586,7 +586,7 @@ class Sgf_game(object):
         self.size = size
         self.root = Root_tree_node(self, parsed_game, size)
 
-    def get_root_node(self):
+    def get_root(self):
         """Return the root node (as a Tree_node)."""
         return self.root
 
