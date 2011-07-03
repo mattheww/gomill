@@ -2,6 +2,8 @@
 
 This is intended for use with SGF FF[4]; see http://www.red-bean.com/sgf/
 
+Nothing in this module is Go-specific.
+
 """
 
 import re
