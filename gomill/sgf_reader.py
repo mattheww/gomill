@@ -4,76 +4,11 @@ This is intended for use with SGF FF[4]; see http://www.red-bean.com/sgf/
 
 """
 
-import re
-import string
-
 from gomill import boards
 from gomill import sgf_parser
 
 
-_newline_re = re.compile(r"\n\r|\r\n|\n|\r")
-_whitespace_table = string.maketrans("\t\f\v", "   ")
-_chunk_re = re.compile(r" [^\n\\]+ | [\n\\] ", re.VERBOSE)
-
-def value_as_text(s):
-    """Convert a raw Text value to the string it represents.
-
-    Returns an 8-bit string, in the encoding of the original SGF string.
-
-    This interprets escape characters, and does whitespace mapping:
-
-    - linebreak (LF, CR, LFCR, or CRLF) is converted to \n
-    - any other whitespace character is replaced by a space
-    - backslash followed by linebreak disappears
-    - other backslashes disappear (but double-backslash -> single-backslash)
-
-    """
-    s = _newline_re.sub("\n", s)
-    s = s.translate(_whitespace_table)
-    is_escaped = False
-    result = []
-    for chunk in _chunk_re.findall(s):
-        if is_escaped:
-            if chunk != "\n":
-                result.append(chunk)
-            is_escaped = False
-        elif chunk == "\\":
-            is_escaped = True
-        else:
-            result.append(chunk)
-    return "".join(result)
-
-def value_as_simpletext(s):
-    """Convert a raw SimpleText value to the string it represents.
-
-    Returns an 8-bit string, in the encoding of the original SGF string.
-
-    This interprets escape characters, and does whitespace mapping:
-
-    - backslash followed by linebreak (LF, CR, LFCR, or CRLF) disappears
-    - any other linebreak is replaced by a space
-    - any other whitespace character is replaced by a space
-    - other backslashes disappear (but double-backslash -> single-backslash)
-
-    """
-    s = _newline_re.sub("\n", s)
-    s = s.translate(_whitespace_table)
-    is_escaped = False
-    result = []
-    for chunk in _chunk_re.findall(s):
-        if is_escaped:
-            if chunk != "\n":
-                result.append(chunk)
-            is_escaped = False
-        elif chunk == "\\":
-            is_escaped = True
-        elif chunk == "\n":
-            result.append(" ")
-        else:
-            result.append(chunk)
-    return "".join(result)
-
-def value_as_none(s):
+def interpret_none(s):
     """Convert a raw None value to a boolean.
 
     That is, unconditionally returns True.
@@ -81,11 +16,11 @@ def value_as_none(s):
     """
     return True
 
-def value_as_number(s):
+def interpret_number(s):
     """Convert a raw Number value to the integer it represents."""
     return int(s)
 
-def value_as_real(s):
+def interpret_real(s):
     """Convert a raw Real value to the float it represents.
 
     This is more lenient than the SGF spec: it accepts strings accepted as a
@@ -96,7 +31,7 @@ def value_as_real(s):
     # here.
     return float(s)
 
-def value_as_double(s):
+def interpret_double(s):
     """Convert a raw Double value to an integer.
 
     Returns 1 or 2 (unknown values are treated as 1).
@@ -107,16 +42,36 @@ def value_as_double(s):
     else:
         return 1
 
-def value_as_colour(s):
+def interpret_colour(s):
     """Convert a raw Color value to a gomill colour.
 
-    Returns 'b' or 'w'
+    Returns 'b' or 'w'.
 
     """
     colour = s.lower()
     if colour not in ('b', 'w'):
         raise ValueError
     return colour
+
+def interpret_simpletext(s):
+    """Convert a raw SimpleText value to a string.
+
+    See sgf_parser.simpletext_value() for details.
+
+    Returns an 8-bit string.
+
+    """
+    return sgf_parser.simpletext_value(s)
+
+def interpret_text(s):
+    """Convert a raw Text value to a string.
+
+    See sgf_parser.text_value() for details.
+
+    Returns an 8-bit string.
+
+    """
+    return sgf_parser.text_value(s)
 
 def interpret_point(s, size):
     """Convert a raw SGF Point, Move, or Stone value to coordinates.
@@ -178,27 +133,6 @@ def interpret_compressed_point_list(values, size):
             result.add(pt)
     return result
 
-_split_composed_re = re.compile(
-    r"( (?: [^\\:] | \\. )* ) :",
-    re.VERBOSE | re.DOTALL)
-
-def interpret_compose(s):
-    """Split the parts of an SGF Compose value.
-
-    If the value is a well-formed Compose, returns a pair of strings.
-
-    If it isn't (ie, there is no delimiter), returns the complete string and
-    None.
-
-    Interprets backslash escapes in order to find the delimiter, but leaves
-    backslash escapes unchanged in the returned strings.
-
-    """
-    m = _split_composed_re.match(s)
-    if not m:
-        return s, None
-    return m.group(1), s[m.end():]
-
 def interpret_AP(s):
     """Interpret an AP (application) property value.
 
@@ -206,10 +140,10 @@ def interpret_AP(s):
     is None)
 
     """
-    application, version = interpret_compose(s)
+    application, version = sgf_parser.parse_compose(s)
     if version is not None:
-        version = value_as_simpletext(version)
-    return value_as_simpletext(application), version
+        version = interpret_simpletext(version)
+    return interpret_simpletext(application), version
 
 def interpret_ARLN(values, size):
     """Interpret an AR (arrow) or LN (line) property value.
@@ -219,7 +153,7 @@ def interpret_ARLN(values, size):
     """
     result = []
     for s in values:
-        p1, p2 = interpret_compose(s)
+        p1, p2 = sgf_parser.parse_compose(s)
         result.append((interpret_point(p1, size), interpret_point(p2, size)))
     return result
 
@@ -233,8 +167,8 @@ def interpret_FG(s):
     """
     if s == "":
         return None
-    flags, name = interpret_compose(s)
-    return int(flags), value_as_simpletext(name)
+    flags, name = sgf_parser.parse_compose(s)
+    return int(flags), interpret_simpletext(name)
 
 def interpret_LB(values, size):
     """Interpret an LB (label) property value.
@@ -244,9 +178,9 @@ def interpret_LB(values, size):
     """
     result = []
     for s in values:
-        point, label = interpret_compose(s)
+        point, label = sgf_parser.parse_compose(s)
         result.append((interpret_point(point, size),
-                       value_as_simpletext(label)))
+                       interpret_simpletext(label)))
     return result
 
 class _Property(object):
@@ -261,73 +195,73 @@ LIST = ELIST = True
 _properties = {
   'AB' : P(interpret_compressed_point_list, LIST),  # setup      Add Black
   'AE' : P(interpret_compressed_point_list, LIST),  # setup      Add Empty
-  'AN' : P(value_as_simpletext),                    # game-info  Annotation
+  'AN' : P(interpret_simpletext),                   # game-info  Annotation
   'AP' : P(interpret_AP),                           # root       Application
   'AR' : P(interpret_ARLN, LIST),                   # -          Arrow
   'AW' : P(interpret_compressed_point_list, LIST),  # setup      Add White
   'B'  : P(interpret_point),                        # move       Black
-  'BL' : P(value_as_real),                          # move       Black time left
-  'BM' : P(value_as_double),                        # move       Bad move
-  'BR' : P(value_as_simpletext),                    # game-info  Black rank
-  'BT' : P(value_as_simpletext),                    # game-info  Black team
-  'C'  : P(value_as_text),                          # -          Comment
-  'CA' : P(value_as_simpletext),                    # root       Charset
-  'CP' : P(value_as_simpletext),                    # game-info  Copyright
+  'BL' : P(interpret_real),                         # move       Black time left
+  'BM' : P(interpret_double),                       # move       Bad move
+  'BR' : P(interpret_simpletext),                   # game-info  Black rank
+  'BT' : P(interpret_simpletext),                   # game-info  Black team
+  'C'  : P(interpret_text),                         # -          Comment
+  'CA' : P(interpret_simpletext),                   # root       Charset
+  'CP' : P(interpret_simpletext),                   # game-info  Copyright
   'CR' : P(interpret_compressed_point_list, LIST),  # -          Circle
   'DD' : P(interpret_compressed_point_list, ELIST), # - (inherit)Dim points
-  'DM' : P(value_as_double),                        # -          Even position
-  'DO' : P(value_as_none),                          # move       Doubtful
-  'DT' : P(value_as_simpletext),                    # game-info  Date
-  'EV' : P(value_as_simpletext),                    # game-info  Event
-  'FF' : P(value_as_number),                        # root       Fileformat
+  'DM' : P(interpret_double),                       # -          Even position
+  'DO' : P(interpret_none),                         # move       Doubtful
+  'DT' : P(interpret_simpletext),                   # game-info  Date
+  'EV' : P(interpret_simpletext),                   # game-info  Event
+  'FF' : P(interpret_number),                       # root       Fileformat
   'FG' : P(interpret_FG),                           # -          Figure
-  'GB' : P(value_as_double),                        # -          Good for Black
-  'GC' : P(value_as_text),                          # game-info  Game comment
-  'GM' : P(value_as_number),                        # root       Game
-  'GN' : P(value_as_simpletext),                    # game-info  Game name
-  'GW' : P(value_as_double),                        # -          Good for White
-  'HA' : P(value_as_number),                        # game-info  Handicap
-  'HO' : P(value_as_double),                        # -          Hotspot
-  'IT' : P(value_as_none),                          # move       Interesting
-  'KM' : P(value_as_real),                          # game-info  Komi
-  'KO' : P(value_as_none),                          # move       Ko
+  'GB' : P(interpret_double),                       # -          Good for Black
+  'GC' : P(interpret_text),                         # game-info  Game comment
+  'GM' : P(interpret_number),                       # root       Game
+  'GN' : P(interpret_simpletext),                   # game-info  Game name
+  'GW' : P(interpret_double),                       # -          Good for White
+  'HA' : P(interpret_number),                       # game-info  Handicap
+  'HO' : P(interpret_double),                       # -          Hotspot
+  'IT' : P(interpret_none),                         # move       Interesting
+  'KM' : P(interpret_real),                         # game-info  Komi
+  'KO' : P(interpret_none),                         # move       Ko
   'LB' : P(interpret_LB, LIST),                     # -          Label
   'LN' : P(interpret_ARLN, LIST),                   # -          Line
   'MA' : P(interpret_compressed_point_list, LIST),  # -          Mark
-  'MN' : P(value_as_number),                        # move       set move number
-  'N'  : P(value_as_simpletext),                    # -          Nodename
-  'OB' : P(value_as_number),                        # move       OtStones Black
-  'ON' : P(value_as_simpletext),                    # game-info  Opening
-  'OT' : P(value_as_simpletext),                    # game-info  Overtime
-  'OW' : P(value_as_number),                        # move       OtStones White
-  'PB' : P(value_as_simpletext),                    # game-info  Player Black
-  'PC' : P(value_as_simpletext),                    # game-info  Place
-  'PL' : P(value_as_colour),                        # setup      Player to play
-  'PM' : P(value_as_number),                        # - (inherit)Print move mode
-  'PW' : P(value_as_simpletext),                    # game-info  Player White
-  'RE' : P(value_as_simpletext),                    # game-info  Result
-  'RO' : P(value_as_simpletext),                    # game-info  Round
-  'RU' : P(value_as_simpletext),                    # game-info  Rules
+  'MN' : P(interpret_number),                       # move       set move number
+  'N'  : P(interpret_simpletext),                   # -          Nodename
+  'OB' : P(interpret_number),                       # move       OtStones Black
+  'ON' : P(interpret_simpletext),                   # game-info  Opening
+  'OT' : P(interpret_simpletext),                   # game-info  Overtime
+  'OW' : P(interpret_number),                       # move       OtStones White
+  'PB' : P(interpret_simpletext),                   # game-info  Player Black
+  'PC' : P(interpret_simpletext),                   # game-info  Place
+  'PL' : P(interpret_colour),                       # setup      Player to play
+  'PM' : P(interpret_number),                       # - (inherit)Print move mode
+  'PW' : P(interpret_simpletext),                   # game-info  Player White
+  'RE' : P(interpret_simpletext),                   # game-info  Result
+  'RO' : P(interpret_simpletext),                   # game-info  Round
+  'RU' : P(interpret_simpletext),                   # game-info  Rules
   'SL' : P(interpret_compressed_point_list, LIST),  # -          Selected
-  'SO' : P(value_as_simpletext),                    # game-info  Source
+  'SO' : P(interpret_simpletext),                   # game-info  Source
   'SQ' : P(interpret_compressed_point_list, LIST),  # -          Square
-  'ST' : P(value_as_number),                        # root       Style
-  'SZ' : P(value_as_number),                        # root       Size
+  'ST' : P(interpret_number),                       # root       Style
+  'SZ' : P(interpret_number),                       # root       Size
   'TB' : P(interpret_compressed_point_list, ELIST), # -          Territory Black
-  'TE' : P(value_as_double),                        # move       Tesuji
-  'TM' : P(value_as_real),                          # game-info  Timelimit
+  'TE' : P(interpret_double),                       # move       Tesuji
+  'TM' : P(interpret_real),                         # game-info  Timelimit
   'TR' : P(interpret_compressed_point_list, LIST),  # -          Triangle
   'TW' : P(interpret_compressed_point_list, ELIST), # -          Territory White
-  'UC' : P(value_as_double),                        # -          Unclear pos
-  'US' : P(value_as_simpletext),                    # game-info  User
-  'V'  : P(value_as_real),                          # -          Value
+  'UC' : P(interpret_double),                       # -          Unclear pos
+  'US' : P(interpret_simpletext),                   # game-info  User
+  'V'  : P(interpret_real),                         # -          Value
   'VW' : P(interpret_compressed_point_list, ELIST), # - (inherit)View
   'W'  : P(interpret_point),                        # move       White
-  'WL' : P(value_as_real),                          # move       White time left
-  'WR' : P(value_as_simpletext),                    # game-info  White rank
-  'WT' : P(value_as_simpletext),                    # game-info  White team
+  'WL' : P(interpret_real),                         # move       White time left
+  'WR' : P(interpret_simpletext),                   # game-info  White rank
+  'WT' : P(interpret_simpletext),                   # game-info  White team
 }
-_private_property = P(value_as_text)
+_private_property = P(interpret_text)
 del P, LIST, ELIST
 
 
@@ -386,12 +320,9 @@ class Node(object):
 
         Raises ValueError if it cannot interpret the value.
 
-        FIXME: rename these functions?
-
-        See the value_as... and interpret... functions above for details of how
-        values are represented as Python types. Note that in some cases these
-        functions accept values which are not strictly permitted by the
-        specification.
+        See the interpret... functions above for details of how values are
+        represented as Python types. Note that in some cases these functions
+        accept values which are not strictly permitted by the specification.
 
         FIXME: Doc what the known properties and their types are?
 

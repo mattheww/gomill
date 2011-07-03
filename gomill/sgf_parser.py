@@ -5,6 +5,8 @@ This is intended for use with SGF FF[4]; see http://www.red-bean.com/sgf/
 """
 
 import re
+import string
+
 
 _find_start_re = re.compile(r"\(\s*;")
 _tokenise_re = re.compile(r"""
@@ -199,3 +201,89 @@ def main_sequence_iter(game_tree):
         if not game_tree.children:
             break
         game_tree = game_tree.children[0]
+
+
+_split_compose_re = re.compile(
+    r"( (?: [^\\:] | \\. )* ) :",
+    re.VERBOSE | re.DOTALL)
+
+def parse_compose(s):
+    """Split the parts of an SGF Compose value.
+
+    If the value is a well-formed Compose, returns a pair of strings.
+
+    If it isn't (ie, there is no delimiter), returns the complete string and
+    None.
+
+    Interprets backslash escapes in order to find the delimiter, but leaves
+    backslash escapes unchanged in the returned strings.
+
+    """
+    m = _split_compose_re.match(s)
+    if not m:
+        return s, None
+    return m.group(1), s[m.end():]
+
+
+_newline_re = re.compile(r"\n\r|\r\n|\n|\r")
+_whitespace_table = string.maketrans("\t\f\v", "   ")
+_chunk_re = re.compile(r" [^\n\\]+ | [\n\\] ", re.VERBOSE)
+
+def simpletext_value(s):
+    """Convert a raw SimpleText property value to the string it represents.
+
+    Returns an 8-bit string, in the encoding of the original SGF string.
+
+    This interprets escape characters, and does whitespace mapping:
+
+    - backslash followed by linebreak (LF, CR, LFCR, or CRLF) disappears
+    - any other linebreak is replaced by a space
+    - any other whitespace character is replaced by a space
+    - other backslashes disappear (but double-backslash -> single-backslash)
+
+    """
+    s = _newline_re.sub("\n", s)
+    s = s.translate(_whitespace_table)
+    is_escaped = False
+    result = []
+    for chunk in _chunk_re.findall(s):
+        if is_escaped:
+            if chunk != "\n":
+                result.append(chunk)
+            is_escaped = False
+        elif chunk == "\\":
+            is_escaped = True
+        elif chunk == "\n":
+            result.append(" ")
+        else:
+            result.append(chunk)
+    return "".join(result)
+
+def text_value(s):
+    """Convert a raw Text property value to the string it represents.
+
+    Returns an 8-bit string, in the encoding of the original SGF string.
+
+    This interprets escape characters, and does whitespace mapping:
+
+    - linebreak (LF, CR, LFCR, or CRLF) is converted to \n
+    - any other whitespace character is replaced by a space
+    - backslash followed by linebreak disappears
+    - other backslashes disappear (but double-backslash -> single-backslash)
+
+    """
+    s = _newline_re.sub("\n", s)
+    s = s.translate(_whitespace_table)
+    is_escaped = False
+    result = []
+    for chunk in _chunk_re.findall(s):
+        if is_escaped:
+            if chunk != "\n":
+                result.append(chunk)
+            is_escaped = False
+        elif chunk == "\\":
+            is_escaped = True
+        else:
+            result.append(chunk)
+    return "".join(result)
+

@@ -186,3 +186,68 @@ def test_parser_properties(tc):
                    [{'XX': ['1', '3'], 'YY' : ['2', '4']}])
 
 
+
+def test_parse_compose(tc):
+    pc = sgf_parser.parse_compose
+    tc.assertEqual(pc("word"), ("word", None))
+    tc.assertEqual(pc("word:"), ("word", ""))
+    tc.assertEqual(pc("word:?"), ("word", "?"))
+    tc.assertEqual(pc("word:123"), ("word", "123"))
+    tc.assertEqual(pc("word:123:456"), ("word", "123:456"))
+    tc.assertEqual(pc(":123"), ("", "123"))
+    tc.assertEqual(pc(r"word\:more"), (r"word\:more", None))
+    tc.assertEqual(pc(r"word\:more:?"), (r"word\:more", "?"))
+    tc.assertEqual(pc(r"word\\:more:?"), ("word\\\\", "more:?"))
+    tc.assertEqual(pc(r"word\\\:more:?"), (r"word\\\:more", "?"))
+    tc.assertEqual(pc("word\\\nmore:123"), ("word\\\nmore", "123"))
+
+def test_text_value(tc):
+    text_value = sgf_parser.text_value
+    tc.assertEqual(text_value("abc "), "abc ")
+    tc.assertEqual(text_value("ab c"), "ab c")
+    tc.assertEqual(text_value("ab\tc"), "ab c")
+    tc.assertEqual(text_value("ab \tc"), "ab  c")
+    tc.assertEqual(text_value("ab\nc"), "ab\nc")
+    tc.assertEqual(text_value("ab\\\nc"), "abc")
+    tc.assertEqual(text_value("ab\\\\\nc"), "ab\\\nc")
+    tc.assertEqual(text_value("ab\xa0c"), "ab\xa0c")
+
+    tc.assertEqual(text_value("ab\rc"), "ab\nc")
+    tc.assertEqual(text_value("ab\r\nc"), "ab\nc")
+    tc.assertEqual(text_value("ab\n\rc"), "ab\nc")
+    tc.assertEqual(text_value("ab\r\n\r\nc"), "ab\n\nc")
+    tc.assertEqual(text_value("ab\r\n\r\n\rc"), "ab\n\n\nc")
+    tc.assertEqual(text_value("ab\\\r\nc"), "abc")
+    tc.assertEqual(text_value("ab\\\n\nc"), "ab\nc")
+
+    tc.assertEqual(text_value("ab\\\tc"), "ab c")
+
+    # These can't actually appear as SGF PropValues; anything sane will do
+    tc.assertEqual(text_value("abc\\"), "abc")
+    tc.assertEqual(text_value("abc]"), "abc]")
+
+def test_simpletext_value(tc):
+    simpletext_value = sgf_parser.simpletext_value
+    tc.assertEqual(simpletext_value("abc "), "abc ")
+    tc.assertEqual(simpletext_value("ab c"), "ab c")
+    tc.assertEqual(simpletext_value("ab\tc"), "ab c")
+    tc.assertEqual(simpletext_value("ab \tc"), "ab  c")
+    tc.assertEqual(simpletext_value("ab\nc"), "ab c")
+    tc.assertEqual(simpletext_value("ab\\\nc"), "abc")
+    tc.assertEqual(simpletext_value("ab\\\\\nc"), "ab\\ c")
+    tc.assertEqual(simpletext_value("ab\xa0c"), "ab\xa0c")
+
+    tc.assertEqual(simpletext_value("ab\rc"), "ab c")
+    tc.assertEqual(simpletext_value("ab\r\nc"), "ab c")
+    tc.assertEqual(simpletext_value("ab\n\rc"), "ab c")
+    tc.assertEqual(simpletext_value("ab\r\n\r\nc"), "ab  c")
+    tc.assertEqual(simpletext_value("ab\r\n\r\n\rc"), "ab   c")
+    tc.assertEqual(simpletext_value("ab\\\r\nc"), "abc")
+    tc.assertEqual(simpletext_value("ab\\\n\nc"), "ab c")
+
+    tc.assertEqual(simpletext_value("ab\\\tc"), "ab c")
+
+    # These can't actually appear as SGF PropValues; anything sane will do
+    tc.assertEqual(simpletext_value("abc\\"), "abc")
+    tc.assertEqual(simpletext_value("abc]"), "abc]")
+

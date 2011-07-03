@@ -11,89 +11,6 @@ def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
-def test_value_as_text(tc):
-    value_as_text = sgf_reader.value_as_text
-    tc.assertEqual(value_as_text("abc "), "abc ")
-    tc.assertEqual(value_as_text("ab c"), "ab c")
-    tc.assertEqual(value_as_text("ab\tc"), "ab c")
-    tc.assertEqual(value_as_text("ab \tc"), "ab  c")
-    tc.assertEqual(value_as_text("ab\nc"), "ab\nc")
-    tc.assertEqual(value_as_text("ab\\\nc"), "abc")
-    tc.assertEqual(value_as_text("ab\\\\\nc"), "ab\\\nc")
-    tc.assertEqual(value_as_text("ab\xa0c"), "ab\xa0c")
-
-    tc.assertEqual(value_as_text("ab\rc"), "ab\nc")
-    tc.assertEqual(value_as_text("ab\r\nc"), "ab\nc")
-    tc.assertEqual(value_as_text("ab\n\rc"), "ab\nc")
-    tc.assertEqual(value_as_text("ab\r\n\r\nc"), "ab\n\nc")
-    tc.assertEqual(value_as_text("ab\r\n\r\n\rc"), "ab\n\n\nc")
-    tc.assertEqual(value_as_text("ab\\\r\nc"), "abc")
-    tc.assertEqual(value_as_text("ab\\\n\nc"), "ab\nc")
-
-    tc.assertEqual(value_as_text("ab\\\tc"), "ab c")
-
-    # These can't actually appear as SGF PropValues; anything sane will do
-    tc.assertEqual(value_as_text("abc\\"), "abc")
-    tc.assertEqual(value_as_text("abc]"), "abc]")
-
-def test_value_as_simpletext(tc):
-    value_as_simpletext = sgf_reader.value_as_simpletext
-    tc.assertEqual(value_as_simpletext("abc "), "abc ")
-    tc.assertEqual(value_as_simpletext("ab c"), "ab c")
-    tc.assertEqual(value_as_simpletext("ab\tc"), "ab c")
-    tc.assertEqual(value_as_simpletext("ab \tc"), "ab  c")
-    tc.assertEqual(value_as_simpletext("ab\nc"), "ab c")
-    tc.assertEqual(value_as_simpletext("ab\\\nc"), "abc")
-    tc.assertEqual(value_as_simpletext("ab\\\\\nc"), "ab\\ c")
-    tc.assertEqual(value_as_simpletext("ab\xa0c"), "ab\xa0c")
-
-    tc.assertEqual(value_as_simpletext("ab\rc"), "ab c")
-    tc.assertEqual(value_as_simpletext("ab\r\nc"), "ab c")
-    tc.assertEqual(value_as_simpletext("ab\n\rc"), "ab c")
-    tc.assertEqual(value_as_simpletext("ab\r\n\r\nc"), "ab  c")
-    tc.assertEqual(value_as_simpletext("ab\r\n\r\n\rc"), "ab   c")
-    tc.assertEqual(value_as_simpletext("ab\\\r\nc"), "abc")
-    tc.assertEqual(value_as_simpletext("ab\\\n\nc"), "ab c")
-
-    tc.assertEqual(value_as_simpletext("ab\\\tc"), "ab c")
-
-    # These can't actually appear as SGF PropValues; anything sane will do
-    tc.assertEqual(value_as_simpletext("abc\\"), "abc")
-    tc.assertEqual(value_as_simpletext("abc]"), "abc]")
-
-def test_interpret_compose(tc):
-    ic = sgf_reader.interpret_compose
-    tc.assertEqual(ic("word"), ("word", None))
-    tc.assertEqual(ic("word:"), ("word", ""))
-    tc.assertEqual(ic("word:?"), ("word", "?"))
-    tc.assertEqual(ic("word:123"), ("word", "123"))
-    tc.assertEqual(ic("word:123:456"), ("word", "123:456"))
-    tc.assertEqual(ic(":123"), ("", "123"))
-    tc.assertEqual(ic(r"word\:more"), (r"word\:more", None))
-    tc.assertEqual(ic(r"word\:more:?"), (r"word\:more", "?"))
-    tc.assertEqual(ic(r"word\\:more:?"), ("word\\\\", "more:?"))
-    tc.assertEqual(ic(r"word\\\:more:?"), (r"word\\\:more", "?"))
-    tc.assertEqual(ic("word\\\nmore:123"), ("word\\\nmore", "123"))
-
-
-def test_text_values(tc):
-    def check(s):
-        sgf = sgf_reader.sgf_game_from_string(s)
-        return sgf.get_root().get("C")
-    # Round-trip check of Text values through tokeniser, parser, and
-    # value_as_text().
-    tc.assertEqual(check(r"(;C[abc]KO[])"), r"abc")
-    tc.assertEqual(check(r"(;C[a\\bc]KO[])"), r"a\bc")
-    tc.assertEqual(check(r"(;C[a\\bc\]KO[])"), r"a\bc]KO[")
-    tc.assertEqual(check(r"(;C[abc\\]KO[])"), r"abc" + "\\")
-    tc.assertEqual(check(r"(;C[abc\\\]KO[])"), r"abc\]KO[")
-    tc.assertEqual(check(r"(;C[abc\\\\]KO[])"), r"abc" + "\\\\")
-    tc.assertEqual(check(r"(;C[abc\\\\\]KO[])"), r"abc\\]KO[")
-    tc.assertEqual(check(r"(;C[xxx :\) yyy]KO[])"), r"xxx :) yyy")
-    tc.assertEqual(check("(;C[ab\\\nc])"), "abc")
-    tc.assertEqual(check("(;C[ab\nc])"), "ab\nc")
-
-
 def test_node(tc):
     sgf = sgf_reader.sgf_game_from_string(
         r"(;KM[6.5]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
@@ -149,6 +66,23 @@ def test_node_get(tc):
     tc.assertEqual(node1.get('FG'), (515, "first move")) # Figure
     tc.assertEqual(node1.get('LB'),
                    [((6, 0), "lbl"), ((6, 1), "lbl2")])  # Label
+
+def test_text_values(tc):
+    def check(s):
+        sgf = sgf_reader.sgf_game_from_string(s)
+        return sgf.get_root().get("C")
+    # Round-trip check of Text values through tokeniser, parser, and
+    # text_value().
+    tc.assertEqual(check(r"(;C[abc]KO[])"), r"abc")
+    tc.assertEqual(check(r"(;C[a\\bc]KO[])"), r"a\bc")
+    tc.assertEqual(check(r"(;C[a\\bc\]KO[])"), r"a\bc]KO[")
+    tc.assertEqual(check(r"(;C[abc\\]KO[])"), r"abc" + "\\")
+    tc.assertEqual(check(r"(;C[abc\\\]KO[])"), r"abc\]KO[")
+    tc.assertEqual(check(r"(;C[abc\\\\]KO[])"), r"abc" + "\\\\")
+    tc.assertEqual(check(r"(;C[abc\\\\\]KO[])"), r"abc\\]KO[")
+    tc.assertEqual(check(r"(;C[xxx :\) yyy]KO[])"), r"xxx :) yyy")
+    tc.assertEqual(check("(;C[ab\\\nc])"), "abc")
+    tc.assertEqual(check("(;C[ab\nc])"), "ab\nc")
 
 
 SAMPLE_SGF = """\
