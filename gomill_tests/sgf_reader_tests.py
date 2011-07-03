@@ -257,6 +257,7 @@ def test_tree_view(tc):
     tc.assertIs(branchnode.children()[1], branchnode[1])
     tc.assertIsNot(branchnode.children(), branchnode.children())
     tc.assertIs(branchnode[1], branchnode[-1])
+    tc.assertEqual(branchnode[:1], [branchnode[0]])
     tc.assertEqual([node for node in branchnode], branchnode.children())
     with tc.assertRaises(IndexError):
         branchnode[2]

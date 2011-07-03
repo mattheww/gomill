@@ -476,8 +476,9 @@ class Tree_node(Node):
 
     Do not instantiate directly; retrieve from an Sgf_game or another node.
 
-    Tree_nodes can be indexed and iterated over like lists. A node with no
-    children is treated as having truth value false.
+    A Tree_node is a list-like container of its children: it can be indexed,
+    sliced, and iterated over like a list. A node with no children is treated
+    as having truth value false.
 
     Public attributes (treat as read-only):
       owner  -- the node's Sgf_game
