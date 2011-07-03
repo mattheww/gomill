@@ -404,7 +404,15 @@ class Node(object):
             return interpreter(raw)
 
     def get_raw_move(self):
-        """FIXME"""
+        """Return the raw value of the move from a node.
+
+        Returns a pair (colour, raw value)
+
+        colour is 'b' or 'w'.
+
+        Returns None, None if the node contains no B or W property.
+
+        """
         values = self.props_by_id.get("B")
         if values is not None:
             colour = "b"
