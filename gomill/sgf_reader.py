@@ -515,6 +515,38 @@ class Tree_node(Node):
     def __getitem__(self, key):
         return self.children()[key]
 
+    def find(self, identifier):
+        """Find the nearest ancestor-or-self containing the specified property.
+
+        Returns a Tree_node, or None if there is no such node.
+
+        """
+        node = self
+        while node is not None:
+            if node.has_property(identifier):
+                return node
+            node = node.parent
+        return None
+
+    def find_property(self, identifier):
+        """Return the value of a property, defined at this node or an ancestor.
+
+        This is intended for use with properties of type 'game-info', and with
+        properties with the 'inherit' attribute.
+
+        This returns the interpreted value, in the same way as get().
+
+        It searches up the tree, in the same way as find().
+
+        Raises KeyError if no node defining the property is found.
+
+        """
+        node = self.find(identifier)
+        if node is None:
+            raise KeyError
+        return node.get(identifier)
+
+
 class Sgf_game(object):
     """An SGF game.
 

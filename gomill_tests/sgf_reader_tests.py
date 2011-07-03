@@ -159,12 +159,12 @@ on two lines];B[];W[tt]C[Final comment])
 
 SAMPLE_SGF_VAR = """\
 (;AP[testsuite:0]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
-PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]
+PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]VW[]
 ;B[dg]
 ;W[ef]C[comment
 on two lines]
 ;B[]
-;C[Nonfinal comment]
+;C[Nonfinal comment]VW[aa:bb]
 (;B[ia];W[ib];B[ic])
 (;B[ib];W[ic]
   (;B[id])
@@ -338,4 +338,30 @@ def test_get_setup_and_moves(tc):
     tc.assertDiagramEqual(ascii_boards.render_board(board), _setup_expected)
     tc.assertEqual(moves,
                    [('b', (2, 3)), ('w', (3, 4)), ('b', None), ('w', None)])
+
+def test_find(tc):
+    sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
+    root = sgf.get_root_node()
+    branchnode = root[0][0][0][0]
+    leaf = branchnode[1][0][1]
+
+    tc.assertEqual(root.get("VW"), set())
+    tc.assertIs(root.find("VW"), root)
+    tc.assertRaises(KeyError, root[0].get, "VW")
+    tc.assertEqual(root[0].find_property("VW"), set())
+    tc.assertIs(root[0].find("VW"), root)
+
+    tc.assertEqual(branchnode.get("VW"),
+                   set([(7, 0), (7, 1), (8, 0), (8, 1)]))
+    tc.assertIs(branchnode.find("VW"), branchnode)
+    tc.assertEqual(branchnode.find_property("VW"),
+                   set([(7, 0), (7, 1), (8, 0), (8, 1)]))
+
+    tc.assertRaises(KeyError, leaf.get, "VW")
+    tc.assertIs(leaf.find("VW"), branchnode)
+    tc.assertEqual(leaf.find_property("VW"),
+                   set([(7, 0), (7, 1), (8, 0), (8, 1)]))
+
+    tc.assertIs(leaf.find("XX"), None)
+    tc.assertRaises(KeyError, leaf.find_property, "XX")
 
