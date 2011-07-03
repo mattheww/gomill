@@ -478,11 +478,13 @@ class Tree_node(Node):
     children is treated as having truth value false.
 
     Public attributes (treat as read-only):
-      owner -- the node's Sgf_game
+      owner  -- the node's Sgf_game
+      parent -- the nodes's parent Tree_node (None for the root node)
 
     """
-    def __init__(self, owner, game_tree, index, size):
+    def __init__(self, owner, parent, game_tree, index, size):
         self.owner = owner
+        self.parent = parent
         self.game_tree = game_tree
         self.index = index
         self._children = None
@@ -498,10 +500,10 @@ class Tree_node(Node):
         if self._children is None:
             if self.index < len(self.game_tree.sequence) - 1:
                 self._children = [Tree_node(
-                    self.owner, self.game_tree, self.index + 1, self.size)]
+                    self.owner, self, self.game_tree, self.index+1, self.size)]
             else:
                 self._children = [
-                    Tree_node(self.owner, child_tree, 0, self.size)
+                    Tree_node(self.owner, self, child_tree, 0, self.size)
                     for child_tree in self.game_tree.children]
         return self._children[:]
 
@@ -524,7 +526,7 @@ class Sgf_game(object):
         except KeyError:
             size = 19
         self.size = size
-        self.root = Tree_node(self, parsed_game, 0, size)
+        self.root = Tree_node(self, None, parsed_game, 0, size)
 
     def get_root_node(self):
         """Return the root node (as a Tree_node)."""

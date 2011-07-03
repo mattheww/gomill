@@ -250,6 +250,7 @@ def test_get_setup_and_moves(tc):
 def test_tree_view(tc):
     game = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
     root = game.get_root_node()
+    tc.assertIs(root.parent, None)
     tc.assertEqual(len(root.children()), 1)
     tc.assertEqual(len(root), 1)
     tc.assertEqual(root.children()[0].get_raw('B'), "dg")
@@ -257,6 +258,7 @@ def test_tree_view(tc):
     tc.assertTrue(root)
 
     branchnode = root[0][0][0][0]
+    tc.assertIs(branchnode.parent, root[0][0][0])
     tc.assertEqual(len(branchnode), 2)
     tc.assertIs(branchnode.children()[0], branchnode[0])
     tc.assertIs(branchnode.children()[1], branchnode[1])
@@ -271,6 +273,7 @@ def test_tree_view(tc):
     tc.assertEqual(len(branchnode[1][0]), 2)
 
     leaf = branchnode[1][0][1]
+    tc.assertIs(leaf.parent, branchnode[1][0])
     tc.assertEqual(len(leaf), 0)
     tc.assertFalse(leaf)
 
