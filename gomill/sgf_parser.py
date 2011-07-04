@@ -31,7 +31,7 @@ def tokenise(s, start_position=0):
     Skips leading junk.
 
     Returns a list of pairs of strings (token type, contents), and also the
-    index in 's' of the start of the unmatched 'tail'.
+    index in 's' of the start of the unprocessed 'tail'.
 
     token types and contents:
       I -- PropIdent: upper-case letters
@@ -152,6 +152,7 @@ def _parse_sgf_game(s, start_position):
                     raise ValueError("property value outside a node")
     except IndexError:
         raise ValueError("unexpected end of SGF data")
+    assert index == len(tokens)
     return variation, end_position
 
 def parse_sgf_game(s):
