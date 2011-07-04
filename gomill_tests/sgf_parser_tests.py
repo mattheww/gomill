@@ -18,21 +18,30 @@ def test_tokeniser(tc):
                     ('V', ''),
                     ('D', ')')])
 
-    def check_complete(s):
-        tokens, tail_index = tokenise(s)
+    def check_complete(s, *args):
+        tokens, tail_index = tokenise(s, *args)
         tc.assertEqual(tail_index, len(s))
         return len(tokens)
 
-    def check_incomplete(s):
-        tokens, tail_index = tokenise(s)
+    def check_incomplete(s, *args):
+        tokens, tail_index = tokenise(s, *args)
         return len(tokens), tail_index
 
+    # check surrounding junk
     tc.assertEqual(check_complete(""), 0)
     tc.assertEqual(check_complete("junk (;B[ah])"), 5)
     tc.assertEqual(check_incomplete("junk"), (0, 0))
     tc.assertEqual(check_incomplete("junk (B[ah])"), (0, 0))
     tc.assertEqual(check_incomplete("(;B[ah]) junk"), (5, 8))
+
+    # check paren-balance count
     tc.assertEqual(check_incomplete("(; ))(([ag]B C[ah])"), (3, 4))
+    tc.assertEqual(check_incomplete("(;( )) (;)"), (5, 6))
+    tc.assertEqual(check_incomplete("(;(()())) (;)"), (9, 9))
+
+    # check start_position
+    tc.assertEqual(check_complete("(; ))(;B[ah])", 4), 5)
+    tc.assertEqual(check_complete("(; ))junk (;B[ah])", 4), 5)
 
     tc.assertEqual(check_complete("(;XX[abc][def]KO[];B[bc])"), 11)
     tc.assertEqual(check_complete("( ;XX[abc][def]KO[];B[bc])"), 11)
