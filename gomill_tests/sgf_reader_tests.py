@@ -270,8 +270,8 @@ def test_main_sequence(tc):
             tree_node = tree_node[0]
 
 def test_get_setup_and_moves(tc):
-    sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
-    board, moves = sgf.get_setup_and_moves()
+    sgf_game = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
+    board, moves = sgf_reader.get_setup_and_moves(sgf_game)
     tc.assertDiagramEqual(ascii_boards.render_board(board), _setup_expected)
     tc.assertEqual(moves,
                    [('b', (2, 3)), ('w', (3, 4)), ('b', None), ('w', None)])

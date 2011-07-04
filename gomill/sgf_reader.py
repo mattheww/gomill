@@ -383,46 +383,6 @@ class Sgf_game(object):
             return None
         return colour
 
-    def get_setup_and_moves(self):
-        """Return the initial setup and the following moves.
-
-        Returns a pair (board, moves)
-
-          board -- boards.Board
-          moves -- list of pairs (colour, coords)
-                   coords are (row, col), or None for a pass.
-
-        The board represents the position described by AB and/or AW properties
-        in the root node.
-
-        The moves are from the game's 'leftmost' variation.
-
-        Raises ValueError if this position isn't legal.
-
-        Raises ValueError if there are any AB/AW/AE properties after the root
-        node.
-
-        Doesn't check whether the moves are legal.
-
-        """
-        size = self.get_size()
-        board = boards.Board(size)
-        ab, aw, ae = self.root.get_setup_commands()
-        if ab or aw:
-            is_legal = board.apply_setup(ab, aw, ae)
-            if not is_legal:
-                raise ValueError("setup position not legal")
-        moves = []
-        nodes = self.main_sequence_iter()
-        nodes.next()
-        for node in nodes:
-            if node.has_setup_commands():
-                raise ValueError("setup commands after the root node")
-            colour, raw = node.get_raw_move()
-            if colour is not None:
-                moves.append((colour, sgf_values.interpret_point(raw, size)))
-        return board, moves
-
 def sgf_game_from_string(s):
     """Read a single SGF game from a string.
 
@@ -435,4 +395,46 @@ def sgf_game_from_string(s):
 
     """
     return Sgf_game(sgf_parser.parse_sgf_game(s))
+
+
+
+def get_setup_and_moves(sgf_game):
+    """Return the initial setup and the following moves from an Sgf_game.
+
+    Returns a pair (board, moves)
+
+      board -- boards.Board
+      moves -- list of pairs (colour, coords)
+               coords are (row, col), or None for a pass.
+
+    The board represents the position described by AB and/or AW properties
+    in the root node.
+
+    The moves are from the game's 'leftmost' variation.
+
+    Raises ValueError if this position isn't legal.
+
+    Raises ValueError if there are any AB/AW/AE properties after the root
+    node.
+
+    Doesn't check whether the moves are legal.
+
+    """
+    size = sgf_game.get_size()
+    board = boards.Board(size)
+    ab, aw, ae = sgf_game.get_root().get_setup_commands()
+    if ab or aw:
+        is_legal = board.apply_setup(ab, aw, ae)
+        if not is_legal:
+            raise ValueError("setup position not legal")
+    moves = []
+    nodes = sgf_game.main_sequence_iter()
+    nodes.next()
+    for node in nodes:
+        if node.has_setup_commands():
+            raise ValueError("setup commands after the root node")
+        colour, raw = node.get_raw_move()
+        if colour is not None:
+            moves.append((colour, sgf_values.interpret_point(raw, size)))
+    return board, moves
 

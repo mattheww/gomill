@@ -15,12 +15,12 @@ def show_sgf_file(pathname, move_number):
     sgf_src = f.read()
     f.close()
     try:
-        sgf = sgf_reader.sgf_game_from_string(sgf_src)
+        sgf_game = sgf_reader.sgf_game_from_string(sgf_src)
     except ValueError:
         raise StandardError("bad sgf file")
 
     try:
-        board, moves = sgf.get_setup_and_moves()
+        board, moves = sgf_reader.get_setup_and_moves(sgf_game)
     except ValueError, e:
         raise StandardError(str(e))
     if move_number is not None:
