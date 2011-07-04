@@ -431,24 +431,24 @@ class Gtp_state(object):
         except EnvironmentError:
             raise GtpError("cannot load file")
         try:
-            sgf = sgf_reader.parse_sgf(s)
+            sgf_game = sgf_reader.sgf_game_from_string(s)
         except ValueError:
             raise GtpError("cannot load file")
-        new_size = sgf.get_size()
+        new_size = sgf_game.get_size()
         if new_size not in self.acceptable_sizes:
             raise GtpError("unacceptable size")
         self.board_size = new_size
         try:
-            komi = sgf.get_komi()
+            komi = sgf_game.get_komi()
         except ValueError:
             raise GtpError("bad komi")
         try:
-            handicap = sgf.get_handicap()
+            handicap = sgf_game.get_handicap()
         except ValueError:
             # Handicap isn't important, so soldier on
             handicap = None
         try:
-            sgf_board, raw_sgf_moves = sgf.get_setup_and_moves()
+            sgf_board, raw_sgf_moves = sgf_game.get_setup_and_moves()
         except ValueError, e:
             raise GtpError(str(e))
         sgf_moves = [History_move(colour, coords)
