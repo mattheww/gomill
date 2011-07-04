@@ -22,38 +22,35 @@ class Node(object):
         """Check whether the node has the specified property."""
         return identifier in self.props_by_id
 
-    def get_raw(self, identifier):
-        """Return the raw scalar value of the specified property.
+    def get_raw_list(self, identifier):
+        """Return the raw values of the specified property.
 
-        Returns the raw bytes that were between the square brackets, without
-        interpreting escapes or performing any whitespace conversion.
+        Returns a list of 8-bit strings, containing the exact bytes that were
+        between the square brackets (without interpreting escapes or performing
+        any whitespace conversion).
 
         Raises KeyError if there was no property with the given identifier.
 
-        If the property had multiple values, this returns the first. If the
-        property was an empty elist, this returns an empty string.
+        (If the property is an empty elist, this returns a list containing a
+        single empty string.)
+
+        """
+        return self.props_by_id[identifier]
+
+    def get_raw(self, identifier):
+        """Return a single raw value of the specified property.
+
+        Returns an 8-bit string, containing the exact bytes that were between
+        the square brackets (without interpreting escapes or performing any
+        whitespace conversion).
+
+        Raises KeyError if there was no property with the given identifier.
+
+        If the property has multiple values, this returns the first (if the
+        value is an empty elist, this returns an empty string).
 
         """
         return self.props_by_id[identifier][0]
-
-    def get_raw_list(self, identifier):
-        """Return the raw list value of the specified property.
-
-        Returns a list of strings, containing 'raw' values (see get_raw()).
-
-        Raises KeyError if there was no property with the given identifier.
-
-        If the property had a single value, returns a single-element list.
-
-        If the property had value [], returns an empty list (as appropriate for
-        an elist).
-
-        """
-        l = self.props_by_id[identifier]
-        if l == [""]:
-            return []
-        else:
-            return l
 
     def get(self, identifier):
         """Return the interpreted value of the specified property.

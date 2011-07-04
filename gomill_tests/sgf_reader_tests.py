@@ -25,7 +25,7 @@ def test_node(tc):
     tc.assertRaises(KeyError, node0.get_raw, 'XX')
     tc.assertEqual(node0.get_raw_list('KM'), ['6.5'])
     tc.assertEqual(node0.get_raw_list('AB'), ['ai', 'bh', 'ee'])
-    tc.assertEqual(node0.get_raw_list('AE'), [])
+    tc.assertEqual(node0.get_raw_list('AE'), [''])
     tc.assertRaises(KeyError, node0.get_raw_list, 'XX')
     tc.assertRaises(KeyError, node0.get_raw, 'XX')
 
