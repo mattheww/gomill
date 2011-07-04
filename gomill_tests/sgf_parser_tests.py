@@ -202,20 +202,33 @@ def test_parse_sgf_collection(tc):
     tc.assertRaisesRegexp(ValueError, "no SGF data found",
                           parse_sgf_collection, r"()")
 
-    # FIXME: Check the actual games!
-    games = parse_sgf_collection("(;C[abc]AB[ab](;B[bc]))")
+    games = parse_sgf_collection("(;C[abc]AB[ab];X[];X[](;B[bc]))")
     tc.assertEqual(len(games), 1)
+    tc.assertEqual(len(games[0].sequence), 3)
 
-    games = parse_sgf_collection("(;C[abc]AB[ab](;B[bc])) (;C[abc]AB[ab])")
+    games = parse_sgf_collection("(;X[1];X[2];X[3](;B[bc])) (;Y[1];Y[2])")
     tc.assertEqual(len(games), 2)
+    tc.assertEqual(len(games[0].sequence), 3)
+    tc.assertEqual(len(games[1].sequence), 2)
 
     games = parse_sgf_collection(
-        "dummy (;C[abc]AB[ab](;B[bc])) junk (;C[abc]AB[ab]) Nonsense")
+        "dummy (;X[1];X[2];X[3](;B[bc])) junk (;Y[1];Y[2]) Nonsense")
     tc.assertEqual(len(games), 2)
+    tc.assertEqual(len(games[0].sequence), 3)
+    tc.assertEqual(len(games[1].sequence), 2)
 
     games = parse_sgf_collection(
-        "(( (;C[abc]AB[ab](;B[bc])) ();) (;C[abc]AB[ab]) )(Nonsense")
+        "(( (;X[1];X[2];X[3](;B[bc])) ();) (;Y[1];Y[2]) )(Nonsense")
     tc.assertEqual(len(games), 2)
+    tc.assertEqual(len(games[0].sequence), 3)
+    tc.assertEqual(len(games[1].sequence), 2)
+
+    with tc.assertRaises(ValueError) as ar:
+        parse_sgf_collection(
+            "(( (;X[1];X[2];X[3](;B[bc])) ();) (;Y[1];Y[2]")
+    tc.assertEqual(str(ar.exception),
+                   "error parsing game 1: unexpected end of SGF data")
+
 
 def test_parse_compose(tc):
     pc = sgf_parser.parse_compose
