@@ -22,37 +22,50 @@ _tokenise_re = re.compile(r"""
 )
 """, re.VERBOSE | re.DOTALL)
 
-def tokenise(s):
+def tokenise(s, start_position=0):
     """Tokenise a string containing SGF data.
+
+    s              -- 8-bit string
+    start_position -- index into 's'
 
     Skips leading junk.
 
     Returns a list of pairs of strings (token type, contents), and also the
-    index in 's' of the start of the unmatched 'tail'
+    index in 's' of the start of the unmatched 'tail'.
 
     token types and contents:
       I -- PropIdent: upper-case letters
       V -- PropValue: raw value, without the enclosing brackets
       D -- delimiter: ';', '(', or ')'
 
-    Stops at the end of the string, or when it first finds something it can't
-    tokenise.
+    Stops when it has seen as many closing parens as open ones, at the end of
+    the string, or when it first finds something it can't tokenise.
 
     The first two tokens are always '(' and ';' (otherwise it won't find the
     start of the content).
 
     """
     result = []
-    m = _find_start_re.search(s)
+    m = _find_start_re.search(s, start_position)
     if not m:
         return [], 0
     i = m.start()
+    depth = 0
     while True:
         m = _tokenise_re.match(s, i)
         if not m:
             break
-        result.append((m.lastgroup, m.group(m.lastindex)))
+        group = m.lastgroup
+        token = m.group(m.lastindex)
+        result.append((group, token))
         i = m.end()
+        if group == 'D':
+            if token == '(':
+                depth += 1
+            elif token == ')':
+                depth -= 1
+                if depth == 0:
+                    break
     return result, i
 
 class Parsed_game_tree(object):
@@ -78,28 +91,11 @@ class Parsed_game_tree(object):
         self.sequence = [] # must be at least one node
         self.children = [] # may be empty
 
-def parse_sgf_game(s):
-    """Read a single SGF game from a string, returning the parse tree.
-
-    s -- 8-bit string
-
-    Returns a Parsed_game_tree.
-
-    Identifies the start of the SGF content by looking for '(;' (with possible
-    whitespace between); ignores everything preceding that. Ignores everything
-    following the first game.
-
-    Applies the rules for FF[4].
-
-    Raises ValueError if can't parse the string.
-
-    If a property appears more than once in a node (which is not permitted by
-    the spec), treats it the same as a single property with multiple values.
-
-    """
-    tokens, _ = tokenise(s)
+def _parse_sgf_game(s, start_position):
+    """Common implementation for parse_sgf_game and parse_sgf_games."""
+    tokens, end_position = tokenise(s, start_position)
     if not tokens:
-        raise ValueError("no SGF data found")
+        return None, None
     stack = []
     game_tree = None
     sequence = None
@@ -156,7 +152,64 @@ def parse_sgf_game(s):
                     raise ValueError("property value outside a node")
     except IndexError:
         raise ValueError("unexpected end of SGF data")
-    return variation
+    return variation, end_position
+
+def parse_sgf_game(s):
+    """Read a single SGF game from a string, returning the parse tree.
+
+    s -- 8-bit string
+
+    Returns a Parsed_game_tree.
+
+    Applies the rules for FF[4].
+
+    Raises ValueError if can't parse the string.
+
+    If a property appears more than once in a node (which is not permitted by
+    the spec), treats it the same as a single property with multiple values.
+
+
+    Identifies the start of the SGF content by looking for '(;' (with possible
+    whitespace between); ignores everything preceding that. Ignores everything
+    following the first game.
+
+    """
+    game_tree, _ = _parse_sgf_game(s, 0)
+    if game_tree is None:
+        raise ValueError("no SGF data found")
+    return game_tree
+
+def parse_sgf_collection(s):
+    """Read an SGF game collection, returning the parse trees.
+
+    s -- 8-bit string
+
+    Returns a nonempty list of Parsed_game_trees.
+
+    Raises ValueError if no games were found in the string.
+
+    Raises ValueError if there is an error parsing a game. See
+    parse_sgf_game() for details.
+
+
+    Ignores non-SGF data before the first game, between games, and after the
+    final game. Identifies the start of each game in the same way as
+    parse_sgf_game().
+
+    """
+    position = 0
+    result = []
+    while True:
+        try:
+            game_tree, position = _parse_sgf_game(s, position)
+        except ValueError, e:
+            raise ValueError("error parsing game %d: %s" % (len(result), e))
+        if game_tree is None:
+            break
+        result.append(game_tree)
+    if not result:
+        raise ValueError("no SGF data found")
+    return result
 
 
 def make_tree(game_tree, root, node_builder, node_adder):

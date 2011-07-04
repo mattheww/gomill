@@ -32,7 +32,7 @@ def test_tokeniser(tc):
     tc.assertEqual(check_incomplete("junk"), (0, 0))
     tc.assertEqual(check_incomplete("junk (B[ah])"), (0, 0))
     tc.assertEqual(check_incomplete("(;B[ah]) junk"), (5, 8))
-    tc.assertEqual(check_complete("(;))(([ag]B C[ah])"), 11)
+    tc.assertEqual(check_incomplete("(; ))(([ag]B C[ah])"), (3, 4))
 
     tc.assertEqual(check_complete("(;XX[abc][def]KO[];B[bc])"), 11)
     tc.assertEqual(check_complete("( ;XX[abc][def]KO[];B[bc])"), 11)
@@ -185,7 +185,28 @@ def test_parser_properties(tc):
     tc.assertEqual(props("(;XX[1]YY[2]XX[3]YY[4])"),
                    [{'XX': ['1', '3'], 'YY' : ['2', '4']}])
 
+def test_parse_sgf_collection(tc):
+    parse_sgf_collection = sgf_parser.parse_sgf_collection
 
+    tc.assertRaisesRegexp(ValueError, "no SGF data found",
+                          parse_sgf_collection, r"")
+    tc.assertRaisesRegexp(ValueError, "no SGF data found",
+                          parse_sgf_collection, r"()")
+
+    # FIXME: Check the actual games!
+    games = parse_sgf_collection("(;C[abc]AB[ab](;B[bc]))")
+    tc.assertEqual(len(games), 1)
+
+    games = parse_sgf_collection("(;C[abc]AB[ab](;B[bc])) (;C[abc]AB[ab])")
+    tc.assertEqual(len(games), 2)
+
+    games = parse_sgf_collection(
+        "dummy (;C[abc]AB[ab](;B[bc])) junk (;C[abc]AB[ab]) Nonsense")
+    tc.assertEqual(len(games), 2)
+
+    games = parse_sgf_collection(
+        "(( (;C[abc]AB[ab](;B[bc])) ();) (;C[abc]AB[ab]) )(Nonsense")
+    tc.assertEqual(len(games), 2)
 
 def test_parse_compose(tc):
     pc = sgf_parser.parse_compose
