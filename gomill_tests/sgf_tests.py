@@ -1,21 +1,21 @@
-"""Tests for sgf_reader.py."""
+"""Tests for sgf.py."""
 
 from textwrap import dedent
 
 from gomill_tests import gomill_test_support
 
 from gomill import ascii_boards
-from gomill import sgf_reader
+from gomill import sgf
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
 def test_node(tc):
-    sgf = sgf_reader.sgf_game_from_string(
+    sgf_game = sgf.sgf_game_from_string(
         r"(;KM[6.5]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
-    node0 = sgf.get_root()
-    node1 = list(sgf.main_sequence_iter())[1]
+    node0 = sgf_game.get_root()
+    node1 = list(sgf_game.main_sequence_iter())[1]
     tc.assertIs(node0.has_property('KM'), True)
     tc.assertIs(node0.has_property('XX'), False)
     tc.assertIs(node1.has_property('KM'), False)
@@ -30,13 +30,13 @@ def test_node(tc):
     tc.assertRaises(KeyError, node0.get_raw, 'XX')
 
 def test_property_combination(tc):
-    sgf = sgf_reader.sgf_game_from_string("(;XX[1]YY[2]XX[3]YY[4])")
-    node0 = sgf.get_root()
+    sgf_game = sgf.sgf_game_from_string("(;XX[1]YY[2]XX[3]YY[4])")
+    node0 = sgf_game.get_root()
     tc.assertEqual(node0.get_raw_list("XX"), ["1", "3"])
     tc.assertEqual(node0.get_raw_list("YY"), ["2", "4"])
 
 def test_node_get(tc):
-    sgf = sgf_reader.sgf_game_from_string(dedent(r"""
+    sgf_game = sgf.sgf_game_from_string(dedent(r"""
     (;AP[testsuite:0]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
     PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]BM[2]VW[]
     EV[Test
@@ -46,8 +46,8 @@ def test_node_get(tc):
     B[dg]KO[]AR[ab:cd][de:fg]FG[515:first move]
     LB[ac:lbl][bc:lbl2])
     """))
-    root = sgf.get_root()
-    node1 = list(sgf.main_sequence_iter())[1]
+    root = sgf_game.get_root()
+    node1 = list(sgf_game.main_sequence_iter())[1]
     tc.assertRaises(KeyError, root.get, 'XX')
     tc.assertEqual(root.get('C'), "123:)\nabc")          # Text
     tc.assertEqual(root.get('EV'), "Test event")         # Simpletext
@@ -69,8 +69,8 @@ def test_node_get(tc):
 
 def test_text_values(tc):
     def check(s):
-        sgf = sgf_reader.sgf_game_from_string(s)
-        return sgf.get_root().get("C")
+        sgf_game = sgf.sgf_game_from_string(s)
+        return sgf_game.get_root().get("C")
     # Round-trip check of Text values through tokeniser, parser, and
     # text_value().
     tc.assertEqual(check(r"(;C[abc]KO[])"), r"abc")
@@ -107,8 +107,8 @@ on two lines]
 """
 
 def test_node_string(tc):
-    sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
-    node = sgf.get_root()
+    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF)
+    node = sgf_game.get_root()
     tc.assertMultiLineEqual(str(node), dedent("""\
     AB[ai][bh][ee]
     AP[testsuite:0]
@@ -126,8 +126,8 @@ def test_node_string(tc):
     """))
 
 def test_node_get_move(tc):
-    sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
-    nodes = list(sgf.main_sequence_iter())
+    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF)
+    nodes = list(sgf_game.main_sequence_iter())
     tc.assertEqual(nodes[0].get_move(), (None, None))
     tc.assertEqual(nodes[1].get_move(), ('b', (2, 3)))
     tc.assertEqual(nodes[2].get_move(), ('w', (3, 4)))
@@ -135,10 +135,10 @@ def test_node_get_move(tc):
     tc.assertEqual(nodes[4].get_move(), ('w', None))
 
 def test_node_setup_commands(tc):
-    sgf = sgf_reader.sgf_game_from_string(
+    sgf_game = sgf.sgf_game_from_string(
         r"(;KM[6.5]SZ[9]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
-    node0 = sgf.get_root()
-    node1 = list(sgf.main_sequence_iter())[1]
+    node0 = sgf_game.get_root()
+    node1 = list(sgf_game.main_sequence_iter())[1]
     tc.assertIs(node0.has_setup_commands(), True)
     tc.assertIs(node1.has_setup_commands(), False)
     tc.assertEqual(node0.get_setup_commands(),
@@ -147,14 +147,14 @@ def test_node_setup_commands(tc):
                    (set(), set(), set()))
 
 def test_sgf_game(tc):
-    sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
-    nodes = list(sgf.main_sequence_iter())
-    tc.assertEqual(sgf.get_size(), 9)
-    tc.assertEqual(sgf.get_komi(), 7.5)
-    tc.assertIs(sgf.get_handicap(), None)
-    tc.assertEqual(sgf.get_player('b'), "Black engine")
-    tc.assertEqual(sgf.get_player('w'), "White engine")
-    tc.assertEqual(sgf.get_winner(), 'w')
+    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    nodes = list(sgf_game.main_sequence_iter())
+    tc.assertEqual(sgf_game.get_size(), 9)
+    tc.assertEqual(sgf_game.get_komi(), 7.5)
+    tc.assertIs(sgf_game.get_handicap(), None)
+    tc.assertEqual(sgf_game.get_player('b'), "Black engine")
+    tc.assertEqual(sgf_game.get_player('w'), "White engine")
+    tc.assertEqual(sgf_game.get_winner(), 'w')
     tc.assertEqual(nodes[2].get('C'), "comment\non two lines")
     tc.assertEqual(nodes[4].get('C'), "Nonfinal comment")
 
@@ -173,9 +173,9 @@ _setup_expected = """\
 """
 
 def test_tree_view(tc):
-    game = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
-    root = game.get_root()
-    tc.assertIsInstance(root, sgf_reader.Tree_node)
+    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    root = sgf_game.get_root()
+    tc.assertIsInstance(root, sgf.Tree_node)
     tc.assertIs(root.parent, None)
     tc.assertEqual(len(root.children()), 1)
     tc.assertEqual(len(root), 1)
@@ -184,7 +184,7 @@ def test_tree_view(tc):
     tc.assertTrue(root)
 
     branchnode = root[0][0][0][0]
-    tc.assertIsInstance(branchnode, sgf_reader.Tree_node)
+    tc.assertIsInstance(branchnode, sgf.Tree_node)
     tc.assertIs(branchnode.parent, root[0][0][0])
     tc.assertEqual(len(branchnode), 2)
     tc.assertIs(branchnode.children()[0], branchnode[0])
@@ -206,58 +206,58 @@ def test_tree_view(tc):
     tc.assertFalse(leaf)
 
     # check nothing breaks when first retrieval is by index
-    game2 = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
+    game2 = sgf.sgf_game_from_string(SAMPLE_SGF)
     root2 = game2.get_root()
     tc.assertIs(root2[0], root2.children()[0])
 
 def test_get_sequence_above(tc):
-    game = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
-    root = game.get_root()
+    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    root = sgf_game.get_root()
     branchnode = root[0][0][0][0]
     leaf = branchnode[1][0][1]
-    tc.assertEqual(game.get_sequence_above(root), [])
+    tc.assertEqual(sgf_game.get_sequence_above(root), [])
 
-    tc.assertEqual(game.get_sequence_above(branchnode),
+    tc.assertEqual(sgf_game.get_sequence_above(branchnode),
                    [root, root[0], root[0][0], root[0][0][0]])
 
-    tc.assertEqual(game.get_sequence_above(leaf),
+    tc.assertEqual(sgf_game.get_sequence_above(leaf),
                    [root, root[0], root[0][0], root[0][0][0],
                     branchnode, branchnode[1], branchnode[1][0]])
 
-    game2 = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
+    sgf_game2 = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
     tc.assertRaisesRegexp(ValueError, "node doesn't belong to this game",
-                          game2.get_sequence_above, leaf)
+                          sgf_game2.get_sequence_above, leaf)
 
 def test_get_main_sequence_below(tc):
-    game = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
-    root = game.get_root()
+    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    root = sgf_game.get_root()
     branchnode = root[0][0][0][0]
     leaf = branchnode[1][0][1]
-    tc.assertEqual(game.get_main_sequence_below(leaf), [])
+    tc.assertEqual(sgf_game.get_main_sequence_below(leaf), [])
 
-    tc.assertEqual(game.get_main_sequence_below(branchnode),
+    tc.assertEqual(sgf_game.get_main_sequence_below(branchnode),
                    [branchnode[0], branchnode[0][0], branchnode[0][0][0]])
 
-    tc.assertEqual(game.get_main_sequence_below(root),
+    tc.assertEqual(sgf_game.get_main_sequence_below(root),
                    [root[0], root[0][0], root[0][0][0], branchnode,
                     branchnode[0], branchnode[0][0], branchnode[0][0][0]])
 
-    game2 = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
+    sgf_game2 = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
     tc.assertRaisesRegexp(ValueError, "node doesn't belong to this game",
-                          game2.get_main_sequence_below, branchnode)
+                          sgf_game2.get_main_sequence_below, branchnode)
 
 def test_main_sequence(tc):
     # FIXME: find a better test than property-map identity?
-    sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
-    root = sgf.get_root()
+    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    root = sgf_game.get_root()
 
-    nodes = list(sgf.main_sequence_iter())
+    nodes = list(sgf_game.main_sequence_iter())
     tc.assertEqual(len(nodes), 8)
     tc.assertIs(root.props_by_id, nodes[0].props_by_id)
     with tc.assertRaises(AttributeError):
         nodes[1].parent
 
-    tree_nodes = sgf.get_main_sequence()
+    tree_nodes = sgf_game.get_main_sequence()
     tc.assertEqual(len(tree_nodes), 8)
     tc.assertIs(root.props_by_id, tree_nodes[0].props_by_id)
     tc.assertIs(tree_nodes[0], root)
@@ -270,15 +270,15 @@ def test_main_sequence(tc):
             tree_node = tree_node[0]
 
 def test_get_setup_and_moves(tc):
-    sgf_game = sgf_reader.sgf_game_from_string(SAMPLE_SGF)
-    board, moves = sgf_reader.get_setup_and_moves(sgf_game)
+    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF)
+    board, moves = sgf.get_setup_and_moves(sgf_game)
     tc.assertDiagramEqual(ascii_boards.render_board(board), _setup_expected)
     tc.assertEqual(moves,
                    [('b', (2, 3)), ('w', (3, 4)), ('b', None), ('w', None)])
 
 def test_find(tc):
-    sgf = sgf_reader.sgf_game_from_string(SAMPLE_SGF_VAR)
-    root = sgf.get_root()
+    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    root = sgf_game.get_root()
     branchnode = root[0][0][0][0]
     leaf = branchnode[1][0][1]
 

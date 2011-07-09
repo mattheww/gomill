@@ -1,13 +1,13 @@
 """Show the position from an SGF file.
 
-This demonstrates the sgf_reader and ascii_boards modules.
+This demonstrates the sgf and ascii_boards modules.
 
 """
 
 import sys
 from optparse import OptionParser
 
-from gomill import sgf_reader
+from gomill import sgf
 from gomill import ascii_boards
 
 def show_sgf_file(pathname, move_number):
@@ -15,12 +15,12 @@ def show_sgf_file(pathname, move_number):
     sgf_src = f.read()
     f.close()
     try:
-        sgf_game = sgf_reader.sgf_game_from_string(sgf_src)
+        sgf_game = sgf.sgf_game_from_string(sgf_src)
     except ValueError:
         raise StandardError("bad sgf file")
 
     try:
-        board, moves = sgf_reader.get_setup_and_moves(sgf_game)
+        board, moves = sgf.get_setup_and_moves(sgf_game)
     except ValueError, e:
         raise StandardError(str(e))
     if move_number is not None:

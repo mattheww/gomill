@@ -8,7 +8,7 @@ from gomill import ascii_boards
 from gomill import boards
 from gomill import gtp_engine
 from gomill import handicap_layout
-from gomill import sgf_reader
+from gomill import sgf
 from gomill import sgf_writer
 from gomill.gtp_engine import GtpError
 
@@ -431,7 +431,7 @@ class Gtp_state(object):
         except EnvironmentError:
             raise GtpError("cannot load file")
         try:
-            sgf_game = sgf_reader.sgf_game_from_string(s)
+            sgf_game = sgf.sgf_game_from_string(s)
         except ValueError:
             raise GtpError("cannot load file")
         new_size = sgf_game.get_size()
@@ -448,7 +448,7 @@ class Gtp_state(object):
             # Handicap isn't important, so soldier on
             handicap = None
         try:
-            sgf_board, raw_sgf_moves = sgf_reader.get_setup_and_moves(sgf_game)
+            sgf_board, raw_sgf_moves = sgf.get_setup_and_moves(sgf_game)
         except ValueError, e:
             raise GtpError(str(e))
         sgf_moves = [History_move(colour, coords)
