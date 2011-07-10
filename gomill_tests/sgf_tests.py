@@ -378,7 +378,22 @@ def test_node_aliasing(tc):
     tc.assertEqual(tree_node.get_raw_list('XX'), ["1", "2", "3"])
 
 
-# FIXME
+def test_serialiser_round_trip(tc):
+    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    serialised = sgf.serialise_sgf_game(sgf_game)
+    tc.assertEqual(serialised, dedent("""\
+    (;AB[ai][bh][ee]AP[testsuite:0]AW[fd][gc]CA[utf-8]DT[2009-06-06]FF[4]GM[1]
+    KM[7.5]PB[Black engine]PL[B]PW[White engine]RE[W+R]SZ[9]VW[];B[dg];
+    C[comment
+    on two lines]W[ef];B[];C[Nonfinal comment]VW[aa:bb](;B[ia];W[ib];
+    B[ic])(;B[ib];W[ic](;B[id])(;B[ie])))
+    """))
+    sgf_game2 = sgf.sgf_game_from_string(serialised)
+    tc.assertEqual(map(str, sgf_game.get_main_sequence()),
+                   map(str, sgf_game2.get_main_sequence()))
+
+
+# FIXME: these belong in a different test module?
 
 def test_serialise_game_tree(tc):
     from gomill import sgf_parser
@@ -389,7 +404,7 @@ def test_serialise_game_tree(tc):
     parsed_game = sgf_parser.parse_sgf_game(serialised)
     tc.assertEqual(sgf_serialiser.serialise_game_tree(parsed_game), serialised)
 
-def test_serialiser(tc):
+def test_make_serialisable_tree(tc):
     from gomill import sgf_serialiser
 
     def shapetree(game_tree):
@@ -397,34 +412,10 @@ def test_serialiser(tc):
             len(game_tree.sequence),
             [shapetree(pg) for pg in game_tree.children])
 
-    sgf_game = sgf.sgf_game_from_string(dedent(r"""
-    (;AP[testsuite:0]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
-    PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]VW[]
-    ;B[dg]
-    ;W[ef]C[comment
-    on two lines]
-    ;B[]
-    ;C[Nonfinal comment]VW[aa:bb]
-    (;B[ia];W[ib];B[ic])
-    (;B[ib];W[ic]
-      (;B[id])
-      (;B[ie])
-    ))
-    """))
+    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
     game_tree = sgf_serialiser.make_serialisable_tree(
         sgf_game.get_root(), lambda node:node, sgf.Node.get_raw_property_map)
     tc.assertEqual(shapetree(game_tree),
                    (5, [(3, []), (2, [(1, []), (1, [])])]))
 
-    serialised = sgf_serialiser.serialise_game_tree(game_tree)
-    tc.assertEqual(serialised, dedent("""\
-    (;AB[ai][bh][ee]AP[testsuite:0]AW[fd][gc]CA[utf-8]DT[2009-06-06]FF[4]GM[1]
-    KM[7.5]PB[Black engine]PL[B]PW[White engine]RE[W+R]SZ[9]VW[];B[dg];
-    C[comment
-    on two lines]W[ef];B[];C[Nonfinal comment]VW[aa:bb](;B[ia];W[ib];
-    B[ic])(;B[ib];W[ic](;B[id])(;B[ie])))
-    """))
 
-    sgf_game2 = sgf.sgf_game_from_string(serialised)
-    tc.assertEqual(map(str, sgf_game.get_main_sequence()),
-                   map(str, sgf_game2.get_main_sequence()))

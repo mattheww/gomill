@@ -7,6 +7,7 @@ This is intended for use with SGF FF[4]; see http://www.red-bean.com/sgf/
 from gomill import boards
 from gomill import sgf_parser
 from gomill import sgf_properties
+from gomill import sgf_serialiser
 
 
 class Node(object):
@@ -449,6 +450,15 @@ def sgf_game_from_string(s):
     """
     return Sgf_game(sgf_parser.parse_sgf_game(s))
 
+def serialise_sgf_game(sgf_game):
+    """Serialise an SGF game as a string.
+
+    Returns an 8-bit string.
+
+    """
+    game_tree = sgf_serialiser.make_serialisable_tree(
+        sgf_game.get_root(), lambda node:node, Node.get_raw_property_map)
+    return sgf_serialiser.serialise_game_tree(game_tree)
 
 
 def get_setup_and_moves(sgf_game):
