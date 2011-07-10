@@ -302,3 +302,71 @@ def test_find(tc):
     tc.assertIs(leaf.find("XX"), None)
     tc.assertRaises(KeyError, leaf.find_property, "XX")
 
+def test_node_set_raw(tc):
+    sgf_game = sgf.sgf_game_from_string(dedent(r"""
+    (;AP[testsuite:0]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]
+    PB[Black engine]PW[White engine]RE[W+R]SZ[9]
+    AB[ai][bh][ee]AW[fd][gc]BM[2]VW[]
+    PL[B]
+    C[123abc]
+    ;B[dg]C[first move])
+    """))
+    root = sgf_game.get_root()
+    tc.assertEqual(root.get_raw('RE'), "W+R")
+    root.set_raw('RE', "W+2.5")
+    tc.assertEqual(root.get_raw('RE'), "W+2.5")
+    tc.assertRaises(KeyError, root.get_raw, 'XX')
+    root.set_raw('XX', "xyz")
+    tc.assertEqual(root.get_raw('XX'), "xyz")
+
+    root.set_raw_list('XX', ("abc", "def"))
+    tc.assertEqual(root.get_raw('XX'), "abc")
+    tc.assertEqual(root.get_raw_list('XX'), ["abc", "def"])
+
+    tc.assertRaisesRegexp(ValueError, "empty property list",
+                          root.set_raw_list, 'B', [])
+
+    values = ["123", "456"]
+    root.set_raw_list('YY', values)
+    tc.assertEqual(root.get_raw_list('YY'), ["123", "456"])
+    values.append("789")
+    tc.assertEqual(root.get_raw_list('YY'), ["123", "456"])
+
+    tc.assertRaisesRegexp(ValueError, "ill-formed property identifier",
+                          root.set_raw, 'Black', "aa")
+    tc.assertRaisesRegexp(ValueError, "ill-formed property identifier",
+                          root.set_raw_list, 'Black', ["aa"])
+
+    root.set_raw('C', "foo\\]bar")
+    tc.assertEqual(root.get_raw('C'), "foo\\]bar")
+    root.set_raw('C', "abc\\\\")
+    tc.assertEqual(root.get_raw('C'), "abc\\\\")
+    tc.assertRaisesRegexp(ValueError, "ill-formed raw property value",
+                          root.set_raw, 'C', "foo]bar")
+    tc.assertRaisesRegexp(ValueError, "ill-formed raw property value",
+                          root.set_raw, 'C', "abc\\")
+    tc.assertRaisesRegexp(ValueError, "ill-formed raw property value",
+                          root.set_raw_list, 'C', ["abc", "de]f"])
+
+def test_node_aliasing(tc):
+    # Check that node objects retrieved by different means use the same
+    # property map.
+
+    sgf_game = sgf.sgf_game_from_string(dedent(r"""
+    (;C[root];C[node 1])
+    """))
+    root = sgf_game.get_root()
+    tree_node = root[0]
+    plain_node = list(sgf_game.main_sequence_iter())[1]
+    tc.assertIsNot(tree_node, plain_node)
+    tc.assertIs(tree_node.__class__, sgf.Tree_node)
+    tc.assertIs(plain_node.__class__, sgf.Node)
+
+    tc.assertEqual(tree_node.get_raw('C'), "node 1")
+    tree_node.set_raw('C', r"test\value")
+    tc.assertEqual(tree_node.get_raw('C'), r"test\value")
+    tc.assertEqual(plain_node.get_raw('C'), r"test\value")
+
+    plain_node.set_raw_list('XX', ["1", "2", "3"])
+    tc.assertEqual(tree_node.get_raw_list('XX'), ["1", "2", "3"])
+

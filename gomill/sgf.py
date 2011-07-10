@@ -52,6 +52,48 @@ class Node(object):
         """
         return self.props_by_id[identifier][0]
 
+    def set_raw_list(self, identifier, values):
+        """Set the raw values of the specified property.
+
+        identifier -- ascii string passing is_valid_property_identifier()
+        values     -- nonempty iterable of 8-bit strings
+
+        The values specify the exact bytes to appear between the square
+        brackets in the SGF file; you must perform any necessary escaping
+        first.
+
+        (To specify an empty elist, pass a list containing a single empty
+        string.)
+
+        """
+        if not sgf_parser.is_valid_property_identifier(identifier):
+            raise ValueError("ill-formed property identifier")
+        values = list(values)
+        if not values:
+            raise ValueError("empty property list")
+        for value in values:
+            if not sgf_parser.is_valid_property_value(value):
+                raise ValueError("ill-formed raw property value")
+        self.props_by_id[identifier] = values
+
+    def set_raw(self, identifier, value):
+        """Set the specified property to a single raw value.
+
+        identifier -- ascii string passing is_valid_property_identifier()
+        value      -- 8-bit string
+
+        The value specifies the exact bytes to appear between the square
+        brackets in the SGF file; you must perform any necessary escaping
+        first.
+
+        """
+        if not sgf_parser.is_valid_property_identifier(identifier):
+            raise ValueError("ill-formed property identifier")
+        if not sgf_parser.is_valid_property_value(value):
+            raise ValueError("ill-formed raw property value")
+        self.props_by_id[identifier] = [value]
+
+
     def get(self, identifier):
         """Return the interpreted value of the specified property.
 
