@@ -403,8 +403,14 @@ def test_serialiser(tc):
                    (5, [(3, []), (2, [(1, []), (1, [])])]))
 
     serialised = sgf_serialiser.serialise_sgf_game(game_tree)
+    tc.assertEqual(serialised, dedent("""\
+    (;AB[ai][bh][ee]AP[testsuite:0]AW[fd][gc]CA[utf-8]DT[2009-06-06]FF[4]GM[1]
+    KM[7.5]PB[Black engine]PL[B]PW[White engine]RE[W+R]SZ[9]VW[];B[dg];
+    C[comment
+    on two lines]W[ef];B[];C[Nonfinal comment]VW[aa:bb](;B[ia];W[ib];
+    B[ic])(;B[ib];W[ic](;B[id])(;B[ie])))
+    """))
 
     sgf_game2 = sgf.sgf_game_from_string(serialised)
     tc.assertEqual(map(str, sgf_game.get_main_sequence()),
                    map(str, sgf_game2.get_main_sequence()))
-    print map(str, sgf_game.get_main_sequence())

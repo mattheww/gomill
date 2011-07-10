@@ -74,11 +74,14 @@ def serialise_sgf_game(game_tree):
         for properties in game_tree.sequence:
             l.append(";")
             for prop_ident, prop_values in sorted(properties.iteritems()):
-                l.append(prop_ident)
+                # Make a single string for each property, to get prettier
+                # block_format output.
+                m = [prop_ident]
                 for value in prop_values:
-                    l.append("[%s]" % value)
+                    m.append("[%s]" % value)
+                l.append("".join(m))
         to_serialise.append(None)
         to_serialise.extend(reversed(game_tree.children))
-
+    l.append("\n")
     return block_format(l)
 
