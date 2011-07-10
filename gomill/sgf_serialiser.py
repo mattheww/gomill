@@ -54,11 +54,23 @@ def make_serialisable_tree(root, get_children, get_properties):
             to_serialise.append((child_tree, child))
     return result
 
-def block_format(l, width=79):
-    """FIXME"""
+def block_format(pieces, width=79):
+    """Concatenate strings, adding newlines.
+
+    pieces -- iterable of strings
+    width  -- int (default 79)
+
+    Returns "".join(pieces), with added newlines between pieces as necessary to
+    avoid lines longer than 'width'.
+
+    Leaves newlines inside 'pieces' untouched, and ignores them in its width
+    calculation. If a single piece is longer than 'width', it will become a
+    single long line in the output.
+
+    """
     lines = []
     line = ""
-    for s in l:
+    for s in pieces:
         if len(line) + len(s) > width:
             lines.append(line)
             line = ""
@@ -67,13 +79,12 @@ def block_format(l, width=79):
         lines.append(line)
     return "\n".join(lines)
 
-
 def serialise_sgf_game(game_tree):
-    """FIXME
+    """Serialise an SGF game as a string.
 
     game_tree -- Serialisable_game_tree
 
-    Returns an 8-bit string
+    Returns an 8-bit string, ending with a newline.
 
     """
     l = []
