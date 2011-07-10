@@ -102,8 +102,8 @@ def tokenise(s, start_position=0):
 class Parsed_game_tree(object):
     """An SGF GameTree.
 
-    This is a direct representation of the SGF parse tree. The 'children' are
-    variations, not nodes.
+    This is a direct representation of the SGF parse tree. The 'children'
+    represent variations, not individual nodes.
 
     Public attributes
       sequence -- nonempty list of property maps

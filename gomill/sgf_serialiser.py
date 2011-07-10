@@ -15,22 +15,20 @@ def escape_text(s):
     """
     return s.replace("\\", "\\\\").replace("]", "\\]")
 
-class Serialisable_game_tree(object):
-    """FIXME
-
-    """
+class Parsed_game_tree(object):
+    """FIXME: need to share this with sgf_parser, and maybe rename."""
     def __init__(self):
         self.sequence = []
         self.children = []
 
 def make_serialisable_tree(root, get_children, get_properties):
-    """Construct a Serialisable_game_tree from a node tree.
+    """Construct a Parsed_game_tree from a node tree.
 
     root           -- node
     get_children   -- function taking a node, returning a sequence of nodes
     get_properties -- function taking a node, returning a property map
 
-    Returns a Serialisable_game_tree.
+    Returns a Parsed_game_tree.
 
     Walks the node tree using get_children(), and uses get_properties() to
     extract the raw properties.
@@ -38,7 +36,7 @@ def make_serialisable_tree(root, get_children, get_properties):
     Makes no further assumptions about the node type.
 
     """
-    result = Serialisable_game_tree()
+    result = Parsed_game_tree()
     to_serialise = [(result, root)]
     while to_serialise:
         game_tree, node = to_serialise.pop()
@@ -49,7 +47,7 @@ def make_serialisable_tree(root, get_children, get_properties):
                 break
             node = children[0]
         for child in children:
-            child_tree = Serialisable_game_tree()
+            child_tree = Parsed_game_tree()
             game_tree.children.append(child_tree)
             to_serialise.append((child_tree, child))
     return result
@@ -79,10 +77,10 @@ def block_format(pieces, width=79):
         lines.append(line)
     return "\n".join(lines)
 
-def serialise_sgf_game(game_tree):
+def serialise_game_tree(game_tree):
     """Serialise an SGF game as a string.
 
-    game_tree -- Serialisable_game_tree
+    game_tree -- Parsed_game_tree
 
     Returns an 8-bit string, ending with a newline.
 

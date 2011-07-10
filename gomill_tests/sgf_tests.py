@@ -379,6 +379,16 @@ def test_node_aliasing(tc):
 
 
 # FIXME
+
+def test_serialise_game_tree(tc):
+    from gomill import sgf_parser
+    from gomill import sgf_serialiser
+    serialised = ("(;AB[aa][ab][ac]C[comment];W[ab];C[];C[]"
+                  "(;B[bc])(;B[bd];W[ca](;B[da])(;B[db];\n"
+                  "W[ea])))\n")
+    parsed_game = sgf_parser.parse_sgf_game(serialised)
+    tc.assertEqual(sgf_serialiser.serialise_game_tree(parsed_game), serialised)
+
 def test_serialiser(tc):
     from gomill import sgf_serialiser
 
@@ -406,7 +416,7 @@ def test_serialiser(tc):
     tc.assertEqual(shapetree(game_tree),
                    (5, [(3, []), (2, [(1, []), (1, [])])]))
 
-    serialised = sgf_serialiser.serialise_sgf_game(game_tree)
+    serialised = sgf_serialiser.serialise_game_tree(game_tree)
     tc.assertEqual(serialised, dedent("""\
     (;AB[ai][bh][ee]AP[testsuite:0]AW[fd][gc]CA[utf-8]DT[2009-06-06]FF[4]GM[1]
     KM[7.5]PB[Black engine]PL[B]PW[White engine]RE[W+R]SZ[9]VW[];B[dg];
