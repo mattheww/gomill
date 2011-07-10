@@ -398,7 +398,11 @@ def test_serialiser(tc):
       (;B[ie])
     ))
     """))
-    game_tree = sgf_serialiser.make_serialisable_tree(sgf_game.get_root())
+    def get_properties(tree_node):
+        # FIXME
+        return tree_node.props_by_id
+    game_tree = sgf_serialiser.make_serialisable_tree(
+        sgf_game.get_root(), lambda node:node, get_properties)
     tc.assertEqual(shapetree(game_tree),
                    (5, [(3, []), (2, [(1, []), (1, [])])]))
 

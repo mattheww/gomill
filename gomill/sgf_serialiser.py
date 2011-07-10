@@ -23,19 +23,32 @@ class Serialisable_game_tree(object):
         self.sequence = []
         self.children = []
 
-def make_serialisable_tree(root_node):
-    """FIXME"""
+def make_serialisable_tree(root, get_children, get_properties):
+    """Construct a Serialisable_game_tree from a node tree.
+
+    root           -- node
+    get_children   -- function taking a node, returning a sequence of nodes
+    get_properties -- function taking a node, returning a property map
+
+    Returns a Serialisable_game_tree.
+
+    Walks the node tree using get_children(), and uses get_properties() to
+    extract the raw properties.
+
+    Makes no further assumptions about the node type.
+
+    """
     result = Serialisable_game_tree()
-    to_serialise = [(result, root_node)]
+    to_serialise = [(result, root)]
     while to_serialise:
         game_tree, node = to_serialise.pop()
-        property_map = node.props_by_id # FIXME
-        game_tree.sequence.append(property_map)
-        while len(node) == 1:
-            node = node[0]
-            property_map = node.props_by_id # FIXME
-            game_tree.sequence.append(property_map)
-        for child in node:
+        while True:
+            game_tree.sequence.append(get_properties(node))
+            children = get_children(node)
+            if len(children) != 1:
+                break
+            node = children[0]
+        for child in children:
             child_tree = Serialisable_game_tree()
             game_tree.children.append(child_tree)
             to_serialise.append((child_tree, child))
