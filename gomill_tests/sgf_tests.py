@@ -374,3 +374,37 @@ def test_node_aliasing(tc):
     plain_node.set_raw_list('XX', ["1", "2", "3"])
     tc.assertEqual(tree_node.get_raw_list('XX'), ["1", "2", "3"])
 
+
+# FIXME
+def test_serialiser(tc):
+    from gomill import sgf_serialiser
+
+    def shapetree(game_tree):
+        return (
+            len(game_tree.sequence),
+            [shapetree(pg) for pg in game_tree.children])
+
+    sgf_game = sgf.sgf_game_from_string(dedent(r"""
+    (;AP[testsuite:0]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
+    PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]VW[]
+    ;B[dg]
+    ;W[ef]C[comment
+    on two lines]
+    ;B[]
+    ;C[Nonfinal comment]VW[aa:bb]
+    (;B[ia];W[ib];B[ic])
+    (;B[ib];W[ic]
+      (;B[id])
+      (;B[ie])
+    ))
+    """))
+    game_tree = sgf_serialiser.make_serialisable_tree(sgf_game.get_root())
+    tc.assertEqual(shapetree(game_tree),
+                   (5, [(3, []), (2, [(1, []), (1, [])])]))
+
+    serialised = sgf_serialiser.serialise_sgf_game(game_tree)
+
+    sgf_game2 = sgf.sgf_game_from_string(serialised)
+    tc.assertEqual(map(str, sgf_game.get_main_sequence()),
+                   map(str, sgf_game2.get_main_sequence()))
+    print map(str, sgf_game.get_main_sequence())
