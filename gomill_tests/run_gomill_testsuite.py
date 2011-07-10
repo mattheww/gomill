@@ -9,7 +9,7 @@ test_modules = [
     'board_tests',
     'sgf_writer_tests',
     'sgf_parser_tests',
-    'sgf_values_tests',
+    'sgf_properties_tests',
     'sgf_tests',
     'gtp_engine_tests',
     'gtp_state_tests',

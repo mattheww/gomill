@@ -1,17 +1,17 @@
-"""Tests for sgf_values.py."""
+"""Tests for sgf_properties.py."""
 
 from textwrap import dedent
 
 from gomill_tests import gomill_test_support
 
-from gomill import sgf_values
+from gomill import sgf_properties
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
 def test_interpret_point(tc):
-    interpret_point = sgf_values.interpret_point
+    interpret_point = sgf_properties.interpret_point
     tc.assertEqual(interpret_point("aa", 19), (18, 0))
     tc.assertEqual(interpret_point("ai", 19), (10, 0))
     tc.assertEqual(interpret_point("ba",  9), (8, 1))
@@ -34,7 +34,7 @@ def test_interpret_point(tc):
     #tc.assertRaises(TypeError, interpret_point, ('a', 'a'), 19)
 
 def test_interpret_point_list(tc):
-    ipl = sgf_values.interpret_point_list
+    ipl = sgf_properties.interpret_point_list
     tc.assertEqual(ipl([], 19),
                    set())
     tc.assertEqual(ipl(["aa"], 19),
@@ -73,7 +73,7 @@ def test_compressed_point_list_spec_example(tc):
         row_s = "abcdefghijklmnopqrstuvwxy"[row]
         return col_s + row_s
 
-    ipl = sgf_values.interpret_point_list
+    ipl = sgf_properties.interpret_point_list
     tc.assertEqual(
         set(sgf_point(move, 9) for move in ipl(["ac:ic"], 9)),
         set(["ac", "bc", "cc", "dc", "ec", "fc", "gc", "hc", "ic"]))

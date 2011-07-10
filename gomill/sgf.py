@@ -6,7 +6,7 @@ This is intended for use with SGF FF[4]; see http://www.red-bean.com/sgf/
 
 from gomill import boards
 from gomill import sgf_parser
-from gomill import sgf_values
+from gomill import sgf_properties
 
 
 class Node(object):
@@ -62,11 +62,11 @@ class Node(object):
 
         Raises ValueError if it cannot interpret the value.
 
-        See sgf_values.get_interpreted_value() for details.
+        See sgf_properties.get_interpreted_value() for details.
 
 
         """
-        return sgf_values.get_interpreted_value(
+        return sgf_properties.get_interpreted_value(
             identifier, self.props_by_id[identifier], self.size)
 
     def get_raw_move(self):
@@ -105,7 +105,7 @@ class Node(object):
         colour, raw = self.get_raw_move()
         if colour is None:
             return None, None
-        return colour, sgf_values.interpret_point(raw, self.size)
+        return colour, sgf_properties.interpret_point(raw, self.size)
 
     def get_setup_commands(self):
         """Retrieve Add Black / Add White / Add Empty properties from a node.
@@ -435,6 +435,6 @@ def get_setup_and_moves(sgf_game):
             raise ValueError("setup commands after the root node")
         colour, raw = node.get_raw_move()
         if colour is not None:
-            moves.append((colour, sgf_values.interpret_point(raw, size)))
+            moves.append((colour, sgf_properties.interpret_point(raw, size)))
     return board, moves
 
