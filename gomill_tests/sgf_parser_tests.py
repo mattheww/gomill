@@ -7,6 +7,38 @@ from gomill import sgf_parser
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
+def test_is_valid_property_identifier(tc):
+    ivpi = sgf_parser.is_valid_property_identifier
+    tc.assertIs(ivpi("B"), True)
+    tc.assertIs(ivpi("PB"), True)
+    tc.assertIs(ivpi("ABCDEFGH"), True)
+    tc.assertIs(ivpi("ABCDEFGHI"), False)
+    tc.assertIs(ivpi(""), False)
+    tc.assertIs(ivpi("b"), False)
+    tc.assertIs(ivpi("Player"), False)
+    tc.assertIs(ivpi("P2"), False)
+    tc.assertIs(ivpi(" PB"), False)
+    tc.assertIs(ivpi("PB "), False)
+    tc.assertIs(ivpi("P B"), False)
+    tc.assertIs(ivpi("PB\x00"), False)
+
+def test_is_valid_property_value(tc):
+    ivpv = sgf_parser.is_valid_property_value
+    tc.assertIs(ivpv(""), True)
+    tc.assertIs(ivpv("hello world"), True)
+    tc.assertIs(ivpv("hello\nworld"), True)
+    tc.assertIs(ivpv("hello \x00 world"), True)
+    tc.assertIs(ivpv("hello \xa3 world"), True)
+    tc.assertIs(ivpv("hello \xc2\xa3 world"), True)
+    tc.assertIs(ivpv("hello \\-) world"), True)
+    tc.assertIs(ivpv("hello (;[) world"), True)
+    tc.assertIs(ivpv("[hello world]"), False)
+    tc.assertIs(ivpv("hello ] world"), False)
+    tc.assertIs(ivpv("hello \\] world"), True)
+    tc.assertIs(ivpv("hello world \\"), False)
+    tc.assertIs(ivpv("hello world \\\\"), True)
+    tc.assertIs(ivpv("x" * 70000), True)
+
 def test_tokeniser(tc):
     tokenise = sgf_parser.tokenise
 

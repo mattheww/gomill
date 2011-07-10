@@ -10,6 +10,9 @@ import re
 import string
 
 
+_propident_re = re.compile(r"\A[A-Z]{1,8}\Z")
+_propvalue_re = re.compile(r"\A [^\\\]]* (?: \\. [^\\\]]* )* \Z",
+                           re.VERBOSE | re.DOTALL)
 _find_start_re = re.compile(r"\(\s*;")
 _tokenise_re = re.compile(r"""
 \s*
@@ -21,6 +24,34 @@ _tokenise_re = re.compile(r"""
     (?P<D> [;()] )                                # delimiter
 )
 """, re.VERBOSE | re.DOTALL)
+
+
+def is_valid_property_identifier(s):
+    """Check whether 's' is a well-formed PropIdent.
+
+    s -- 8-bit string
+
+    This accepts the same values as the tokeniser.
+
+    Details:
+     - it doesn't permit lower-case letters (these are allowed in some ancient
+       SGF variants)
+     - it accepts at most 8 letters (there is no limit in the spec; no standard
+       property has more than 2)
+
+    """
+    return bool(_propident_re.search(s))
+
+def is_valid_property_value(s):
+    """Check whether 's' is a well-formed PropValue.
+
+    s -- 8-bit string
+
+    This accepts the same values as the tokeniser: any string that doesn't
+    contain an unescaped ] or end with an unescaped \ .
+
+    """
+    return bool(_propvalue_re.search(s))
 
 def tokenise(s, start_position=0):
     """Tokenise a string containing SGF data.
