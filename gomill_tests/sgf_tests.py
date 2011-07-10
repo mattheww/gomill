@@ -253,19 +253,22 @@ def test_main_sequence(tc):
 
     nodes = list(sgf_game.main_sequence_iter())
     tc.assertEqual(len(nodes), 8)
-    tc.assertIs(root.props_by_id, nodes[0].props_by_id)
+    tc.assertIs(root.get_raw_property_map(),
+                nodes[0].get_raw_property_map())
     with tc.assertRaises(AttributeError):
         nodes[1].parent
 
     tree_nodes = sgf_game.get_main_sequence()
     tc.assertEqual(len(tree_nodes), 8)
-    tc.assertIs(root.props_by_id, tree_nodes[0].props_by_id)
+    tc.assertIs(root.get_raw_property_map(),
+                tree_nodes[0].get_raw_property_map())
     tc.assertIs(tree_nodes[0], root)
     tc.assertIs(tree_nodes[2].parent, tree_nodes[1])
 
     tree_node = root
     for node in nodes:
-        tc.assertIs(tree_node.props_by_id, node.props_by_id)
+        tc.assertIs(tree_node.get_raw_property_map(),
+                    node.get_raw_property_map())
         if tree_node:
             tree_node = tree_node[0]
 
@@ -398,11 +401,8 @@ def test_serialiser(tc):
       (;B[ie])
     ))
     """))
-    def get_properties(tree_node):
-        # FIXME
-        return tree_node.props_by_id
     game_tree = sgf_serialiser.make_serialisable_tree(
-        sgf_game.get_root(), lambda node:node, get_properties)
+        sgf_game.get_root(), lambda node:node, sgf.Node.get_raw_property_map)
     tc.assertEqual(shapetree(game_tree),
                    (5, [(3, []), (2, [(1, []), (1, [])])]))
 

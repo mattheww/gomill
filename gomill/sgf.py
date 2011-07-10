@@ -11,16 +11,16 @@ from gomill import sgf_properties
 
 class Node(object):
     """An SGF node."""
-    __slots__ = ('props_by_id', 'size')
+    __slots__ = ('_props_by_id', 'size')
 
     def __init__(self, properties, size):
         # Map identifier (PropIdent) -> list of raw values
-        self.props_by_id = properties
+        self._props_by_id = properties
         self.size = size
 
     def has_property(self, identifier):
         """Check whether the node has the specified property."""
-        return identifier in self.props_by_id
+        return identifier in self._props_by_id
 
     def get_raw_list(self, identifier):
         """Return the raw values of the specified property.
@@ -35,7 +35,7 @@ class Node(object):
         single empty string.)
 
         """
-        return self.props_by_id[identifier]
+        return self._props_by_id[identifier]
 
     def get_raw(self, identifier):
         """Return a single raw value of the specified property.
@@ -50,7 +50,18 @@ class Node(object):
         value is an empty elist, this returns an empty string).
 
         """
-        return self.props_by_id[identifier][0]
+        return self._props_by_id[identifier][0]
+
+    def get_raw_property_map(self):
+        """Return the raw values of all properties as a dict.
+
+        Returns a dict mapping property identifiers to lists of raw values
+        (see get_raw_list()).
+
+        Treat the returned dict as read-only.
+
+        """
+        return self._props_by_id
 
     def set_raw_list(self, identifier, values):
         """Set the raw values of the specified property.
@@ -74,7 +85,7 @@ class Node(object):
         for value in values:
             if not sgf_parser.is_valid_property_value(value):
                 raise ValueError("ill-formed raw property value")
-        self.props_by_id[identifier] = values
+        self._props_by_id[identifier] = values
 
     def set_raw(self, identifier, value):
         """Set the specified property to a single raw value.
@@ -91,7 +102,7 @@ class Node(object):
             raise ValueError("ill-formed property identifier")
         if not sgf_parser.is_valid_property_value(value):
             raise ValueError("ill-formed raw property value")
-        self.props_by_id[identifier] = [value]
+        self._props_by_id[identifier] = [value]
 
 
     def get(self, identifier):
@@ -109,7 +120,7 @@ class Node(object):
 
         """
         return sgf_properties.get_interpreted_value(
-            identifier, self.props_by_id[identifier], self.size)
+            identifier, self._props_by_id[identifier], self.size)
 
     def get_raw_move(self):
         """Return the raw value of the move from a node.
@@ -121,11 +132,11 @@ class Node(object):
         Returns None, None if the node contains no B or W property.
 
         """
-        values = self.props_by_id.get("B")
+        values = self._props_by_id.get("B")
         if values is not None:
             colour = "b"
         else:
-            values = self.props_by_id.get("W")
+            values = self._props_by_id.get("W")
             if values is not None:
                 colour = "w"
             else:
@@ -173,7 +184,7 @@ class Node(object):
 
     def has_setup_commands(self):
         """Check whether the node has any AB/AW/AE properties."""
-        d = self.props_by_id
+        d = self._props_by_id
         return ("AB" in d or "AW" in d or "AE" in d)
 
     def __str__(self):
@@ -181,7 +192,7 @@ class Node(object):
             return ident + "".join("[%s]" % s for s in values)
         return "\n".join(
             format_property(ident, values)
-            for (ident, values) in sorted(self.props_by_id.items())) \
+            for (ident, values) in sorted(self._props_by_id.items())) \
             + "\n"
 
 
