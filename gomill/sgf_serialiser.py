@@ -55,18 +55,6 @@ def block_format(l, width=79):
     return "\n".join(lines)
 
 
-def _ssg(game_tree, l):
-    l.append("(")
-    for properties in game_tree.sequence:
-        l.append(";")
-        for prop_ident, prop_values in sorted(properties.iteritems()):
-            l.append(prop_ident)
-            for value in prop_values:
-                l.append("[%s]" % value)
-    for child_tree in game_tree.children:
-        _ssg(child_tree, l)
-    l.append(")")
-
 def serialise_sgf_game(game_tree):
     """FIXME
 
@@ -75,8 +63,22 @@ def serialise_sgf_game(game_tree):
     Returns an 8-bit string
 
     """
-    # FIXME: nonrecursive?
     l = []
-    _ssg(game_tree, l)
+    to_serialise = [game_tree]
+    while to_serialise:
+        game_tree = to_serialise.pop()
+        if game_tree is None:
+            l.append(")")
+            continue
+        l.append("(")
+        for properties in game_tree.sequence:
+            l.append(";")
+            for prop_ident, prop_values in sorted(properties.iteritems()):
+                l.append(prop_ident)
+                for value in prop_values:
+                    l.append("[%s]" % value)
+        to_serialise.append(None)
+        to_serialise.extend(reversed(game_tree.children))
+
     return block_format(l)
 
