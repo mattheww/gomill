@@ -348,6 +348,10 @@ def test_node_set_raw(tc):
     tc.assertRaisesRegexp(ValueError, "ill-formed raw property value",
                           root.set_raw_list, 'C', ["abc", "de]f"])
 
+    root.set_raw('C', "foo\\]bar\\\nbaz")
+    tc.assertEqual(root.get('C'), "foo]barbaz")
+
+
 def test_node_aliasing(tc):
     # Check that node objects retrieved by different means use the same
     # property map.
