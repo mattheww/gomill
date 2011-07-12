@@ -10,6 +10,26 @@ def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
+def test_serialise_real(tc):
+    serialise_real = sgf_properties.serialise_real
+    tc.assertEqual(serialise_real(1), "1")
+    tc.assertEqual(serialise_real(-1), "-1")
+    tc.assertEqual(serialise_real(1.0), "1")
+    tc.assertEqual(serialise_real(-1.0), "-1")
+    tc.assertEqual(serialise_real(1.5), "1.5")
+    tc.assertEqual(serialise_real(-1.5), "-1.5")
+    tc.assertEqual(serialise_real(0.001), "0.001")
+    tc.assertEqual(serialise_real(0.0001), "0.0001")
+    tc.assertEqual(serialise_real(0.00001), "0")
+    tc.assertEqual(serialise_real(1e15), "1000000000000000")
+    tc.assertEqual(serialise_real(1e16), "10000000000000000")
+    tc.assertEqual(serialise_real(1e17), "100000000000000000")
+    tc.assertEqual(serialise_real(1e18), "1000000000000000000")
+    tc.assertEqual(serialise_real(-1e18), "-1000000000000000000")
+    tc.assertRaises(ValueError, serialise_real, float(1e400))
+    tc.assertRaises(ValueError, serialise_real, float("NaN"))
+
+
 def test_interpret_point(tc):
     interpret_point = sgf_properties.interpret_point
     tc.assertEqual(interpret_point("aa", 19), (18, 0))

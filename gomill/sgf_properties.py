@@ -9,6 +9,7 @@ Go points.
 """
 
 from gomill import sgf_parser
+from gomill import sgf_serialiser
 
 def interpret_none(s):
     """Convert a raw None value to a boolean.
@@ -18,9 +19,27 @@ def interpret_none(s):
     """
     return True
 
+def serialise_none(b):
+    """Serialise a None value.
+
+    Ignores its parameter.
+
+    """
+    return ""
+
+
 def interpret_number(s):
     """Convert a raw Number value to the integer it represents."""
     return int(s)
+
+def serialise_number(i):
+    """Serialise a Number value.
+
+    i -- integer
+
+    """
+    return "%d" % i
+
 
 def interpret_real(s):
     """Convert a raw Real value to the float it represents.
@@ -33,6 +52,30 @@ def interpret_real(s):
     # here.
     return float(s)
 
+def serialise_real(f):
+    """Serialise a Real value.
+
+    f -- real number (int, float, Decimal)
+
+    If the value is too small to conveniently express as a decimal, returns "0"
+    (this currently happens if f is less than 0.0001).
+
+    """
+    f = float(f)
+    try:
+        i = int(f)
+    except OverflowError:
+        # infinity
+        raise ValueError
+    if f == i:
+        # avoid trailing '.0'; also avoid scientific notation for large numbers
+        return str(i)
+    s = repr(f)
+    if 'e-' in s:
+        return "0"
+    return s
+
+
 def interpret_double(s):
     """Convert a raw Double value to an integer.
 
@@ -43,6 +86,19 @@ def interpret_double(s):
         return 2
     else:
         return 1
+
+def serialise_double(i):
+    """Serialise a Double value.
+
+    i -- integer (1 or 2)
+
+    (unknown values are treated as 1)
+
+    """
+    if i == 2:
+        return "2"
+    return "1"
+
 
 def interpret_colour(s):
     """Convert a raw Color value to a gomill colour.
@@ -55,6 +111,17 @@ def interpret_colour(s):
         raise ValueError
     return colour
 
+def serialise_colour(colour):
+    """Serialise a Colour value.
+
+    colour -- 'b' or 'w'
+
+    """
+    if colour not in ('b', 'w'):
+        raise ValueError
+    return colour.upper()
+
+
 def interpret_simpletext(s):
     """Convert a raw SimpleText value to a string.
 
@@ -65,6 +132,11 @@ def interpret_simpletext(s):
     """
     return sgf_parser.simpletext_value(s)
 
+def serialise_simpletext(s):
+    """Serialise a SimpleText value."""
+    return sgf_serialiser.escape_text(s)
+
+
 def interpret_text(s):
     """Convert a raw Text value to a string.
 
@@ -74,6 +146,11 @@ def interpret_text(s):
 
     """
     return sgf_parser.text_value(s)
+
+def serialise_text(s):
+    """Serialise a Text value."""
+    return sgf_serialiser.escape_text(s)
+
 
 def interpret_point(s, size):
     """Convert a raw SGF Point, Move, or Stone value to coordinates.
