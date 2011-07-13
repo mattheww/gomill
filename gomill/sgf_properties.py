@@ -315,7 +315,7 @@ def serialise_ARLN(values, size):
 
 
 def interpret_FG(s):
-    """Interpret a FG (figure) property value.
+    """Interpret an FG (figure) property value.
 
     Returns a pair (flags, string), or None.
 
@@ -326,6 +326,22 @@ def interpret_FG(s):
         return None
     flags, name = sgf_parser.parse_compose(s)
     return int(flags), interpret_simpletext(name)
+
+def serialise_FG(flags, name=None):
+    """Serialise an FG (figure) property value.
+
+    flags -- int
+    name  -- string
+
+    Use serialise_FG(None) to produce an empty value.
+
+    """
+    if flags is None:
+        return ""
+    if name is None:
+        name = ""
+    return "%d:%s" % (flags, sgf_serialiser.escape_text(name))
+
 
 def interpret_LB(values, size):
     """Interpret an LB (label) property value.

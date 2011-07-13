@@ -174,3 +174,9 @@ def test_ARLN(tc):
     tc.assertEqual(
         sgf_properties.interpret_ARLN(['ab:cd', 'de:fg'], 9),
         [((7, 0), (5, 2)), ((4, 3), (2, 5))])
+
+def test_FG(tc):
+    tc.assertEqual(sgf_properties.serialise_FG(None), "")
+    tc.assertEqual(sgf_properties.interpret_FG(""), None)
+    tc.assertEqual(sgf_properties.serialise_FG(515, "th]is"), "515:th\\]is")
+    tc.assertEqual(sgf_properties.interpret_FG("515:th\\]is"), (515, "th]is"))
