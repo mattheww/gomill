@@ -9,6 +9,30 @@ from gomill import sgf_properties
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
+def test_interpret_number(tc):
+    interpret_number = sgf_properties.interpret_number
+    tc.assertEqual(interpret_number("1"), 1)
+    tc.assertIs(type(interpret_number("1")), int)
+    tc.assertEqual(interpret_number("0"), 0)
+    tc.assertEqual(interpret_number("-1"), -1)
+    tc.assertEqual(interpret_number("+1"), 1)
+    tc.assertRaises(ValueError, interpret_number, "1.5")
+    tc.assertRaises(ValueError, interpret_number, "0xaf")
+    tc.assertRaises(TypeError, interpret_number, 1)
+
+
+def test_interpret_real(tc):
+    interpret_real = sgf_properties.interpret_real
+    tc.assertEqual(interpret_real("1"), 1.0)
+    tc.assertIs(type(interpret_real("1")), float)
+    tc.assertEqual(interpret_real("0"), 0.0)
+    tc.assertEqual(interpret_real("1.0"), 1.0)
+    tc.assertEqual(interpret_real("1.5"), 1.5)
+    tc.assertEqual(interpret_real("-1.5"), -1.5)
+    tc.assertEqual(interpret_real("+0.5"), 0.5)
+    tc.assertRaises(ValueError, interpret_real, "+")
+    tc.assertRaises(ValueError, interpret_real, "0xaf")
+    #tc.assertRaises(TypeError, interpret_real, 1.0)
 
 def test_serialise_real(tc):
     serialise_real = sgf_properties.serialise_real

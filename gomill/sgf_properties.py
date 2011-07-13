@@ -29,8 +29,13 @@ def serialise_none(b):
 
 
 def interpret_number(s):
-    """Convert a raw Number value to the integer it represents."""
-    return int(s)
+    """Convert a raw Number value to the integer it represents.
+
+    This is a little more lenient than the SGF spec: it permits leading and
+    trailing spaces, and spaces between the sign and the numerals.
+
+    """
+    return int(s, 10)
 
 def serialise_number(i):
     """Serialise a Number value.
