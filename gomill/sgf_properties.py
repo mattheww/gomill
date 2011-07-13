@@ -356,6 +356,16 @@ def interpret_LB(values, size):
                        interpret_simpletext(label)))
     return result
 
+def serialise_LB(values, size):
+    """Serialise an LB (label) property value.
+
+    values -- list of pairs (coords, string)
+
+    """
+    return ["%s:%s" % (serialise_point(point, size),
+                       sgf_serialiser.escape_text(text))
+            for point, text in values]
+
 
 class Property(object):
     """Description of a property type."""

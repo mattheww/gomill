@@ -168,6 +168,7 @@ def test_AP(tc):
 
 def test_ARLN(tc):
     tc.assertEqual(sgf_properties.serialise_ARLN([], 19), [])
+    tc.assertEqual(sgf_properties.interpret_ARLN([], 19), [])
     tc.assertEqual(
         sgf_properties.serialise_ARLN([((7, 0), (5, 2)), ((4, 3), (2, 5))], 9),
         ['ab:cd', 'de:fg'])
@@ -180,3 +181,14 @@ def test_FG(tc):
     tc.assertEqual(sgf_properties.interpret_FG(""), None)
     tc.assertEqual(sgf_properties.serialise_FG(515, "th]is"), "515:th\\]is")
     tc.assertEqual(sgf_properties.interpret_FG("515:th\\]is"), (515, "th]is"))
+
+def test_LB(tc):
+    tc.assertEqual(sgf_properties.serialise_LB([], 19), [])
+    tc.assertEqual(sgf_properties.interpret_LB([], 19), [])
+    tc.assertEqual(
+        sgf_properties.serialise_LB([((6, 0), "lbl"), ((6, 1), "lb]l2")], 9),
+        ["ac:lbl", "bc:lb\\]l2"])
+    tc.assertEqual(
+        sgf_properties.interpret_LB(["ac:lbl", "bc:lb\\]l2"], 9),
+        [((6, 0), "lbl"), ((6, 1), "lb]l2")])
+
