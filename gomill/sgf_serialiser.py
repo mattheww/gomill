@@ -20,6 +20,8 @@ def compose(s1, s2):
 
     s1, s2 -- serialised form of a property value
 
+    (This is only needed if the type of the first value permits colons.)
+
     """
     return s1.replace(":", "\\:") + ":" + s2
 
