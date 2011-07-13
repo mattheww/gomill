@@ -179,6 +179,34 @@ def interpret_point(s, size):
         raise ValueError
     return row, col
 
+def serialise_point(move, size):
+    """Serialise a Point, Move, or Stone value.
+
+    move -- pair (row, col), or None for a pass
+    size -- board size (int)
+
+    The move coordinates are in the GTP coordinate system (as in the rest of
+    gomill), where (0, 0) is the lower left.
+
+    Only supports board sizes up to 26.
+
+    """
+    if not 1 <= size <= 26:
+        raise ValueError
+    if move is None:
+        # Prefer 'tt' where possible, for the sake of older code
+        if size <= 19:
+           return "tt"
+        else:
+            return ""
+    row, col = move
+    if not ((0 <= col < size) and (0 <= row < size)):
+        raise ValueError
+    col_s = "abcdefghijklmnopqrstuvwxy"[col]
+    row_s = "abcdefghijklmnopqrstuvwxy"[size - row - 1]
+    return col_s + row_s
+
+
 def interpret_point_list(values, size):
     """Convert a raw SGF list or elist of Points to a set of coordinates.
 

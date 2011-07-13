@@ -53,6 +53,23 @@ def test_interpret_point(tc):
     tc.assertRaises(TypeError, interpret_point, None, 19)
     #tc.assertRaises(TypeError, interpret_point, ('a', 'a'), 19)
 
+def test_serialise_point(tc):
+    serialise_point = sgf_properties.serialise_point
+    tc.assertEqual(serialise_point((18, 0), 19), "aa")
+    tc.assertEqual(serialise_point((10, 0), 19), "ai")
+    tc.assertEqual(serialise_point((8, 1), 19), "bk")
+    tc.assertEqual(serialise_point((8, 1), 9), "ba")
+    tc.assertEqual(serialise_point((1, 19), 21), "tt")
+    tc.assertEqual(serialise_point(None, 19), "tt")
+    tc.assertEqual(serialise_point(None, 20), "")
+    tc.assertRaises(ValueError, serialise_point, (3, 3), 0)
+    tc.assertRaises(ValueError, serialise_point, (3, 3), 27)
+    tc.assertRaises(ValueError, serialise_point, (9, 0), 9)
+    tc.assertRaises(ValueError, serialise_point, (-1, 0), 9)
+    tc.assertRaises(ValueError, serialise_point, (0, 9), 9)
+    tc.assertRaises(ValueError, serialise_point, (0, -1), 9)
+    tc.assertRaises(TypeError, serialise_point, (1, 1.5), 9)
+
 def test_interpret_point_list(tc):
     ipl = sgf_properties.interpret_point_list
     tc.assertEqual(ipl([], 19),
