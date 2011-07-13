@@ -269,14 +269,27 @@ def serialise_point_list(points, size):
 def interpret_AP(s):
     """Interpret an AP (application) property value.
 
-    Returns a pair of strings (but if there is no delimiter, the second value
-    is None)
+    Returns a pair of strings (name, version number)
+
+    Permits the version number to be missing (which is forbidden by the SGF
+    spec), in which case the second returned value is an empty string.
 
     """
     application, version = sgf_parser.parse_compose(s)
-    if version is not None:
-        version = interpret_simpletext(version)
-    return interpret_simpletext(application), version
+    if version is None:
+        version = ""
+    return interpret_simpletext(application), interpret_simpletext(version)
+
+def serialise_AP(application, version):
+    """Serialise an AP (application) property value.
+
+    application -- string
+    version     -- string
+
+    """
+    return sgf_serialiser.compose(sgf_serialiser.escape_text(application),
+                                  sgf_serialiser.escape_text(version))
+
 
 def interpret_ARLN(values, size):
     """Interpret an AR (arrow) or LN (line) property value.

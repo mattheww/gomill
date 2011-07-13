@@ -15,6 +15,14 @@ def escape_text(s):
     """
     return s.replace("\\", "\\\\").replace("]", "\\]")
 
+def compose(s1, s2):
+    """Construct a value of Compose value type.
+
+    s1, s2 -- serialised form of a property value
+
+    """
+    return s1.replace(":", "\\:") + ":" + s2
+
 class Parsed_game_tree(object):
     """FIXME: need to share this with sgf_parser, and maybe rename."""
     def __init__(self):

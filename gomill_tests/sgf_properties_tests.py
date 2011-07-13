@@ -156,3 +156,12 @@ def test_serialise_point_list(tc):
     tc.assertEqual(spl([], 9), [])
     tc.assertEqual(ipl(spl([(1,2), (3,4), (4,5)], 19), 19),
                    set([(1,2), (3,4), (4,5)]))
+
+
+def test_AP(tc):
+    tc.assertEqual(sgf_properties.serialise_AP("foo:bar", "2\n3"),
+                   "foo\\:bar:2\n3")
+    tc.assertEqual(sgf_properties.interpret_AP("foo\\:bar:2 3"),
+                   ("foo:bar", "2 3"))
+    tc.assertEqual(sgf_properties.interpret_AP("foo bar"),
+                   ("foo bar", ""))
