@@ -303,6 +303,17 @@ def interpret_ARLN(values, size):
         result.append((interpret_point(p1, size), interpret_point(p2, size)))
     return result
 
+def serialise_ARLN(values, size):
+    """Serialise an AR (arrow) or LN (line) property value.
+
+    values -- list of pairs (coords, coords)
+
+    """
+    return ["%s:%s" % (serialise_point(p1, size),
+                       serialise_point(p2, size))
+            for p1, p2 in values]
+
+
 def interpret_FG(s):
     """Interpret a FG (figure) property value.
 

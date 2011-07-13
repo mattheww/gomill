@@ -165,3 +165,12 @@ def test_AP(tc):
                    ("foo:bar", "2 3"))
     tc.assertEqual(sgf_properties.interpret_AP("foo bar"),
                    ("foo bar", ""))
+
+def test_ARLN(tc):
+    tc.assertEqual(sgf_properties.serialise_ARLN([], 19), [])
+    tc.assertEqual(
+        sgf_properties.serialise_ARLN([((7, 0), (5, 2)), ((4, 3), (2, 5))], 9),
+        ['ab:cd', 'de:fg'])
+    tc.assertEqual(
+        sgf_properties.interpret_ARLN(['ab:cd', 'de:fg'], 9),
+        [((7, 0), (5, 2)), ((4, 3), (2, 5))])
