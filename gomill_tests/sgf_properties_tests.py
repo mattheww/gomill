@@ -70,6 +70,7 @@ def test_serialise_point(tc):
     tc.assertRaises(ValueError, serialise_point, (0, -1), 9)
     tc.assertRaises(TypeError, serialise_point, (1, 1.5), 9)
 
+
 def test_interpret_point_list(tc):
     ipl = sgf_properties.interpret_point_list
     tc.assertEqual(ipl([], 19),
@@ -122,3 +123,12 @@ def test_compressed_point_list_spec_example(tc):
         set(["aa", "ab", "ac", "ad", "ae", "af", "ag", "ah", "ai",
              "bi", "bh", "bg", "bf", "be", "bd", "bc", "bb", "ba",
              "ca", "cb", "cc", "cd", "ce"]))
+
+def test_serialise_point_list(tc):
+    ipl = sgf_properties.interpret_point_list
+    spl = sgf_properties.serialise_point_list
+
+    tc.assertEqual(spl([(18, 0), (17, 1)], 19), ['aa', 'bb'])
+    tc.assertEqual(spl([], 9), [])
+    tc.assertEqual(ipl(spl([(1,2), (3,4), (4,5)], 19), 19),
+                   set([(1,2), (3,4), (4,5)]))

@@ -118,7 +118,6 @@ class Node(object):
 
         See sgf_properties.get_interpreted_value() for details.
 
-
         """
         return sgf_properties.get_interpreted_value(
             identifier, self._props_by_id[identifier], self.size)

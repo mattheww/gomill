@@ -211,6 +211,7 @@ def interpret_point_list(values, size):
     """Convert a raw SGF list or elist of Points to a set of coordinates.
 
     values -- list of strings
+    size   -- board size (int)
 
     Returns a set of pairs (row, col).
 
@@ -243,6 +244,21 @@ def interpret_point_list(values, size):
                 raise ValueError
             result.add(pt)
     return result
+
+def serialise_point_list(points, size):
+    """Serialise a list of Points, Moves, or Stones.
+
+    points -- iterable of pairs (row, col)
+    size   -- board size (int)
+
+    Returns a list of strings.
+
+    If 'points' is empty, returns an empty list.
+
+    Doesn't produce a compressed point list.
+
+    """
+    return [serialise_point(point, size) for point in points]
 
 
 def interpret_AP(s):
