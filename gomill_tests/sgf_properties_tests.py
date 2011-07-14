@@ -209,5 +209,6 @@ def test_serialise_value(tc):
     tc.assertEqual(sv('CR', [], 9), [""])
     tc.assertEqual(sv('AP', ("na:me", "2.3"), 9), ["na\\:me:2.3"])
     tc.assertEqual(sv('FG', (515, "th]is"), 9), ["515:th\\]is"])
+    tc.assertEqual(sv('XX', "foo\\bar", 9), ["foo\\\\bar"])
 
     tc.assertRaises(ValueError, sv, 'B', (1, 9), 9)

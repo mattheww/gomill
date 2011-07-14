@@ -122,6 +122,23 @@ class Node(object):
         return sgf_properties.get_interpreted_value(
             identifier, self._props_by_id[identifier], self.size)
 
+    def set(self, identifier, value):
+        """Set the value of the specified property.
+
+        identifier -- ascii string passing is_valid_property_identifier()
+        value      -- new property value (in its Python representation)
+
+        For properties with value type 'none', use value True.
+
+        Raises ValueError if it cannot represent the value.
+
+        See sgf_properties.serialise_value() for details.
+
+        """
+        self._props_by_id[identifier] = sgf_properties.serialise_value(
+            identifier, value, self.size)
+
+
     def get_raw_move(self):
         """Return the raw value of the move from a node.
 

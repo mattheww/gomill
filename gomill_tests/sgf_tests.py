@@ -42,8 +42,10 @@ def test_node_get(tc):
     EV[Test
     event]
     C[123:\)
-    abc];
-    B[dg]KO[]AR[ab:cd][de:fg]FG[515:first move]
+    abc]
+    YY[none
+    sense]
+    ;B[dg]KO[]AR[ab:cd][de:fg]FG[515:first move]
     LB[ac:lbl][bc:lbl2])
     """))
     root = sgf_game.get_root()
@@ -52,6 +54,7 @@ def test_node_get(tc):
     tc.assertEqual(root.get('C'), "123:)\nabc")          # Text
     tc.assertEqual(root.get('EV'), "Test event")         # Simpletext
     tc.assertEqual(root.get('BM'), 2)                    # Double
+    tc.assertEqual(root.get('YY'), "none\nsense")        # unknown (Text)
     tc.assertIs(node1.get('KO'), True)                   # None
     tc.assertEqual(root.get('KM'), 7.5)                  # Real
     tc.assertEqual(root.get('GM'), 1)                    # Number
@@ -377,6 +380,20 @@ def test_node_aliasing(tc):
     plain_node.set_raw_list('XX', ["1", "2", "3"])
     tc.assertEqual(tree_node.get_raw_list('XX'), ["1", "2", "3"])
 
+def test_node_set(tc):
+    sgf_game = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9])")
+    root = sgf_game.get_root()
+    root.set("KO", True)
+    root.set("KM", 0.5)
+    root.set('DD', [(3, 4), (5, 6)])
+    root.set('AB', set([(0, 0), (1, 1), (4, 4)]))
+    root.set('TW', set())
+    root.set('XX', "nonsense [none]sense more n\\onsens\\e")
+
+    tc.assertEqual(sgf.serialise_sgf_game(sgf_game), dedent("""\
+    (;AB[ai][bh][ee]DD[ef][gd]FF[4]GM[1]KM[0.5]KO[]SZ[9]TW[]
+    XX[nonsense [none\\]sense more n\\\\onsens\\\\e])
+    """))
 
 def test_serialiser_round_trip(tc):
     sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
