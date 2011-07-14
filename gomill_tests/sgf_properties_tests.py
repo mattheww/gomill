@@ -153,13 +153,14 @@ def test_serialise_point_list(tc):
     spl = sgf_properties.serialise_point_list
 
     tc.assertEqual(spl([(18, 0), (17, 1)], 19), ['aa', 'bb'])
+    tc.assertEqual(spl([(17, 1), (18, 0)], 19), ['aa', 'bb'])
     tc.assertEqual(spl([], 9), [])
     tc.assertEqual(ipl(spl([(1,2), (3,4), (4,5)], 19), 19),
                    set([(1,2), (3,4), (4,5)]))
 
 
 def test_AP(tc):
-    tc.assertEqual(sgf_properties.serialise_AP("foo:bar", "2\n3"),
+    tc.assertEqual(sgf_properties.serialise_AP(("foo:bar", "2\n3")),
                    "foo\\:bar:2\n3")
     tc.assertEqual(sgf_properties.interpret_AP("foo\\:bar:2 3"),
                    ("foo:bar", "2 3"))
@@ -179,7 +180,7 @@ def test_ARLN(tc):
 def test_FG(tc):
     tc.assertEqual(sgf_properties.serialise_FG(None), "")
     tc.assertEqual(sgf_properties.interpret_FG(""), None)
-    tc.assertEqual(sgf_properties.serialise_FG(515, "th]is"), "515:th\\]is")
+    tc.assertEqual(sgf_properties.serialise_FG((515, "th]is")), "515:th\\]is")
     tc.assertEqual(sgf_properties.interpret_FG("515:th\\]is"), (515, "th]is"))
 
 def test_LB(tc):
@@ -192,3 +193,21 @@ def test_LB(tc):
         sgf_properties.interpret_LB(["ac:lbl", "bc:lb\\]l2"], 9),
         [((6, 0), "lbl"), ((6, 1), "lb]l2")])
 
+
+def test_serialise_value(tc):
+    sv = sgf_properties.serialise_value
+    tc.assertEqual(sv('KO', True, 9), [""])
+    tc.assertEqual(sv('SZ', 9, 9), ["9"])
+    tc.assertEqual(sv('KM', 3.5, 9), ["3.5"])
+    tc.assertEqual(sv('C', "foo\\:b]ar\n", 9), ["foo\\\\:b\\]ar\n"])
+    tc.assertEqual(sv('B', (1, 2), 19), ["cr"])
+    tc.assertEqual(sv('B', None, 9), ["tt"])
+    tc.assertEqual(sv('AW', set([(17, 1), (18, 0)]), 19), ["aa", "bb"])
+    tc.assertEqual(sv('DD', [(1, 2), (3, 4)], 9), ["ch", "ef"])
+    tc.assertEqual(sv('DD', [], 9), [""])
+    # FIXME: Do we want this behaviour? (CR isn't an elist)
+    tc.assertEqual(sv('CR', [], 9), [""])
+    tc.assertEqual(sv('AP', ("na:me", "2.3"), 9), ["na\\:me:2.3"])
+    tc.assertEqual(sv('FG', (515, "th]is"), 9), ["515:th\\]is"])
+
+    tc.assertRaises(ValueError, sv, 'B', (1, 9), 9)

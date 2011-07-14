@@ -60,7 +60,7 @@ def interpret_real(s):
 def serialise_real(f):
     """Serialise a Real value.
 
-    f -- real number (int, float, Decimal)
+    f -- real number (int or float)
 
     If the value is too small to conveniently express as a decimal, returns "0"
     (this currently happens if f is less than 0.0001).
@@ -263,7 +263,9 @@ def serialise_point_list(points, size):
     Doesn't produce a compressed point list.
 
     """
-    return [serialise_point(point, size) for point in points]
+    result = [serialise_point(point, size) for point in points]
+    result.sort()
+    return result
 
 
 def interpret_AP(s):
@@ -280,13 +282,17 @@ def interpret_AP(s):
         version = ""
     return interpret_simpletext(application), interpret_simpletext(version)
 
-def serialise_AP(application, version):
+def serialise_AP(value):
     """Serialise an AP (application) property value.
 
-    application -- string
-    version     -- string
+    value -- pair (application, version)
+      application -- string
+      version     -- string
+
+    Note this takes a single parameter (which is a pair).
 
     """
+    application, version = value
     return sgf_serialiser.compose(sgf_serialiser.escape_text(application),
                                   sgf_serialiser.escape_text(version))
 
@@ -327,19 +333,19 @@ def interpret_FG(s):
     flags, name = sgf_parser.parse_compose(s)
     return int(flags), interpret_simpletext(name)
 
-def serialise_FG(flags, name=None):
+def serialise_FG(value):
     """Serialise an FG (figure) property value.
 
-    flags -- int
-    name  -- string
+    value -- pair (flags, name), or None
+      flags -- int
+      name  -- string
 
     Use serialise_FG(None) to produce an empty value.
 
     """
-    if flags is None:
+    if value is None:
         return ""
-    if name is None:
-        name = ""
+    flags, name = value
     return "%d:%s" % (flags, sgf_serialiser.escape_text(name))
 
 
@@ -373,6 +379,8 @@ class Property(object):
         self.interpreter = interpreter
         self.uses_list = uses_list
         self.uses_size = (interpreter.func_code.co_argcount == 2)
+        self.serialiser = globals()[
+            interpreter.func_name.replace("interpret_", "serialise_")]
 
 P = Property
 LIST = ELIST = True
@@ -485,3 +493,41 @@ def get_interpreted_value(identifier, raw_values, size):
         return interpreter(raw, size)
     else:
         return interpreter(raw)
+
+def serialise_value(identifier, value, size):
+    """Serialise a Python representation of a property value.
+
+    identifier -- PropIdent
+    value      -- corresponding Python value
+    size       -- board size (int)
+
+    Returns a nonempty list of 8-bit strings, suitable for use as raw
+    PropValues.
+
+    See the serialise_... functions above for details of the acceptable values
+    for each type.
+
+    Raises ValueError if it cannot serialise the value.
+
+    See the properties_by_ident table above for a list of known properties.
+
+    Treats unknown (private) properties as if they had type Text.
+
+    In general, the serialise_... functions try not to produce an invalid
+    result, but do not try to prevent garbage input happening to produce a
+    valid result.
+
+    """
+    prop = properties_by_ident.get(identifier, private_property)
+    serialiser = prop.serialiser
+    if prop.uses_size:
+        result = serialiser(value, size)
+    else:
+        result = serialiser(value)
+    if prop.uses_list:
+        if result == []:
+            return [""]
+        return result
+    else:
+        return [result]
+
