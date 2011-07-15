@@ -38,7 +38,7 @@ def test_property_combination(tc):
 def test_node_get(tc):
     sgf_game = sgf.sgf_game_from_string(dedent(r"""
     (;AP[testsuite:0]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
-    PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]BM[2]VW[]
+    PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]AE[]BM[2]VW[]
     EV[Test
     event]
     C[123:\)
@@ -69,6 +69,8 @@ def test_node_get(tc):
     tc.assertEqual(node1.get('FG'), (515, "first move")) # Figure
     tc.assertEqual(node1.get('LB'),
                    [((6, 0), "lbl"), ((6, 1), "lbl2")])  # Label
+    # Check we (leniently) treat lists like elists on read
+    tc.assertEqual(root.get('AE'), set())
 
 def test_text_values(tc):
     def check(s):
@@ -139,13 +141,13 @@ def test_node_get_move(tc):
 
 def test_node_setup_commands(tc):
     sgf_game = sgf.sgf_game_from_string(
-        r"(;KM[6.5]SZ[9]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
+        r"(;KM[6.5]SZ[9]C[sample\: comment]AB[ai][bh][ee]AE[bb];B[dg])")
     node0 = sgf_game.get_root()
     node1 = list(sgf_game.main_sequence_iter())[1]
     tc.assertIs(node0.has_setup_commands(), True)
     tc.assertIs(node1.has_setup_commands(), False)
     tc.assertEqual(node0.get_setup_commands(),
-                   (set([(0, 0), (1, 1), (4, 4)]), set(), set()))
+                   (set([(0, 0), (1, 1), (4, 4)]), set(), set([(7, 1)])))
     tc.assertEqual(node1.get_setup_commands(),
                    (set(), set(), set()))
 
