@@ -105,6 +105,14 @@ class Node(object):
             raise ValueError("ill-formed raw property value")
         self._props_by_id[identifier] = [value]
 
+    def unset(self, identifier):
+        """Remove the specified property.
+
+        Raises KeyError if the property isn't currently present.
+
+        """
+        del self._props_by_id[identifier]
+
 
     def get(self, identifier):
         """Return the interpreted value of the specified property.

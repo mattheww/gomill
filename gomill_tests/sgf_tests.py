@@ -395,6 +395,15 @@ def test_node_set(tc):
     XX[nonsense [none\\]sense more n\\\\onsens\\\\e])
     """))
 
+def test_node_unset(tc):
+    sgf_game = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9]HA[3])")
+    root = sgf_game.get_root()
+    tc.assertEqual(root.get('HA'), 3)
+    root.unset('HA')
+    tc.assertRaises(KeyError, root.unset, 'PL')
+    tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
+                   "(;FF[4]GM[1]SZ[9])\n")
+
 def test_serialiser_round_trip(tc):
     sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
     serialised = sgf.serialise_sgf_game(sgf_game)
