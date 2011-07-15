@@ -213,12 +213,14 @@ def serialise_point(move, size):
 
 
 def interpret_point_list(values, size):
-    """Convert a raw SGF list or elist of Points to a set of coordinates.
+    """Convert a raw SGF list of Points to a set of coordinates.
 
     values -- list of strings
     size   -- board size (int)
 
     Returns a set of pairs (row, col).
+
+    If 'values' is empty, returns an empty set.
 
     This interprets compressed point lists.
 
@@ -476,6 +478,11 @@ def interpret_value(identifier, raw_values, size):
     Note that in some cases the interpret_... functions accept values which are
     not strictly permitted by the specification.
 
+    elist handling: if the property's value type is a list type and
+    'raw_values' is a list containing a single empty string, passes an empty
+    list to the interpret_... function (that is, this function treats all lists
+    like elists).
+
     Doesn't enforce range restrictions on values with type Number.
 
     See the properties_by_ident table above for a list of known properties.
@@ -509,6 +516,10 @@ def serialise_value(identifier, value, size):
 
     See the serialise_... functions above for details of the acceptable values
     for each type.
+
+    elist handling: if the property's value type is an elist type and the
+    serialise_... function returns an empty list, this returns a list
+    containing a single empty string.
 
     Raises ValueError if it cannot serialise the value.
 
