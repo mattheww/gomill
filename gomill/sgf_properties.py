@@ -458,7 +458,7 @@ private_property = P(interpret_text)
 del P, LIST, ELIST
 
 
-def get_interpreted_value(identifier, raw_values, size):
+def interpret_value(identifier, raw_values, size):
     """Return a Python representation of a property value.
 
     identifier -- PropIdent

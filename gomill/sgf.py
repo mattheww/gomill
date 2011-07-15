@@ -124,10 +124,10 @@ class Node(object):
 
         Raises ValueError if it cannot interpret the value.
 
-        See sgf_properties.get_interpreted_value() for details.
+        See sgf_properties.interpret_value() for details.
 
         """
-        return sgf_properties.get_interpreted_value(
+        return sgf_properties.interpret_value(
             identifier, self._props_by_id[identifier], self.size)
 
     def set(self, identifier, value):
