@@ -377,13 +377,16 @@ class Property(object):
     """Description of a property type."""
     def __init__(self, interpreter, uses_list=False):
         self.interpreter = interpreter
-        self.uses_list = uses_list
+        self.uses_list = bool(uses_list)
+        self.allows_empty_list = (uses_list == 'elist')
         self.uses_size = (interpreter.func_code.co_argcount == 2)
         self.serialiser = globals()[
             interpreter.func_name.replace("interpret_", "serialise_")]
 
 P = Property
-LIST = ELIST = True
+LIST = 'list'
+ELIST = 'elist'
+
 properties_by_ident = {
   'AB' : P(interpret_point_list, LIST),             # setup      Add Black
   'AE' : P(interpret_point_list, LIST),             # setup      Add Empty
@@ -526,7 +529,10 @@ def serialise_value(identifier, value, size):
         result = serialiser(value)
     if prop.uses_list:
         if result == []:
-            return [""]
+            if prop.allows_empty_list:
+                return [""]
+            else:
+                raise ValueError("empty list")
         return result
     else:
         return [result]
