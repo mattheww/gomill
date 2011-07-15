@@ -377,88 +377,87 @@ def serialise_LB(values, size):
 
 class Property(object):
     """Description of a property type."""
-    def __init__(self, interpreter, uses_list=False):
-        self.interpreter = interpreter
+    def __init__(self, value_type, uses_list=False):
+        self.interpreter = globals()["interpret_" + value_type]
+        self.serialiser = globals()["serialise_" + value_type]
         self.uses_list = bool(uses_list)
         self.allows_empty_list = (uses_list == 'elist')
-        self.uses_size = (interpreter.func_code.co_argcount == 2)
-        self.serialiser = globals()[
-            interpreter.func_name.replace("interpret_", "serialise_")]
+        self.uses_size = (self.interpreter.func_code.co_argcount == 2)
 
 P = Property
 LIST = 'list'
 ELIST = 'elist'
 
 properties_by_ident = {
-  'AB' : P(interpret_point_list, LIST),             # setup      Add Black
-  'AE' : P(interpret_point_list, LIST),             # setup      Add Empty
-  'AN' : P(interpret_simpletext),                   # game-info  Annotation
-  'AP' : P(interpret_AP),                           # root       Application
-  'AR' : P(interpret_ARLN, LIST),                   # -          Arrow
-  'AW' : P(interpret_point_list, LIST),             # setup      Add White
-  'B'  : P(interpret_point),                        # move       Black
-  'BL' : P(interpret_real),                         # move       Black time left
-  'BM' : P(interpret_double),                       # move       Bad move
-  'BR' : P(interpret_simpletext),                   # game-info  Black rank
-  'BT' : P(interpret_simpletext),                   # game-info  Black team
-  'C'  : P(interpret_text),                         # -          Comment
-  'CA' : P(interpret_simpletext),                   # root       Charset
-  'CP' : P(interpret_simpletext),                   # game-info  Copyright
-  'CR' : P(interpret_point_list, LIST),             # -          Circle
-  'DD' : P(interpret_point_list, ELIST),            # - (inherit)Dim points
-  'DM' : P(interpret_double),                       # -          Even position
-  'DO' : P(interpret_none),                         # move       Doubtful
-  'DT' : P(interpret_simpletext),                   # game-info  Date
-  'EV' : P(interpret_simpletext),                   # game-info  Event
-  'FF' : P(interpret_number),                       # root       Fileformat
-  'FG' : P(interpret_FG),                           # -          Figure
-  'GB' : P(interpret_double),                       # -          Good for Black
-  'GC' : P(interpret_text),                         # game-info  Game comment
-  'GM' : P(interpret_number),                       # root       Game
-  'GN' : P(interpret_simpletext),                   # game-info  Game name
-  'GW' : P(interpret_double),                       # -          Good for White
-  'HA' : P(interpret_number),                       # game-info  Handicap
-  'HO' : P(interpret_double),                       # -          Hotspot
-  'IT' : P(interpret_none),                         # move       Interesting
-  'KM' : P(interpret_real),                         # game-info  Komi
-  'KO' : P(interpret_none),                         # move       Ko
-  'LB' : P(interpret_LB, LIST),                     # -          Label
-  'LN' : P(interpret_ARLN, LIST),                   # -          Line
-  'MA' : P(interpret_point_list, LIST),             # -          Mark
-  'MN' : P(interpret_number),                       # move       set move number
-  'N'  : P(interpret_simpletext),                   # -          Nodename
-  'OB' : P(interpret_number),                       # move       OtStones Black
-  'ON' : P(interpret_simpletext),                   # game-info  Opening
-  'OT' : P(interpret_simpletext),                   # game-info  Overtime
-  'OW' : P(interpret_number),                       # move       OtStones White
-  'PB' : P(interpret_simpletext),                   # game-info  Player Black
-  'PC' : P(interpret_simpletext),                   # game-info  Place
-  'PL' : P(interpret_colour),                       # setup      Player to play
-  'PM' : P(interpret_number),                       # - (inherit)Print move mode
-  'PW' : P(interpret_simpletext),                   # game-info  Player White
-  'RE' : P(interpret_simpletext),                   # game-info  Result
-  'RO' : P(interpret_simpletext),                   # game-info  Round
-  'RU' : P(interpret_simpletext),                   # game-info  Rules
-  'SL' : P(interpret_point_list, LIST),             # -          Selected
-  'SO' : P(interpret_simpletext),                   # game-info  Source
-  'SQ' : P(interpret_point_list, LIST),             # -          Square
-  'ST' : P(interpret_number),                       # root       Style
-  'SZ' : P(interpret_number),                       # root       Size
-  'TB' : P(interpret_point_list, ELIST),            # -          Territory Black
-  'TE' : P(interpret_double),                       # move       Tesuji
-  'TM' : P(interpret_real),                         # game-info  Timelimit
-  'TR' : P(interpret_point_list, LIST),             # -          Triangle
-  'TW' : P(interpret_point_list, ELIST),            # -          Territory White
-  'UC' : P(interpret_double),                       # -          Unclear pos
-  'US' : P(interpret_simpletext),                   # game-info  User
-  'V'  : P(interpret_real),                         # -          Value
-  'VW' : P(interpret_point_list, ELIST),            # - (inherit)View
-  'W'  : P(interpret_point),                        # move       White
-  'WL' : P(interpret_real),                         # move       White time left
-  'WR' : P(interpret_simpletext),                   # game-info  White rank
-  'WT' : P(interpret_simpletext),                   # game-info  White team
+  'AB' : P('point_list', LIST),             # setup       Add Black
+  'AE' : P('point_list', LIST),             # setup       Add Empty
+  'AN' : P('simpletext'),                   # game-info   Annotation
+  'AP' : P('AP'),                           # root        Application
+  'AR' : P('ARLN', LIST),                   # -           Arrow
+  'AW' : P('point_list', LIST),             # setup       Add White
+  'B'  : P('point'),                        # move        Black
+  'BL' : P('real'),                         # move        Black time left
+  'BM' : P('double'),                       # move        Bad move
+  'BR' : P('simpletext'),                   # game-info   Black rank
+  'BT' : P('simpletext'),                   # game-info   Black team
+  'C'  : P('text'),                         # -           Comment
+  'CA' : P('simpletext'),                   # root        Charset
+  'CP' : P('simpletext'),                   # game-info   Copyright
+  'CR' : P('point_list', LIST),             # -           Circle
+  'DD' : P('point_list', ELIST),            # - (inherit) Dim points
+  'DM' : P('double'),                       # -           Even position
+  'DO' : P('none'),                         # move        Doubtful
+  'DT' : P('simpletext'),                   # game-info   Date
+  'EV' : P('simpletext'),                   # game-info   Event
+  'FF' : P('number'),                       # root        Fileformat
+  'FG' : P('FG'),                           # -           Figure
+  'GB' : P('double'),                       # -           Good for Black
+  'GC' : P('text'),                         # game-info   Game comment
+  'GM' : P('number'),                       # root        Game
+  'GN' : P('simpletext'),                   # game-info   Game name
+  'GW' : P('double'),                       # -           Good for White
+  'HA' : P('number'),                       # game-info   Handicap
+  'HO' : P('double'),                       # -           Hotspot
+  'IT' : P('none'),                         # move        Interesting
+  'KM' : P('real'),                         # game-info   Komi
+  'KO' : P('none'),                         # move        Ko
+  'LB' : P('LB', LIST),                     # -           Label
+  'LN' : P('ARLN', LIST),                   # -           Line
+  'MA' : P('point_list', LIST),             # -           Mark
+  'MN' : P('number'),                       # move        set move number
+  'N'  : P('simpletext'),                   # -           Nodename
+  'OB' : P('number'),                       # move        OtStones Black
+  'ON' : P('simpletext'),                   # game-info   Opening
+  'OT' : P('simpletext'),                   # game-info   Overtime
+  'OW' : P('number'),                       # move        OtStones White
+  'PB' : P('simpletext'),                   # game-info   Player Black
+  'PC' : P('simpletext'),                   # game-info   Place
+  'PL' : P('colour'),                       # setup       Player to play
+  'PM' : P('number'),                       # - (inherit) Print move mode
+  'PW' : P('simpletext'),                   # game-info   Player White
+  'RE' : P('simpletext'),                   # game-info   Result
+  'RO' : P('simpletext'),                   # game-info   Round
+  'RU' : P('simpletext'),                   # game-info   Rules
+  'SL' : P('point_list', LIST),             # -           Selected
+  'SO' : P('simpletext'),                   # game-info   Source
+  'SQ' : P('point_list', LIST),             # -           Square
+  'ST' : P('number'),                       # root        Style
+  'SZ' : P('number'),                       # root        Size
+  'TB' : P('point_list', ELIST),            # -           Territory Black
+  'TE' : P('double'),                       # move        Tesuji
+  'TM' : P('real'),                         # game-info   Timelimit
+  'TR' : P('point_list', LIST),             # -           Triangle
+  'TW' : P('point_list', ELIST),            # -           Territory White
+  'UC' : P('double'),                       # -           Unclear pos
+  'US' : P('simpletext'),                   # game-info   User
+  'V'  : P('real'),                         # -           Value
+  'VW' : P('point_list', ELIST),            # - (inherit) View
+  'W'  : P('point'),                        # move        White
+  'WL' : P('real'),                         # move        White time left
+  'WR' : P('simpletext'),                   # game-info   White rank
+  'WT' : P('simpletext'),                   # game-info   White team
 }
-private_property = P(interpret_text)
+private_property = P('text')
 
 del P, LIST, ELIST
 
