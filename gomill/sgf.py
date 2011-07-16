@@ -408,6 +408,14 @@ class Sgf_game(object):
         """
         return self.get_main_sequence()
 
+    def extend_main_sequence(self):
+        """Create a new Tree_node and add to the 'leftmost' variation.
+
+        Returns the new node.
+
+        """
+        return self.get_last_node().new_child()
+
     def get_size(self):
         """Return the board size as an integer."""
         return self.size
