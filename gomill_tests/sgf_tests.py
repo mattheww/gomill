@@ -188,16 +188,16 @@ def test_node_get_move(tc):
     tc.assertEqual(nodes[3].get_move(), ('b', None))
     tc.assertEqual(nodes[4].get_move(), ('w', None))
 
-def test_node_setup_commands(tc):
+def test_node_get_setup_stones(tc):
     sgf_game = sgf.sgf_game_from_string(
         r"(;KM[6.5]SZ[9]C[sample\: comment]AB[ai][bh][ee]AE[bb];B[dg])")
     node0 = sgf_game.get_root()
     node1 = list(sgf_game.main_sequence_iter())[1]
-    tc.assertIs(node0.has_setup_commands(), True)
-    tc.assertIs(node1.has_setup_commands(), False)
-    tc.assertEqual(node0.get_setup_commands(),
+    tc.assertIs(node0.has_setup_stones(), True)
+    tc.assertIs(node1.has_setup_stones(), False)
+    tc.assertEqual(node0.get_setup_stones(),
                    (set([(0, 0), (1, 1), (4, 4)]), set(), set([(7, 1)])))
-    tc.assertEqual(node1.get_setup_commands(),
+    tc.assertEqual(node1.get_setup_stones(),
                    (set(), set(), set()))
 
 def test_sgf_game(tc):

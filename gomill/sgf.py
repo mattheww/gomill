@@ -187,7 +187,7 @@ class Node(object):
             return None, None
         return colour, sgf_properties.interpret_point(raw, self.size)
 
-    def get_setup_commands(self):
+    def get_setup_stones(self):
         """Retrieve Add Black / Add White / Add Empty properties from a node.
 
         Returns a tuple (black_points, white_points, empty_points)
@@ -209,7 +209,7 @@ class Node(object):
             ep = set()
         return bp, wp, ep
 
-    def has_setup_commands(self):
+    def has_setup_stones(self):
         """Check whether the node has any AB/AW/AE properties."""
         d = self._props_by_id
         return ("AB" in d or "AW" in d or "AE" in d)
@@ -635,7 +635,7 @@ def get_setup_and_moves(sgf_game):
     """
     size = sgf_game.get_size()
     board = boards.Board(size)
-    ab, aw, ae = sgf_game.get_root().get_setup_commands()
+    ab, aw, ae = sgf_game.get_root().get_setup_stones()
     if ab or aw:
         is_legal = board.apply_setup(ab, aw, ae)
         if not is_legal:
@@ -644,8 +644,8 @@ def get_setup_and_moves(sgf_game):
     nodes = iter(sgf_game.main_sequence_iter())
     nodes.next()
     for node in nodes:
-        if node.has_setup_commands():
-            raise ValueError("setup commands after the root node")
+        if node.has_setup_stones():
+            raise ValueError("setup properties after the root node")
         colour, raw = node.get_raw_move()
         if colour is not None:
             moves.append((colour, sgf_properties.interpret_point(raw, size)))
