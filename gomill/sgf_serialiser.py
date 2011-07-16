@@ -105,7 +105,11 @@ def serialise_game_tree(game_tree):
         l.append("(")
         for properties in game_tree.sequence:
             l.append(";")
-            for prop_ident, prop_values in sorted(properties.iteritems()):
+            # Force FF to the front, largely to work around a Quarry bug which
+            # makes it ignore the first few bytes of the file.
+            for prop_ident, prop_values in sorted(
+                    properties.iteritems(),
+                    key=lambda (ident, _,): (-(ident=="FF"), ident)):
                 # Make a single string for each property, to get prettier
                 # block_format output.
                 m = [prop_ident]

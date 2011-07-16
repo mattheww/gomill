@@ -269,7 +269,7 @@ def test_tree_mutation(tc):
     n3 = n1.new_child()
     n3.set("N", "n3")
     tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
-                   "(;CA[utf-8]FF[4]GM[1]SZ[9](;N[n1];N[n3])(;N[n2]))\n")
+                   "(;FF[4]CA[utf-8]GM[1]SZ[9](;N[n1];N[n3])(;N[n2]))\n")
     tc.assertEqual(
         [node.get_raw_property_map() for node in sgf_game.main_sequence_iter()],
         [node.get_raw_property_map() for node in root, root[0], n3])
@@ -277,7 +277,7 @@ def test_tree_mutation(tc):
 
     n1.delete()
     tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
-                   "(;CA[utf-8]FF[4]GM[1]SZ[9];N[n2])\n")
+                   "(;FF[4]CA[utf-8]GM[1]SZ[9];N[n2])\n")
     tc.assertRaises(ValueError, root.delete)
 
 def test_tree_mutation_from_parsed_game(tc):
@@ -306,7 +306,7 @@ def test_extend_main_sequence(tc):
         g1.extend_main_sequence().set("N", "e%d" % i)
     tc.assertEqual(
         sgf.serialise_sgf_game(g1),
-        "(;CA[utf-8]FF[4]GM[1]SZ[9];N[e0];N[e1];N[e2];N[e3];N[e4];N[e5])\n")
+        "(;FF[4]CA[utf-8]GM[1]SZ[9];N[e0];N[e1];N[e2];N[e3];N[e4];N[e5])\n")
     g2 = sgf.sgf_game_from_string("(;SZ[9](;N[n1];N[n3])(;N[n2]))")
     for i in xrange(6):
         g2.extend_main_sequence().set("N", "e%d" % i)
@@ -490,7 +490,7 @@ def test_node_set(tc):
     root.set('XX', "nonsense [none]sense more n\\onsens\\e")
 
     tc.assertEqual(sgf.serialise_sgf_game(sgf_game), dedent("""\
-    (;AB[ai][bh][ee]DD[ef][gd]FF[4]GM[1]KM[0.5]KO[]SZ[9]TW[]
+    (;FF[4]AB[ai][bh][ee]DD[ef][gd]GM[1]KM[0.5]KO[]SZ[9]TW[]
     XX[nonsense [none\\]sense more n\\\\onsens\\\\e])
     """))
 
@@ -533,7 +533,7 @@ def test_serialiser_round_trip(tc):
     sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
     serialised = sgf.serialise_sgf_game(sgf_game)
     tc.assertEqual(serialised, dedent("""\
-    (;AB[ai][bh][ee]AP[testsuite:0]AW[fd][gc]CA[utf-8]DT[2009-06-06]FF[4]GM[1]
+    (;FF[4]AB[ai][bh][ee]AP[testsuite:0]AW[fd][gc]CA[utf-8]DT[2009-06-06]GM[1]
     KM[7.5]PB[Black engine]PL[B]PW[White engine]RE[W+R]SZ[9]VW[];B[dg];
     C[comment
     on two lines]W[ef];B[];C[Nonfinal comment]VW[aa:bb](;B[ia];W[ib];
@@ -600,7 +600,7 @@ def test_indicate_first_player(tc):
     g3 = sgf.sgf_game_from_string("(;AW[bc]FF[4]GM[1]SZ[9];B[aa];W[ab])")
     sgf.indicate_first_player(g3)
     tc.assertEqual(sgf.serialise_sgf_game(g3),
-                   "(;AW[bc]FF[4]GM[1]PL[B]SZ[9];B[aa];W[ab])\n")
+                   "(;FF[4]AW[bc]GM[1]PL[B]SZ[9];B[aa];W[ab])\n")
 
 
 # FIXME: these belong in a different test module?
