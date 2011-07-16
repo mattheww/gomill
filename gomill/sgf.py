@@ -267,10 +267,6 @@ class Tree_node(Node):
         Returns the new node.
 
         """
-        # FIXME [[
-        self.owner.root._tree_is_modified = True
-        self.owner.root._game_tree = None
-        # ]]
         child = Tree_node(self, {})
         self._children.append(child)
         return child
@@ -313,42 +309,6 @@ class _Root_tree_node(Tree_node):
         self.parent = None
         self._children = []
         Node.__init__(self, properties, size)
-
-class _Root_tree_node_for_game_tree(Tree_node):
-    """Variant of Tree_node used for a game root, when there is a game_tree."""
-    def __init__(self, owner, game_tree, size):
-        self.owner = owner
-        self.parent = None
-        self._game_tree = game_tree
-        self._tree_is_modified = False
-        self._children = None
-        Node.__init__(self, game_tree.sequence[0], size)
-
-    def _ensure_expanded(self):
-        if self._children is None:
-            self._children = []
-            sgf_parser.make_tree(
-                self._game_tree, self, Tree_node, Tree_node._add_child)
-
-    def children(self):
-        self._ensure_expanded()
-        return self._children[:]
-
-    def __len__(self):
-        self._ensure_expanded()
-        return len(self._children)
-
-    def __getitem__(self, key):
-        self._ensure_expanded()
-        return self._children[key]
-
-    def new_child(self):
-        self._ensure_expanded()
-        return Tree_node.new_child(self)
-
-    def _main_sequence_iter(self, size):
-        for properties in sgf_parser.main_sequence_iter(self._game_tree):
-            yield Node(properties, size)
 
 
 class Sgf_game(object):
@@ -492,16 +452,54 @@ class Sgf_game(object):
             return None
         return colour
 
+class _Root_tree_node_for_game_tree(Tree_node):
+    """Variant of _Root_tree_node used for _Parsed_sgf_game."""
+    def __init__(self, owner, game_tree, size):
+        self.owner = owner
+        self.parent = None
+        self._game_tree = game_tree
+        self._children = None
+        Node.__init__(self, game_tree.sequence[0], size)
+
+    def _ensure_expanded(self):
+        if self._children is None:
+            self._children = []
+            sgf_parser.make_tree(
+                self._game_tree, self, Tree_node, Tree_node._add_child)
+            self._game_tree = None
+
+    def children(self):
+        self._ensure_expanded()
+        return self._children[:]
+
+    def __len__(self):
+        self._ensure_expanded()
+        return len(self._children)
+
+    def __getitem__(self, key):
+        self._ensure_expanded()
+        return self._children[key]
+
+    def new_child(self):
+        self._ensure_expanded()
+        return Tree_node.new_child(self)
+
+    def _main_sequence_iter(self, size):
+        for properties in sgf_parser.main_sequence_iter(self._game_tree):
+            yield Node(properties, size)
+
 class _Parsed_sgf_game(Sgf_game):
     """An Sgf_game which was loaded from serialised form.
 
     Do not instantiate directly; use sgf_game_from_string().
 
-    This doesn't build the Tree_nodes (other than the root) until required, and
-    provides an implementation of main_sequence_iter() which reads directly
-    from the original Parsed_game_tree.
-
     """
+    # This doesn't build the Tree_nodes (other than the root) until required.
+
+    # It provides an implementation of main_sequence_iter() which reads
+    # directly from the original Parsed_game_tree; this stops being used as
+    # soon as the tree is expanded.
+
     def __init__(self, size, parsed_game):
         # FIXME: Share code with Sgf_game.__init__ cleanly [[
         if not 1 <= size <= 26:
@@ -511,7 +509,7 @@ class _Parsed_sgf_game(Sgf_game):
         self.root = _Root_tree_node_for_game_tree(self, parsed_game, size)
 
     def main_sequence_iter(self):
-        if self.root._tree_is_modified:
+        if self.root._game_tree is None:
             return self.get_main_sequence()
         return self.root._main_sequence_iter(self.size)
 

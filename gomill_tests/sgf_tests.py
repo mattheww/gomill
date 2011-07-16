@@ -316,6 +316,8 @@ def test_main_sequence(tc):
     tc.assertEqual(len(nodes), 8)
     tc.assertIs(root.get_raw_property_map(),
                 nodes[0].get_raw_property_map())
+    # Check that main_sequence_iter() optimisation has been used.
+    # (Have to call this before making the tree expand.)
     with tc.assertRaises(AttributeError):
         nodes[1].parent
 
@@ -424,8 +426,10 @@ def test_node_aliasing(tc):
     (;C[root];C[node 1])
     """))
     root = sgf_game.get_root()
-    tree_node = root[0]
     plain_node = list(sgf_game.main_sequence_iter())[1]
+    tree_node = root[0]
+    # Check the main_sequence_iter() optimisation was used, otherwise this test
+    # isn't checking what it's supposed to.
     tc.assertIsNot(tree_node, plain_node)
     tc.assertIs(tree_node.__class__, sgf.Tree_node)
     tc.assertIs(plain_node.__class__, sgf.Node)
