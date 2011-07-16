@@ -4,6 +4,8 @@ This is intended for use with SGF FF[4]; see http://www.red-bean.com/sgf/
 
 """
 
+import datetime
+
 from gomill import boards
 from gomill import sgf_parser
 from gomill import sgf_properties
@@ -536,6 +538,16 @@ class Sgf_game(object):
         if colour not in ("b", "w"):
             return None
         return colour
+
+    def set_date(self, date=None):
+        """Set the DT property.
+
+        date -- datetime.date (defaults to today)
+
+        """
+        if date is None:
+            date = datetime.date.today()
+        self.root.set('DT', date.strftime("%Y-%m-%d"))
 
 
 class _Root_tree_node_for_game_tree(Tree_node):
