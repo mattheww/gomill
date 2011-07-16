@@ -339,6 +339,11 @@ class Sgf_game(object):
         """Return the root node (as a Tree_node)."""
         return self.root
 
+    def get_last_node(self):
+        """Return last node from the 'leftmost' variation (as a Tree_node)."""
+        # FIXME: Want a better implementation
+        return self.get_main_sequence()[-1]
+
     def get_main_sequence(self):
         """Return the 'leftmost' variation.
 

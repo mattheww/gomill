@@ -261,6 +261,8 @@ def test_tree_view(tc):
     tc.assertEqual(len(leaf), 0)
     tc.assertFalse(leaf)
 
+    tc.assertIs(sgf_game.get_last_node(), root[0][0][0][0][0][0][0])
+
     # check nothing breaks when first retrieval is by index
     game2 = sgf.sgf_game_from_string(SAMPLE_SGF)
     root2 = game2.get_root()
@@ -280,6 +282,7 @@ def test_tree_mutation(tc):
     tc.assertEqual(
         [node.get_raw_property_map() for node in sgf_game.main_sequence_iter()],
         [node.get_raw_property_map() for node in root, root[0], n3])
+    tc.assertIs(sgf_game.get_last_node(), n3)
 
 def test_tree_mutation_from_parsed_game(tc):
     sgf_game = sgf.sgf_game_from_string("(;SZ[9](;N[n1];N[n3])(;N[n2]))")
@@ -295,6 +298,7 @@ def test_tree_mutation_from_parsed_game(tc):
     tc.assertEqual(
         [node.get_raw_property_map() for node in sgf_game.main_sequence_iter()],
         [node.get_raw_property_map() for node in root, root[0], n3, n5])
+    tc.assertIs(sgf_game.get_last_node(), n5)
 
 def test_get_sequence_above(tc):
     sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
@@ -351,6 +355,7 @@ def test_main_sequence(tc):
                 tree_nodes[0].get_raw_property_map())
     tc.assertIs(tree_nodes[0], root)
     tc.assertIs(tree_nodes[2].parent, tree_nodes[1])
+    tc.assertIs(sgf_game.get_last_node(), tree_nodes[-1])
 
     tree_node = root
     for node in nodes:
