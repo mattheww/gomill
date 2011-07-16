@@ -320,10 +320,14 @@ class Sgf_game(object):
     Parsed_game_tree.
 
     """
-    def __init__(self, size, parsed_game=None):
+    def _set_size(self, size):
+        # This is split out for the sake of _Parsed_sgf_game.__init__
         if not 1 <= size <= 26:
             raise ValueError("size out of range: %s" % size)
         self.size = size
+
+    def __init__(self, size):
+        self._set_size(size)
         initial_properties = {
             'FF' : ["4"],
             'GM' : ["1"],
@@ -452,6 +456,7 @@ class Sgf_game(object):
             return None
         return colour
 
+
 class _Root_tree_node_for_game_tree(Tree_node):
     """Variant of _Root_tree_node used for _Parsed_sgf_game."""
     def __init__(self, owner, game_tree, size):
@@ -501,11 +506,7 @@ class _Parsed_sgf_game(Sgf_game):
     # soon as the tree is expanded.
 
     def __init__(self, size, parsed_game):
-        # FIXME: Share code with Sgf_game.__init__ cleanly [[
-        if not 1 <= size <= 26:
-            raise ValueError("size out of range: %s" % size)
-        self.size = size
-        # ]]
+        self._set_size(size)
         self.root = _Root_tree_node_for_game_tree(self, parsed_game, size)
 
     def main_sequence_iter(self):
