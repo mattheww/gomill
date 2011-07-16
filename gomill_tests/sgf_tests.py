@@ -240,6 +240,37 @@ def test_tree_view(tc):
     root2 = game2.get_root()
     tc.assertIs(root2[0], root2.children()[0])
 
+def test_tree_mutation(tc):
+    sgf_game = sgf.Sgf_game(9)
+    root = sgf_game.get_root()
+    n1 = root.new_child()
+    n1.set("N", "n1")
+    n2 = root.new_child()
+    n2.set("N", "n2")
+    n3 = n1.new_child()
+    n3.set("N", "n3")
+    tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
+                   "(;CA[utf-8]FF[4]GM[1]SZ[9](;N[n1];N[n3])(;N[n2]))\n")
+    tc.assertEqual(
+        [node.get_raw_property_map() for node in sgf_game.main_sequence_iter()],
+        [node.get_raw_property_map() for node in root, root[0], n3])
+
+def test_tree_mutation_from_parsed_game(tc):
+    sgf_game = sgf.sgf_game_from_string("(;SZ[9](;N[n1];N[n3])(;N[n2]))")
+    root = sgf_game.get_root()
+    n4 = root.new_child()
+    n4.set("N", "n4")
+    n3 = root[0][0]
+    tc.assertEqual(n3.get("N"), "n3")
+    n5 = n3.new_child()
+    n5.set("N", "n5")
+    tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
+                   "(;SZ[9](;N[n1];N[n3];N[n5])(;N[n2])(;N[n4]))\n")
+    # FIXME: find a better test than property-map identity?
+    tc.assertEqual(
+        [node.get_raw_property_map() for node in sgf_game.main_sequence_iter()],
+        [node.get_raw_property_map() for node in root, root[0], n3, n5])
+
 def test_get_sequence_above(tc):
     sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
     root = sgf_game.get_root()

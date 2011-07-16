@@ -261,6 +261,19 @@ class Tree_node(Node):
     def __getitem__(self, key):
         return self._children[key]
 
+    def new_child(self):
+        """Create a new Tree_node and add it as this node's last child.
+
+        Returns the new node.
+
+        """
+        # FIXME [[
+        self.owner._parsed_game = None
+        # ]]
+        child = Tree_node(self, {})
+        self._children.append(child)
+        return child
+
     def find(self, identifier):
         """Find the nearest ancestor-or-self containing the specified property.
 
@@ -327,6 +340,10 @@ class _Root_tree_node_for_game_tree(Tree_node):
     def __getitem__(self, key):
         self._ensure_expanded()
         return self._children[key]
+
+    def new_child(self):
+        self._ensure_expanded()
+        return Tree_node.new_child(self)
 
 
 class Sgf_game(object):
