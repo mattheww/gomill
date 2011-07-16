@@ -672,3 +672,17 @@ def get_setup_and_moves(sgf_game):
             moves.append((colour, sgf_properties.interpret_point(raw, size)))
     return board, moves
 
+def set_initial_position(sgf_game, board):
+    """Add setup stones to an Sgf_game reflecting a board position.
+
+    sgf_game -- Sgf_game
+    board    -- boards.Board
+
+    Replaces any existing setup stones in the Sgf_game's root node.
+
+    """
+    stones = {'b' : set(), 'w' : set()}
+    for (colour, coords) in board.list_occupied_points():
+        stones[colour].add(coords)
+    sgf_game.get_root().set_setup_stones(stones['b'], stones['w'])
+

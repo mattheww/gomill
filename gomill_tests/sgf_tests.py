@@ -5,6 +5,7 @@ from textwrap import dedent
 from gomill_tests import gomill_test_support
 
 from gomill import ascii_boards
+from gomill import boards
 from gomill import sgf
 
 def make_tests(suite):
@@ -141,7 +142,7 @@ def test_text_values(tc):
 
 SAMPLE_SGF = """\
 (;AP[testsuite:0]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
-PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc];B[dg];W[ef]C[comment
+PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fc][gc];B[dg];W[ef]C[comment
 on two lines];B[];W[tt]C[Final comment])
 """
 
@@ -166,7 +167,7 @@ def test_node_string(tc):
     tc.assertMultiLineEqual(str(node), dedent("""\
     AB[ai][bh][ee]
     AP[testsuite:0]
-    AW[fd][gc]
+    AW[fc][gc]
     CA[utf-8]
     DT[2009-06-06]
     FF[4]
@@ -212,19 +213,6 @@ def test_sgf_game(tc):
     tc.assertEqual(nodes[2].get('C'), "comment\non two lines")
     tc.assertEqual(nodes[4].get('C'), "Nonfinal comment")
 
-
-_setup_expected = """\
-9  .  .  .  .  .  .  .  .  .
-8  .  .  .  .  .  .  .  .  .
-7  .  .  .  .  .  .  o  .  .
-6  .  .  .  .  .  o  .  .  .
-5  .  .  .  .  #  .  .  .  .
-4  .  .  .  .  .  .  .  .  .
-3  .  .  .  .  .  .  .  .  .
-2  .  #  .  .  .  .  .  .  .
-1  #  .  .  .  .  .  .  .  .
-   A  B  C  D  E  F  G  H  J\
-"""
 
 def test_tree_view(tc):
     sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
@@ -391,13 +379,6 @@ def test_main_sequence(tc):
         if tree_node:
             tree_node = tree_node[0]
 
-def test_get_setup_and_moves(tc):
-    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF)
-    board, moves = sgf.get_setup_and_moves(sgf_game)
-    tc.assertDiagramEqual(ascii_boards.render_board(board), _setup_expected)
-    tc.assertEqual(moves,
-                   [('b', (2, 3)), ('w', (3, 4)), ('b', None), ('w', None)])
-
 def test_find(tc):
     sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
     root = sgf_game.get_root()
@@ -561,6 +542,43 @@ def test_serialiser_round_trip(tc):
     sgf_game2 = sgf.sgf_game_from_string(serialised)
     tc.assertEqual(map(str, sgf_game.get_main_sequence()),
                    map(str, sgf_game2.get_main_sequence()))
+
+
+
+DIAGRAM = """\
+9  .  .  .  .  .  .  .  .  .
+8  .  .  .  .  .  .  .  .  .
+7  .  .  .  .  .  o  o  .  .
+6  .  .  .  .  .  .  .  .  .
+5  .  .  .  .  #  .  .  .  .
+4  .  .  .  .  .  .  .  .  .
+3  .  .  .  .  .  .  .  .  .
+2  .  #  .  .  .  .  .  .  .
+1  #  .  .  .  .  .  .  .  .
+   A  B  C  D  E  F  G  H  J\
+"""
+
+def test_get_setup_and_moves(tc):
+    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF)
+    board, moves = sgf.get_setup_and_moves(sgf_game)
+    tc.assertDiagramEqual(ascii_boards.render_board(board), DIAGRAM)
+    tc.assertEqual(moves,
+                   [('b', (2, 3)), ('w', (3, 4)), ('b', None), ('w', None)])
+
+def test_set_initial_position(tc):
+    board = boards.Board(9)
+    board.play(0, 0, 'b')
+    board.play(6, 5, 'w')
+    board.play(1, 1, 'b')
+    board.play(6, 6, 'w')
+    board.play(4, 4, 'b')
+    tc.assertDiagramEqual(ascii_boards.render_board(board), DIAGRAM)
+    sgf_game = sgf.Sgf_game(9)
+    sgf.set_initial_position(sgf_game, board)
+    root = sgf_game.get_root()
+    tc.assertEqual(root.get("AB"), set([(0, 0), (1, 1), (4, 4)]))
+    tc.assertEqual(root.get("AW"), set([(6, 5), (6, 6)]))
+    tc.assertRaises(KeyError, root.get, 'AE')
 
 
 # FIXME: these belong in a different test module?
