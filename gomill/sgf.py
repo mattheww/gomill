@@ -214,6 +214,23 @@ class Node(object):
         d = self._props_by_id
         return ("AB" in d or "AW" in d or "AE" in d)
 
+    def set_move(self, colour, coords):
+        """Set the B or W property.
+
+        colour -- 'b' or 'w'.
+        coords -- (row, col), or None for a pass.
+
+        Replaces any existing B or W property in the node.
+
+        """
+        if colour not in ('b', 'w'):
+            raise ValueError
+        if 'B' in self._props_by_id:
+            del self._props_by_id['B']
+        if 'W' in self._props_by_id:
+            del self._props_by_id['W']
+        self.set(colour.upper(), coords)
+
     def __str__(self):
         def format_property(ident, values):
             return ident + "".join("[%s]" % s for s in values)

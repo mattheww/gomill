@@ -522,6 +522,20 @@ def test_node_unset(tc):
     tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
                    "(;FF[4]GM[1]SZ[9])\n")
 
+def test_node_set_move(tc):
+    sgf_game = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9];B[aa];B[bb])")
+    root, n1, n2 = sgf_game.get_main_sequence()
+    tc.assertEqual(root.get_move(), (None, None))
+    root.set_move('b', (1, 1))
+    n1.set_move('w', (1, 2))
+    n2.set_move('b', None)
+    tc.assertEqual(root.get('B'), (1, 1))
+    tc.assertRaises(KeyError, root.get, 'W')
+    tc.assertEqual(n1.get('W'), (1, 2))
+    tc.assertRaises(KeyError, n1.get, 'B')
+    tc.assertEqual(n2.get('B'), None)
+    tc.assertRaises(KeyError, n2.get, 'W')
+
 def test_serialiser_round_trip(tc):
     sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
     serialised = sgf.serialise_sgf_game(sgf_game)
