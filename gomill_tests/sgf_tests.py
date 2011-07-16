@@ -11,6 +11,18 @@ def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
+def test_sgf_game_from_string(tc):
+    g1 = sgf.sgf_game_from_string("(;)")
+    tc.assertEqual(g1.get_size(), 19)
+    tc.assertRaisesRegexp(ValueError, "unexpected end of SGF data",
+                          sgf.sgf_game_from_string, "(;SZ[9]")
+    g2 = sgf.sgf_game_from_string("(;SZ[9])")
+    tc.assertEqual(g2.get_size(), 9)
+    tc.assertRaisesRegexp(ValueError, "bad SZ property: a",
+                          sgf.sgf_game_from_string, "(;SZ[a])")
+    tc.assertRaisesRegexp(ValueError, "size out of range: 27",
+                          sgf.sgf_game_from_string, "(;SZ[27])")
+
 def test_node(tc):
     sgf_game = sgf.sgf_game_from_string(
         r"(;KM[6.5]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
