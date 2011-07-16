@@ -231,8 +231,9 @@ class Tree_node(Node):
     Do not instantiate directly; retrieve from an Sgf_game or another Tree_node.
 
     A Tree_node is a list-like container of its children: it can be indexed,
-    sliced, and iterated over like a list. A Tree_node with no children is
-    treated as having truth value false.
+    sliced, and iterated over like a list, and supports index().
+
+    A Tree_node with no children is treated as having truth value false.
 
     Public attributes (treat as read-only):
       owner  -- the node's Sgf_game
@@ -262,6 +263,9 @@ class Tree_node(Node):
 
     def __getitem__(self, key):
         return self._children[key]
+
+    def index(self, child):
+        return self._children.index(child)
 
     def new_child(self):
         """Create a new Tree_node and add it as this node's last child.
@@ -502,6 +506,10 @@ class _Root_tree_node_for_game_tree(Tree_node):
     def __getitem__(self, key):
         self._ensure_expanded()
         return self._children[key]
+
+    def index(self, child):
+        self._ensure_expanded()
+        return self._children.index(child)
 
     def new_child(self):
         self._ensure_expanded()

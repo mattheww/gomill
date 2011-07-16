@@ -237,6 +237,7 @@ def test_tree_view(tc):
     tc.assertEqual(root.children()[0].get_raw('B'), "dg")
     tc.assertIsNot(root.children(), root.children())
     tc.assertTrue(root)
+    tc.assertEqual(root.index(root[0]), 0)
 
     branchnode = root[0][0][0][0]
     tc.assertIsInstance(branchnode, sgf.Tree_node)
@@ -253,6 +254,8 @@ def test_tree_view(tc):
         branchnode[2]
     tc.assertEqual(branchnode[0].get_raw('B'), "ia")
     tc.assertEqual(branchnode[1].get_raw('B'), "ib")
+    tc.assertEqual(branchnode.index(branchnode[0]), 0)
+    tc.assertEqual(branchnode.index(branchnode[1]), 1)
 
     tc.assertEqual(len(branchnode[1][0]), 2)
 
