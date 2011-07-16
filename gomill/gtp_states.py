@@ -529,6 +529,7 @@ class Gtp_state(object):
             node.set_move(move.colour, move.coords)
             if move.comments is not None:
                 node.set("C", move.comments)
+        sgf.indicate_first_player(sgf_game)
         f = open(pathname, "w")
         f.write(sgf.serialise_sgf_game(sgf_game))
         f.close()

@@ -713,3 +713,31 @@ def set_initial_position(sgf_game, board):
         stones[colour].add(coords)
     sgf_game.get_root().set_setup_stones(stones['b'], stones['w'])
 
+def indicate_first_player(sgf_game):
+    """Add a PL property to the root node if appropriate.
+
+    Looks at the first child of the root to see who the first player is, and
+    sets PL it isn't the expected player (ie, black normally, but white if
+    there is a handicap), or if there are non-handicap setup stones.
+
+    """
+    root = sgf_game.get_root()
+    if not root:
+        return
+    first_player, move = root[0].get_move()
+    if first_player is None:
+        return
+    has_handicap = root.has_property("HA")
+    if root.has_property("AW"):
+        specify_pl = True
+    elif root.has_property("AB") and not has_handicap:
+        specify_pl = True
+    elif not has_handicap and first_player == 'w':
+        specify_pl = True
+    elif has_handicap and first_player == 'b':
+        specify_pl = True
+    else:
+        specify_pl = False
+    if specify_pl:
+        root.set('PL', first_player)
+

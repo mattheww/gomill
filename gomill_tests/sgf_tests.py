@@ -588,6 +588,21 @@ def test_add_comment_text(tc):
     root.add_comment_text("hello\naga]in")
     tc.assertEqual(root.get('C'), "hello\nworld\n\nhello\naga]in")
 
+def test_indicate_first_player(tc):
+    g1 = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9];B[aa];W[ab])")
+    sgf.indicate_first_player(g1)
+    tc.assertEqual(sgf.serialise_sgf_game(g1),
+                   "(;FF[4]GM[1]SZ[9];B[aa];W[ab])\n")
+    g2 = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9];W[aa];B[ab])")
+    sgf.indicate_first_player(g2)
+    tc.assertEqual(sgf.serialise_sgf_game(g2),
+                   "(;FF[4]GM[1]PL[W]SZ[9];W[aa];B[ab])\n")
+    g3 = sgf.sgf_game_from_string("(;AW[bc]FF[4]GM[1]SZ[9];B[aa];W[ab])")
+    sgf.indicate_first_player(g3)
+    tc.assertEqual(sgf.serialise_sgf_game(g3),
+                   "(;AW[bc]FF[4]GM[1]PL[B]SZ[9];B[aa];W[ab])\n")
+
+
 # FIXME: these belong in a different test module?
 
 def test_serialise_game_tree(tc):
