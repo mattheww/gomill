@@ -9,7 +9,6 @@ from gomill import boards
 from gomill import gtp_engine
 from gomill import handicap_layout
 from gomill import sgf
-from gomill import sgf_writer
 from gomill.gtp_engine import GtpError
 
 
@@ -507,12 +506,13 @@ class Gtp_state(object):
         except IndexError:
             gtp_engine.report_bad_arguments()
 
-        sgf_game = sgf_writer.Sgf_game(self.board_size)
-        sgf_game.set('komi', self.komi)
-        sgf_game.set('application', "gomill:" + __version__)
-        sgf_game.add_date()
+        sgf_game = sgf.Sgf_game(self.board_size)
+        root = sgf_game.get_root()
+        root.set('KM', self.komi)
+        root.set('AP', ("gomill", __version__))
+        sgf_game.set_date()
         if self.handicap is not None:
-            sgf_game.set('handicap', self.handicap)
+            root.set('HA', self.handicap)
         for arg in args[1:]:
             try:
                 identifier, value = arg.split("=", 1)
@@ -522,13 +522,15 @@ class Gtp_state(object):
                 value = value.replace("\\_", " ").replace("\\\\", "\\")
             except Exception:
                 gtp_engine.report_bad_arguments()
-            sgf_game.set_root_property(identifier, value)
-        if not self.history_base.is_empty():
-            sgf_game.add_setup_stones(self.history_base.list_occupied_points())
+            root.set_raw(identifier, value)
+        sgf.set_initial_position(sgf_game, self.history_base)
         for move in self.move_history:
-            sgf_game.add_move(move.colour, move.coords, move.comments)
+            node = sgf_game.extend_main_sequence()
+            node.set_move(move.colour, move.coords)
+            if move.comments is not None:
+                node.set("C", move.comments)
         f = open(pathname, "w")
-        f.write(sgf_game.as_string())
+        f.write(sgf.serialise_sgf_game(sgf_game))
         f.close()
 
 
