@@ -268,7 +268,8 @@ class Tree_node(Node):
 
         """
         # FIXME [[
-        self.owner._parsed_game = None
+        self.owner.root._tree_is_modified = True
+        self.owner.root._game_tree = None
         # ]]
         child = Tree_node(self, {})
         self._children.append(child)
@@ -319,6 +320,7 @@ class _Root_tree_node_for_game_tree(Tree_node):
         self.owner = owner
         self.parent = None
         self._game_tree = game_tree
+        self._tree_is_modified = False
         self._children = None
         Node.__init__(self, game_tree.sequence[0], size)
 
@@ -327,7 +329,6 @@ class _Root_tree_node_for_game_tree(Tree_node):
             self._children = []
             sgf_parser.make_tree(
                 self._game_tree, self, Tree_node, Tree_node._add_child)
-            self._game_tree = None
 
     def children(self):
         self._ensure_expanded()
@@ -344,6 +345,10 @@ class _Root_tree_node_for_game_tree(Tree_node):
     def new_child(self):
         self._ensure_expanded()
         return Tree_node.new_child(self)
+
+    def _main_sequence_iter(self, size):
+        for properties in sgf_parser.main_sequence_iter(self._game_tree):
+            yield Node(properties, size)
 
 
 class Sgf_game(object):
@@ -503,20 +508,12 @@ class _Parsed_sgf_game(Sgf_game):
             raise ValueError("size out of range: %s" % size)
         self.size = size
         # ]]
-        # _parsed_game is set if FIXME ...
-        self._parsed_game = parsed_game
         self.root = _Root_tree_node_for_game_tree(self, parsed_game, size)
 
-    def _main_sequence_iter(self):
-        size = self.size
-        for properties in sgf_parser.main_sequence_iter(self._parsed_game):
-            yield Node(properties, size)
-
     def main_sequence_iter(self):
-        if self._parsed_game is not None:
-            return self._main_sequence_iter()
-        else:
+        if self.root._tree_is_modified:
             return self.get_main_sequence()
+        return self.root._main_sequence_iter(self.size)
 
 def sgf_game_from_string(s):
     """Read a single SGF game from a string.
