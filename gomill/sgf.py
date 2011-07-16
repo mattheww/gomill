@@ -349,7 +349,7 @@ class _Root_tree_node_for_game_tree(Tree_node):
 class Sgf_game(object):
     """An SGF game.
 
-    Instantiate with the board size, and optionally a Parsed_game_tree.
+    Instantiate with the board size.
 
     The nodes' property maps will be the same objects as the ones from the
     Parsed_game_tree.
@@ -359,19 +359,13 @@ class Sgf_game(object):
         if not 1 <= size <= 26:
             raise ValueError("size out of range: %s" % size)
         self.size = size
-        # _parsed_game is set if the Sgf_game was loaded from parsed form, and
-        # its tree structure hasn't been modified since.
-        self._parsed_game = parsed_game
-        if parsed_game is None:
-            initial_properties = {
-                'FF' : ["4"],
-                'GM' : ["1"],
-                'SZ' : [str(size)],
-                'CA' : ["utf-8"],
-                }
-            self.root = _Root_tree_node(self, initial_properties, size)
-        else:
-            self.root = _Root_tree_node_for_game_tree(self, parsed_game, size)
+        initial_properties = {
+            'FF' : ["4"],
+            'GM' : ["1"],
+            'SZ' : [str(size)],
+            'CA' : ["utf-8"],
+            }
+        self.root = _Root_tree_node(self, initial_properties, size)
 
     def get_root(self):
         """Return the root node (as a Tree_node)."""
@@ -423,11 +417,6 @@ class Sgf_game(object):
         result.reverse()
         return result
 
-    def _main_sequence_iter(self):
-        size = self.size
-        for properties in sgf_parser.main_sequence_iter(self._parsed_game):
-            yield Node(properties, size)
-
     def main_sequence_iter(self):
         """Provide the 'leftmost' variation as an iterable.
 
@@ -440,10 +429,7 @@ class Sgf_game(object):
         nodes without building the entire game tree.
 
         """
-        if self._parsed_game is not None:
-            return self._main_sequence_iter()
-        else:
-            return self.get_main_sequence()
+        return self.get_main_sequence()
 
     def get_size(self):
         """Return the board size as an integer."""
@@ -501,6 +487,37 @@ class Sgf_game(object):
             return None
         return colour
 
+class _Parsed_sgf_game(Sgf_game):
+    """An Sgf_game which was loaded from serialised form.
+
+    Do not instantiate directly; use sgf_game_from_string().
+
+    This doesn't build the Tree_nodes (other than the root) until required, and
+    provides an implementation of main_sequence_iter() which reads directly
+    from the original Parsed_game_tree.
+
+    """
+    def __init__(self, size, parsed_game):
+        # FIXME: Share code with Sgf_game.__init__ cleanly [[
+        if not 1 <= size <= 26:
+            raise ValueError("size out of range: %s" % size)
+        self.size = size
+        # ]]
+        # _parsed_game is set if FIXME ...
+        self._parsed_game = parsed_game
+        self.root = _Root_tree_node_for_game_tree(self, parsed_game, size)
+
+    def _main_sequence_iter(self):
+        size = self.size
+        for properties in sgf_parser.main_sequence_iter(self._parsed_game):
+            yield Node(properties, size)
+
+    def main_sequence_iter(self):
+        if self._parsed_game is not None:
+            return self._main_sequence_iter()
+        else:
+            return self.get_main_sequence()
+
 def sgf_game_from_string(s):
     """Read a single SGF game from a string.
 
@@ -522,7 +539,7 @@ def sgf_game_from_string(s):
             size = int(size_s)
         except ValueError:
             raise ValueError("bad SZ property: %s" % size_s)
-    return Sgf_game(size, game_tree)
+    return _Parsed_sgf_game(size, game_tree)
 
 
 def serialise_sgf_game(sgf_game):
