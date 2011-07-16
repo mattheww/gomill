@@ -580,6 +580,13 @@ def test_set_initial_position(tc):
     tc.assertEqual(root.get("AW"), set([(6, 5), (6, 6)]))
     tc.assertRaises(KeyError, root.get, 'AE')
 
+def test_add_comment_text(tc):
+    sgf_game = sgf.Sgf_game(9)
+    root = sgf_game.get_root()
+    root.add_comment_text("hello\nworld")
+    tc.assertEqual(root.get('C'), "hello\nworld")
+    root.add_comment_text("hello\naga]in")
+    tc.assertEqual(root.get('C'), "hello\nworld\n\nhello\naga]in")
 
 # FIXME: these belong in a different test module?
 

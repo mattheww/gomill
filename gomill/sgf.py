@@ -252,6 +252,21 @@ class Node(object):
         if empty:
             self.set('AE', empty)
 
+    def add_comment_text(self, text):
+        """Add or extend the node's comment.
+
+        If the node doesn't have a C property, adds one with the specified
+        text.
+
+        Otherwise, adds the specified text to the existing C property value
+        (with two newlines in front).
+
+        """
+        if self.has_property('C'):
+            self.set('C', self.get('C') + "\n\n" + text)
+        else:
+            self.set('C', text)
+
     def __str__(self):
         def format_property(ident, values):
             return ident + "".join("[%s]" % s for s in values)
