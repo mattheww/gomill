@@ -111,9 +111,9 @@ def test_game_job(tc):
     Black one one
     White two two]
     CA[utf-8]DT[***]EV[game_job_tests]FF[4]GM[1]GN[gjt 0_000]KM[7.5]PB[one]
-    PW[two]RE[B+10.5]SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee]
-    ;W[ge];B[ed];W[gd];B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];W[tt]
-    C[one beat two B+10.5])
+    PW[two]RE[B+10.5]SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];
+    W[ge];B[ed];W[gd];B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];
+    C[one beat two B+10.5]W[tt])
     """))
 
 def test_duplicate_player_codes(tc):

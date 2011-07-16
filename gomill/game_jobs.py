@@ -6,6 +6,7 @@ import os
 from gomill import gtp_controller
 from gomill import gtp_games
 from gomill import job_manager
+from gomill import sgf
 from gomill.gtp_controller import BadGtpResponse, GtpChannelError
 
 class Player(object):
@@ -289,10 +290,11 @@ class Game_job(object):
         w_player = game.players['w']
         notes = []
         sgf_game = game.make_sgf(game_end_message)
+        root = sgf_game.get_root()
         if self.sgf_game_name is not None:
-            sgf_game.set('game-name', self.sgf_game_name)
+            root.set('GN', self.sgf_game_name)
         if self.sgf_event is not None:
-            sgf_game.set('event', self.sgf_event)
+            root.set('EV', self.sgf_event)
             notes.append("Event: %s" % self.sgf_event)
         notes += [
             "Game id %s" % self.game_id,
@@ -301,7 +303,7 @@ class Game_job(object):
         if game.result is not None:
             notes.append("Result %s" % game.result.describe(),)
         elif result is not None:
-            sgf_game.set('result', result)
+            root.set('RE', result)
         if self.sgf_note is not None:
             notes.append(self.sgf_note)
         if game.result is not None:
@@ -314,8 +316,8 @@ class Game_job(object):
             "Black %s %s" % (b_player, game.engine_descriptions[b_player]),
             "White %s %s" % (w_player, game.engine_descriptions[w_player]),
             ]
-        sgf_game.set('root-comment', "\n".join(notes))
-        self._write_sgf(pathname, sgf_game.as_string())
+        root.set('C', "\n".join(notes))
+        self._write_sgf(pathname, sgf.serialise_sgf_game(sgf_game))
 
     def _record_game(self, game):
         """Record the game in the standard sgf directory."""

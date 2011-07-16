@@ -6,7 +6,7 @@ from gomill.gomill_common import *
 from gomill import gtp_controller
 from gomill import handicap_layout
 from gomill import boards
-from gomill import sgf_writer
+from gomill import sgf
 from gomill.gtp_controller import BadGtpResponse, GtpChannelError
 
 class Game_result(object):
@@ -188,7 +188,7 @@ class Game(object):
         self.player_scores = {'b' : None, 'w' : None}
         self.additional_sgf_props = []
         self.late_errors = []
-        self.sgf_setup_stones = None
+        self.handicap_stones = None
         self.result = None
         self.board = boards.Board(board_size)
         self.simple_ko_point = None
@@ -466,8 +466,8 @@ class Game(object):
                         "to %s: %s" % (self.players[colour], vertices))
         self.board.apply_setup(points, [], [])
         self.handicap = handicap
-        self.additional_sgf_props.append(('handicap', handicap))
-        self.sgf_setup_stones = [("b", coords) for coords in points]
+        self.additional_sgf_props.append(('HA', handicap))
+        self.handicap_stones = points
         self.first_player = "w"
 
     def _forfeit_to(self, winner, msg):
@@ -776,35 +776,40 @@ class Game(object):
         'late errors'.
 
         """
-        sgf_game = sgf_writer.Sgf_game(self.board_size)
-        sgf_game.set('komi', self.komi)
-        sgf_game.set('application', "gomill:" + __version__)
+        sgf_game = sgf.Sgf_game(self.board_size)
+        root = sgf_game.get_root()
+        root.set('KM', self.komi)
+        root.set('AP', ("gomill",  __version__))
         for prop, value in self.additional_sgf_props:
-            sgf_game.set(prop, value)
-        sgf_game.add_date()
+            root.set(prop, value)
+        sgf_game.set_date()
         if self.engine_names:
-            sgf_game.set('black-player', self.engine_names[self.players['b']])
-            sgf_game.set('white-player', self.engine_names[self.players['w']])
+            root.set('PB', self.engine_names[self.players['b']])
+            root.set('PW', self.engine_names[self.players['w']])
         if self.game_id:
-            sgf_game.set('game-name', self.game_id)
-        if self.sgf_setup_stones:
-            sgf_game.add_setup_stones(self.sgf_setup_stones)
+            root.set('GN', self.game_id)
+        if self.handicap_stones:
+            root.set_setup_stones(black=self.handicap_stones, white=[])
         for colour, move, comment in self.moves:
-            sgf_game.add_move(colour, move, comment)
+            node = sgf_game.extend_main_sequence()
+            node.set_move(colour, move)
+            if comment is not None:
+                node.set("C", comment)
+        last_node = sgf_game.get_last_node()
         if self.result is not None:
-            sgf_game.set('result', self.result.sgf_result)
-            sgf_game.add_final_comment(self.describe_scoring())
+            root.set('RE', self.result.sgf_result)
+            last_node.add_comment_text(self.describe_scoring())
         if game_end_message is not None:
-            sgf_game.add_final_comment(game_end_message)
+            last_node.add_comment_text(game_end_message)
         late_error_messages = self.describe_late_errors()
         if late_error_messages is not None:
-            sgf_game.add_final_comment(late_error_messages)
+            last_node.add_comment_text(late_error_messages)
         return sgf_game
 
     def write_sgf(self, pathname, game_end_message=None):
         """Write an SGF description of the game to the specified pathname."""
         sgf_game = self.make_sgf(game_end_message)
         f = open(pathname, "w")
-        f.write(sgf_game.as_string())
+        f.write(sgf.serialise_sgf_game(sgf_game))
         f.close()
 

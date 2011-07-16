@@ -4,6 +4,7 @@ import cPickle as pickle
 
 from gomill import gtp_controller
 from gomill import gtp_games
+from gomill import sgf
 from gomill.gomill_common import format_vertex
 
 from gomill_tests import test_framework
@@ -101,7 +102,8 @@ class Game_fixture(test_framework.Fixture):
         self.game.run()
 
     def sgf_string(self):
-        return gomill_test_support.scrub_sgf(self.game.make_sgf().as_string())
+        return gomill_test_support.scrub_sgf(
+            sgf.serialise_sgf_game(self.game.make_sgf()))
 
 
 def test_game(tc):
@@ -518,9 +520,9 @@ def test_make_sgf(tc):
     fx.game.run()
     fx.game.close_players()
     tc.assertMultiLineEqual(fx.sgf_string(), ("""\
-(;AP[gomill:VER]CA[utf-8]DT[***]FF[4]GM[1]KM[0.0]RE[B+18]SZ[9];B[ei]
-;W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];W[gc]
-;B[eb];W[gb];B[ea];W[ga];B[tt];W[tt]C[one beat two B+18])
+(;AP[gomill:VER]CA[utf-8]DT[***]FF[4]GM[1]KM[0]RE[B+18]SZ[9];B[ei];W[gi]
+;B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];W[gc];B[eb];
+W[gb];B[ea];W[ga];B[tt];C[one beat two B+18]W[tt])
 """))
 
 def test_game_id(tc):
@@ -532,9 +534,9 @@ def test_game_id(tc):
     fx.game.close_players()
     tc.assertEqual(fx.game.result.game_id, "gitest")
     tc.assertMultiLineEqual(fx.sgf_string(), ("""\
-(;AP[gomill:VER]CA[utf-8]DT[***]FF[4]GM[1]GN[gitest]KM[0.0]RE[B+18]SZ[9]
-;B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec]
-;W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];W[tt]C[one beat two B+18])
+(;AP[gomill:VER]CA[utf-8]DT[***]FF[4]GM[1]GN[gitest]KM[0]RE[B+18]SZ[9];
+B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];
+W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+18]W[tt])
 """))
 
 
@@ -563,9 +565,9 @@ def test_fixed_handicap(tc):
         ('w', 'G6'), ('b', 'E6'),
         ])
     tc.assertMultiLineEqual(fx.sgf_string(), ("""\
-(;AP[gomill:VER]CA[utf-8]DT[***]FF[4]GM[1]HA[3]KM[0.0]RE[B+F]SZ[9]AB[cc]
-[cg][gc];W[gi];B[ei];W[gh];B[eh];W[gg];B[eg];W[gf];B[ef];W[ge];B[ee];W[gd]
-;B[ed]C[one beat two B+F (forfeit: two attempted move to occupied point g7)])
+(;AB[cc][cg][gc]AP[gomill:VER]CA[utf-8]DT[***]FF[4]GM[1]HA[3]KM[0]
+RE[B+F]SZ[9];W[gi];B[ei];W[gh];B[eh];W[gg];B[eg];W[gf];B[ef];W[ge];B[ee];W[gd];
+B[ed]C[one beat two B+F (forfeit: two attempted move to occupied point g7)])
 """))
 
 def test_fixed_handicap_bad_engine(tc):
