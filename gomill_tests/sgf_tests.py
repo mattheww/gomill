@@ -287,6 +287,11 @@ def test_tree_mutation(tc):
         [node.get_raw_property_map() for node in root, root[0], n3])
     tc.assertIs(sgf_game.get_last_node(), n3)
 
+    n1.delete()
+    tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
+                   "(;CA[utf-8]FF[4]GM[1]SZ[9];N[n2])\n")
+    tc.assertRaises(ValueError, root.delete)
+
 def test_tree_mutation_from_parsed_game(tc):
     sgf_game = sgf.sgf_game_from_string("(;SZ[9](;N[n1];N[n3])(;N[n2]))")
     root = sgf_game.get_root()
@@ -302,6 +307,10 @@ def test_tree_mutation_from_parsed_game(tc):
         [node.get_raw_property_map() for node in sgf_game.main_sequence_iter()],
         [node.get_raw_property_map() for node in root, root[0], n3, n5])
     tc.assertIs(sgf_game.get_last_node(), n5)
+    n3.delete()
+    tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
+                   "(;SZ[9](;N[n1])(;N[n2])(;N[n4]))\n")
+    tc.assertRaises(ValueError, root.delete)
 
 def test_extend_main_sequence(tc):
     g1 = sgf.Sgf_game(9)

@@ -277,6 +277,12 @@ class Tree_node(Node):
         self._children.append(child)
         return child
 
+    def delete(self):
+        """Remove this node from its parent."""
+        if self.parent is None:
+            raise ValueError("can't remove the root node")
+        self.parent._children.remove(self)
+
     def find(self, identifier):
         """Find the nearest ancestor-or-self containing the specified property.
 
