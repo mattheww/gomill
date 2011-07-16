@@ -59,6 +59,8 @@ class Node(object):
         Returns a dict mapping property identifiers to lists of raw values
         (see get_raw_list()).
 
+        Returns the same dict each time it's called.
+
         Treat the returned dict as read-only.
 
         """
@@ -316,9 +318,6 @@ class Sgf_game(object):
 
     Instantiate with the board size.
 
-    The nodes' property maps will be the same objects as the ones from the
-    Parsed_game_tree.
-
     """
     def _set_size(self, size):
         # This is split out for the sake of _Parsed_sgf_game.__init__
@@ -392,6 +391,10 @@ class Sgf_game(object):
         Returns an iterable of Node instances, from the root to a leaf.
 
         The Node instances may or may not be Tree_nodes.
+
+        It's OK to use these Node instances to modify properties: even if they
+        are not the same objects as returned by the main tree navigation
+        methods, they share the underlying property maps.
 
         If you know the game has no variations, or you're only interested in
         the 'leftmost' variation, you can use this function to retrieve the
@@ -530,6 +533,9 @@ def sgf_game_from_parsed_game_tree(parsed_game):
     parsed_game -- Parsed_game_tree
 
     Returns an Sgf_game.
+
+    The nodes' property maps (as returned by get_raw_property_map()) will be
+    the same objects as the ones from the Parsed_game_tree.
 
     """
     return _Parsed_sgf_game(parsed_game)

@@ -11,6 +11,43 @@ def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
+def test_new_sgf_game(tc):
+    g1 = sgf.Sgf_game(9)
+    tc.assertEqual(g1.get_size(), 9)
+    root = g1.get_root()
+    tc.assertEqual(root.get_raw('FF'), '4')
+    tc.assertEqual(root.get_raw('GM'), '1')
+    tc.assertEqual(root.get_raw('SZ'), '9')
+    tc.assertEqual(root.get_raw_property_map(), {
+        'FF': ['4'],
+        'GM': ['1'],
+        'SZ': ['9'],
+        'CA': ['utf-8'],
+        });
+    tc.assertEqual(root.children(), [])
+    tc.assertEqual(root.parent, None)
+    tc.assertIs(root.owner, g1)
+
+def test_sgf_game_from_parsed_game_tree(tc):
+    class Namespace(object):
+        pass
+    parsed_game = Namespace()
+    parsed_game.sequence = [{'SZ' : ["9"]}, {'B' : ["aa"]}]
+    parsed_game.children = []
+    g1 = sgf.sgf_game_from_parsed_game_tree(parsed_game)
+    tc.assertEqual(g1.get_size(), 9)
+    root = g1.get_root()
+    tc.assertIs(root.get_raw_property_map(), parsed_game.sequence[0])
+    tc.assertEqual(root.parent, None)
+    tc.assertIs(root.owner, g1)
+    tc.assertEqual(len(root.children()), 1)
+
+    parsed_game2 = Namespace()
+    parsed_game2.sequence = [{'SZ' : ["0"]}, {'B' : ["aa"]}]
+    parsed_game2.children = []
+    tc.assertRaisesRegexp(ValueError, "size out of range: 0",
+                          sgf.sgf_game_from_parsed_game_tree, parsed_game2)
+
 def test_sgf_game_from_string(tc):
     g1 = sgf.sgf_game_from_string("(;)")
     tc.assertEqual(g1.get_size(), 19)
@@ -22,17 +59,6 @@ def test_sgf_game_from_string(tc):
                           sgf.sgf_game_from_string, "(;SZ[a])")
     tc.assertRaisesRegexp(ValueError, "size out of range: 27",
                           sgf.sgf_game_from_string, "(;SZ[27])")
-
-def test_new_sgf_game(tc):
-    g1 = sgf.Sgf_game(9)
-    tc.assertEqual(g1.get_size(), 9)
-    root = g1.get_root()
-    tc.assertEqual(root.get_raw('FF'), '4')
-    tc.assertEqual(root.get_raw('GM'), '1')
-    tc.assertEqual(root.get_raw('SZ'), '9')
-    tc.assertEqual(root.children(), [])
-    tc.assertEqual(root.parent, None)
-    tc.assertEqual(root.owner, g1)
 
 def test_node(tc):
     sgf_game = sgf.sgf_game_from_string(
@@ -266,7 +292,6 @@ def test_tree_mutation_from_parsed_game(tc):
     n5.set("N", "n5")
     tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
                    "(;SZ[9](;N[n1];N[n3];N[n5])(;N[n2])(;N[n4]))\n")
-    # FIXME: find a better test than property-map identity?
     tc.assertEqual(
         [node.get_raw_property_map() for node in sgf_game.main_sequence_iter()],
         [node.get_raw_property_map() for node in root, root[0], n3, n5])
@@ -308,7 +333,6 @@ def test_get_main_sequence_below(tc):
                           sgf_game2.get_main_sequence_below, branchnode)
 
 def test_main_sequence(tc):
-    # FIXME: find a better test than property-map identity?
     sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
     root = sgf_game.get_root()
 
