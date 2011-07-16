@@ -536,6 +536,18 @@ def test_node_set_move(tc):
     tc.assertEqual(n2.get('B'), None)
     tc.assertRaises(KeyError, n2.get, 'W')
 
+def test_node_setup_stones(tc):
+    sgf_game = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9]AW[aa:bb])")
+    root = sgf_game.get_root()
+    root.set_setup_stones(
+        [(1, 2), (3, 4)],
+        set(),
+        [(1, 3), (4, 5)],
+        )
+    tc.assertEqual(root.get('AB'), set([(1, 2), (3, 4)]))
+    tc.assertRaises(KeyError, root.get, 'AW')
+    tc.assertEqual(root.get('AE'), set([(1, 3), (4, 5)]))
+
 def test_serialiser_round_trip(tc):
     sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
     serialised = sgf.serialise_sgf_game(sgf_game)

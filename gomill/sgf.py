@@ -231,6 +231,27 @@ class Node(object):
             del self._props_by_id['W']
         self.set(colour.upper(), coords)
 
+    def set_setup_stones(self, black, white, empty=None):
+        """Set Add Black / Add White / Add Empty properties.
+
+        black, white, empty -- list or set of pairs (row, col)
+
+        Removes any existing AB/AW/AE properties from the node.
+
+        """
+        if 'AB' in self._props_by_id:
+            del self._props_by_id['AB']
+        if 'AW' in self._props_by_id:
+            del self._props_by_id['AW']
+        if 'AE' in self._props_by_id:
+            del self._props_by_id['AE']
+        if black:
+            self.set('AB', black)
+        if white:
+            self.set('AW', white)
+        if empty:
+            self.set('AE', empty)
+
     def __str__(self):
         def format_property(ident, values):
             return ident + "".join("[%s]" % s for s in values)
