@@ -206,6 +206,18 @@ def test_game_job_channel_error(tc):
                    "forced failure for send_command_line")
     tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.void/gjtest.sgf')
     tc.assertEqual(gj.job._mkdir_pathname, '/sgf/test.void')
+    tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
+    (;AP[gomill:VER]
+    C[Game id gameid
+    Date ***
+    Black one one
+    White two two]CA[utf-8]
+    DT[***]FF[4]GM[1]GN[gameid]KM[7.5]PB[one]PW[two]RE[Void]SZ[9];B[ei]
+    C[aborting game due to error:
+    transport error sending 'genmove w' to player two:
+    forced failure for send_command_line]
+    )
+    """))
 
 def test_game_job_late_errors(tc):
     def fail_close(channel):
