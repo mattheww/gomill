@@ -292,8 +292,16 @@ class Tree_node(Node):
             raise KeyError
         return node.get(identifier)
 
-class Root_tree_node(Tree_node):
+class _Root_tree_node(Tree_node):
     """Variant of Tree_node used for a game root."""
+    def __init__(self, owner, properties, size):
+        self.owner = owner
+        self.parent = None
+        self._children = []
+        Node.__init__(self, properties, size)
+
+class _Root_tree_node_for_game_tree(Tree_node):
+    """Variant of Tree_node used for a game root, when there is a game_tree."""
     def __init__(self, owner, game_tree, size):
         self.owner = owner
         self.parent = None
@@ -324,20 +332,29 @@ class Root_tree_node(Tree_node):
 class Sgf_game(object):
     """An SGF game.
 
-    Instantiate with the board size and a Parsed_game_tree.
+    Instantiate with the board size, and optionally a Parsed_game_tree.
 
     The nodes' property maps will be the same objects as the ones from the
     Parsed_game_tree.
 
     """
-    def __init__(self, size, parsed_game):
+    def __init__(self, size, parsed_game=None):
         if not 1 <= size <= 26:
             raise ValueError("size out of range: %s" % size)
         self.size = size
-        self.root = Root_tree_node(self, parsed_game, size)
         # _parsed_game is set if the Sgf_game was loaded from parsed form, and
         # its tree structure hasn't been modified since.
         self._parsed_game = parsed_game
+        if parsed_game is None:
+            initial_properties = {
+                'FF' : ["4"],
+                'GM' : ["1"],
+                'SZ' : [str(size)],
+                'CA' : ["utf-8"],
+                }
+            self.root = _Root_tree_node(self, initial_properties, size)
+        else:
+            self.root = _Root_tree_node_for_game_tree(self, parsed_game, size)
 
     def get_root(self):
         """Return the root node (as a Tree_node)."""

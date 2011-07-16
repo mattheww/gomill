@@ -23,6 +23,17 @@ def test_sgf_game_from_string(tc):
     tc.assertRaisesRegexp(ValueError, "size out of range: 27",
                           sgf.sgf_game_from_string, "(;SZ[27])")
 
+def test_new_sgf_game(tc):
+    g1 = sgf.Sgf_game(9)
+    tc.assertEqual(g1.get_size(), 9)
+    root = g1.get_root()
+    tc.assertEqual(root.get_raw('FF'), '4')
+    tc.assertEqual(root.get_raw('GM'), '1')
+    tc.assertEqual(root.get_raw('SZ'), '9')
+    tc.assertEqual(root.children(), [])
+    tc.assertEqual(root.parent, None)
+    tc.assertEqual(root.owner, g1)
+
 def test_node(tc):
     sgf_game = sgf.sgf_game_from_string(
         r"(;KM[6.5]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
@@ -194,6 +205,7 @@ def test_tree_view(tc):
     root = sgf_game.get_root()
     tc.assertIsInstance(root, sgf.Tree_node)
     tc.assertIs(root.parent, None)
+    tc.assertIs(root.owner, sgf_game)
     tc.assertEqual(len(root.children()), 1)
     tc.assertEqual(len(root), 1)
     tc.assertEqual(root.children()[0].get_raw('B'), "dg")
@@ -203,6 +215,7 @@ def test_tree_view(tc):
     branchnode = root[0][0][0][0]
     tc.assertIsInstance(branchnode, sgf.Tree_node)
     tc.assertIs(branchnode.parent, root[0][0][0])
+    tc.assertIs(branchnode.owner, sgf_game)
     tc.assertEqual(len(branchnode), 2)
     tc.assertIs(branchnode.children()[0], branchnode[0])
     tc.assertIs(branchnode.children()[1], branchnode[1])
