@@ -496,7 +496,8 @@ class _Root_tree_node_for_game_tree(Tree_node):
 class _Parsed_sgf_game(Sgf_game):
     """An Sgf_game which was loaded from serialised form.
 
-    Do not instantiate directly; use sgf_game_from_string().
+    Do not instantiate directly; use sgf_game_from_string() or
+    sgf_game_from_parsed_game_tree().
 
     """
     # This doesn't build the Tree_nodes (other than the root) until required.
@@ -505,7 +506,16 @@ class _Parsed_sgf_game(Sgf_game):
     # directly from the original Parsed_game_tree; this stops being used as
     # soon as the tree is expanded.
 
-    def __init__(self, size, parsed_game):
+    def __init__(self, parsed_game):
+        try:
+            size_s = parsed_game.sequence[0]['SZ'][0]
+        except KeyError:
+            size = 19
+        else:
+            try:
+                size = int(size_s)
+            except ValueError:
+                raise ValueError("bad SZ property: %s" % size_s)
         self._set_size(size)
         self.root = _Root_tree_node_for_game_tree(self, parsed_game, size)
 
@@ -513,6 +523,16 @@ class _Parsed_sgf_game(Sgf_game):
         if self.root._game_tree is None:
             return self.get_main_sequence()
         return self.root._main_sequence_iter(self.size)
+
+def sgf_game_from_parsed_game_tree(parsed_game):
+    """Create an SGF game from the parser output.
+
+    parsed_game -- Parsed_game_tree
+
+    Returns an Sgf_game.
+
+    """
+    return _Parsed_sgf_game(parsed_game)
 
 def sgf_game_from_string(s):
     """Read a single SGF game from a string.
@@ -525,17 +545,7 @@ def sgf_game_from_string(s):
     details.
 
     """
-    game_tree = sgf_parser.parse_sgf_game(s)
-    try:
-        size_s = game_tree.sequence[0]['SZ'][0]
-    except KeyError:
-        size = 19
-    else:
-        try:
-            size = int(size_s)
-        except ValueError:
-            raise ValueError("bad SZ property: %s" % size_s)
-    return _Parsed_sgf_game(size, game_tree)
+    return _Parsed_sgf_game(sgf_parser.parse_sgf_game(s))
 
 
 def serialise_sgf_game(sgf_game):
