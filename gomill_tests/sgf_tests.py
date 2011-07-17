@@ -1,5 +1,7 @@
 """Tests for sgf.py."""
 
+from __future__ import with_statement
+
 from textwrap import dedent
 
 from gomill_tests import gomill_test_support

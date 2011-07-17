@@ -1,5 +1,7 @@
 """Tests for sgf_parser.py."""
 
+from __future__ import with_statement
+
 from gomill_tests import gomill_test_support
 
 from gomill import sgf_parser
