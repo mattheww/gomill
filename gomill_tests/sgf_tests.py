@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Tests for sgf.py."""
 
 from __future__ import with_statement
@@ -274,6 +275,62 @@ def test_serialise_sgf_game(tc):
     sgf_game2 = sgf.sgf_game_from_string(serialised)
     tc.assertEqual(map(str, sgf_game.get_main_sequence()),
                    map(str, sgf_game2.get_main_sequence()))
+
+def test_encoding(tc):
+    g1 = sgf.Sgf_game(19)
+    root = g1.get_root()
+    tc.assertEqual(root.encoding, "utf-8")
+    root.set("C", "£")
+    tc.assertEqual(root.get("C"), "£")
+    tc.assertEqual(root.get_raw("C"), "£")
+    tc.assertEqual(sgf.serialise_sgf_game(g1), dedent("""\
+    (;FF[4]C[£]CA[utf-8]GM[1]SZ[19])
+    """))
+
+    g2 = sgf.Sgf_game(19, encoding="iso-8859-1")
+    root = g2.get_root()
+    tc.assertEqual(root.encoding, "iso-8859-1")
+    root.set("C", "£")
+    tc.assertEqual(root.get("C"), "£")
+    tc.assertEqual(root.get_raw("C"), "\xa3")
+    tc.assertEqual(sgf.serialise_sgf_game(g2), dedent("""\
+    (;FF[4]C[\xa3]CA[iso-8859-1]GM[1]SZ[19])
+    """))
+
+def test_parsed_sgf_game_encoding(tc):
+    g1 = sgf.sgf_game_from_string("""
+    (;FF[4]C[£]CA[utf-8]GM[1]SZ[19])
+    """)
+    root = g1.get_root()
+    tc.assertEqual(root.encoding, "utf-8")
+    tc.assertEqual(root.get("C"), "£")
+    tc.assertEqual(root.get_raw("C"), "£")
+    tc.assertEqual(sgf.serialise_sgf_game(g1), dedent("""\
+    (;FF[4]C[£]CA[utf-8]GM[1]SZ[19])
+    """))
+
+    g2 = sgf.sgf_game_from_string("""
+    (;FF[4]C[\xa3]CA[iso-8859-1]GM[1]SZ[19])
+    """)
+    root = g2.get_root()
+    tc.assertEqual(root.encoding, "iso-8859-1")
+    tc.assertEqual(root.get("C"), "£")
+    tc.assertEqual(root.get_raw("C"), "\xa3")
+    tc.assertEqual(sgf.serialise_sgf_game(g2), dedent("""\
+    (;FF[4]C[\xa3]CA[iso-8859-1]GM[1]SZ[19])
+    """))
+
+    g3 = sgf.sgf_game_from_string("""
+    (;FF[4]C[\xa3]GM[1]SZ[19])
+    """)
+    root = g3.get_root()
+    tc.assertEqual(root.encoding, "iso-8859-1")
+    tc.assertEqual(root.get("C"), "£")
+    tc.assertEqual(root.get_raw("C"), "\xa3")
+    tc.assertEqual(sgf.serialise_sgf_game(g3), dedent("""\
+    (;FF[4]C[\xa3]GM[1]SZ[19])
+    """))
+
 
 def test_tree_mutation(tc):
     sgf_game = sgf.Sgf_game(9)

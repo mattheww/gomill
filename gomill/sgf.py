@@ -384,7 +384,9 @@ class _Root_tree_node(Tree_node):
 class Sgf_game(object):
     """An SGF game.
 
-    Instantiate with the board size.
+    Instantiate with the board size, and optionally the property map encoding.
+
+    FIXME: document property map encoding.
 
     """
     def _set_size(self, size):
@@ -393,15 +395,13 @@ class Sgf_game(object):
             raise ValueError("size out of range: %s" % size)
         self.size = size
 
-    def __init__(self, size):
+    def __init__(self, size, encoding="utf-8"):
         self._set_size(size)
-        # FIXME
-        encoding = "utf-8"
         initial_properties = {
             'FF' : ["4"],
             'GM' : ["1"],
             'SZ' : [str(size)],
-            'CA' : ["utf-8"],
+            'CA' : [encoding],
             }
         self.root = _Root_tree_node(self, initial_properties, size, encoding)
 
@@ -621,10 +621,12 @@ class _Parsed_sgf_game(Sgf_game):
             except ValueError:
                 raise ValueError("bad SZ property: %s" % size_s)
         self._set_size(size)
-        # FIXME
-        encoding = "utf-8"
+        try:
+            charset = parsed_game.sequence[0]['CA'][0]
+        except KeyError:
+            charset = "iso-8859-1"
         self.root = _Root_tree_node_for_game_tree(
-            self, parsed_game, size, encoding)
+            self, parsed_game, size, charset)
 
     def main_sequence_iter(self):
         if self.root._game_tree is None:
