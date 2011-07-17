@@ -8,7 +8,7 @@ Go points.
 
 """
 
-from gomill import sgf_parser
+from gomill import sgf_grammar
 from gomill import sgf_serialiser
 
 def interpret_none(s):
@@ -130,12 +130,12 @@ def serialise_colour(colour):
 def interpret_simpletext(s):
     """Convert a raw SimpleText value to a string.
 
-    See sgf_parser.simpletext_value() for details.
+    See sgf_grammar.simpletext_value() for details.
 
     Returns an 8-bit string.
 
     """
-    return sgf_parser.simpletext_value(s)
+    return sgf_grammar.simpletext_value(s)
 
 def serialise_simpletext(s):
     """Serialise a SimpleText value."""
@@ -145,12 +145,12 @@ def serialise_simpletext(s):
 def interpret_text(s):
     """Convert a raw Text value to a string.
 
-    See sgf_parser.text_value() for details.
+    See sgf_grammar.text_value() for details.
 
     Returns an 8-bit string.
 
     """
-    return sgf_parser.text_value(s)
+    return sgf_grammar.text_value(s)
 
 def serialise_text(s):
     """Serialise a Text value."""
@@ -279,7 +279,7 @@ def interpret_AP(s):
     spec), in which case the second returned value is an empty string.
 
     """
-    application, version = sgf_parser.parse_compose(s)
+    application, version = sgf_grammar.parse_compose(s)
     if version is None:
         version = ""
     return interpret_simpletext(application), interpret_simpletext(version)
@@ -307,7 +307,7 @@ def interpret_ARLN(values, size):
     """
     result = []
     for s in values:
-        p1, p2 = sgf_parser.parse_compose(s)
+        p1, p2 = sgf_grammar.parse_compose(s)
         result.append((interpret_point(p1, size), interpret_point(p2, size)))
     return result
 
@@ -332,7 +332,7 @@ def interpret_FG(s):
     """
     if s == "":
         return None
-    flags, name = sgf_parser.parse_compose(s)
+    flags, name = sgf_grammar.parse_compose(s)
     return int(flags), interpret_simpletext(name)
 
 def serialise_FG(value):
@@ -359,7 +359,7 @@ def interpret_LB(values, size):
     """
     result = []
     for s in values:
-        point, label = sgf_parser.parse_compose(s)
+        point, label = sgf_grammar.parse_compose(s)
         result.append((interpret_point(point, size),
                        interpret_simpletext(label)))
     return result

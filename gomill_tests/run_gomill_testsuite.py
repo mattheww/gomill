@@ -7,7 +7,7 @@ test_modules = [
     'gomill_utils_tests',
     'gomill_common_tests',
     'board_tests',
-    'sgf_parser_tests',
+    'sgf_grammar_tests',
     'sgf_properties_tests',
     'sgf_tests',
     'gtp_engine_tests',

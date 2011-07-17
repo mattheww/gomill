@@ -7,7 +7,7 @@ This is intended for use with SGF FF[4]; see http://www.red-bean.com/sgf/
 import datetime
 
 from gomill import boards
-from gomill import sgf_parser
+from gomill import sgf_grammar
 from gomill import sgf_properties
 from gomill import sgf_serialiser
 
@@ -82,13 +82,13 @@ class Node(object):
         string.)
 
         """
-        if not sgf_parser.is_valid_property_identifier(identifier):
+        if not sgf_grammar.is_valid_property_identifier(identifier):
             raise ValueError("ill-formed property identifier")
         values = list(values)
         if not values:
             raise ValueError("empty property list")
         for value in values:
-            if not sgf_parser.is_valid_property_value(value):
+            if not sgf_grammar.is_valid_property_value(value):
                 raise ValueError("ill-formed raw property value")
         self._props_by_id[identifier] = values
 
@@ -103,9 +103,9 @@ class Node(object):
         first.
 
         """
-        if not sgf_parser.is_valid_property_identifier(identifier):
+        if not sgf_grammar.is_valid_property_identifier(identifier):
             raise ValueError("ill-formed property identifier")
-        if not sgf_parser.is_valid_property_value(value):
+        if not sgf_grammar.is_valid_property_value(value):
             raise ValueError("ill-formed raw property value")
         self._props_by_id[identifier] = [value]
 
@@ -562,7 +562,7 @@ class _Root_tree_node_for_game_tree(Tree_node):
     def _ensure_expanded(self):
         if self._children is None:
             self._children = []
-            sgf_parser.make_tree(
+            sgf_grammar.make_tree(
                 self._game_tree, self, Tree_node, Tree_node._add_child)
             self._game_tree = None
 
@@ -587,7 +587,7 @@ class _Root_tree_node_for_game_tree(Tree_node):
         return Tree_node.new_child(self)
 
     def _main_sequence_iter(self, size):
-        for properties in sgf_parser.main_sequence_iter(self._game_tree):
+        for properties in sgf_grammar.main_sequence_iter(self._game_tree):
             yield Node(properties, size)
 
 class _Parsed_sgf_game(Sgf_game):
@@ -645,7 +645,7 @@ def sgf_game_from_string(s):
     details.
 
     """
-    return _Parsed_sgf_game(sgf_parser.parse_sgf_game(s))
+    return _Parsed_sgf_game(sgf_grammar.parse_sgf_game(s))
 
 
 def serialise_sgf_game(sgf_game):

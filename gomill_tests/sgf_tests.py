@@ -608,12 +608,12 @@ def test_indicate_first_player(tc):
 # FIXME: these belong in a different test module?
 
 def test_serialise_game_tree(tc):
-    from gomill import sgf_parser
+    from gomill import sgf_grammar
     from gomill import sgf_serialiser
     serialised = ("(;AB[aa][ab][ac]C[comment];W[ab];C[];C[]"
                   "(;B[bc])(;B[bd];W[ca](;B[da])(;B[db];\n"
                   "W[ea])))\n")
-    parsed_game = sgf_parser.parse_sgf_game(serialised)
+    parsed_game = sgf_grammar.parse_sgf_game(serialised)
     tc.assertEqual(sgf_serialiser.serialise_game_tree(parsed_game), serialised)
 
 def test_make_serialisable_tree(tc):

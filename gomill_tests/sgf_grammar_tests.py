@@ -1,16 +1,16 @@
-"""Tests for sgf_parser.py."""
+"""Tests for sgf_grammar.py."""
 
 from __future__ import with_statement
 
 from gomill_tests import gomill_test_support
 
-from gomill import sgf_parser
+from gomill import sgf_grammar
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 def test_is_valid_property_identifier(tc):
-    ivpi = sgf_parser.is_valid_property_identifier
+    ivpi = sgf_grammar.is_valid_property_identifier
     tc.assertIs(ivpi("B"), True)
     tc.assertIs(ivpi("PB"), True)
     tc.assertIs(ivpi("ABCDEFGH"), True)
@@ -25,7 +25,7 @@ def test_is_valid_property_identifier(tc):
     tc.assertIs(ivpi("PB\x00"), False)
 
 def test_is_valid_property_value(tc):
-    ivpv = sgf_parser.is_valid_property_value
+    ivpv = sgf_grammar.is_valid_property_value
     tc.assertIs(ivpv(""), True)
     tc.assertIs(ivpv("hello world"), True)
     tc.assertIs(ivpv("hello\nworld"), True)
@@ -42,7 +42,7 @@ def test_is_valid_property_value(tc):
     tc.assertIs(ivpv("x" * 70000), True)
 
 def test_tokeniser(tc):
-    tokenise = sgf_parser.tokenise
+    tokenise = sgf_grammar.tokenise
 
     tc.assertEqual(tokenise(r"(;B[ah][])")[0],
                    [('D', '('),
@@ -108,7 +108,7 @@ def test_tokeniser(tc):
     tc.assertEqual(check_incomplete(r"(;B[ag\\\])"), (3, 3))
 
 def test_parser_structure(tc):
-    parse_sgf_game = sgf_parser.parse_sgf_game
+    parse_sgf_game = sgf_grammar.parse_sgf_game
 
     def shape(s):
         parsed_game = parse_sgf_game(s)
@@ -157,7 +157,7 @@ def test_parser_structure(tc):
                           parse_sgf_game, r"(;B W[ag])")
 
 def test_parser_tree_structure(tc):
-    parse_sgf_game = sgf_parser.parse_sgf_game
+    parse_sgf_game = sgf_grammar.parse_sgf_game
 
     def shape(s):
         parsed_game = parse_sgf_game(s)
@@ -212,7 +212,7 @@ def test_parser_tree_structure(tc):
                           parse_sgf_game, "(;B[ag](;W[ah])(B[ai]))")
 
 def test_parser_properties(tc):
-    parse_sgf_game = sgf_parser.parse_sgf_game
+    parse_sgf_game = sgf_grammar.parse_sgf_game
 
     def props(s):
         parsed_game = parse_sgf_game(s)
@@ -229,7 +229,7 @@ def test_parser_properties(tc):
                    [{'XX': ['1', '3'], 'YY' : ['2', '4']}])
 
 def test_parse_sgf_collection(tc):
-    parse_sgf_collection = sgf_parser.parse_sgf_collection
+    parse_sgf_collection = sgf_grammar.parse_sgf_collection
 
     tc.assertRaisesRegexp(ValueError, "no SGF data found",
                           parse_sgf_collection, r"")
@@ -265,7 +265,7 @@ def test_parse_sgf_collection(tc):
 
 
 def test_parse_compose(tc):
-    pc = sgf_parser.parse_compose
+    pc = sgf_grammar.parse_compose
     tc.assertEqual(pc("word"), ("word", None))
     tc.assertEqual(pc("word:"), ("word", ""))
     tc.assertEqual(pc("word:?"), ("word", "?"))
@@ -279,7 +279,7 @@ def test_parse_compose(tc):
     tc.assertEqual(pc("word\\\nmore:123"), ("word\\\nmore", "123"))
 
 def test_text_value(tc):
-    text_value = sgf_parser.text_value
+    text_value = sgf_grammar.text_value
     tc.assertEqual(text_value("abc "), "abc ")
     tc.assertEqual(text_value("ab c"), "ab c")
     tc.assertEqual(text_value("ab\tc"), "ab c")
@@ -304,7 +304,7 @@ def test_text_value(tc):
     tc.assertEqual(text_value("abc]"), "abc]")
 
 def test_simpletext_value(tc):
-    simpletext_value = sgf_parser.simpletext_value
+    simpletext_value = sgf_grammar.simpletext_value
     tc.assertEqual(simpletext_value("abc "), "abc ")
     tc.assertEqual(simpletext_value("ab c"), "ab c")
     tc.assertEqual(simpletext_value("ab\tc"), "ab c")
