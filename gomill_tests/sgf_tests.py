@@ -261,6 +261,20 @@ def test_tree_view(tc):
     root2 = game2.get_root()
     tc.assertIs(root2[0], root2.children()[0])
 
+def test_serialise_sgf_game(tc):
+    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    serialised = sgf.serialise_sgf_game(sgf_game)
+    tc.assertEqual(serialised, dedent("""\
+    (;FF[4]AB[ai][bh][ee]AP[testsuite:0]AW[fd][gc]CA[utf-8]DT[2009-06-06]GM[1]
+    KM[7.5]PB[Black engine]PL[B]PW[White engine]RE[W+R]SZ[9]VW[];B[dg];
+    C[comment
+    on two lines]W[ef];B[];C[Nonfinal comment]VW[aa:bb](;B[ia];W[ib];
+    B[ic])(;B[ib];W[ic](;B[id])(;B[ie])))
+    """))
+    sgf_game2 = sgf.sgf_game_from_string(serialised)
+    tc.assertEqual(map(str, sgf_game.get_main_sequence()),
+                   map(str, sgf_game2.get_main_sequence()))
+
 def test_tree_mutation(tc):
     sgf_game = sgf.Sgf_game(9)
     root = sgf_game.get_root()
@@ -531,21 +545,6 @@ def test_node_setup_stones(tc):
     tc.assertRaises(KeyError, root.get, 'AW')
     tc.assertEqual(root.get('AE'), set([(1, 3), (4, 5)]))
 
-def test_serialiser_round_trip(tc):
-    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
-    serialised = sgf.serialise_sgf_game(sgf_game)
-    tc.assertEqual(serialised, dedent("""\
-    (;FF[4]AB[ai][bh][ee]AP[testsuite:0]AW[fd][gc]CA[utf-8]DT[2009-06-06]GM[1]
-    KM[7.5]PB[Black engine]PL[B]PW[White engine]RE[W+R]SZ[9]VW[];B[dg];
-    C[comment
-    on two lines]W[ef];B[];C[Nonfinal comment]VW[aa:bb](;B[ia];W[ib];
-    B[ic])(;B[ib];W[ic](;B[id])(;B[ie])))
-    """))
-    sgf_game2 = sgf.sgf_game_from_string(serialised)
-    tc.assertEqual(map(str, sgf_game.get_main_sequence()),
-                   map(str, sgf_game2.get_main_sequence()))
-
-
 
 DIAGRAM = """\
 9  .  .  .  .  .  .  .  .  .
@@ -603,21 +602,4 @@ def test_indicate_first_player(tc):
     sgf.indicate_first_player(g3)
     tc.assertEqual(sgf.serialise_sgf_game(g3),
                    "(;FF[4]AW[bc]GM[1]PL[B]SZ[9];B[aa];W[ab])\n")
-
-
-# FIXME: these belong in a different test module?
-
-def test_make_serialisable_tree(tc):
-    from gomill import sgf_grammar
-
-    def shapetree(game_tree):
-        return (
-            len(game_tree.sequence),
-            [shapetree(pg) for pg in game_tree.children])
-
-    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
-    game_tree = sgf_grammar.make_serialisable_tree(
-        sgf_game.get_root(), lambda node:node, sgf.Node.get_raw_property_map)
-    tc.assertEqual(shapetree(game_tree),
-                   (5, [(3, []), (2, [(1, []), (1, [])])]))
 
