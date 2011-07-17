@@ -161,12 +161,14 @@ def test_serialise_point_list(tc):
 
 
 def test_AP(tc):
-    tc.assertEqual(sgf_properties.serialise_AP(("foo:bar", "2\n3")),
-                   "foo\\:bar:2\n3")
-    tc.assertEqual(sgf_properties.interpret_AP("foo\\:bar:2 3"),
-                   ("foo:bar", "2 3"))
-    tc.assertEqual(sgf_properties.interpret_AP("foo bar"),
-                   ("foo bar", ""))
+    def serialise(arg):
+        return sgf_properties.serialise_AP(arg, "utf-8")
+    def interpret(arg):
+        return sgf_properties.interpret_AP(arg, "utf-8")
+
+    tc.assertEqual(serialise(("foo:bar", "2\n3")), "foo\\:bar:2\n3")
+    tc.assertEqual(interpret("foo\\:bar:2 3"), ("foo:bar", "2 3"))
+    tc.assertEqual(interpret("foo bar"), ("foo bar", ""))
 
 def test_ARLN(tc):
     tc.assertEqual(sgf_properties.serialise_ARLN([], 19), [])
@@ -179,36 +181,44 @@ def test_ARLN(tc):
         [((7, 0), (5, 2)), ((4, 3), (2, 5))])
 
 def test_FG(tc):
-    tc.assertEqual(sgf_properties.serialise_FG(None), "")
-    tc.assertEqual(sgf_properties.interpret_FG(""), None)
-    tc.assertEqual(sgf_properties.serialise_FG((515, "th]is")), "515:th\\]is")
-    tc.assertEqual(sgf_properties.interpret_FG("515:th\\]is"), (515, "th]is"))
+    def serialise(arg):
+        return sgf_properties.serialise_FG(arg, "utf-8")
+    def interpret(arg):
+        return sgf_properties.interpret_FG(arg, "utf-8")
+    tc.assertEqual(serialise(None), "")
+    tc.assertEqual(interpret(""), None)
+    tc.assertEqual(serialise((515, "th]is")), "515:th\\]is")
+    tc.assertEqual(interpret("515:th\\]is"), (515, "th]is"))
 
 def test_LB(tc):
-    tc.assertEqual(sgf_properties.serialise_LB([], 19), [])
-    tc.assertEqual(sgf_properties.interpret_LB([], 19), [])
+    def serialise(arg, size):
+        return sgf_properties.serialise_LB(arg, size, "utf-8")
+    def interpret(arg, size):
+        return sgf_properties.interpret_LB(arg, size, "utf-8")
+    tc.assertEqual(serialise([], 19), [])
+    tc.assertEqual(interpret([], 19), [])
     tc.assertEqual(
-        sgf_properties.serialise_LB([((6, 0), "lbl"), ((6, 1), "lb]l2")], 9),
+        serialise([((6, 0), "lbl"), ((6, 1), "lb]l2")], 9),
         ["ac:lbl", "bc:lb\\]l2"])
     tc.assertEqual(
-        sgf_properties.interpret_LB(["ac:lbl", "bc:lb\\]l2"], 9),
+        interpret(["ac:lbl", "bc:lb\\]l2"], 9),
         [((6, 0), "lbl"), ((6, 1), "lb]l2")])
 
 
 def test_serialise_value(tc):
     sv = sgf_properties.serialise_value
-    tc.assertEqual(sv('KO', True, 9), [""])
-    tc.assertEqual(sv('SZ', 9, 9), ["9"])
-    tc.assertEqual(sv('KM', 3.5, 9), ["3.5"])
-    tc.assertEqual(sv('C', "foo\\:b]ar\n", 9), ["foo\\\\:b\\]ar\n"])
-    tc.assertEqual(sv('B', (1, 2), 19), ["cr"])
-    tc.assertEqual(sv('B', None, 9), ["tt"])
-    tc.assertEqual(sv('AW', set([(17, 1), (18, 0)]), 19), ["aa", "bb"])
-    tc.assertEqual(sv('DD', [(1, 2), (3, 4)], 9), ["ch", "ef"])
-    tc.assertEqual(sv('DD', [], 9), [""])
-    tc.assertRaisesRegexp(ValueError, "empty list", sv, 'CR', [], 9)
-    tc.assertEqual(sv('AP', ("na:me", "2.3"), 9), ["na\\:me:2.3"])
-    tc.assertEqual(sv('FG', (515, "th]is"), 9), ["515:th\\]is"])
-    tc.assertEqual(sv('XX', "foo\\bar", 9), ["foo\\\\bar"])
+    tc.assertEqual(sv('KO', True, 9, "utf-8"), [""])
+    tc.assertEqual(sv('SZ', 9, 9, "utf-8"), ["9"])
+    tc.assertEqual(sv('KM', 3.5, 9, "utf-8"), ["3.5"])
+    tc.assertEqual(sv('C', "foo\\:b]ar\n", 9, "utf-8"), ["foo\\\\:b\\]ar\n"])
+    tc.assertEqual(sv('B', (1, 2), 19, "utf-8"), ["cr"])
+    tc.assertEqual(sv('B', None, 9, "utf-8"), ["tt"])
+    tc.assertEqual(sv('AW', set([(17, 1), (18, 0)]), 19, "utf-8"), ["aa", "bb"])
+    tc.assertEqual(sv('DD', [(1, 2), (3, 4)], 9, "utf-8"), ["ch", "ef"])
+    tc.assertEqual(sv('DD', [], 9, "utf-8"), [""])
+    tc.assertRaisesRegexp(ValueError, "empty list", sv, 'CR', [], 9, "utf-8")
+    tc.assertEqual(sv('AP', ("na:me", "2.3"), 9, "utf-8"), ["na\\:me:2.3"])
+    tc.assertEqual(sv('FG', (515, "th]is"), 9, "utf-8"), ["515:th\\]is"])
+    tc.assertEqual(sv('XX', "foo\\bar", 9, "utf-8"), ["foo\\\\bar"])
 
-    tc.assertRaises(ValueError, sv, 'B', (1, 9), 9)
+    tc.assertRaises(ValueError, sv, 'B', (1, 9), 9, "utf-8")

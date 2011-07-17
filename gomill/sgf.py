@@ -13,12 +13,15 @@ from gomill import sgf_properties
 
 class Node(object):
     """An SGF node."""
-    __slots__ = ('_property_map', 'size')
+    __slots__ = ('_property_map', 'size', 'encoding')
 
-    def __init__(self, properties, size):
+    def __init__(self, property_map, size, encoding):
         # Map identifier (PropIdent) -> list of raw values
-        self._property_map = properties
+        self._property_map = property_map
         self.size = size
+        # Encoding of Text and SimpleText raw values
+        # (the 'property map encoding')
+        self.encoding = encoding
 
     def has_property(self, identifier):
         """Check whether the node has the specified property."""
@@ -131,7 +134,8 @@ class Node(object):
 
         """
         return sgf_properties.interpret_value(
-            identifier, self._property_map[identifier], self.size)
+            identifier, self._property_map[identifier],
+            self.size, self.encoding)
 
     def set(self, identifier, value):
         """Set the value of the specified property.
@@ -147,7 +151,7 @@ class Node(object):
 
         """
         self._property_map[identifier] = sgf_properties.serialise_value(
-            identifier, value, self.size)
+            identifier, value, self.size, self.encoding)
 
 
     def get_raw_move(self):
@@ -298,7 +302,7 @@ class Tree_node(Node):
         self.owner = parent.owner
         self.parent = parent
         self._children = []
-        Node.__init__(self, properties, parent.size)
+        Node.__init__(self, properties, parent.size, parent.encoding)
 
     def children(self):
         """Return the children of this node.
@@ -370,11 +374,11 @@ class Tree_node(Node):
 
 class _Root_tree_node(Tree_node):
     """Variant of Tree_node used for a game root."""
-    def __init__(self, owner, properties, size):
+    def __init__(self, owner, properties, size, encoding):
         self.owner = owner
         self.parent = None
         self._children = []
-        Node.__init__(self, properties, size)
+        Node.__init__(self, properties, size, encoding)
 
 
 class Sgf_game(object):
@@ -391,13 +395,15 @@ class Sgf_game(object):
 
     def __init__(self, size):
         self._set_size(size)
+        # FIXME
+        encoding = "utf-8"
         initial_properties = {
             'FF' : ["4"],
             'GM' : ["1"],
             'SZ' : [str(size)],
             'CA' : ["utf-8"],
             }
-        self.root = _Root_tree_node(self, initial_properties, size)
+        self.root = _Root_tree_node(self, initial_properties, size, encoding)
 
     def get_root(self):
         """Return the root node (as a Tree_node)."""
@@ -551,12 +557,12 @@ class Sgf_game(object):
 
 class _Root_tree_node_for_game_tree(Tree_node):
     """Variant of _Root_tree_node used for _Parsed_sgf_game."""
-    def __init__(self, owner, game_tree, size):
+    def __init__(self, owner, game_tree, size, encoding):
         self.owner = owner
         self.parent = None
         self._game_tree = game_tree
         self._children = None
-        Node.__init__(self, game_tree.sequence[0], size)
+        Node.__init__(self, game_tree.sequence[0], size, encoding)
 
     def _ensure_expanded(self):
         if self._children is None:
@@ -585,9 +591,11 @@ class _Root_tree_node_for_game_tree(Tree_node):
         self._ensure_expanded()
         return Tree_node.new_child(self)
 
-    def _main_sequence_iter(self, size):
+    def _main_sequence_iter(self):
+        size = self.size
+        encoding = self.encoding
         for properties in sgf_grammar.main_sequence_iter(self._game_tree):
-            yield Node(properties, size)
+            yield Node(properties, size, encoding)
 
 class _Parsed_sgf_game(Sgf_game):
     """An Sgf_game which was loaded from serialised form.
@@ -613,12 +621,15 @@ class _Parsed_sgf_game(Sgf_game):
             except ValueError:
                 raise ValueError("bad SZ property: %s" % size_s)
         self._set_size(size)
-        self.root = _Root_tree_node_for_game_tree(self, parsed_game, size)
+        # FIXME
+        encoding = "utf-8"
+        self.root = _Root_tree_node_for_game_tree(
+            self, parsed_game, size, encoding)
 
     def main_sequence_iter(self):
         if self.root._game_tree is None:
             return self.get_main_sequence()
-        return self.root._main_sequence_iter(self.size)
+        return self.root._main_sequence_iter()
 
 def sgf_game_from_parsed_game_tree(parsed_game):
     """Create an SGF game from the parser output.

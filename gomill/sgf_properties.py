@@ -126,33 +126,39 @@ def serialise_colour(colour):
     return colour.upper()
 
 
-def interpret_simpletext(s):
+def interpret_simpletext(s, encoding):
     """Convert a raw SimpleText value to a string.
 
     See sgf_grammar.simpletext_value() for details.
 
     Returns an 8-bit string.
 
+    FIXME: encoding
+
     """
     return sgf_grammar.simpletext_value(s)
 
-def serialise_simpletext(s):
+def serialise_simpletext(s, encoding):
     """Serialise a SimpleText value."""
+    # FIXME: encoding
     return sgf_grammar.escape_text(s)
 
 
-def interpret_text(s):
+def interpret_text(s, encoding):
     """Convert a raw Text value to a string.
 
     See sgf_grammar.text_value() for details.
 
     Returns an 8-bit string.
 
+    FIXME: encoding
+
     """
     return sgf_grammar.text_value(s)
 
-def serialise_text(s):
+def serialise_text(s, encoding):
     """Serialise a Text value."""
+    # FIXME: encoding
     return sgf_grammar.escape_text(s)
 
 
@@ -269,7 +275,7 @@ def serialise_point_list(points, size):
     return result
 
 
-def interpret_AP(s):
+def interpret_AP(s, encoding):
     """Interpret an AP (application) property value.
 
     Returns a pair of strings (name, version number)
@@ -281,9 +287,10 @@ def interpret_AP(s):
     application, version = sgf_grammar.parse_compose(s)
     if version is None:
         version = ""
-    return interpret_simpletext(application), interpret_simpletext(version)
+    return (interpret_simpletext(application, encoding),
+            interpret_simpletext(version, encoding))
 
-def serialise_AP(value):
+def serialise_AP(value, encoding):
     """Serialise an AP (application) property value.
 
     value -- pair (application, version)
@@ -294,8 +301,8 @@ def serialise_AP(value):
 
     """
     application, version = value
-    return sgf_grammar.compose(sgf_grammar.escape_text(application),
-                               sgf_grammar.escape_text(version))
+    return sgf_grammar.compose(serialise_simpletext(application, encoding),
+                               serialise_simpletext(version, encoding))
 
 
 def interpret_ARLN(values, size):
@@ -321,7 +328,7 @@ def serialise_ARLN(values, size):
             for p1, p2 in values]
 
 
-def interpret_FG(s):
+def interpret_FG(s, encoding):
     """Interpret an FG (figure) property value.
 
     Returns a pair (flags, string), or None.
@@ -332,9 +339,9 @@ def interpret_FG(s):
     if s == "":
         return None
     flags, name = sgf_grammar.parse_compose(s)
-    return int(flags), interpret_simpletext(name)
+    return int(flags), interpret_simpletext(name, encoding)
 
-def serialise_FG(value):
+def serialise_FG(value, encoding):
     """Serialise an FG (figure) property value.
 
     value -- pair (flags, name), or None
@@ -347,10 +354,10 @@ def serialise_FG(value):
     if value is None:
         return ""
     flags, name = value
-    return "%d:%s" % (flags, sgf_grammar.escape_text(name))
+    return "%d:%s" % (flags, serialise_simpletext(name, encoding))
 
 
-def interpret_LB(values, size):
+def interpret_LB(values, size, encoding):
     """Interpret an LB (label) property value.
 
     Returns a list of pairs (coords, string).
@@ -360,17 +367,17 @@ def interpret_LB(values, size):
     for s in values:
         point, label = sgf_grammar.parse_compose(s)
         result.append((interpret_point(point, size),
-                       interpret_simpletext(label)))
+                       interpret_simpletext(label, encoding)))
     return result
 
-def serialise_LB(values, size):
+def serialise_LB(values, size, encoding):
     """Serialise an LB (label) property value.
 
     values -- list of pairs (coords, string)
 
     """
     return ["%s:%s" % (serialise_point(point, size),
-                       sgf_grammar.escape_text(text))
+                       serialise_simpletext(text, encoding))
             for point, text in values]
 
 
@@ -381,7 +388,12 @@ class Property(object):
         self.serialiser = globals()["serialise_" + value_type]
         self.uses_list = bool(uses_list)
         self.allows_empty_list = (uses_list == 'elist')
-        self.uses_size = (self.interpreter.func_code.co_argcount == 2)
+        # FIXME
+        co = self.interpreter.func_code
+        self.uses_size = (co.co_argcount == 2 and co.co_varnames[1] == 'size')
+        self.uses_encoding = (co.co_argcount == 2 and co.co_varnames[1] == 'encoding')
+        if value_type == "LB":
+            self.uses_size = self.uses_encoding = True
 
 P = Property
 LIST = 'list'
@@ -461,7 +473,7 @@ private_property = P('text')
 del P, LIST, ELIST
 
 
-def interpret_value(identifier, raw_values, size):
+def interpret_value(identifier, raw_values, size, encoding):
     """Return a Python representation of a property value.
 
     identifier -- PropIdent
@@ -497,12 +509,16 @@ def interpret_value(identifier, raw_values, size):
             raw = raw_values
     else:
         raw = raw_values[0]
-    if prop.uses_size:
+    if prop.uses_size and prop.uses_encoding:
+        return interpreter(raw, size, encoding)
+    elif prop.uses_size:
         return interpreter(raw, size)
+    elif prop.uses_encoding:
+        return interpreter(raw, encoding)
     else:
         return interpreter(raw)
 
-def serialise_value(identifier, value, size):
+def serialise_value(identifier, value, size, encoding):
     """Serialise a Python representation of a property value.
 
     identifier -- PropIdent
@@ -532,8 +548,12 @@ def serialise_value(identifier, value, size):
     """
     prop = properties_by_ident.get(identifier, private_property)
     serialiser = prop.serialiser
-    if prop.uses_size:
+    if prop.uses_size and prop.uses_encoding:
+        result = serialiser(value, size, encoding)
+    elif prop.uses_size:
         result = serialiser(value, size)
+    elif prop.uses_encoding:
+        result = serialiser(value, encoding)
     else:
         result = serialiser(value)
     if prop.uses_list:
