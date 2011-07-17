@@ -9,7 +9,6 @@ import datetime
 from gomill import boards
 from gomill import sgf_grammar
 from gomill import sgf_properties
-from gomill import sgf_serialiser
 
 
 class Node(object):
@@ -654,9 +653,9 @@ def serialise_sgf_game(sgf_game):
     Returns an 8-bit string.
 
     """
-    game_tree = sgf_serialiser.make_serialisable_tree(
+    game_tree = sgf_grammar.make_serialisable_tree(
         sgf_game.get_root(), lambda node:node, Node.get_raw_property_map)
-    return sgf_serialiser.serialise_game_tree(game_tree)
+    return sgf_grammar.serialise_game_tree(game_tree)
 
 
 def get_setup_and_moves(sgf_game):

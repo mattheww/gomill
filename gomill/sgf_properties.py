@@ -9,7 +9,6 @@ Go points.
 """
 
 from gomill import sgf_grammar
-from gomill import sgf_serialiser
 
 def interpret_none(s):
     """Convert a raw None value to a boolean.
@@ -139,7 +138,7 @@ def interpret_simpletext(s):
 
 def serialise_simpletext(s):
     """Serialise a SimpleText value."""
-    return sgf_serialiser.escape_text(s)
+    return sgf_grammar.escape_text(s)
 
 
 def interpret_text(s):
@@ -154,7 +153,7 @@ def interpret_text(s):
 
 def serialise_text(s):
     """Serialise a Text value."""
-    return sgf_serialiser.escape_text(s)
+    return sgf_grammar.escape_text(s)
 
 
 def interpret_point(s, size):
@@ -295,8 +294,8 @@ def serialise_AP(value):
 
     """
     application, version = value
-    return sgf_serialiser.compose(sgf_serialiser.escape_text(application),
-                                  sgf_serialiser.escape_text(version))
+    return sgf_grammar.compose(sgf_grammar.escape_text(application),
+                               sgf_grammar.escape_text(version))
 
 
 def interpret_ARLN(values, size):
@@ -348,7 +347,7 @@ def serialise_FG(value):
     if value is None:
         return ""
     flags, name = value
-    return "%d:%s" % (flags, sgf_serialiser.escape_text(name))
+    return "%d:%s" % (flags, sgf_grammar.escape_text(name))
 
 
 def interpret_LB(values, size):
@@ -371,7 +370,7 @@ def serialise_LB(values, size):
 
     """
     return ["%s:%s" % (serialise_point(point, size),
-                       sgf_serialiser.escape_text(text))
+                       sgf_grammar.escape_text(text))
             for point, text in values]
 
 

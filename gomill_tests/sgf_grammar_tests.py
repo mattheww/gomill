@@ -328,3 +328,11 @@ def test_simpletext_value(tc):
     tc.assertEqual(simpletext_value("abc\\"), "abc")
     tc.assertEqual(simpletext_value("abc]"), "abc]")
 
+
+def test_serialise_game_tree(tc):
+    serialised = ("(;AB[aa][ab][ac]C[comment];W[ab];C[];C[]"
+                  "(;B[bc])(;B[bd];W[ca](;B[da])(;B[db];\n"
+                  "W[ea])))\n")
+    parsed_game = sgf_grammar.parse_sgf_game(serialised)
+    tc.assertEqual(sgf_grammar.serialise_game_tree(parsed_game), serialised)
+
