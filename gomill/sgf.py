@@ -13,16 +13,16 @@ from gomill import sgf_properties
 
 class Node(object):
     """An SGF node."""
-    __slots__ = ('_props_by_id', 'size')
+    __slots__ = ('_property_map', 'size')
 
     def __init__(self, properties, size):
         # Map identifier (PropIdent) -> list of raw values
-        self._props_by_id = properties
+        self._property_map = properties
         self.size = size
 
     def has_property(self, identifier):
         """Check whether the node has the specified property."""
-        return identifier in self._props_by_id
+        return identifier in self._property_map
 
     def get_raw_list(self, identifier):
         """Return the raw values of the specified property.
@@ -37,7 +37,7 @@ class Node(object):
         single empty string.)
 
         """
-        return self._props_by_id[identifier]
+        return self._property_map[identifier]
 
     def get_raw(self, identifier):
         """Return a single raw value of the specified property.
@@ -52,7 +52,7 @@ class Node(object):
         value is an empty elist, this returns an empty string).
 
         """
-        return self._props_by_id[identifier][0]
+        return self._property_map[identifier][0]
 
     def get_raw_property_map(self):
         """Return the raw values of all properties as a dict.
@@ -65,7 +65,7 @@ class Node(object):
         Treat the returned dict as read-only.
 
         """
-        return self._props_by_id
+        return self._property_map
 
     def set_raw_list(self, identifier, values):
         """Set the raw values of the specified property.
@@ -89,7 +89,7 @@ class Node(object):
         for value in values:
             if not sgf_grammar.is_valid_property_value(value):
                 raise ValueError("ill-formed raw property value")
-        self._props_by_id[identifier] = values
+        self._property_map[identifier] = values
 
     def set_raw(self, identifier, value):
         """Set the specified property to a single raw value.
@@ -106,7 +106,7 @@ class Node(object):
             raise ValueError("ill-formed property identifier")
         if not sgf_grammar.is_valid_property_value(value):
             raise ValueError("ill-formed raw property value")
-        self._props_by_id[identifier] = [value]
+        self._property_map[identifier] = [value]
 
     def unset(self, identifier):
         """Remove the specified property.
@@ -114,7 +114,7 @@ class Node(object):
         Raises KeyError if the property isn't currently present.
 
         """
-        del self._props_by_id[identifier]
+        del self._property_map[identifier]
 
 
     def get(self, identifier):
@@ -131,7 +131,7 @@ class Node(object):
 
         """
         return sgf_properties.interpret_value(
-            identifier, self._props_by_id[identifier], self.size)
+            identifier, self._property_map[identifier], self.size)
 
     def set(self, identifier, value):
         """Set the value of the specified property.
@@ -146,7 +146,7 @@ class Node(object):
         See sgf_properties.serialise_value() for details.
 
         """
-        self._props_by_id[identifier] = sgf_properties.serialise_value(
+        self._property_map[identifier] = sgf_properties.serialise_value(
             identifier, value, self.size)
 
 
@@ -160,11 +160,11 @@ class Node(object):
         Returns None, None if the node contains no B or W property.
 
         """
-        values = self._props_by_id.get("B")
+        values = self._property_map.get("B")
         if values is not None:
             colour = "b"
         else:
-            values = self._props_by_id.get("W")
+            values = self._property_map.get("W")
             if values is not None:
                 colour = "w"
             else:
@@ -212,7 +212,7 @@ class Node(object):
 
     def has_setup_stones(self):
         """Check whether the node has any AB/AW/AE properties."""
-        d = self._props_by_id
+        d = self._property_map
         return ("AB" in d or "AW" in d or "AE" in d)
 
     def set_move(self, colour, coords):
@@ -226,10 +226,10 @@ class Node(object):
         """
         if colour not in ('b', 'w'):
             raise ValueError
-        if 'B' in self._props_by_id:
-            del self._props_by_id['B']
-        if 'W' in self._props_by_id:
-            del self._props_by_id['W']
+        if 'B' in self._property_map:
+            del self._property_map['B']
+        if 'W' in self._property_map:
+            del self._property_map['W']
         self.set(colour.upper(), coords)
 
     def set_setup_stones(self, black, white, empty=None):
@@ -240,12 +240,12 @@ class Node(object):
         Removes any existing AB/AW/AE properties from the node.
 
         """
-        if 'AB' in self._props_by_id:
-            del self._props_by_id['AB']
-        if 'AW' in self._props_by_id:
-            del self._props_by_id['AW']
-        if 'AE' in self._props_by_id:
-            del self._props_by_id['AE']
+        if 'AB' in self._property_map:
+            del self._property_map['AB']
+        if 'AW' in self._property_map:
+            del self._property_map['AW']
+        if 'AE' in self._property_map:
+            del self._property_map['AE']
         if black:
             self.set('AB', black)
         if white:
@@ -273,7 +273,7 @@ class Node(object):
             return ident + "".join("[%s]" % s for s in values)
         return "\n".join(
             format_property(ident, values)
-            for (ident, values) in sorted(self._props_by_id.items())) \
+            for (ident, values) in sorted(self._property_map.items())) \
             + "\n"
 
 
