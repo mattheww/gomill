@@ -334,7 +334,7 @@ def make_tree(game_tree, root, node_builder, node_adder):
                 node_adder(node, child)
                 to_build.append((child, child_tree, 0))
 
-def make_serialisable_tree(root, get_children, get_properties):
+def make_parsed_game_tree(root, get_children, get_properties):
     """Construct a Parsed_game_tree from a node tree.
 
     root           -- node
@@ -343,8 +343,8 @@ def make_serialisable_tree(root, get_children, get_properties):
 
     Returns a Parsed_game_tree.
 
-    Walks the node tree using get_children(), and uses get_properties() to
-    extract the raw properties.
+    Walks the node tree based at 'root' using get_children(), and uses
+    get_properties() to extract the raw properties.
 
     Makes no further assumptions about the node type.
 

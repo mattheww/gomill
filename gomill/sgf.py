@@ -653,7 +653,7 @@ def serialise_sgf_game(sgf_game):
     Returns an 8-bit string.
 
     """
-    game_tree = sgf_grammar.make_serialisable_tree(
+    game_tree = sgf_grammar.make_parsed_game_tree(
         sgf_game.get_root(), lambda node:node, Node.get_raw_property_map)
     return sgf_grammar.serialise_game_tree(game_tree)
 
