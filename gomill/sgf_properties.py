@@ -131,16 +131,29 @@ def interpret_simpletext(s, encoding):
 
     See sgf_grammar.simpletext_value() for details.
 
-    Returns an 8-bit string.
+    s        -- raw value
+    encoding -- encoding of s
 
-    FIXME: encoding
+    Returns an 8-bit utf-8 string.
 
     """
-    return sgf_grammar.simpletext_value(s)
+    s = sgf_grammar.simpletext_value(s)
+    # FIXME: need to normalise encoding name
+    if encoding != "utf-8":
+        s = s.decode(encoding).encode("utf-8")
+    return s
 
 def serialise_simpletext(s, encoding):
-    """Serialise a SimpleText value."""
-    # FIXME: encoding
+    """Serialise a SimpleText value.
+
+    See sgf_grammar.escape_text() for details.
+
+    s        -- 8-bit utf-8 string
+    encoding -- target encoding of the serialised value
+
+    """
+    if encoding != "utf-8":
+        s = s.decode("utf-8").encode(encoding)
     return sgf_grammar.escape_text(s)
 
 
@@ -149,16 +162,28 @@ def interpret_text(s, encoding):
 
     See sgf_grammar.text_value() for details.
 
-    Returns an 8-bit string.
+    s        -- raw value
+    encoding -- encoding of s
 
-    FIXME: encoding
+    Returns an 8-bit utf-8 string.
 
     """
-    return sgf_grammar.text_value(s)
+    s = sgf_grammar.text_value(s)
+    if encoding != "utf-8":
+        s = s.decode(encoding).encode("utf-8")
+    return s
 
 def serialise_text(s, encoding):
-    """Serialise a Text value."""
-    # FIXME: encoding
+    """Serialise a Text value.
+
+    See sgf_grammar.escape_text() for details.
+
+    s        -- 8-bit utf-8 string
+    encoding -- target encoding of the serialised value
+
+    """
+    if encoding != "utf-8":
+        s = s.decode("utf-8").encode(encoding)
     return sgf_grammar.escape_text(s)
 
 

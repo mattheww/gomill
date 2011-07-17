@@ -9,6 +9,47 @@ from gomill import sgf_properties
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
+def test_interpret_simpletext(tc):
+    interpret = sgf_properties.interpret_simpletext
+    tc.assertEqual(interpret("a\nb\\\\c", "utf-8"), "a b\\c")
+    u = u"test \N{POUND SIGN}"
+    tc.assertEqual(interpret(u.encode("utf-8"), "utf-8"),
+                   u.encode("utf-8"))
+    tc.assertEqual(interpret(u.encode("iso-8859-1"), "iso-8859-1"),
+                   u.encode("utf-8"))
+
+def test_serialise_simpletext(tc):
+    serialise = sgf_properties.serialise_simpletext
+    tc.assertEqual(serialise("ab\\c", "utf-8"), "ab\\\\c")
+    u = u"test \N{POUND SIGN}"
+    tc.assertEqual(serialise(u.encode("utf-8"), "utf-8"),
+                   u.encode("utf-8"))
+    tc.assertEqual(serialise(u.encode("utf-8"), "iso-8859-1"),
+                   u.encode("iso-8859-1"))
+    tc.assertRaises(UnicodeEncodeError, serialise,
+                    u"\N{EN DASH}".encode("utf-8"), "iso-8859-1")
+
+def test_interpret_text(tc):
+    interpret = sgf_properties.interpret_text
+    tc.assertEqual(interpret("a\nb\\\\c", "utf-8"), "a\nb\\c")
+    u = u"test \N{POUND SIGN}"
+    tc.assertEqual(interpret(u.encode("utf-8"), "utf-8"),
+                   u.encode("utf-8"))
+    tc.assertEqual(interpret(u.encode("iso-8859-1"), "iso-8859-1"),
+                   u.encode("utf-8"))
+
+def test_serialise_text(tc):
+    serialise = sgf_properties.serialise_text
+    tc.assertEqual(serialise("ab\\c", "utf-8"), "ab\\\\c")
+    u = u"test \N{POUND SIGN}"
+    tc.assertEqual(serialise(u.encode("utf-8"), "utf-8"),
+                   u.encode("utf-8"))
+    tc.assertEqual(serialise(u.encode("utf-8"), "iso-8859-1"),
+                   u.encode("iso-8859-1"))
+    tc.assertRaises(UnicodeEncodeError, serialise,
+                    u"\N{EN DASH}".encode("utf-8"), "iso-8859-1")
+
+
 def test_interpret_number(tc):
     interpret_number = sgf_properties.interpret_number
     tc.assertEqual(interpret_number("1"), 1)
