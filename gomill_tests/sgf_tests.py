@@ -576,6 +576,33 @@ def test_node_unset(tc):
     tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
                    "(;FF[4]GM[1]SZ[9])\n")
 
+def test_set_and_unset_size(tc):
+    g1 = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9]HA[3])")
+    root1 = g1.get_root()
+    tc.assertRaisesRegexp(ValueError, "changing size is not permitted",
+                          root1.set, "SZ", 19)
+    root1.set("SZ", 9)
+    tc.assertRaisesRegexp(ValueError, "changing size is not permitted",
+                          root1.unset, "SZ")
+    g2 = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[19]HA[3])")
+    root2 = g2.get_root()
+    root2.unset("SZ")
+    root2.set("SZ", 19)
+
+def test_set_and_unset_charset(tc):
+    g1 = sgf.sgf_game_from_string("(;FF[4]CA[utf-8]GM[1]SZ[9]HA[3])")
+    root1 = g1.get_root()
+    tc.assertRaisesRegexp(ValueError, "changing charset is not permitted",
+                          root1.set, "CA", "iso-8859-1")
+    root1.set("CA", "utf-8")
+    tc.assertRaisesRegexp(ValueError, "changing charset is not permitted",
+                          root1.unset, "CA")
+    g2 = sgf.sgf_game_from_string("(;FF[4]CA[iso-8859-1]GM[1]SZ[19]HA[3])")
+    root2 = g2.get_root()
+    root2.unset("CA")
+    root2.set("CA", "iso-8859-1")
+
+
 def test_node_set_move(tc):
     sgf_game = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9];B[aa];B[bb])")
     root, n1, n2 = sgf_game.get_main_sequence()

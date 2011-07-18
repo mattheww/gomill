@@ -70,6 +70,11 @@ class Node(object):
         """
         return self._property_map
 
+
+    def _set_raw_list(self, identifier, values):
+        # For overriding in subclasses
+        self._property_map[identifier] = values
+
     def set_raw_list(self, identifier, values):
         """Set the raw values of the specified property.
 
@@ -92,7 +97,7 @@ class Node(object):
         for value in values:
             if not sgf_grammar.is_valid_property_value(value):
                 raise ValueError("ill-formed raw property value")
-        self._property_map[identifier] = values
+        self._set_raw_list(identifier, values)
 
     def set_raw(self, identifier, value):
         """Set the specified property to a single raw value.
@@ -109,7 +114,7 @@ class Node(object):
             raise ValueError("ill-formed property identifier")
         if not sgf_grammar.is_valid_property_value(value):
             raise ValueError("ill-formed raw property value")
-        self._property_map[identifier] = [value]
+        self._set_raw_list(identifier, [value])
 
     def unset(self, identifier):
         """Remove the specified property.
@@ -150,9 +155,8 @@ class Node(object):
         See sgf_properties.serialise_value() for details.
 
         """
-        self._property_map[identifier] = sgf_properties.serialise_value(
-            identifier, value, self.size, self.encoding)
-
+        self._set_raw_list(identifier, sgf_properties.serialise_value(
+            identifier, value, self.size, self.encoding))
 
     def get_raw_move(self):
         """Return the raw value of the move from a node.
@@ -373,12 +377,30 @@ class Tree_node(Node):
         return node.get(identifier)
 
 class _Root_tree_node(Tree_node):
-    """Variant of Tree_node used for a game root."""
+    """Variant of Tree_node used for a game root.
+
+    Enforces the restrictions on changing SZ and CA.
+
+    """
     def __init__(self, owner, properties, size, encoding):
         self.owner = owner
         self.parent = None
         self._children = []
         Node.__init__(self, properties, size, encoding)
+
+    def _set_raw_list(self, identifier, values):
+        if identifier == "SZ" and values != [str(self.size)]:
+            raise ValueError("changing size is not permitted")
+        if identifier == "CA" and values != [str(self.encoding)]:
+            raise ValueError("changing charset is not permitted")
+        Node._set_raw_list(self, identifier, values)
+
+    def unset(self, identifier):
+        if identifier == "SZ" and self.size != 19:
+            raise ValueError("changing size is not permitted")
+        if identifier == "CA" and self.encoding != "iso-8859-1":
+            raise ValueError("changing charset is not permitted")
+        Node.unset(self, identifier)
 
 
 class Sgf_game(object):
@@ -555,7 +577,7 @@ class Sgf_game(object):
         self.root.set('DT', date.strftime("%Y-%m-%d"))
 
 
-class _Root_tree_node_for_game_tree(Tree_node):
+class _Root_tree_node_for_game_tree(_Root_tree_node):
     """Variant of _Root_tree_node used for _Parsed_sgf_game."""
     def __init__(self, owner, game_tree, size, encoding):
         self.owner = owner
