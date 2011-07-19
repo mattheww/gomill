@@ -63,6 +63,8 @@ def test_sgf_game_from_string(tc):
                           sgf.sgf_game_from_string, "(;SZ[a])")
     tc.assertRaisesRegexp(ValueError, "size out of range: 27",
                           sgf.sgf_game_from_string, "(;SZ[27])")
+    tc.assertRaisesRegexp(ValueError, "unknown encoding: $",
+                          sgf.sgf_game_from_string, "(;CA[])")
 
 def test_node(tc):
     sgf_game = sgf.sgf_game_from_string(
