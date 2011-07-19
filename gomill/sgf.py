@@ -4,11 +4,24 @@ This is intended for use with SGF FF[4]; see http://www.red-bean.com/sgf/
 
 """
 
+import codecs
 import datetime
 
 from gomill import boards
 from gomill import sgf_grammar
 from gomill import sgf_properties
+
+
+def normalise_charset_name(s):
+    """Convert an encoding name to the form implied in the SGF spec.
+
+    In particular, normalises to 'ISO-8859-1' and 'UTF-8'.
+
+    Raises LookupError if the encoding name isn't known to Python.
+
+    """
+    return (codecs.lookup(s).name.replace("_", "-").upper()
+            .replace("ISO8859", "ISO-8859"))
 
 
 class Node(object):
@@ -31,6 +44,7 @@ class Node(object):
         self.size = size
         # Encoding of Text and SimpleText raw values
         # (the 'property map encoding')
+        # This is always normalised (see normalise_charset_name())
         self.encoding = encoding
 
     def has_property(self, identifier):
@@ -84,8 +98,13 @@ class Node(object):
     def _set_raw_list(self, identifier, values):
         if identifier == "SZ" and values != [str(self.size)]:
             raise ValueError("changing size is not permitted")
-        if identifier == "CA" and values != [str(self.encoding)]:
-            raise ValueError("changing charset is not permitted")
+        if identifier == "CA":
+            try:
+                s = normalise_charset_name(values[0])
+            except LookupError:
+                s = None
+            if len(values) != 1 or s != self.encoding:
+                raise ValueError("changing charset is not permitted")
         self._property_map[identifier] = values
 
     def unset(self, identifier):
@@ -96,7 +115,7 @@ class Node(object):
         """
         if identifier == "SZ" and self.size != 19:
             raise ValueError("changing size is not permitted")
-        if identifier == "CA" and self.encoding != "iso-8859-1":
+        if identifier == "CA" and self.encoding != "ISO-8859-1":
             raise ValueError("changing charset is not permitted")
         del self._property_map[identifier]
 
@@ -420,7 +439,11 @@ class Sgf_game(object):
             raise ValueError("size out of range: %s" % size)
         self.size = size
 
-    def __init__(self, size, encoding="utf-8"):
+    def __init__(self, size, encoding="UTF-8"):
+        try:
+            encoding = normalise_charset_name(encoding)
+        except LookupError:
+            raise ValueError("unknown encoding: %s" % encoding)
         self._set_size(size)
         initial_properties = {
             'FF' : ["4"],
@@ -647,11 +670,17 @@ class _Parsed_sgf_game(Sgf_game):
                 raise ValueError("bad SZ property: %s" % size_s)
         self._set_size(size)
         try:
-            charset = parsed_game.sequence[0]['CA'][0]
+            encoding = parsed_game.sequence[0]['CA'][0]
         except KeyError:
-            charset = "iso-8859-1"
+            encoding = "ISO-8859-1"
+        else:
+            try:
+                encoding = normalise_charset_name(encoding)
+            except LookupError:
+                raise ValueError("unknown encoding: %s" % encoding)
+
         self.root = _Root_tree_node_for_game_tree(
-            self, parsed_game, size, charset)
+            self, parsed_game, size, encoding)
 
     def main_sequence_iter(self):
         if self.root._game_tree is None:

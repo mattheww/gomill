@@ -520,13 +520,13 @@ def test_make_sgf(tc):
     fx.game.run()
     fx.game.close_players()
     tc.assertMultiLineEqual(fx.sgf_string(), """\
-(;FF[4]AP[gomill:VER]CA[utf-8]DT[***]GM[1]KM[0]RE[B+18]SZ[9];B[ei];W[gi]
+(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[0]RE[B+18]SZ[9];B[ei];W[gi]
 ;B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];W[gc];B[eb];
 W[gb];B[ea];W[ga];B[tt];C[one beat two B+18]W[tt])
 """)
     tc.assertMultiLineEqual(gomill_test_support.scrub_sgf(
         sgf.serialise_sgf_game(fx.game.make_sgf(game_end_message="zzzz"))), """\
-(;FF[4]AP[gomill:VER]CA[utf-8]DT[***]GM[1]KM[0]RE[B+18]SZ[9];B[ei];W[gi]
+(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[0]RE[B+18]SZ[9];B[ei];W[gi]
 ;B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];W[gc];B[eb];
 W[gb];B[ea];W[ga];B[tt];C[one beat two B+18
 
@@ -543,7 +543,7 @@ def test_game_id(tc):
     fx.game.close_players()
     tc.assertEqual(fx.game.result.game_id, "gitest")
     tc.assertMultiLineEqual(fx.sgf_string(), """\
-(;FF[4]AP[gomill:VER]CA[utf-8]DT[***]GM[1]GN[gitest]KM[0]RE[B+18]SZ[9];
+(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]GN[gitest]KM[0]RE[B+18]SZ[9];
 B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];
 W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+18]W[tt])
 """)
@@ -560,7 +560,7 @@ def test_explain_last_move(tc):
     fx.game.run()
     fx.game.close_players()
     tc.assertMultiLineEqual(fx.sgf_string(), """\
-(;FF[4]AP[gomill:VER]CA[utf-8]DT[***]GM[1]KM[0]RE[?]SZ[9];B[ei]C[EX1];
+(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[0]RE[?]SZ[9];B[ei]C[EX1];
 W[gi];B[eh]C[EX2];W[gh];B[eg]C[EX3];W[gg];B[ef]C[EX4];W[gf];B[ee]C[EX5];W[ge];
 B[ed]C[EX6];W[gd];B[ec]C[EX7];W[gc];B[eb]C[EX8];W[gb];B[ea]C[EX9];W[ga];B[tt]
 C[EX10];C[one vs two ? (no score reported)]W[tt])
@@ -592,7 +592,7 @@ def test_fixed_handicap(tc):
         ('w', 'G6'), ('b', 'E6'),
         ])
     tc.assertMultiLineEqual(fx.sgf_string(), """\
-(;FF[4]AB[cc][cg][gc]AP[gomill:VER]CA[utf-8]DT[***]GM[1]HA[3]KM[0]
+(;FF[4]AB[cc][cg][gc]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]HA[3]KM[0]
 RE[B+F]SZ[9];W[gi];B[ei];W[gh];B[eh];W[gg];B[eg];W[gf];B[ef];W[ge];B[ee];W[gd];
 B[ed]C[one beat two B+F (forfeit: two attempted move to occupied point g7)])
 """)

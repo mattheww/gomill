@@ -26,7 +26,7 @@ def test_new_sgf_game(tc):
         'FF': ['4'],
         'GM': ['1'],
         'SZ': ['9'],
-        'CA': ['utf-8'],
+        'CA': ['UTF-8'],
         });
     tc.assertEqual(root.children(), [])
     tc.assertEqual(root.parent, None)
@@ -279,30 +279,34 @@ def test_serialise_sgf_game(tc):
 def test_encoding(tc):
     g1 = sgf.Sgf_game(19)
     root = g1.get_root()
-    tc.assertEqual(root.encoding, "utf-8")
+    tc.assertEqual(root.encoding, "UTF-8")
     root.set("C", "£")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "£")
     tc.assertEqual(sgf.serialise_sgf_game(g1), dedent("""\
-    (;FF[4]C[£]CA[utf-8]GM[1]SZ[19])
+    (;FF[4]C[£]CA[UTF-8]GM[1]SZ[19])
     """))
 
     g2 = sgf.Sgf_game(19, encoding="iso-8859-1")
     root = g2.get_root()
-    tc.assertEqual(root.encoding, "iso-8859-1")
+    tc.assertEqual(root.encoding, "ISO-8859-1")
     root.set("C", "£")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "\xa3")
     tc.assertEqual(sgf.serialise_sgf_game(g2), dedent("""\
-    (;FF[4]C[\xa3]CA[iso-8859-1]GM[1]SZ[19])
+    (;FF[4]C[\xa3]CA[ISO-8859-1]GM[1]SZ[19])
     """))
+
+    tc.assertRaisesRegexp(ValueError, "unknown encoding: unknownencoding",
+                          sgf.Sgf_game, 19, "unknownencoding")
+
 
 def test_parsed_sgf_game_encoding(tc):
     g1 = sgf.sgf_game_from_string("""
     (;FF[4]C[£]CA[utf-8]GM[1]SZ[19])
     """)
     root = g1.get_root()
-    tc.assertEqual(root.encoding, "utf-8")
+    tc.assertEqual(root.encoding, "UTF-8")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "£")
     tc.assertEqual(sgf.serialise_sgf_game(g1), dedent("""\
@@ -313,7 +317,7 @@ def test_parsed_sgf_game_encoding(tc):
     (;FF[4]C[\xa3]CA[iso-8859-1]GM[1]SZ[19])
     """)
     root = g2.get_root()
-    tc.assertEqual(root.encoding, "iso-8859-1")
+    tc.assertEqual(root.encoding, "ISO-8859-1")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "\xa3")
     tc.assertEqual(sgf.serialise_sgf_game(g2), dedent("""\
@@ -324,7 +328,7 @@ def test_parsed_sgf_game_encoding(tc):
     (;FF[4]C[\xa3]GM[1]SZ[19])
     """)
     root = g3.get_root()
-    tc.assertEqual(root.encoding, "iso-8859-1")
+    tc.assertEqual(root.encoding, "ISO-8859-1")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "\xa3")
     tc.assertEqual(sgf.serialise_sgf_game(g3), dedent("""\
@@ -342,7 +346,7 @@ def test_tree_mutation(tc):
     n3 = n1.new_child()
     n3.set("N", "n3")
     tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
-                   "(;FF[4]CA[utf-8]GM[1]SZ[9](;N[n1];N[n3])(;N[n2]))\n")
+                   "(;FF[4]CA[UTF-8]GM[1]SZ[9](;N[n1];N[n3])(;N[n2]))\n")
     tc.assertEqual(
         [node.get_raw_property_map() for node in sgf_game.main_sequence_iter()],
         [node.get_raw_property_map() for node in root, root[0], n3])
@@ -350,7 +354,7 @@ def test_tree_mutation(tc):
 
     n1.delete()
     tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
-                   "(;FF[4]CA[utf-8]GM[1]SZ[9];N[n2])\n")
+                   "(;FF[4]CA[UTF-8]GM[1]SZ[9];N[n2])\n")
     tc.assertRaises(ValueError, root.delete)
 
 def test_tree_mutation_from_parsed_game(tc):
@@ -379,7 +383,7 @@ def test_extend_main_sequence(tc):
         g1.extend_main_sequence().set("N", "e%d" % i)
     tc.assertEqual(
         sgf.serialise_sgf_game(g1),
-        "(;FF[4]CA[utf-8]GM[1]SZ[9];N[e0];N[e1];N[e2];N[e3];N[e4];N[e5])\n")
+        "(;FF[4]CA[UTF-8]GM[1]SZ[9];N[e0];N[e1];N[e2];N[e3];N[e4];N[e5])\n")
     g2 = sgf.sgf_game_from_string("(;SZ[9](;N[n1];N[n3])(;N[n2]))")
     for i in xrange(6):
         g2.extend_main_sequence().set("N", "e%d" % i)
@@ -594,7 +598,10 @@ def test_set_and_unset_charset(tc):
     root1 = g1.get_root()
     tc.assertRaisesRegexp(ValueError, "changing charset is not permitted",
                           root1.set, "CA", "iso-8859-1")
+    tc.assertRaisesRegexp(ValueError, "changing charset is not permitted",
+                          root1.set, "CA", "unknownencoding")
     root1.set("CA", "utf-8")
+    root1.set("CA", "UTF8")
     tc.assertRaisesRegexp(ValueError, "changing charset is not permitted",
                           root1.unset, "CA")
     g2 = sgf.sgf_game_from_string("(;FF[4]CA[iso-8859-1]GM[1]SZ[19]HA[3])")

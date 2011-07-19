@@ -139,7 +139,7 @@ def interpret_simpletext(s, encoding):
     """
     s = sgf_grammar.simpletext_value(s)
     # FIXME: need to normalise encoding name
-    if encoding != "utf-8":
+    if encoding != "UTF-8":
         s = s.decode(encoding).encode("utf-8")
     return s
 
@@ -152,7 +152,7 @@ def serialise_simpletext(s, encoding):
     encoding -- target encoding of the serialised value
 
     """
-    if encoding != "utf-8":
+    if encoding != "UTF-8":
         s = s.decode("utf-8").encode(encoding)
     return sgf_grammar.escape_text(s)
 
@@ -169,7 +169,7 @@ def interpret_text(s, encoding):
 
     """
     s = sgf_grammar.text_value(s)
-    if encoding != "utf-8":
+    if encoding != "UTF-8":
         s = s.decode(encoding).encode("utf-8")
     return s
 
@@ -182,7 +182,7 @@ def serialise_text(s, encoding):
     encoding -- target encoding of the serialised value
 
     """
-    if encoding != "utf-8":
+    if encoding != "UTF-8":
         s = s.decode("utf-8").encode(encoding)
     return sgf_grammar.escape_text(s)
 
