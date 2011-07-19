@@ -44,12 +44,14 @@ def test_is_valid_property_value(tc):
 def test_tokeniser(tc):
     tokenise = sgf_grammar.tokenise
 
-    tc.assertEqual(tokenise(r"(;B[ah][])")[0],
+    tc.assertEqual(tokenise("(;B[ah][]C[a\xa3b])")[0],
                    [('D', '('),
                     ('D', ';'),
                     ('I', 'B'),
                     ('V', 'ah'),
                     ('V', ''),
+                    ('I', 'C'),
+                    ('V', 'a\xa3b'),
                     ('D', ')')])
 
     def check_complete(s, *args):
@@ -90,7 +92,7 @@ def test_tokeniser(tc):
     tc.assertEqual(check_complete("(;XX[abc][def]KO[];B[bc] )"), 11)
 
     tc.assertEqual(check_complete("( ;\nB\t[ah]\f[ef]\v)"), 6)
-    tc.assertEqual(check_complete("(;[Random :\nstu@ff][ef]"), 4)
+    tc.assertEqual(check_complete("(;[Ran\xc2\xa3dom :\nstu@ff][ef]"), 4)
     tc.assertEqual(check_complete("(;[ah)])"), 4)
 
     tc.assertEqual(check_incomplete("(;B[ag"), (3, 3))
@@ -330,7 +332,7 @@ def test_simpletext_value(tc):
 
 
 def test_serialise_game_tree(tc):
-    serialised = ("(;AB[aa][ab][ac]C[comment];W[ab];C[];C[]"
+    serialised = ("(;AB[aa][ab][ac]C[comment \xa3];W[ab];C[];C[]"
                   "(;B[bc])(;B[bd];W[ca](;B[da])(;B[db];\n"
                   "W[ea])))\n")
     parsed_game = sgf_grammar.parse_sgf_game(serialised)
