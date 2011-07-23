@@ -659,7 +659,7 @@ class _Parsed_sgf_game(Sgf_game):
     # directly from the original Parsed_game_tree; this stops being used as
     # soon as the tree is expanded.
 
-    def __init__(self, parsed_game):
+    def __init__(self, parsed_game, override_encoding=None):
         try:
             size_s = parsed_game.sequence[0]['SZ'][0]
         except KeyError:
@@ -669,22 +669,28 @@ class _Parsed_sgf_game(Sgf_game):
                 size = int(size_s)
             except ValueError:
                 raise ValueError("bad SZ property: %s" % size_s)
-        try:
-            encoding = parsed_game.sequence[0]['CA'][0]
-        except KeyError:
-            encoding = "ISO-8859-1"
+        if override_encoding is None:
+            try:
+                encoding = parsed_game.sequence[0]['CA'][0]
+            except KeyError:
+                encoding = "ISO-8859-1"
+        else:
+            encoding = override_encoding
         self._initialise_coder(size, encoding)
         self.root = _Root_tree_node_for_game_tree(self, parsed_game)
+        if override_encoding is not None:
+            self.root.set_raw("CA", self.coder.encoding)
 
     def main_sequence_iter(self):
         if self.root._game_tree is None:
             return self.get_main_sequence()
         return self.root._main_sequence_iter()
 
-def sgf_game_from_parsed_game_tree(parsed_game):
+def sgf_game_from_parsed_game_tree(parsed_game, override_encoding=None):
     """Create an SGF game from the parser output.
 
-    parsed_game -- Parsed_game_tree
+    parsed_game       -- Parsed_game_tree
+    override_encoding -- encoding name, eg "UTF-8" (optional)
 
     Returns an Sgf_game.
 
@@ -695,25 +701,28 @@ def sgf_game_from_parsed_game_tree(parsed_game):
     properties in the root node (defaulting to 19 and "ISO-8859-1",
     respectively).
 
-    """
-    return _Parsed_sgf_game(parsed_game)
+    If override_encoding is specified, the source data is assumed to be in the
+    specified encoding (no matter what the CA property says), and the CA
+    property is set to match.
 
-def sgf_game_from_string(s):
+    """
+    return _Parsed_sgf_game(parsed_game, override_encoding)
+
+def sgf_game_from_string(s, override_encoding=None):
     """Read a single SGF game from a string.
 
     s -- 8-bit string
 
     Returns an Sgf_game.
 
-    The board size and raw property encoding are taken from the SZ and CA
-    properties in the root node (defaulting to 19 and "ISO-8859-1",
-    respectively).
-
     Raises ValueError if it can't parse the string. See parse_sgf_game() for
     details.
 
+    See sgf_game_from_parsed_game_tree for details of size and encoding
+    handling.
+
     """
-    return _Parsed_sgf_game(sgf_grammar.parse_sgf_game(s))
+    return _Parsed_sgf_game(sgf_grammar.parse_sgf_game(s), override_encoding)
 
 
 def serialise_sgf_game(sgf_game):

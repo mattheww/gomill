@@ -337,6 +337,42 @@ def test_parsed_sgf_game_encoding(tc):
     (;FF[4]C[\xa3]GM[1]SZ[19])
     """))
 
+    # This is invalidly encoded, but we get junk results rather than errors,
+    # because of the optimisation that means we don't try to transcode utf-8 to
+    # utf-8.
+    g4 = sgf.sgf_game_from_string("""
+    (;FF[4]C[\xa3]CA[utf-8]GM[1]SZ[19])
+    """)
+    root = g4.get_root()
+    tc.assertEqual(root.get_encoding(), "UTF-8")
+    tc.assertEqual(root.get("C"), "\xa3")
+    tc.assertEqual(root.get_raw("C"), "\xa3")
+    tc.assertEqual(sgf.serialise_sgf_game(g4), dedent("""\
+    (;FF[4]C[\xa3]CA[utf-8]GM[1]SZ[19])
+    """))
+
+def test_override_encoding(tc):
+    g1 = sgf.sgf_game_from_string("""
+    (;FF[4]C[£]CA[iso-8859-1]GM[1]SZ[19])
+    """, override_encoding="utf-8")
+    root = g1.get_root()
+    tc.assertEqual(root.get_encoding(), "UTF-8")
+    tc.assertEqual(root.get("C"), "£")
+    tc.assertEqual(root.get_raw("C"), "£")
+    tc.assertEqual(sgf.serialise_sgf_game(g1), dedent("""\
+    (;FF[4]C[£]CA[UTF-8]GM[1]SZ[19])
+    """))
+
+    g2 = sgf.sgf_game_from_string("""
+    (;FF[4]C[\xa3]CA[utf-8]GM[1]SZ[19])
+    """, override_encoding="iso-8859-1")
+    root = g2.get_root()
+    tc.assertEqual(root.get_encoding(), "ISO-8859-1")
+    tc.assertEqual(root.get("C"), "£")
+    tc.assertEqual(root.get_raw("C"), "\xa3")
+    tc.assertEqual(sgf.serialise_sgf_game(g2), dedent("""\
+    (;FF[4]C[\xa3]CA[ISO-8859-1]GM[1]SZ[19])
+    """))
 
 def test_tree_mutation(tc):
     sgf_game = sgf.Sgf_game(9)
