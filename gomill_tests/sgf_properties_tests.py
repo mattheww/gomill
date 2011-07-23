@@ -236,10 +236,10 @@ def test_AP(tc):
 def test_ARLN(tc):
     def serialise(arg, size):
         context = sgf_properties._Context(size, "UTF-8")
-        return sgf_properties.serialise_ARLN(arg, context)
+        return sgf_properties.serialise_ARLN_list(arg, context)
     def interpret(arg, size):
         context = sgf_properties._Context(size, "UTF-8")
-        return sgf_properties.interpret_ARLN(arg, context)
+        return sgf_properties.interpret_ARLN_list(arg, context)
 
     tc.assertEqual(serialise([], 19), [])
     tc.assertEqual(interpret([], 19), [])
@@ -263,10 +263,10 @@ def test_FG(tc):
 def test_LB(tc):
     def serialise(arg, size):
         context = sgf_properties._Context(size, "UTF-8")
-        return sgf_properties.serialise_LB(arg, context)
+        return sgf_properties.serialise_LB_list(arg, context)
     def interpret(arg, size):
         context = sgf_properties._Context(size, "UTF-8")
-        return sgf_properties.interpret_LB(arg, context)
+        return sgf_properties.interpret_LB_list(arg, context)
     tc.assertEqual(serialise([], 19), [])
     tc.assertEqual(interpret([], 19), [])
     tc.assertEqual(

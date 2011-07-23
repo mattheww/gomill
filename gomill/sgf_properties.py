@@ -340,7 +340,7 @@ def serialise_AP(value, context):
                                serialise_simpletext(version, context))
 
 
-def interpret_ARLN(values, context):
+def interpret_ARLN_list(values, context):
     """Interpret an AR (arrow) or LN (line) property value.
 
     Returns a list of pairs (coords, coords).
@@ -353,7 +353,7 @@ def interpret_ARLN(values, context):
                        interpret_point(p2, context)))
     return result
 
-def serialise_ARLN(values, context):
+def serialise_ARLN_list(values, context):
     """Serialise an AR (arrow) or LN (line) property value.
 
     values -- list of pairs (coords, coords)
@@ -393,7 +393,7 @@ def serialise_FG(value, context):
     return "%d:%s" % (flags, serialise_simpletext(name, context))
 
 
-def interpret_LB(values, context):
+def interpret_LB_list(values, context):
     """Interpret an LB (label) property value.
 
     Returns a list of pairs (coords, string).
@@ -406,7 +406,7 @@ def interpret_LB(values, context):
                        interpret_simpletext(label, context)))
     return result
 
-def serialise_LB(values, context):
+def serialise_LB_list(values, context):
     """Serialise an LB (label) property value.
 
     values -- list of pairs (coords, string)
@@ -419,23 +419,30 @@ def serialise_LB(values, context):
 
 class Property_type(object):
     """Description of a property type."""
-    def __init__(self, value_type, uses_list=False):
-        self.interpreter = globals()["interpret_" + value_type]
-        self.serialiser = globals()["serialise_" + value_type]
+    def __init__(self, interpreter, serialiser, uses_list,
+                 allows_empty_list=False):
+        self.interpreter = interpreter
+        self.serialiser = serialiser
         self.uses_list = bool(uses_list)
-        self.allows_empty_list = (uses_list == 'elist')
+        self.allows_empty_list = bool(allows_empty_list)
 
-P = Property_type
-LIST = 'list'
-ELIST = 'elist'
+def _property_type_entry(type_name, allows_empty_list=False):
+    return Property_type(
+        globals()["interpret_" + type_name],
+        globals()["serialise_" + type_name],
+        uses_list=(type_name.endswith("_list")),
+        allows_empty_list=allows_empty_list)
+
+P = _property_type_entry
+ELIST = True
 
 _property_types_by_ident = {
-  'AB' : P('point_list', LIST),             # setup       Add Black
-  'AE' : P('point_list', LIST),             # setup       Add Empty
+  'AB' : P('point_list'),                   # setup       Add Black
+  'AE' : P('point_list'),                   # setup       Add Empty
   'AN' : P('simpletext'),                   # game-info   Annotation
   'AP' : P('AP'),                           # root        Application
-  'AR' : P('ARLN', LIST),                   # -           Arrow
-  'AW' : P('point_list', LIST),             # setup       Add White
+  'AR' : P('ARLN_list'),                    # -           Arrow
+  'AW' : P('point_list'),                   # setup       Add White
   'B'  : P('point'),                        # move        Black
   'BL' : P('real'),                         # move        Black time left
   'BM' : P('double'),                       # move        Bad move
@@ -444,7 +451,7 @@ _property_types_by_ident = {
   'C'  : P('text'),                         # -           Comment
   'CA' : P('simpletext'),                   # root        Charset
   'CP' : P('simpletext'),                   # game-info   Copyright
-  'CR' : P('point_list', LIST),             # -           Circle
+  'CR' : P('point_list'),                   # -           Circle
   'DD' : P('point_list', ELIST),            # - (inherit) Dim points
   'DM' : P('double'),                       # -           Even position
   'DO' : P('none'),                         # move        Doubtful
@@ -462,9 +469,9 @@ _property_types_by_ident = {
   'IT' : P('none'),                         # move        Interesting
   'KM' : P('real'),                         # game-info   Komi
   'KO' : P('none'),                         # move        Ko
-  'LB' : P('LB', LIST),                     # -           Label
-  'LN' : P('ARLN', LIST),                   # -           Line
-  'MA' : P('point_list', LIST),             # -           Mark
+  'LB' : P('LB_list'),                      # -           Label
+  'LN' : P('ARLN_list'),                    # -           Line
+  'MA' : P('point_list'),                   # -           Mark
   'MN' : P('number'),                       # move        set move number
   'N'  : P('simpletext'),                   # -           Nodename
   'OB' : P('number'),                       # move        OtStones Black
@@ -479,15 +486,15 @@ _property_types_by_ident = {
   'RE' : P('simpletext'),                   # game-info   Result
   'RO' : P('simpletext'),                   # game-info   Round
   'RU' : P('simpletext'),                   # game-info   Rules
-  'SL' : P('point_list', LIST),             # -           Selected
+  'SL' : P('point_list'),                   # -           Selected
   'SO' : P('simpletext'),                   # game-info   Source
-  'SQ' : P('point_list', LIST),             # -           Square
+  'SQ' : P('point_list'),                   # -           Square
   'ST' : P('number'),                       # root        Style
   'SZ' : P('number'),                       # root        Size
   'TB' : P('point_list', ELIST),            # -           Territory Black
   'TE' : P('double'),                       # move        Tesuji
   'TM' : P('real'),                         # game-info   Timelimit
-  'TR' : P('point_list', LIST),             # -           Triangle
+  'TR' : P('point_list'),                   # -           Triangle
   'TW' : P('point_list', ELIST),            # -           Territory White
   'UC' : P('double'),                       # -           Unclear pos
   'US' : P('simpletext'),                   # game-info   User
@@ -500,7 +507,7 @@ _property_types_by_ident = {
 }
 private_property = P('text')
 
-del P, LIST, ELIST
+del P, ELIST
 
 
 class Coder(_Context):
