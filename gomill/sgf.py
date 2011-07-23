@@ -39,7 +39,7 @@ class Node(object):
     # FIXME
     __slots__ = ('_property_map', 'size', 'encoding', 'coder')
 
-    def __init__(self, property_map, size, encoding):
+    def __init__(self, property_map, size, encoding, coder):
         # Map identifier (PropIdent) -> list of raw values
         self._property_map = property_map
         self.size = size
@@ -47,8 +47,7 @@ class Node(object):
         # (the 'property map encoding')
         # This is always normalised (see normalise_charset_name())
         self.encoding = encoding
-        # FIXME
-        self.coder = sgf_properties.Coder(size, encoding)
+        self.coder = coder
 
     def has_property(self, identifier):
         """Check whether the node has the specified property."""
@@ -343,7 +342,8 @@ class Tree_node(Node):
         self.owner = parent.owner
         self.parent = parent
         self._children = []
-        Node.__init__(self, properties, parent.size, parent.encoding)
+        Node.__init__(self, properties,
+                      parent.size, parent.encoding, parent.coder)
 
     def children(self):
         """Return the children of this node.
@@ -423,7 +423,8 @@ class _Root_tree_node(Tree_node):
         self.owner = owner
         self.parent = None
         self._children = []
-        Node.__init__(self, properties, size, encoding)
+        coder = sgf_properties.Coder(size, encoding)
+        Node.__init__(self, properties, size, encoding, coder)
 
 class Sgf_game(object):
     """An SGF game.
@@ -610,7 +611,8 @@ class _Root_tree_node_for_game_tree(Tree_node):
         self.parent = None
         self._game_tree = game_tree
         self._children = None
-        Node.__init__(self, game_tree.sequence[0], size, encoding)
+        coder = sgf_properties.Coder(size, encoding)
+        Node.__init__(self, game_tree.sequence[0], size, encoding, coder)
 
     def _ensure_expanded(self):
         if self._children is None:
@@ -642,8 +644,9 @@ class _Root_tree_node_for_game_tree(Tree_node):
     def _main_sequence_iter(self):
         size = self.size
         encoding = self.encoding
+        coder = self.coder
         for properties in sgf_grammar.main_sequence_iter(self._game_tree):
-            yield Node(properties, size, encoding)
+            yield Node(properties, size, encoding, coder)
 
 class _Parsed_sgf_game(Sgf_game):
     """An Sgf_game which was loaded from serialised form.
