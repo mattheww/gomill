@@ -24,16 +24,16 @@ class Node(object):
     Changing the SZ or CA property isn't allowed.
 
     """
-    __slots__ = ('_property_map', 'coder')
+    __slots__ = ('_property_map', '_coder')
 
     def __init__(self, property_map, coder):
         # Map identifier (PropIdent) -> list of raw values
         self._property_map = property_map
-        self.coder = coder
+        self._coder = coder
 
     def get_size(self):
         """Return the board size used to interpret property values."""
-        return self.coder.size
+        return self._coder.size
 
     def get_encoding(self):
         """Return the encoding used for raw property values.
@@ -41,7 +41,11 @@ class Node(object):
         Returns a string (a valid Python codec name, eg "UTF-8").
 
         """
-        return self.coder.encoding
+        return self._coder.encoding
+
+    def get_coder(self):
+        """Return the node's sgf_properties.Coder."""
+        return self._coder
 
     def has_property(self, identifier):
         """Check whether the node has the specified property."""
@@ -96,14 +100,14 @@ class Node(object):
 
 
     def _set_raw_list(self, identifier, values):
-        if identifier == "SZ" and values != [str(self.coder.size)]:
+        if identifier == "SZ" and values != [str(self._coder.size)]:
             raise ValueError("changing size is not permitted")
         if identifier == "CA":
             try:
                 s = sgf_properties.normalise_charset_name(values[0])
             except LookupError:
                 s = None
-            if len(values) != 1 or s != self.coder.encoding:
+            if len(values) != 1 or s != self._coder.encoding:
                 raise ValueError("changing charset is not permitted")
         self._property_map[identifier] = values
 
@@ -113,9 +117,9 @@ class Node(object):
         Raises KeyError if the property isn't currently present.
 
         """
-        if identifier == "SZ" and self.coder.size != 19:
+        if identifier == "SZ" and self._coder.size != 19:
             raise ValueError("changing size is not permitted")
-        if identifier == "CA" and self.coder.encoding != "ISO-8859-1":
+        if identifier == "CA" and self._coder.encoding != "ISO-8859-1":
             raise ValueError("changing charset is not permitted")
         del self._property_map[identifier]
 
@@ -176,7 +180,7 @@ class Node(object):
         See sgf_properties.interpret_value() for details.
 
         """
-        return self.coder.interpret(identifier, self._property_map[identifier])
+        return self._coder.interpret(identifier, self._property_map[identifier])
 
     def set(self, identifier, value):
         """Set the value of the specified property.
@@ -191,7 +195,7 @@ class Node(object):
         See sgf_properties.serialise_value() for details.
 
         """
-        self._set_raw_list(identifier, self.coder.serialise(identifier, value))
+        self._set_raw_list(identifier, self._coder.serialise(identifier, value))
 
     def get_raw_move(self):
         """Return the raw value of the move from a node.
@@ -229,7 +233,7 @@ class Node(object):
         colour, raw = self.get_raw_move()
         if colour is None:
             return None, None
-        return colour, sgf_properties.interpret_go_point(raw, self.coder.size)
+        return colour, sgf_properties.interpret_go_point(raw, self._coder.size)
 
     def get_setup_stones(self):
         """Retrieve Add Black / Add White / Add Empty properties from a node.
@@ -341,7 +345,7 @@ class Tree_node(Node):
         self.owner = parent.owner
         self.parent = parent
         self._children = []
-        Node.__init__(self, properties, parent.coder)
+        Node.__init__(self, properties, parent._coder)
 
     def children(self):
         """Return the children of this node.
@@ -643,7 +647,7 @@ class _Root_tree_node_for_game_tree(Tree_node):
         return Tree_node.new_child(self)
 
     def _main_sequence_iter(self):
-        coder = self.coder
+        coder = self._coder
         for properties in sgf_grammar.main_sequence_iter(self._game_tree):
             yield Node(properties, coder)
 
