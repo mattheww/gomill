@@ -14,7 +14,8 @@ from gomill import sgf_properties
 class Node(object):
     """An SGF node.
 
-    Instantiate with an sgf_properties.Coder.
+    Instantiate with a raw property map (see sgf_grammar) and an
+    sgf_properties.Coder.
 
     A Node doesn't belong to a particular game (cf Tree_node below), but it
     knows its board size (in order to interpret move values) and the encoding

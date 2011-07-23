@@ -4,6 +4,9 @@ This is intended for use with SGF FF[4]; see http://www.red-bean.com/sgf/
 
 Nothing in this module is Go-specific.
 
+This module is encoding-agnostic: it works with 8-bit strings in an arbitrary
+'ascii-compatible' encoding.
+
 """
 
 import re
