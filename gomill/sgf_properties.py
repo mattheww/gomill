@@ -8,6 +8,8 @@ Go points.
 
 """
 
+import codecs
+
 from gomill import sgf_grammar
 
 def decode_point(s, size):
@@ -36,6 +38,18 @@ def decode_point(s, size):
     if not ((0 <= col < size) and (0 <= row < size)):
         raise ValueError
     return row, col
+
+
+def normalise_charset_name(s):
+    """Convert an encoding name to the form implied in the SGF spec.
+
+    In particular, normalises to 'ISO-8859-1' and 'UTF-8'.
+
+    Raises LookupError if the encoding name isn't known to Python.
+
+    """
+    return (codecs.lookup(s).name.replace("_", "-").upper()
+            .replace("ISO8859", "ISO-8859"))
 
 
 class _Context(object):
@@ -514,10 +528,12 @@ class Coder(_Context):
     """Convert property values between Python and SGF-string representations.
 
     Instantiate with:
-      size      -- board size (int)
-      encoding  -- encoding for the SGF strings
+      size     -- board size (int)
+      encoding -- encoding for the SGF strings
 
-    FIXME: Say encoding should be normalised. Or do it here.
+    Public attributes (treat as read-only):
+      size     -- int
+      encoding -- string (normalised form)
 
     See the _property_types_by_ident table above for a list of properties
     initially known, and their types.
@@ -528,7 +544,10 @@ class Coder(_Context):
 
     def __init__(self, size, encoding):
         self.size = size
-        self.encoding = encoding
+        try:
+            self.encoding = normalise_charset_name(encoding)
+        except LookupError:
+            raise ValueError("unknown encoding: %s" % encoding)
         self.property_types_by_ident = _property_types_by_ident.copy()
         self.default_property_type = _text_property_type
 

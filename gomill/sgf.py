@@ -4,24 +4,11 @@ This is intended for use with SGF FF[4]; see http://www.red-bean.com/sgf/
 
 """
 
-import codecs
 import datetime
 
 from gomill import boards
 from gomill import sgf_grammar
 from gomill import sgf_properties
-
-
-def normalise_charset_name(s):
-    """Convert an encoding name to the form implied in the SGF spec.
-
-    In particular, normalises to 'ISO-8859-1' and 'UTF-8'.
-
-    Raises LookupError if the encoding name isn't known to Python.
-
-    """
-    return (codecs.lookup(s).name.replace("_", "-").upper()
-            .replace("ISO8859", "ISO-8859"))
 
 
 class Node(object):
@@ -104,7 +91,7 @@ class Node(object):
             raise ValueError("changing size is not permitted")
         if identifier == "CA":
             try:
-                s = normalise_charset_name(values[0])
+                s = sgf_properties.normalise_charset_name(values[0])
             except LookupError:
                 s = None
             if len(values) != 1 or s != self.coder.encoding:
@@ -420,12 +407,12 @@ class _Root_tree_node(Tree_node):
     Enforces the restrictions on changing SZ and CA.
 
     """
-    def __init__(self, owner, properties, size, encoding):
+    def __init__(self, owner, size, encoding):
         self.owner = owner
         self.parent = None
         self._children = []
         coder = sgf_properties.Coder(size, encoding)
-        Node.__init__(self, properties, coder)
+        Node.__init__(self, {}, coder)
 
 class Sgf_game(object):
     """An SGF game.
@@ -442,18 +429,12 @@ class Sgf_game(object):
         self.size = size
 
     def __init__(self, size, encoding="UTF-8"):
-        try:
-            encoding = normalise_charset_name(encoding)
-        except LookupError:
-            raise ValueError("unknown encoding: %s" % encoding)
         self._set_size(size)
-        initial_properties = {
-            'FF' : ["4"],
-            'GM' : ["1"],
-            'SZ' : [str(size)],
-            'CA' : [encoding],
-            }
-        self.root = _Root_tree_node(self, initial_properties, size, encoding)
+        self.root = _Root_tree_node(self, size, encoding)
+        self.root.set_raw('FF', "4")
+        self.root.set_raw('GM', "1")
+        self.root.set_raw('SZ', str(size))
+        self.root.set_raw('CA', self.root.get_encoding())
 
     def get_root(self):
         """Return the root node (as a Tree_node)."""
@@ -675,11 +656,6 @@ class _Parsed_sgf_game(Sgf_game):
             encoding = parsed_game.sequence[0]['CA'][0]
         except KeyError:
             encoding = "ISO-8859-1"
-        else:
-            try:
-                encoding = normalise_charset_name(encoding)
-            except LookupError:
-                raise ValueError("unknown encoding: %s" % encoding)
 
         self.root = _Root_tree_node_for_game_tree(
             self, parsed_game, size, encoding)
