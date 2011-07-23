@@ -402,11 +402,7 @@ class Tree_node(Node):
         return node.get(identifier)
 
 class _Root_tree_node(Tree_node):
-    """Variant of Tree_node used for a game root.
-
-    Enforces the restrictions on changing SZ and CA.
-
-    """
+    """Variant of Tree_node used for a game root."""
     def __init__(self, owner, size, encoding):
         self.owner = owner
         self.parent = None
