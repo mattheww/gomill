@@ -74,6 +74,8 @@ def test_node(tc):
     tc.assertIs(node0.has_property('KM'), True)
     tc.assertIs(node0.has_property('XX'), False)
     tc.assertIs(node1.has_property('KM'), False)
+    tc.assertEqual(set(node0.properties()), set(["KM", "C", "AB", "AE"]))
+    tc.assertEqual(set(node1.properties()), set(["B"]))
     tc.assertEqual(node0.get_raw('C'), r"sample\: comment")
     tc.assertEqual(node0.get_raw('AB'), "ai")
     tc.assertEqual(node0.get_raw('AE'), "")

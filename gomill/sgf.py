@@ -51,6 +51,14 @@ class Node(object):
         """Check whether the node has the specified property."""
         return identifier in self._property_map
 
+    def properties(self):
+        """Find the properties defined for the node.
+
+        Returns a list of property identifiers, in unspecified order.
+
+        """
+        return self._property_map.keys()
+
     def get_raw_list(self, identifier):
         """Return the raw values of the specified property.
 
