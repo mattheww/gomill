@@ -482,7 +482,7 @@ def text_value(s):
 def escape_text(s):
     """Convert a string to a raw Text property value that represents it.
 
-    s -- 8-bit string
+    s -- 8-bit string, in the desired output encoding.
 
     Returns an 8-bit string which passes is_valid_property_value().
 
