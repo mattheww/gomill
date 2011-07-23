@@ -36,7 +36,8 @@ class Node(object):
     Changing the SZ or CA property isn't allowed.
 
     """
-    __slots__ = ('_property_map', 'size', 'encoding')
+    # FIXME
+    __slots__ = ('_property_map', 'size', 'encoding', 'coder')
 
     def __init__(self, property_map, size, encoding):
         # Map identifier (PropIdent) -> list of raw values
@@ -46,6 +47,8 @@ class Node(object):
         # (the 'property map encoding')
         # This is always normalised (see normalise_charset_name())
         self.encoding = encoding
+        # FIXME
+        self.coder = sgf_properties.Coder(size, encoding)
 
     def has_property(self, identifier):
         """Check whether the node has the specified property."""
@@ -175,9 +178,7 @@ class Node(object):
         See sgf_properties.interpret_value() for details.
 
         """
-        return sgf_properties.interpret_value(
-            identifier, self._property_map[identifier],
-            self.size, self.encoding)
+        return self.coder.interpret(identifier, self._property_map[identifier])
 
     def set(self, identifier, value):
         """Set the value of the specified property.
@@ -192,8 +193,7 @@ class Node(object):
         See sgf_properties.serialise_value() for details.
 
         """
-        self._set_raw_list(identifier, sgf_properties.serialise_value(
-            identifier, value, self.size, self.encoding))
+        self._set_raw_list(identifier, self.coder.serialise(identifier, value))
 
     def get_raw_move(self):
         """Return the raw value of the move from a node.

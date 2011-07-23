@@ -277,20 +277,25 @@ def test_LB(tc):
         [((6, 0), "lbl"), ((6, 1), "lb]l2")])
 
 
-def test_serialise_value(tc):
-    sv = sgf_properties.serialise_value
-    tc.assertEqual(sv('KO', True, 9, "utf-8"), [""])
-    tc.assertEqual(sv('SZ', 9, 9, "utf-8"), ["9"])
-    tc.assertEqual(sv('KM', 3.5, 9, "utf-8"), ["3.5"])
-    tc.assertEqual(sv('C', "foo\\:b]ar\n", 9, "utf-8"), ["foo\\\\:b\\]ar\n"])
-    tc.assertEqual(sv('B', (1, 2), 19, "utf-8"), ["cr"])
-    tc.assertEqual(sv('B', None, 9, "utf-8"), ["tt"])
-    tc.assertEqual(sv('AW', set([(17, 1), (18, 0)]), 19, "utf-8"), ["aa", "bb"])
-    tc.assertEqual(sv('DD', [(1, 2), (3, 4)], 9, "utf-8"), ["ch", "ef"])
-    tc.assertEqual(sv('DD', [], 9, "utf-8"), [""])
-    tc.assertRaisesRegexp(ValueError, "empty list", sv, 'CR', [], 9, "utf-8")
-    tc.assertEqual(sv('AP', ("na:me", "2.3"), 9, "utf-8"), ["na\\:me:2.3"])
-    tc.assertEqual(sv('FG', (515, "th]is"), 9, "utf-8"), ["515:th\\]is"])
-    tc.assertEqual(sv('XX', "foo\\bar", 9, "utf-8"), ["foo\\\\bar"])
+def test_coder_serialise(tc):
+    # FIXME: just define coder9 and coder19?
 
-    tc.assertRaises(ValueError, sv, 'B', (1, 9), 9, "utf-8")
+    def sv(identifier, value, size):
+        coder = sgf_properties.Coder(size, "UTF-8")
+        return coder.serialise(identifier, value)
+
+    tc.assertEqual(sv('KO', True, 9), [""])
+    tc.assertEqual(sv('SZ', 9, 9), ["9"])
+    tc.assertEqual(sv('KM', 3.5, 9), ["3.5"])
+    tc.assertEqual(sv('C', "foo\\:b]ar\n", 9), ["foo\\\\:b\\]ar\n"])
+    tc.assertEqual(sv('B', (1, 2), 19), ["cr"])
+    tc.assertEqual(sv('B', None, 9), ["tt"])
+    tc.assertEqual(sv('AW', set([(17, 1), (18, 0)]), 19), ["aa", "bb"])
+    tc.assertEqual(sv('DD', [(1, 2), (3, 4)], 9), ["ch", "ef"])
+    tc.assertEqual(sv('DD', [], 9), [""])
+    tc.assertRaisesRegexp(ValueError, "empty list", sv, 'CR', [], 9)
+    tc.assertEqual(sv('AP', ("na:me", "2.3"), 9), ["na\\:me:2.3"])
+    tc.assertEqual(sv('FG', (515, "th]is"), 9), ["515:th\\]is"])
+    tc.assertEqual(sv('XX', "foo\\bar", 9), ["foo\\\\bar"])
+
+    tc.assertRaises(ValueError, sv, 'B', (1, 9), 9)

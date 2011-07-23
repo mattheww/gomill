@@ -417,7 +417,7 @@ def serialise_LB(values, context):
             for point, text in values]
 
 
-class Property(object):
+class Property_type(object):
     """Description of a property type."""
     def __init__(self, value_type, uses_list=False):
         self.interpreter = globals()["interpret_" + value_type]
@@ -425,11 +425,11 @@ class Property(object):
         self.uses_list = bool(uses_list)
         self.allows_empty_list = (uses_list == 'elist')
 
-P = Property
+P = Property_type
 LIST = 'list'
 ELIST = 'elist'
 
-properties_by_ident = {
+_property_types_by_ident = {
   'AB' : P('point_list', LIST),             # setup       Add Black
   'AE' : P('point_list', LIST),             # setup       Add Empty
   'AN' : P('simpletext'),                   # game-info   Annotation
@@ -503,84 +503,94 @@ private_property = P('text')
 del P, LIST, ELIST
 
 
-def interpret_value(identifier, raw_values, size, encoding):
-    """Return a Python representation of a property value.
+class Coder(_Context):
+    """Convert property values between Python and SGF-string representations.
 
-    identifier -- PropIdent
-    raw_values -- nonempty list of 8-bit strings
-    size       -- board size (int)
-
-    See the interpret_... functions above for details of how values are
-    represented as Python types.
-
-    Raises ValueError if it cannot interpret the value.
-
-    Note that in some cases the interpret_... functions accept values which are
-    not strictly permitted by the specification.
-
-    elist handling: if the property's value type is a list type and
-    'raw_values' is a list containing a single empty string, passes an empty
-    list to the interpret_... function (that is, this function treats all lists
-    like elists).
-
-    Doesn't enforce range restrictions on values with type Number.
-
-    See the properties_by_ident table above for a list of known properties.
-
-    Treats unknown (private) properties as if they had type Text.
+    Instantiate with:
+      size      -- board size (int)
+      encoding  -- encoding for the SGF strings
 
     """
-    context = _Context(size, encoding)
-    prop = properties_by_ident.get(identifier, private_property)
-    interpreter = prop.interpreter
-    if prop.uses_list:
-        if raw_values == [""]:
-            raw = []
-        else:
-            raw = raw_values
-    else:
-        raw = raw_values[0]
-    return interpreter(raw, context)
 
-def serialise_value(identifier, value, size, encoding):
-    """Serialise a Python representation of a property value.
+    def __init__(self, size, encoding):
+        self.size = size
+        self.encoding = encoding
+        # FIXME
+        self.property_types_by_ident = _property_types_by_ident
 
-    identifier -- PropIdent
-    value      -- corresponding Python value
-    size       -- board size (int)
+    def interpret(self, identifier, raw_values):
+        """Return a Python representation of a property value.
 
-    Returns a nonempty list of 8-bit strings, suitable for use as raw
-    PropValues.
+        identifier -- PropIdent
+        raw_values -- nonempty list of 8-bit strings in the coder's encoding
 
-    See the serialise_... functions above for details of the acceptable values
-    for each type.
+        See the interpret_... functions above for details of how values are
+        represented as Python types.
 
-    elist handling: if the property's value type is an elist type and the
-    serialise_... function returns an empty list, this returns a list
-    containing a single empty string.
+        Raises ValueError if it cannot interpret the value.
 
-    Raises ValueError if it cannot serialise the value.
+        Note that in some cases the interpret_... functions accept values which
+        are not strictly permitted by the specification.
 
-    See the properties_by_ident table above for a list of known properties.
+        elist handling: if the property's value type is a list type and
+        'raw_values' is a list containing a single empty string, passes an
+        empty list to the interpret_... function (that is, this function treats
+        all lists like elists).
 
-    Treats unknown (private) properties as if they had type Text.
+        Doesn't enforce range restrictions on values with type Number.
 
-    In general, the serialise_... functions try not to produce an invalid
-    result, but do not try to prevent garbage input happening to produce a
-    valid result.
+        FIXME See the _property_types_by_ident table above for a list of known
+        properties.
 
-    """
-    context = _Context(size, encoding)
-    prop = properties_by_ident.get(identifier, private_property)
-    serialiser = prop.serialiser
-    serialised = serialiser(value, context)
-    if prop.uses_list:
-        if serialised == []:
-            if prop.allows_empty_list:
-                return [""]
+        Treats unknown (private) properties as if they had type Text.
+
+        """
+        pt = self.property_types_by_ident.get(identifier, private_property)
+        if pt.uses_list:
+            if raw_values == [""]:
+                raw = []
             else:
-                raise ValueError("empty list")
-        return serialised
-    else:
-        return [serialised]
+                raw = raw_values
+        else:
+            raw = raw_values[0]
+        return pt.interpreter(raw, self)
 
+    def serialise(self, identifier, value):
+        """Serialise a Python representation of a property value.
+
+        identifier -- PropIdent
+        value      -- corresponding Python value
+
+        Returns a nonempty list of 8-bit strings in the coder's encoding,
+        suitable for use as raw PropValues.
+
+        See the serialise_... functions above for details of the acceptable
+        values for each type.
+
+        elist handling: if the property's value type is an elist type and the
+        serialise_... function returns an empty list, this returns a list
+        containing a single empty string.
+
+        Raises ValueError if it cannot serialise the value.
+
+        FIXME See the property_types_by_ident table above for a list of known
+        properties.
+
+        Treats unknown (private) properties as if they had type Text.
+
+        In general, the serialise_... functions try not to produce an invalid
+        result, but do not try to prevent garbage input happening to produce a
+        valid result.
+
+        """
+        pt = self.property_types_by_ident.get(identifier, private_property)
+        serialised = pt.serialiser(value, self)
+        if pt.uses_list:
+            if serialised == []:
+                if pt.allows_empty_list:
+                    return [""]
+                else:
+                    raise ValueError("empty list")
+            return serialised
+        else:
+            return [serialised]
