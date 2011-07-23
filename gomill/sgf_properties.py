@@ -505,7 +505,7 @@ _property_types_by_ident = {
   'WR' : P('simpletext'),                   # game-info   White rank
   'WT' : P('simpletext'),                   # game-info   White team
 }
-private_property = P('text')
+_text_property_type = P('text')
 
 del P, ELIST
 
@@ -517,15 +517,58 @@ class Coder(_Context):
       size      -- board size (int)
       encoding  -- encoding for the SGF strings
 
+    See the _property_types_by_ident table above for a list of properties
+    initially known, and their types.
+
+    Initially, treats unknown (private) properties as if they had type Text.
+
     """
 
     def __init__(self, size, encoding):
         self.size = size
         self.encoding = encoding
-        # FIXME
-        self.property_types_by_ident = _property_types_by_ident
+        self.property_types_by_ident = _property_types_by_ident.copy()
+        self.default_property_type = _text_property_type
+
+    def get_property_type(self, identifier):
+        """Return the Property_type for the specified PropIdent.
+
+        Rasies KeyError if the property is unknown.
+
+        """
+        return self.property_types_by_ident[identifier]
+
+    def register_property(self, identifier, property_type):
+        """Specify the Property_type for a PropIdent."""
+        self.property_types_by_ident[identifier] = property_type
+
+    def deregister_property(self, identifier):
+        """Forget the type for the specified PropIdent."""
+        del self.property_types_by_ident[identifier]
+
+    def set_private_property_type(self, property_type):
+        """Specify the Property_type to use for unknown properties.
+
+        Pass property_type = None to make unknown properties raise an error.
+
+        """
+        self.default_property_type = property_type
+
+    def _get_effective_property_type(self, identifier):
+        try:
+            return self.property_types_by_ident[identifier]
+        except KeyError:
+            result = self.default_property_type
+            if result is None:
+                raise ValueError("unknown property")
+            return result
 
     def interpret_as_type(self, property_type, raw_values):
+        """Variant of interpret() for explicitly specified type.
+
+        property_type -- Property_type
+
+        """
         if property_type.uses_list:
             if raw_values == [""]:
                 raw = []
@@ -556,16 +599,16 @@ class Coder(_Context):
 
         Doesn't enforce range restrictions on values with type Number.
 
-        FIXME See the _property_types_by_ident table above for a list of known
-        properties.
-
-        Treats unknown (private) properties as if they had type Text.
-
         """
-        pt = self.property_types_by_ident.get(identifier, private_property)
-        return self.interpret_as_type(pt, raw_values)
+        return self.interpret_as_type(
+            self._get_effective_property_type(identifier), raw_values)
 
     def serialise_as_type(self, property_type, value):
+        """Variant of serialise() for explicitly specified type.
+
+        property_type -- Property_type
+
+        """
         serialised = property_type.serialiser(value, self)
         if property_type.uses_list:
             if serialised == []:
@@ -595,15 +638,10 @@ class Coder(_Context):
 
         Raises ValueError if it cannot serialise the value.
 
-        FIXME See the property_types_by_ident table above for a list of known
-        properties.
-
-        Treats unknown (private) properties as if they had type Text.
-
         In general, the serialise_... functions try not to produce an invalid
         result, but do not try to prevent garbage input happening to produce a
         valid result.
 
         """
-        pt = self.property_types_by_ident.get(identifier, private_property)
-        return self.serialise_as_type(pt, value)
+        return self.serialise_as_type(
+            self._get_effective_property_type(identifier), value)
