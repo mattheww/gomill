@@ -17,8 +17,8 @@ class Node(object):
     Instantiate with an sgf_properties.Coder.
 
     A Node doesn't belong to a particular game (cf Tree_node below), but it
-    knows its board size (in order to interpret move values) and property map
-    encoding.
+    knows its board size (in order to interpret move values) and the encoding
+    to use for the raw property strings.
 
     Changing the SZ or CA property isn't allowed.
 
@@ -35,7 +35,11 @@ class Node(object):
         return self.coder.size
 
     def get_encoding(self):
-        """Return the encoding used for raw property values."""
+        """Return the encoding used for raw property values.
+
+        Returns a string (a valid Python codec name, eg "UTF-8").
+
+        """
         return self.coder.encoding
 
     def has_property(self, identifier):
@@ -45,9 +49,11 @@ class Node(object):
     def get_raw_list(self, identifier):
         """Return the raw values of the specified property.
 
-        Returns a list of 8-bit strings, containing the exact bytes that were
-        between the square brackets (without interpreting escapes or performing
-        any whitespace conversion).
+        Returns a list of 8-bit strings, in the raw property encoding.
+
+        The strings contain the exact bytes that were between the square
+        brackets (without interpreting escapes or performing any whitespace
+        conversion).
 
         Raises KeyError if there was no property with the given identifier.
 
@@ -60,9 +66,11 @@ class Node(object):
     def get_raw(self, identifier):
         """Return a single raw value of the specified property.
 
-        Returns an 8-bit string, containing the exact bytes that were between
-        the square brackets (without interpreting escapes or performing any
-        whitespace conversion).
+        Returns an 8-bit string, in the raw property encoding.
+
+        The string contains the exact bytes that were between the square
+        brackets (without interpreting escapes or performing any whitespace
+        conversion).
 
         Raises KeyError if there was no property with the given identifier.
 
@@ -115,7 +123,8 @@ class Node(object):
         """Set the raw values of the specified property.
 
         identifier -- ascii string passing is_valid_property_identifier()
-        values     -- nonempty iterable of 8-bit strings
+        values     -- nonempty iterable of 8-bit strings in the raw property
+                      encoding
 
         The values specify the exact bytes to appear between the square
         brackets in the SGF file; you must perform any necessary escaping
@@ -139,7 +148,7 @@ class Node(object):
         """Set the specified property to a single raw value.
 
         identifier -- ascii string passing is_valid_property_identifier()
-        value      -- 8-bit string
+        value      -- 8-bit string in the raw property encoding
 
         The value specifies the exact bytes to appear between the square
         brackets in the SGF file; you must perform any necessary escaping
@@ -412,9 +421,11 @@ class _Root_tree_node(Tree_node):
 class Sgf_game(object):
     """An SGF game.
 
-    Instantiate with the board size, and optionally the property map encoding.
+    Instantiate with
+      size     -- int (board size), in range 1 to 26
+      encoding -- the raw property encoding (default "UTF-8")
 
-    FIXME: document property map encoding.
+    'encoding' must be a valid Python codec name.
 
     """
     def _initialise_coder(self, size, encoding):
@@ -680,6 +691,10 @@ def sgf_game_from_parsed_game_tree(parsed_game):
     The nodes' property maps (as returned by get_raw_property_map()) will be
     the same objects as the ones from the Parsed_game_tree.
 
+    The board size and raw property encoding are taken from the SZ and CA
+    properties in the root node (defaulting to 19 and "ISO-8859-1",
+    respectively).
+
     """
     return _Parsed_sgf_game(parsed_game)
 
@@ -689,6 +704,10 @@ def sgf_game_from_string(s):
     s -- 8-bit string
 
     Returns an Sgf_game.
+
+    The board size and raw property encoding are taken from the SZ and CA
+    properties in the root node (defaulting to 19 and "ISO-8859-1",
+    respectively).
 
     Raises ValueError if it can't parse the string. See parse_sgf_game() for
     details.
@@ -700,9 +719,12 @@ def sgf_game_from_string(s):
 def serialise_sgf_game(sgf_game):
     """Serialise an SGF game as a string.
 
-    Returns an 8-bit string.
+    Returns an 8-bit string, in the encoding specified by the CA property in
+    the root node (defaulting to "ISO-8859-1").
 
     """
+    # We can use the raw properties directly, because at present the raw
+    # property encoding always matches the CA property.
     game_tree = sgf_grammar.make_parsed_game_tree(
         sgf_game.get_root(), lambda node:node, Node.get_raw_property_map)
     return sgf_grammar.serialise_game_tree(game_tree)
