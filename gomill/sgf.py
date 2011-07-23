@@ -403,12 +403,11 @@ class Tree_node(Node):
 
 class _Root_tree_node(Tree_node):
     """Variant of Tree_node used for a game root."""
-    def __init__(self, owner, size, encoding):
+    def __init__(self, owner):
         self.owner = owner
         self.parent = None
         self._children = []
-        coder = sgf_properties.Coder(size, encoding)
-        Node.__init__(self, {}, coder)
+        Node.__init__(self, {}, owner.coder)
 
 class Sgf_game(object):
     """An SGF game.
@@ -418,19 +417,31 @@ class Sgf_game(object):
     FIXME: document property map encoding.
 
     """
-    def _set_size(self, size):
+    def _initialise_coder(self, size, encoding):
         # This is split out for the sake of _Parsed_sgf_game.__init__
         if not 1 <= size <= 26:
             raise ValueError("size out of range: %s" % size)
         self.size = size
+        self.coder = sgf_properties.Coder(size, encoding)
 
     def __init__(self, size, encoding="UTF-8"):
-        self._set_size(size)
-        self.root = _Root_tree_node(self, size, encoding)
+        self._initialise_coder(size, encoding)
+        self.root = _Root_tree_node(self)
         self.root.set_raw('FF', "4")
         self.root.set_raw('GM', "1")
         self.root.set_raw('SZ', str(size))
         self.root.set_raw('CA', self.root.get_encoding())
+
+    def get_property_coder(self):
+        """Return the property coder.
+
+        Returns an sgf_properties.Coder.
+
+        This can be used to customise how property values are interpreted and
+        serialised.
+
+        """
+        return self.coder
 
     def get_root(self):
         """Return the root node (as a Tree_node)."""
@@ -584,13 +595,12 @@ class Sgf_game(object):
 
 class _Root_tree_node_for_game_tree(Tree_node):
     """Variant of _Root_tree_node used for _Parsed_sgf_game."""
-    def __init__(self, owner, game_tree, size, encoding):
+    def __init__(self, owner, game_tree):
         self.owner = owner
         self.parent = None
         self._game_tree = game_tree
         self._children = None
-        coder = sgf_properties.Coder(size, encoding)
-        Node.__init__(self, game_tree.sequence[0], coder)
+        Node.__init__(self, game_tree.sequence[0], owner.coder)
 
     def _ensure_expanded(self):
         if self._children is None:
@@ -647,14 +657,12 @@ class _Parsed_sgf_game(Sgf_game):
                 size = int(size_s)
             except ValueError:
                 raise ValueError("bad SZ property: %s" % size_s)
-        self._set_size(size)
         try:
             encoding = parsed_game.sequence[0]['CA'][0]
         except KeyError:
             encoding = "ISO-8859-1"
-
-        self.root = _Root_tree_node_for_game_tree(
-            self, parsed_game, size, encoding)
+        self._initialise_coder(size, encoding)
+        self.root = _Root_tree_node_for_game_tree(self, parsed_game)
 
     def main_sequence_iter(self):
         if self.root._game_tree is None:
