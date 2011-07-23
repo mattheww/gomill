@@ -430,7 +430,8 @@ class Sgf_game(object):
         self.root.set_raw('FF', "4")
         self.root.set_raw('GM', "1")
         self.root.set_raw('SZ', str(size))
-        self.root.set_raw('CA', self.root.get_encoding())
+        # Read the encoding back so we get the normalised form
+        self.root.set_raw('CA', self.coder.encoding)
 
     def get_property_coder(self):
         """Return the property coder.
