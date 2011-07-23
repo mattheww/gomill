@@ -10,6 +10,7 @@ test_modules = [
     'sgf_grammar_tests',
     'sgf_properties_tests',
     'sgf_tests',
+    'sgf_moves_tests',
     'gtp_engine_tests',
     'gtp_state_tests',
     'gtp_controller_tests',

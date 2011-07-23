@@ -9,6 +9,7 @@ from gomill import boards
 from gomill import gtp_engine
 from gomill import handicap_layout
 from gomill import sgf
+from gomill import sgf_moves
 from gomill.gtp_engine import GtpError
 
 
@@ -447,17 +448,17 @@ class Gtp_state(object):
             # Handicap isn't important, so soldier on
             handicap = None
         try:
-            sgf_board, raw_sgf_moves = sgf.get_setup_and_moves(sgf_game)
+            sgf_board, raw_sgf_moves = sgf_moves.get_setup_and_moves(sgf_game)
         except ValueError, e:
             raise GtpError(str(e))
-        sgf_moves = [History_move(colour, coords)
-                     for (colour, coords) in raw_sgf_moves]
+        history_moves = [History_move(colour, coords)
+                         for (colour, coords) in raw_sgf_moves]
         if move_number is None:
-            new_move_history = sgf_moves
+            new_move_history = history_moves
         else:
             # gtp spec says we want the "position before move_number"
             move_number = max(0, move_number-1)
-            new_move_history = sgf_moves[:move_number]
+            new_move_history = history_moves[:move_number]
         old_history_base = self.history_base
         old_move_history = self.move_history
         try:
@@ -523,13 +524,13 @@ class Gtp_state(object):
             except Exception:
                 gtp_engine.report_bad_arguments()
             root.set_raw(identifier, value)
-        sgf.set_initial_position(sgf_game, self.history_base)
+        sgf_moves.set_initial_position(sgf_game, self.history_base)
         for move in self.move_history:
             node = sgf_game.extend_main_sequence()
             node.set_move(move.colour, move.coords)
             if move.comments is not None:
                 node.set("C", move.comments)
-        sgf.indicate_first_player(sgf_game)
+        sgf_moves.indicate_first_player(sgf_game)
         f = open(pathname, "w")
         f.write(sgf.serialise_sgf_game(sgf_game))
         f.close()

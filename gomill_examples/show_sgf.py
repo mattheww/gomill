@@ -8,6 +8,7 @@ import sys
 from optparse import OptionParser
 
 from gomill import sgf
+from gomill import sgf_moves
 from gomill import ascii_boards
 
 def show_sgf_file(pathname, move_number):
@@ -20,7 +21,7 @@ def show_sgf_file(pathname, move_number):
         raise StandardError("bad sgf file")
 
     try:
-        board, moves = sgf.get_setup_and_moves(sgf_game)
+        board, moves = sgf_moves.get_setup_and_moves(sgf_game)
     except ValueError, e:
         raise StandardError(str(e))
     if move_number is not None:
