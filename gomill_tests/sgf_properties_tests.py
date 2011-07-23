@@ -10,7 +10,9 @@ def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 def test_interpret_simpletext(tc):
-    interpret = sgf_properties.interpret_simpletext
+    def interpret(s, encoding):
+        context = sgf_properties._Context(19, encoding)
+        return sgf_properties.interpret_simpletext(s, context)
     tc.assertEqual(interpret("a\nb\\\\c", "utf-8"), "a b\\c")
     u = u"test \N{POUND SIGN}"
     tc.assertEqual(interpret(u.encode("utf-8"), "utf-8"),
@@ -19,7 +21,9 @@ def test_interpret_simpletext(tc):
                    u.encode("utf-8"))
 
 def test_serialise_simpletext(tc):
-    serialise = sgf_properties.serialise_simpletext
+    def serialise(s, encoding):
+        context = sgf_properties._Context(19, encoding)
+        return sgf_properties.serialise_simpletext(s, context)
     tc.assertEqual(serialise("ab\\c", "utf-8"), "ab\\\\c")
     u = u"test \N{POUND SIGN}"
     tc.assertEqual(serialise(u.encode("utf-8"), "utf-8"),
@@ -30,7 +34,9 @@ def test_serialise_simpletext(tc):
                     u"\N{EN DASH}".encode("utf-8"), "iso-8859-1")
 
 def test_interpret_text(tc):
-    interpret = sgf_properties.interpret_text
+    def interpret(s, encoding):
+        context = sgf_properties._Context(19, encoding)
+        return sgf_properties.interpret_text(s, context)
     tc.assertEqual(interpret("a\nb\\\\c", "utf-8"), "a\nb\\c")
     u = u"test \N{POUND SIGN}"
     tc.assertEqual(interpret(u.encode("utf-8"), "utf-8"),
@@ -39,7 +45,9 @@ def test_interpret_text(tc):
                    u.encode("utf-8"))
 
 def test_serialise_text(tc):
-    serialise = sgf_properties.serialise_text
+    def serialise(s, encoding):
+        context = sgf_properties._Context(19, encoding)
+        return sgf_properties.serialise_text(s, context)
     tc.assertEqual(serialise("ab\\c", "utf-8"), "ab\\\\c")
     u = u"test \N{POUND SIGN}"
     tc.assertEqual(serialise(u.encode("utf-8"), "utf-8"),
@@ -97,7 +105,9 @@ def test_serialise_real(tc):
 
 
 def test_interpret_point(tc):
-    interpret_point = sgf_properties.interpret_point
+    def interpret_point(s, size):
+        context = sgf_properties._Context(size, "UTF-8")
+        return sgf_properties.interpret_point(s, context)
     tc.assertEqual(interpret_point("aa", 19), (18, 0))
     tc.assertEqual(interpret_point("ai", 19), (10, 0))
     tc.assertEqual(interpret_point("ba",  9), (8, 1))
@@ -120,7 +130,9 @@ def test_interpret_point(tc):
     #tc.assertRaises(TypeError, interpret_point, ('a', 'a'), 19)
 
 def test_serialise_point(tc):
-    serialise_point = sgf_properties.serialise_point
+    def serialise_point(s, size):
+        context = sgf_properties._Context(size, "UTF-8")
+        return sgf_properties.serialise_point(s, context)
     tc.assertEqual(serialise_point((18, 0), 19), "aa")
     tc.assertEqual(serialise_point((10, 0), 19), "ai")
     tc.assertEqual(serialise_point((8, 1), 19), "bk")
@@ -138,7 +150,9 @@ def test_serialise_point(tc):
 
 
 def test_interpret_point_list(tc):
-    ipl = sgf_properties.interpret_point_list
+    def ipl(l, size):
+        context = sgf_properties._Context(size, "UTF-8")
+        return sgf_properties.interpret_point_list(l, context)
     tc.assertEqual(ipl([], 19),
                    set())
     tc.assertEqual(ipl(["aa"], 19),
@@ -177,7 +191,9 @@ def test_compressed_point_list_spec_example(tc):
         row_s = "abcdefghijklmnopqrstuvwxy"[row]
         return col_s + row_s
 
-    ipl = sgf_properties.interpret_point_list
+    def ipl(l, size):
+        context = sgf_properties._Context(size, "UTF-8")
+        return sgf_properties.interpret_point_list(l, context)
     tc.assertEqual(
         set(sgf_point(move, 9) for move in ipl(["ac:ic"], 9)),
         set(["ac", "bc", "cc", "dc", "ec", "fc", "gc", "hc", "ic"]))
@@ -191,8 +207,12 @@ def test_compressed_point_list_spec_example(tc):
              "ca", "cb", "cc", "cd", "ce"]))
 
 def test_serialise_point_list(tc):
-    ipl = sgf_properties.interpret_point_list
-    spl = sgf_properties.serialise_point_list
+    def ipl(l, size):
+        context = sgf_properties._Context(size, "UTF-8")
+        return sgf_properties.interpret_point_list(l, context)
+    def spl(l, size):
+        context = sgf_properties._Context(size, "UTF-8")
+        return sgf_properties.serialise_point_list(l, context)
 
     tc.assertEqual(spl([(18, 0), (17, 1)], 19), ['aa', 'bb'])
     tc.assertEqual(spl([(17, 1), (18, 0)], 19), ['aa', 'bb'])
@@ -203,29 +223,38 @@ def test_serialise_point_list(tc):
 
 def test_AP(tc):
     def serialise(arg):
-        return sgf_properties.serialise_AP(arg, "utf-8")
+        context = sgf_properties._Context(19, "UTF-8")
+        return sgf_properties.serialise_AP(arg, context)
     def interpret(arg):
-        return sgf_properties.interpret_AP(arg, "utf-8")
+        context = sgf_properties._Context(19, "UTF-8")
+        return sgf_properties.interpret_AP(arg, context)
 
     tc.assertEqual(serialise(("foo:bar", "2\n3")), "foo\\:bar:2\n3")
     tc.assertEqual(interpret("foo\\:bar:2 3"), ("foo:bar", "2 3"))
     tc.assertEqual(interpret("foo bar"), ("foo bar", ""))
 
 def test_ARLN(tc):
-    tc.assertEqual(sgf_properties.serialise_ARLN([], 19), [])
-    tc.assertEqual(sgf_properties.interpret_ARLN([], 19), [])
-    tc.assertEqual(
-        sgf_properties.serialise_ARLN([((7, 0), (5, 2)), ((4, 3), (2, 5))], 9),
-        ['ab:cd', 'de:fg'])
-    tc.assertEqual(
-        sgf_properties.interpret_ARLN(['ab:cd', 'de:fg'], 9),
-        [((7, 0), (5, 2)), ((4, 3), (2, 5))])
+    def serialise(arg, size):
+        context = sgf_properties._Context(size, "UTF-8")
+        return sgf_properties.serialise_ARLN(arg, context)
+    def interpret(arg, size):
+        context = sgf_properties._Context(size, "UTF-8")
+        return sgf_properties.interpret_ARLN(arg, context)
+
+    tc.assertEqual(serialise([], 19), [])
+    tc.assertEqual(interpret([], 19), [])
+    tc.assertEqual(serialise([((7, 0), (5, 2)), ((4, 3), (2, 5))], 9),
+                   ['ab:cd', 'de:fg'])
+    tc.assertEqual(interpret(['ab:cd', 'de:fg'], 9),
+                   [((7, 0), (5, 2)), ((4, 3), (2, 5))])
 
 def test_FG(tc):
     def serialise(arg):
-        return sgf_properties.serialise_FG(arg, "utf-8")
+        context = sgf_properties._Context(19, "UTF-8")
+        return sgf_properties.serialise_FG(arg, context)
     def interpret(arg):
-        return sgf_properties.interpret_FG(arg, "utf-8")
+        context = sgf_properties._Context(19, "UTF-8")
+        return sgf_properties.interpret_FG(arg, context)
     tc.assertEqual(serialise(None), "")
     tc.assertEqual(interpret(""), None)
     tc.assertEqual(serialise((515, "th]is")), "515:th\\]is")
@@ -233,9 +262,11 @@ def test_FG(tc):
 
 def test_LB(tc):
     def serialise(arg, size):
-        return sgf_properties.serialise_LB(arg, size, "utf-8")
+        context = sgf_properties._Context(size, "UTF-8")
+        return sgf_properties.serialise_LB(arg, context)
     def interpret(arg, size):
-        return sgf_properties.interpret_LB(arg, size, "utf-8")
+        context = sgf_properties._Context(size, "UTF-8")
+        return sgf_properties.interpret_LB(arg, context)
     tc.assertEqual(serialise([], 19), [])
     tc.assertEqual(interpret([], 19), [])
     tc.assertEqual(

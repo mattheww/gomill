@@ -10,183 +10,7 @@ Go points.
 
 from gomill import sgf_grammar
 
-def interpret_none(s):
-    """Convert a raw None value to a boolean.
-
-    That is, unconditionally returns True.
-
-    """
-    return True
-
-def serialise_none(b):
-    """Serialise a None value.
-
-    Ignores its parameter.
-
-    """
-    return ""
-
-
-def interpret_number(s):
-    """Convert a raw Number value to the integer it represents.
-
-    This is a little more lenient than the SGF spec: it permits leading and
-    trailing spaces, and spaces between the sign and the numerals.
-
-    """
-    return int(s, 10)
-
-def serialise_number(i):
-    """Serialise a Number value.
-
-    i -- integer
-
-    """
-    return "%d" % i
-
-
-def interpret_real(s):
-    """Convert a raw Real value to the float it represents.
-
-    This is more lenient than the SGF spec: it accepts strings accepted as a
-    float by the platform libc.
-
-    """
-    # Would be nice to at least reject Inf and NaN, but Python 2.5 is deficient
-    # here.
-    return float(s)
-
-def serialise_real(f):
-    """Serialise a Real value.
-
-    f -- real number (int or float)
-
-    If the value is too small to conveniently express as a decimal, returns "0"
-    (this currently happens if f is less than 0.0001).
-
-    """
-    f = float(f)
-    try:
-        i = int(f)
-    except OverflowError:
-        # infinity
-        raise ValueError
-    if f == i:
-        # avoid trailing '.0'; also avoid scientific notation for large numbers
-        return str(i)
-    s = repr(f)
-    if 'e-' in s:
-        return "0"
-    return s
-
-
-def interpret_double(s):
-    """Convert a raw Double value to an integer.
-
-    Returns 1 or 2 (unknown values are treated as 1).
-
-    """
-    if s.strip() == "2":
-        return 2
-    else:
-        return 1
-
-def serialise_double(i):
-    """Serialise a Double value.
-
-    i -- integer (1 or 2)
-
-    (unknown values are treated as 1)
-
-    """
-    if i == 2:
-        return "2"
-    return "1"
-
-
-def interpret_colour(s):
-    """Convert a raw Color value to a gomill colour.
-
-    Returns 'b' or 'w'.
-
-    """
-    colour = s.lower()
-    if colour not in ('b', 'w'):
-        raise ValueError
-    return colour
-
-def serialise_colour(colour):
-    """Serialise a Colour value.
-
-    colour -- 'b' or 'w'
-
-    """
-    if colour not in ('b', 'w'):
-        raise ValueError
-    return colour.upper()
-
-
-def interpret_simpletext(s, encoding):
-    """Convert a raw SimpleText value to a string.
-
-    See sgf_grammar.simpletext_value() for details.
-
-    s        -- raw value
-    encoding -- encoding of s
-
-    Returns an 8-bit utf-8 string.
-
-    """
-    s = sgf_grammar.simpletext_value(s)
-    if encoding != "UTF-8":
-        s = s.decode(encoding).encode("utf-8")
-    return s
-
-def serialise_simpletext(s, encoding):
-    """Serialise a SimpleText value.
-
-    See sgf_grammar.escape_text() for details.
-
-    s        -- 8-bit utf-8 string
-    encoding -- target encoding of the serialised value
-
-    """
-    if encoding != "UTF-8":
-        s = s.decode("utf-8").encode(encoding)
-    return sgf_grammar.escape_text(s)
-
-
-def interpret_text(s, encoding):
-    """Convert a raw Text value to a string.
-
-    See sgf_grammar.text_value() for details.
-
-    s        -- raw value
-    encoding -- encoding of s
-
-    Returns an 8-bit utf-8 string.
-
-    """
-    s = sgf_grammar.text_value(s)
-    if encoding != "UTF-8":
-        s = s.decode(encoding).encode("utf-8")
-    return s
-
-def serialise_text(s, encoding):
-    """Serialise a Text value.
-
-    See sgf_grammar.escape_text() for details.
-
-    s        -- 8-bit utf-8 string
-    encoding -- target encoding of the serialised value
-
-    """
-    if encoding != "UTF-8":
-        s = s.decode("utf-8").encode(encoding)
-    return sgf_grammar.escape_text(s)
-
-
-def interpret_point(s, size):
+def decode_point(s, size):
     """Convert a raw SGF Point, Move, or Stone value to coordinates.
 
     s    -- string
@@ -213,11 +37,199 @@ def interpret_point(s, size):
         raise ValueError
     return row, col
 
-def serialise_point(move, size):
+
+class _Context(object):
+    def __init__(self, size, encoding):
+        self.size = size
+        self.encoding = encoding
+
+def interpret_none(s, context=None):
+    """Convert a raw None value to a boolean.
+
+    That is, unconditionally returns True.
+
+    """
+    return True
+
+def serialise_none(b, context=None):
+    """Serialise a None value.
+
+    Ignores its parameter.
+
+    """
+    return ""
+
+
+def interpret_number(s, context=None):
+    """Convert a raw Number value to the integer it represents.
+
+    This is a little more lenient than the SGF spec: it permits leading and
+    trailing spaces, and spaces between the sign and the numerals.
+
+    """
+    return int(s, 10)
+
+def serialise_number(i, context=None):
+    """Serialise a Number value.
+
+    i -- integer
+
+    """
+    return "%d" % i
+
+
+def interpret_real(s, context=None):
+    """Convert a raw Real value to the float it represents.
+
+    This is more lenient than the SGF spec: it accepts strings accepted as a
+    float by the platform libc.
+
+    """
+    # Would be nice to at least reject Inf and NaN, but Python 2.5 is deficient
+    # here.
+    return float(s)
+
+def serialise_real(f, context=None):
+    """Serialise a Real value.
+
+    f -- real number (int or float)
+
+    If the value is too small to conveniently express as a decimal, returns "0"
+    (this currently happens if f is less than 0.0001).
+
+    """
+    f = float(f)
+    try:
+        i = int(f)
+    except OverflowError:
+        # infinity
+        raise ValueError
+    if f == i:
+        # avoid trailing '.0'; also avoid scientific notation for large numbers
+        return str(i)
+    s = repr(f)
+    if 'e-' in s:
+        return "0"
+    return s
+
+
+def interpret_double(s, context=None):
+    """Convert a raw Double value to an integer.
+
+    Returns 1 or 2 (unknown values are treated as 1).
+
+    """
+    if s.strip() == "2":
+        return 2
+    else:
+        return 1
+
+def serialise_double(i, context=None):
+    """Serialise a Double value.
+
+    i -- integer (1 or 2)
+
+    (unknown values are treated as 1)
+
+    """
+    if i == 2:
+        return "2"
+    return "1"
+
+
+def interpret_colour(s, context=None):
+    """Convert a raw Color value to a gomill colour.
+
+    Returns 'b' or 'w'.
+
+    """
+    colour = s.lower()
+    if colour not in ('b', 'w'):
+        raise ValueError
+    return colour
+
+def serialise_colour(colour, context=None):
+    """Serialise a Colour value.
+
+    colour -- 'b' or 'w'
+
+    """
+    if colour not in ('b', 'w'):
+        raise ValueError
+    return colour.upper()
+
+
+def interpret_simpletext(s, context):
+    """Convert a raw SimpleText value to a string.
+
+    See sgf_grammar.simpletext_value() for details.
+
+    s -- raw value
+
+    Returns an 8-bit utf-8 string.
+
+    """
+    s = sgf_grammar.simpletext_value(s)
+    if context.encoding != "UTF-8":
+        s = s.decode(context.encoding).encode("utf-8")
+    return s
+
+def serialise_simpletext(s, context):
+    """Serialise a SimpleText value.
+
+    See sgf_grammar.escape_text() for details.
+
+    s -- 8-bit utf-8 string
+
+    """
+    if context.encoding != "UTF-8":
+        s = s.decode("utf-8").encode(context.encoding)
+    return sgf_grammar.escape_text(s)
+
+
+def interpret_text(s, context):
+    """Convert a raw Text value to a string.
+
+    See sgf_grammar.text_value() for details.
+
+    s -- raw value
+
+    Returns an 8-bit utf-8 string.
+
+    """
+    s = sgf_grammar.text_value(s)
+    if context.encoding != "UTF-8":
+        s = s.decode(context.encoding).encode("utf-8")
+    return s
+
+def serialise_text(s, context):
+    """Serialise a Text value.
+
+    See sgf_grammar.escape_text() for details.
+
+    s -- 8-bit utf-8 string
+
+    """
+    if context.encoding != "UTF-8":
+        s = s.decode("utf-8").encode(context.encoding)
+    return sgf_grammar.escape_text(s)
+
+
+
+def interpret_point(s, context):
+    """Convert a raw SGF Point, Move, or Stone value to coordinates.
+
+    See decode_point() above for details.
+
+    Returns a pair (row, col), or None for a pass.
+
+    """
+    return decode_point(s, context.size)
+
+def serialise_point(move, context):
     """Serialise a Point, Move, or Stone value.
 
     move -- pair (row, col), or None for a pass
-    size -- board size (int)
 
     The move coordinates are in the GTP coordinate system (as in the rest of
     gomill), where (0, 0) is the lower left.
@@ -225,6 +237,7 @@ def serialise_point(move, size):
     Only supports board sizes up to 26.
 
     """
+    size = context.size
     if not 1 <= size <= 26:
         raise ValueError
     if move is None:
@@ -241,11 +254,10 @@ def serialise_point(move, size):
     return col_s + row_s
 
 
-def interpret_point_list(values, size):
+def interpret_point_list(values, context):
     """Convert a raw SGF list of Points to a set of coordinates.
 
     values -- list of strings
-    size   -- board size (int)
 
     Returns a set of pairs (row, col).
 
@@ -265,8 +277,8 @@ def interpret_point_list(values, size):
         p1, is_rectangle, p2 = s.partition(":")
         if is_rectangle:
             try:
-                top, left = interpret_point(p1, size)
-                bottom, right = interpret_point(p2, size)
+                top, left = interpret_point(p1, context)
+                bottom, right = interpret_point(p2, context)
             except TypeError:
                 raise ValueError
             if not (bottom <= top and left <= right):
@@ -275,17 +287,16 @@ def interpret_point_list(values, size):
                 for col in xrange(left, right+1):
                     result.add((row, col))
         else:
-            pt = interpret_point(p1, size)
+            pt = interpret_point(p1, context)
             if pt is None:
                 raise ValueError
             result.add(pt)
     return result
 
-def serialise_point_list(points, size):
+def serialise_point_list(points, context):
     """Serialise a list of Points, Moves, or Stones.
 
     points -- iterable of pairs (row, col)
-    size   -- board size (int)
 
     Returns a list of strings.
 
@@ -294,12 +305,12 @@ def serialise_point_list(points, size):
     Doesn't produce a compressed point list.
 
     """
-    result = [serialise_point(point, size) for point in points]
+    result = [serialise_point(point, context) for point in points]
     result.sort()
     return result
 
 
-def interpret_AP(s, encoding):
+def interpret_AP(s, context):
     """Interpret an AP (application) property value.
 
     Returns a pair of strings (name, version number)
@@ -311,10 +322,10 @@ def interpret_AP(s, encoding):
     application, version = sgf_grammar.parse_compose(s)
     if version is None:
         version = ""
-    return (interpret_simpletext(application, encoding),
-            interpret_simpletext(version, encoding))
+    return (interpret_simpletext(application, context),
+            interpret_simpletext(version, context))
 
-def serialise_AP(value, encoding):
+def serialise_AP(value, context):
     """Serialise an AP (application) property value.
 
     value -- pair (application, version)
@@ -325,11 +336,11 @@ def serialise_AP(value, encoding):
 
     """
     application, version = value
-    return sgf_grammar.compose(serialise_simpletext(application, encoding),
-                               serialise_simpletext(version, encoding))
+    return sgf_grammar.compose(serialise_simpletext(application, context),
+                               serialise_simpletext(version, context))
 
 
-def interpret_ARLN(values, size):
+def interpret_ARLN(values, context):
     """Interpret an AR (arrow) or LN (line) property value.
 
     Returns a list of pairs (coords, coords).
@@ -338,21 +349,22 @@ def interpret_ARLN(values, size):
     result = []
     for s in values:
         p1, p2 = sgf_grammar.parse_compose(s)
-        result.append((interpret_point(p1, size), interpret_point(p2, size)))
+        result.append((interpret_point(p1, context),
+                       interpret_point(p2, context)))
     return result
 
-def serialise_ARLN(values, size):
+def serialise_ARLN(values, context):
     """Serialise an AR (arrow) or LN (line) property value.
 
     values -- list of pairs (coords, coords)
 
     """
-    return ["%s:%s" % (serialise_point(p1, size),
-                       serialise_point(p2, size))
+    return ["%s:%s" % (serialise_point(p1, context),
+                       serialise_point(p2, context))
             for p1, p2 in values]
 
 
-def interpret_FG(s, encoding):
+def interpret_FG(s, context):
     """Interpret an FG (figure) property value.
 
     Returns a pair (flags, string), or None.
@@ -363,9 +375,9 @@ def interpret_FG(s, encoding):
     if s == "":
         return None
     flags, name = sgf_grammar.parse_compose(s)
-    return int(flags), interpret_simpletext(name, encoding)
+    return int(flags), interpret_simpletext(name, context)
 
-def serialise_FG(value, encoding):
+def serialise_FG(value, context):
     """Serialise an FG (figure) property value.
 
     value -- pair (flags, name), or None
@@ -378,10 +390,10 @@ def serialise_FG(value, encoding):
     if value is None:
         return ""
     flags, name = value
-    return "%d:%s" % (flags, serialise_simpletext(name, encoding))
+    return "%d:%s" % (flags, serialise_simpletext(name, context))
 
 
-def interpret_LB(values, size, encoding):
+def interpret_LB(values, context):
     """Interpret an LB (label) property value.
 
     Returns a list of pairs (coords, string).
@@ -390,18 +402,18 @@ def interpret_LB(values, size, encoding):
     result = []
     for s in values:
         point, label = sgf_grammar.parse_compose(s)
-        result.append((interpret_point(point, size),
-                       interpret_simpletext(label, encoding)))
+        result.append((interpret_point(point, context),
+                       interpret_simpletext(label, context)))
     return result
 
-def serialise_LB(values, size, encoding):
+def serialise_LB(values, context):
     """Serialise an LB (label) property value.
 
     values -- list of pairs (coords, string)
 
     """
-    return ["%s:%s" % (serialise_point(point, size),
-                       serialise_simpletext(text, encoding))
+    return ["%s:%s" % (serialise_point(point, context),
+                       serialise_simpletext(text, context))
             for point, text in values]
 
 
@@ -412,12 +424,6 @@ class Property(object):
         self.serialiser = globals()["serialise_" + value_type]
         self.uses_list = bool(uses_list)
         self.allows_empty_list = (uses_list == 'elist')
-        # FIXME
-        co = self.interpreter.func_code
-        self.uses_size = (co.co_argcount == 2 and co.co_varnames[1] == 'size')
-        self.uses_encoding = (co.co_argcount == 2 and co.co_varnames[1] == 'encoding')
-        if value_type == "LB":
-            self.uses_size = self.uses_encoding = True
 
 P = Property
 LIST = 'list'
@@ -524,6 +530,7 @@ def interpret_value(identifier, raw_values, size, encoding):
     Treats unknown (private) properties as if they had type Text.
 
     """
+    context = _Context(size, encoding)
     prop = properties_by_ident.get(identifier, private_property)
     interpreter = prop.interpreter
     if prop.uses_list:
@@ -533,14 +540,7 @@ def interpret_value(identifier, raw_values, size, encoding):
             raw = raw_values
     else:
         raw = raw_values[0]
-    if prop.uses_size and prop.uses_encoding:
-        return interpreter(raw, size, encoding)
-    elif prop.uses_size:
-        return interpreter(raw, size)
-    elif prop.uses_encoding:
-        return interpreter(raw, encoding)
-    else:
-        return interpreter(raw)
+    return interpreter(raw, context)
 
 def serialise_value(identifier, value, size, encoding):
     """Serialise a Python representation of a property value.
@@ -570,23 +570,17 @@ def serialise_value(identifier, value, size, encoding):
     valid result.
 
     """
+    context = _Context(size, encoding)
     prop = properties_by_ident.get(identifier, private_property)
     serialiser = prop.serialiser
-    if prop.uses_size and prop.uses_encoding:
-        result = serialiser(value, size, encoding)
-    elif prop.uses_size:
-        result = serialiser(value, size)
-    elif prop.uses_encoding:
-        result = serialiser(value, encoding)
-    else:
-        result = serialiser(value)
+    serialised = serialiser(value, context)
     if prop.uses_list:
-        if result == []:
+        if serialised == []:
             if prop.allows_empty_list:
                 return [""]
             else:
                 raise ValueError("empty list")
-        return result
+        return serialised
     else:
-        return [result]
+        return [serialised]
 
