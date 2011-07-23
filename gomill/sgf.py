@@ -228,7 +228,7 @@ class Node(object):
         colour, raw = self.get_raw_move()
         if colour is None:
             return None, None
-        return colour, sgf_properties.decode_point(raw, self.coder.size)
+        return colour, sgf_properties.interpret_go_point(raw, self.coder.size)
 
     def get_setup_stones(self):
         """Retrieve Add Black / Add White / Add Empty properties from a node.
@@ -767,7 +767,7 @@ def get_setup_and_moves(sgf_game):
             raise ValueError("setup properties after the root node")
         colour, raw = node.get_raw_move()
         if colour is not None:
-            moves.append((colour, sgf_properties.decode_point(raw, size)))
+            moves.append((colour, sgf_properties.interpret_go_point(raw, size)))
     return board, moves
 
 def set_initial_position(sgf_game, board):

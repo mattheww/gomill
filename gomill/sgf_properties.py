@@ -24,10 +24,10 @@ def normalise_charset_name(s):
             .replace("ISO8859", "ISO-8859"))
 
 
-def decode_point(s, size):
-    """Convert a raw SGF Point, Move, or Stone value to coordinates.
+def interpret_go_point(s, size):
+    """Convert a raw SGF Go Point, Move, or Stone value to coordinates.
 
-    s    -- string
+    s    -- 8-bit string
     size -- board size (int)
 
     Returns a pair (row, col), or None for a pass.
@@ -37,8 +37,8 @@ def decode_point(s, size):
 
     Only supports board sizes up to 26.
 
-    The returned coordinates are in the GTP coordinate system (as in the rest of
-    gomill), where (0, 0) is the lower left.
+    The returned coordinates are in the GTP coordinate system (as in the rest
+    of gomill), where (0, 0) is the lower left.
 
     """
     if s == "" or (s == "tt" and size <= 19):
@@ -50,6 +50,34 @@ def decode_point(s, size):
     if not ((0 <= col < size) and (0 <= row < size)):
         raise ValueError
     return row, col
+
+def serialise_go_point(move, size):
+    """Serialise a Go Point, Move, or Stone value.
+
+    move -- pair (row, col), or None for a pass
+
+    Returns an 8-bit string.
+
+    Only supports board sizes up to 26.
+
+    The move coordinates are in the GTP coordinate system (as in the rest of
+    gomill), where (0, 0) is the lower left.
+
+    """
+    if not 1 <= size <= 26:
+        raise ValueError
+    if move is None:
+        # Prefer 'tt' where possible, for the sake of older code
+        if size <= 19:
+           return "tt"
+        else:
+            return ""
+    row, col = move
+    if not ((0 <= col < size) and (0 <= row < size)):
+        raise ValueError
+    col_s = "abcdefghijklmnopqrstuvwxy"[col]
+    row_s = "abcdefghijklmnopqrstuvwxy"[size - row - 1]
+    return col_s + row_s
 
 
 class _Context(object):
@@ -233,39 +261,22 @@ def serialise_text(s, context):
 def interpret_point(s, context):
     """Convert a raw SGF Point, Move, or Stone value to coordinates.
 
-    See decode_point() above for details.
+    See interpret_go_point() above for details.
 
     Returns a pair (row, col), or None for a pass.
 
     """
-    return decode_point(s, context.size)
+    return interpret_go_point(s, context.size)
 
 def serialise_point(move, context):
     """Serialise a Point, Move, or Stone value.
 
     move -- pair (row, col), or None for a pass
 
-    The move coordinates are in the GTP coordinate system (as in the rest of
-    gomill), where (0, 0) is the lower left.
-
-    Only supports board sizes up to 26.
+    See serialise_go_point() above for details.
 
     """
-    size = context.size
-    if not 1 <= size <= 26:
-        raise ValueError
-    if move is None:
-        # Prefer 'tt' where possible, for the sake of older code
-        if size <= 19:
-           return "tt"
-        else:
-            return ""
-    row, col = move
-    if not ((0 <= col < size) and (0 <= row < size)):
-        raise ValueError
-    col_s = "abcdefghijklmnopqrstuvwxy"[col]
-    row_s = "abcdefghijklmnopqrstuvwxy"[size - row - 1]
-    return col_s + row_s
+    return serialise_go_point(move, context.size)
 
 
 def interpret_point_list(values, context):
