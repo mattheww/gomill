@@ -138,7 +138,6 @@ def interpret_simpletext(s, encoding):
 
     """
     s = sgf_grammar.simpletext_value(s)
-    # FIXME: need to normalise encoding name
     if encoding != "UTF-8":
         s = s.decode(encoding).encode("utf-8")
     return s
