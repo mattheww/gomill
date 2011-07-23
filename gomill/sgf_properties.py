@@ -12,6 +12,18 @@ import codecs
 
 from gomill import sgf_grammar
 
+def normalise_charset_name(s):
+    """Convert an encoding name to the form implied in the SGF spec.
+
+    In particular, normalises to 'ISO-8859-1' and 'UTF-8'.
+
+    Raises LookupError if the encoding name isn't known to Python.
+
+    """
+    return (codecs.lookup(s).name.replace("_", "-").upper()
+            .replace("ISO8859", "ISO-8859"))
+
+
 def decode_point(s, size):
     """Convert a raw SGF Point, Move, or Stone value to coordinates.
 
@@ -38,18 +50,6 @@ def decode_point(s, size):
     if not ((0 <= col < size) and (0 <= row < size)):
         raise ValueError
     return row, col
-
-
-def normalise_charset_name(s):
-    """Convert an encoding name to the form implied in the SGF spec.
-
-    In particular, normalises to 'ISO-8859-1' and 'UTF-8'.
-
-    Raises LookupError if the encoding name isn't known to Python.
-
-    """
-    return (codecs.lookup(s).name.replace("_", "-").upper()
-            .replace("ISO8859", "ISO-8859"))
 
 
 class _Context(object):
@@ -543,11 +543,11 @@ class Coder(_Context):
     """
 
     def __init__(self, size, encoding):
-        self.size = size
         try:
-            self.encoding = normalise_charset_name(encoding)
+            encoding = normalise_charset_name(encoding)
         except LookupError:
             raise ValueError("unknown encoding: %s" % encoding)
+        _Context.__init__(self, size, encoding)
         self.property_types_by_ident = _property_types_by_ident.copy()
         self.default_property_type = _text_property_type
 
