@@ -64,9 +64,8 @@ class Node(object):
 
         Returns a list of 8-bit strings, in the raw property encoding.
 
-        The strings contain the exact bytes that were between the square
-        brackets (without interpreting escapes or performing any whitespace
-        conversion).
+        The strings contain the exact bytes that go between the square brackets
+        (without interpreting escapes or performing any whitespace conversion).
 
         Raises KeyError if there was no property with the given identifier.
 
@@ -81,9 +80,8 @@ class Node(object):
 
         Returns an 8-bit string, in the raw property encoding.
 
-        The string contains the exact bytes that were between the square
-        brackets (without interpreting escapes or performing any whitespace
-        conversion).
+        The string contains the exact bytes that go between the square brackets
+        (without interpreting escapes or performing any whitespace conversion).
 
         Raises KeyError if there was no property with the given identifier.
 
