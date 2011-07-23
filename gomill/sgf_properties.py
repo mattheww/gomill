@@ -517,6 +517,8 @@ class Coder(_Context):
       size      -- board size (int)
       encoding  -- encoding for the SGF strings
 
+    FIXME: Say encoding should be normalised. Or do it here.
+
     See the _property_types_by_ident table above for a list of properties
     initially known, and their types.
 

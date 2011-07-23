@@ -281,7 +281,7 @@ def test_serialise_sgf_game(tc):
 def test_encoding(tc):
     g1 = sgf.Sgf_game(19)
     root = g1.get_root()
-    tc.assertEqual(root.encoding, "UTF-8")
+    tc.assertEqual(root.get_encoding(), "UTF-8")
     root.set("C", "£")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "£")
@@ -291,7 +291,7 @@ def test_encoding(tc):
 
     g2 = sgf.Sgf_game(19, encoding="iso-8859-1")
     root = g2.get_root()
-    tc.assertEqual(root.encoding, "ISO-8859-1")
+    tc.assertEqual(root.get_encoding(), "ISO-8859-1")
     root.set("C", "£")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "\xa3")
@@ -308,7 +308,7 @@ def test_parsed_sgf_game_encoding(tc):
     (;FF[4]C[£]CA[utf-8]GM[1]SZ[19])
     """)
     root = g1.get_root()
-    tc.assertEqual(root.encoding, "UTF-8")
+    tc.assertEqual(root.get_encoding(), "UTF-8")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "£")
     tc.assertEqual(sgf.serialise_sgf_game(g1), dedent("""\
@@ -319,7 +319,7 @@ def test_parsed_sgf_game_encoding(tc):
     (;FF[4]C[\xa3]CA[iso-8859-1]GM[1]SZ[19])
     """)
     root = g2.get_root()
-    tc.assertEqual(root.encoding, "ISO-8859-1")
+    tc.assertEqual(root.get_encoding(), "ISO-8859-1")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "\xa3")
     tc.assertEqual(sgf.serialise_sgf_game(g2), dedent("""\
@@ -330,7 +330,7 @@ def test_parsed_sgf_game_encoding(tc):
     (;FF[4]C[\xa3]GM[1]SZ[19])
     """)
     root = g3.get_root()
-    tc.assertEqual(root.encoding, "ISO-8859-1")
+    tc.assertEqual(root.get_encoding(), "ISO-8859-1")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "\xa3")
     tc.assertEqual(sgf.serialise_sgf_game(g3), dedent("""\
