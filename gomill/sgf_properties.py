@@ -518,6 +518,16 @@ class Coder(_Context):
         # FIXME
         self.property_types_by_ident = _property_types_by_ident
 
+    def interpret_as_type(self, property_type, raw_values):
+        if property_type.uses_list:
+            if raw_values == [""]:
+                raw = []
+            else:
+                raw = raw_values
+        else:
+            raw = raw_values[0]
+        return property_type.interpreter(raw, self)
+
     def interpret(self, identifier, raw_values):
         """Return a Python representation of a property value.
 
@@ -546,14 +556,19 @@ class Coder(_Context):
 
         """
         pt = self.property_types_by_ident.get(identifier, private_property)
-        if pt.uses_list:
-            if raw_values == [""]:
-                raw = []
-            else:
-                raw = raw_values
+        return self.interpret_as_type(pt, raw_values)
+
+    def serialise_as_type(self, property_type, value):
+        serialised = property_type.serialiser(value, self)
+        if property_type.uses_list:
+            if serialised == []:
+                if property_type.allows_empty_list:
+                    return [""]
+                else:
+                    raise ValueError("empty list")
+            return serialised
         else:
-            raw = raw_values[0]
-        return pt.interpreter(raw, self)
+            return [serialised]
 
     def serialise(self, identifier, value):
         """Serialise a Python representation of a property value.
@@ -584,13 +599,4 @@ class Coder(_Context):
 
         """
         pt = self.property_types_by_ident.get(identifier, private_property)
-        serialised = pt.serialiser(value, self)
-        if pt.uses_list:
-            if serialised == []:
-                if pt.allows_empty_list:
-                    return [""]
-                else:
-                    raise ValueError("empty list")
-            return serialised
-        else:
-            return [serialised]
+        return self.serialise_as_type(pt, value)
