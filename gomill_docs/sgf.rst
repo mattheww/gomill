@@ -256,9 +256,14 @@ Tree_node objects
 
       The node's parent :class:`!Tree_node` (``None`` for the root node).
 
+   A :class:`!Tree_node` acts as a list-like container of its children: it can
+   be indexed, sliced, and iterated over like a list, and it supports the
+   :meth:`~list.index` method. A :class:`!Tree_node` with no children is
+   treated as having truth value false.
 
-A node holds a number of :dfn:`properties`. Each property is identified by a
-short string called the :dfn:`PropIdent`, eg ``"SZ"`` or ``"B"``. See
+
+Each node holds a number of :dfn:`properties`. Each property is identified by
+a short string called the :dfn:`PropIdent`, eg ``"SZ"`` or ``"B"``. See
 (((FIXME))) for a list of the standard properties. See the :term:`SGF`
 specification for full details.
 
@@ -307,6 +312,25 @@ The principal methods for accessing the node's properties are:
 
    Returns a list of *PropIdents*, in unspecified order.
 
+
+The following methods are provided for manipulating the tree:
+
+.. method:: Tree_node.new_child()
+
+   :rtype: :class:`!Tree_node`
+
+   Creates a new :class:`!Tree_node` and adds it to the tree as this node's
+   last child.
+
+   Returns the new node.
+
+.. method:: Tree_node.delete()
+
+   Removes the node from the tree (along with all its descendents).
+
+   Raises :exc:`ValueError` if called on the root node.
+
+   You should not continue to use a node which has been removed from its tree.
 
 
 
