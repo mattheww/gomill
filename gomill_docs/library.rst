@@ -38,6 +38,17 @@ itself defines only a single constant:
    .. versionadded:: 0.7
 
 
+.. todo:: write this more nicely
+
+The following parts of the library are currently documented:
+
+.. toctree::
+   :maxdepth: 3
+   :titlesonly:
+
+   SGF support <sgf>
+
+
 Library overview
 ----------------
 
@@ -60,8 +71,10 @@ Go-related support code
 
 |sgf| support
 
-- :mod:`!sgf_reader`
-- :mod:`!sgf_writer`
+- :mod:`!sgf_grammar`
+- :mod:`!sgf_properties`
+- :mod:`!sgf`
+- :mod:`!sgf_moves`
 
 
 |gtp| controller side
