@@ -432,7 +432,11 @@ class _Root_tree_node(Tree_node):
         Node.__init__(self, {}, owner.presenter)
 
 class Sgf_game(object):
-    """An SGF game.
+    """An SGF game tree.
+
+    The complete game tree is represented using Tree_nodes. The various methods
+    which return Tree_nodes will always return the same object for the same
+    node.
 
     Instantiate with
       size     -- int (board size), in range 1 to 26
@@ -440,7 +444,7 @@ class Sgf_game(object):
 
     'encoding' must be a valid Python codec name.
 
-    The following root node properties are initially set:
+    The following root node properties are set for newly-created games:
       FF[4]
       GM[1]
       SZ[size]
@@ -726,7 +730,7 @@ def sgf_game_from_parsed_game_tree(parsed_game, override_encoding=None):
     Returns an Sgf_game.
 
     The nodes' property maps (as returned by get_raw_property_map()) will be
-    the same objects as the ones from the Parsed_game_tree.
+    the same dictionary objects as the ones from the Parsed_game_tree.
 
     The board size and raw property encoding are taken from the SZ and CA
     properties in the root node (defaulting to 19 and "ISO-8859-1",

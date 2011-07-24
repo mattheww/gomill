@@ -118,7 +118,8 @@ class Parsed_game_tree(object):
     property values.
 
     A raw property value is an 8-bit string containing a PropValue without its
-    enclosing brackets, but with backslashes and line endings left untouched.
+    enclosing brackets, but with backslashes and line endings left untouched
+    (passing is_valid_property_value()).
 
     """
     def __init__(self):
