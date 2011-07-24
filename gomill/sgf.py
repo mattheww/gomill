@@ -601,7 +601,7 @@ class Sgf_game(object):
             raise ValueError
         return handicap
 
-    def get_player(self, colour):
+    def get_player_name(self, colour):
         """Return the name of the specified player.
 
         Returns None if there is no corresponding 'PB' or 'PW' property.
