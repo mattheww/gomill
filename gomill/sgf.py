@@ -182,7 +182,7 @@ class Node(object):
 
         Raises ValueError if it cannot interpret the value.
 
-        See sgf_properties.interpret_value() for details.
+        See sgf_properties.Coder.interpret() for details.
 
         """
         return self._coder.interpret(identifier, self._property_map[identifier])
@@ -197,7 +197,7 @@ class Node(object):
 
         Raises ValueError if it cannot represent the value.
 
-        See sgf_properties.serialise_value() for details.
+        See sgf_properties.Coder.serialise() for details.
 
         """
         self._set_raw_list(identifier, self._coder.serialise(identifier, value))

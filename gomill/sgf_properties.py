@@ -642,8 +642,8 @@ class Coder(_Context):
         Note that in some cases the interpret_... functions accept values which
         are not strictly permitted by the specification.
 
-        If the property's value type is not a list type, any values after the
-        first are ignored.
+        If the property's value type is not a list type, any raw values after
+        the first are ignored.
 
         elist handling: if the property's value type is a list type and
         'raw_values' is a list containing a single empty string, passes an

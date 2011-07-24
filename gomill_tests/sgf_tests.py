@@ -93,7 +93,7 @@ def test_property_combination(tc):
 def test_node_get(tc):
     sgf_game = sgf.sgf_game_from_string(dedent(r"""
     (;AP[testsuite:0]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
-    PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]AE[]BM[2]VW[]
+    PL[B]PW[White engine][xs]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]AE[]BM[2]VW[]
     EV[Test
     event]
     C[123:\)
@@ -126,6 +126,8 @@ def test_node_get(tc):
                    [((6, 0), "lbl"), ((6, 1), "lbl2")])  # Label
     # Check we (leniently) treat lists like elists on read
     tc.assertEqual(root.get('AE'), set())
+    # Check we (leniently) ignore excess values for scalars
+    tc.assertEqual(root.get('PW'), "White engine")
 
 def test_text_values(tc):
     def check(s):
