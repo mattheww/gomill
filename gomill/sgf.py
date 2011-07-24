@@ -540,9 +540,9 @@ class Sgf_game(object):
         return result
 
     def main_sequence_iter(self):
-        """Provide the 'leftmost' variation as an iterable.
+        """Provide the 'leftmost' variation as an iterator.
 
-        Returns an iterable of Node instances, from the root to a leaf.
+        Returns an iterator providing Node instances, from the root to a leaf.
 
         The Node instances may or may not be Tree_nodes.
 
@@ -555,7 +555,7 @@ class Sgf_game(object):
         nodes without building the entire game tree.
 
         """
-        return self.get_main_sequence()
+        return iter(self.get_main_sequence())
 
     def extend_main_sequence(self):
         """Create a new Tree_node and add to the 'leftmost' variation.

@@ -33,9 +33,9 @@ def get_setup_and_moves(sgf_game):
         is_legal = board.apply_setup(ab, aw, ae)
         if not is_legal:
             raise ValueError("setup position not legal")
-    moves = []
-    nodes = iter(sgf_game.main_sequence_iter())
+    nodes = sgf_game.main_sequence_iter()
     nodes.next()
+    moves = []
     for node in nodes:
         if node.has_setup_stones():
             raise ValueError("setup properties after the root node")
