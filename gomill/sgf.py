@@ -568,7 +568,7 @@ class Sgf_game(object):
     def get_komi(self):
         """Return the komi as a float.
 
-        Returns 0.0 if the KM property isn't present.
+        Returns 0.0 if the KM property isn't present in the root node.
 
         Raises ValueError if the KM property is malformed.
 
@@ -618,9 +618,12 @@ class Sgf_game(object):
         return colour
 
     def set_date(self, date=None):
-        """Set the DT property.
+        """Set the DT property to a single date.
 
         date -- datetime.date (defaults to today)
+
+        (SGF allows dates to be rather more complicated than this, so there's
+         no corresponding get_date() method.)
 
         """
         if date is None:
