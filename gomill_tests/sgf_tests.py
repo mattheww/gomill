@@ -155,7 +155,7 @@ on two lines];B[];W[tt]C[Final comment])
 
 SAMPLE_SGF_VAR = """\
 (;AP[testsuite:0]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
-PL[B]PW[White engine]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]VW[]
+PL[B]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]VW[]
 ;B[dg]
 ;W[ef]C[comment
 on two lines]
@@ -215,7 +215,7 @@ def test_sgf_game(tc):
     tc.assertEqual(sgf_game.get_komi(), 7.5)
     tc.assertIs(sgf_game.get_handicap(), None)
     tc.assertEqual(sgf_game.get_player('b'), "Black engine")
-    tc.assertEqual(sgf_game.get_player('w'), "White engine")
+    tc.assertIs(sgf_game.get_player('w'), None)
     tc.assertEqual(sgf_game.get_winner(), 'w')
     tc.assertEqual(nodes[2].get('C'), "comment\non two lines")
     tc.assertEqual(nodes[4].get('C'), "Nonfinal comment")
@@ -271,10 +271,10 @@ def test_serialise_sgf_game(tc):
     serialised = sgf.serialise_sgf_game(sgf_game)
     tc.assertEqual(serialised, dedent("""\
     (;FF[4]AB[ai][bh][ee]AP[testsuite:0]AW[fd][gc]CA[utf-8]DT[2009-06-06]GM[1]
-    KM[7.5]PB[Black engine]PL[B]PW[White engine]RE[W+R]SZ[9]VW[];B[dg];
-    C[comment
-    on two lines]W[ef];B[];C[Nonfinal comment]VW[aa:bb](;B[ia];W[ib];
-    B[ic])(;B[ib];W[ic](;B[id])(;B[ie])))
+    KM[7.5]PB[Black engine]PL[B]RE[W+R]SZ[9]VW[];B[dg];C[comment
+    on two lines]W[ef]
+    ;B[];C[Nonfinal comment]VW[aa:bb](;B[ia];W[ib];B[ic])(;B[ib];W[ic](;B[id])(;
+    B[ie])))
     """))
     sgf_game2 = sgf.sgf_game_from_string(serialised)
     tc.assertEqual(map(str, sgf_game.get_main_sequence()),

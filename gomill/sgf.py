@@ -574,10 +574,9 @@ class Sgf_game(object):
 
         """
         try:
-            komi_s = self.root.get_raw("KM")
+            return self.root.get("KM")
         except KeyError:
             return 0.0
-        return float(komi_s)
 
     def get_handicap(self):
         """Return the number of handicap stones as a small integer.
@@ -589,10 +588,9 @@ class Sgf_game(object):
 
         """
         try:
-            handicap_s = self.root.get_raw("HA")
+            handicap = self.root.get("HA")
         except KeyError:
             return None
-        handicap = int(handicap_s)
         if handicap == 0:
             handicap = None
         elif handicap == 1:
@@ -600,8 +598,15 @@ class Sgf_game(object):
         return handicap
 
     def get_player(self, colour):
-        """Return the name of the specified player."""
-        return self.root.get({'b' : 'PB', 'w' : 'PW'}[colour])
+        """Return the name of the specified player.
+
+        Returns None if there is no corresponding 'PB' or 'PW' property.
+
+        """
+        try:
+            return self.root.get({'b' : 'PB', 'w' : 'PW'}[colour])
+        except KeyError:
+            return None
 
     def get_winner(self):
         """Return the colour of the winning player.
