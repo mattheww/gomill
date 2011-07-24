@@ -26,7 +26,7 @@ def test_new_sgf_game(tc):
         'SZ': ['9'],
         'CA': ['UTF-8'],
         });
-    tc.assertEqual(root.children(), [])
+    tc.assertEqual(list(root), [])
     tc.assertEqual(root.parent, None)
     tc.assertIs(root.owner, g1)
 
@@ -42,7 +42,7 @@ def test_sgf_game_from_parsed_game_tree(tc):
     tc.assertIs(root.get_raw_property_map(), parsed_game.sequence[0])
     tc.assertEqual(root.parent, None)
     tc.assertIs(root.owner, g1)
-    tc.assertEqual(len(root.children()), 1)
+    tc.assertEqual(len(root), 1)
 
     parsed_game2 = Namespace()
     parsed_game2.sequence = [{'SZ' : ["0"]}, {'B' : ["aa"]}]
@@ -227,10 +227,8 @@ def test_tree_view(tc):
     tc.assertIsInstance(root, sgf.Tree_node)
     tc.assertIs(root.parent, None)
     tc.assertIs(root.owner, sgf_game)
-    tc.assertEqual(len(root.children()), 1)
     tc.assertEqual(len(root), 1)
-    tc.assertEqual(root.children()[0].get_raw('B'), "dg")
-    tc.assertIsNot(root.children(), root.children())
+    tc.assertEqual(root[0].get_raw('B'), "dg")
     tc.assertTrue(root)
     tc.assertEqual(root.index(root[0]), 0)
 
@@ -239,12 +237,10 @@ def test_tree_view(tc):
     tc.assertIs(branchnode.parent, root[0][0][0])
     tc.assertIs(branchnode.owner, sgf_game)
     tc.assertEqual(len(branchnode), 2)
-    tc.assertIs(branchnode.children()[0], branchnode[0])
-    tc.assertIs(branchnode.children()[1], branchnode[1])
-    tc.assertIsNot(branchnode.children(), branchnode.children())
     tc.assertIs(branchnode[1], branchnode[-1])
     tc.assertEqual(branchnode[:1], [branchnode[0]])
-    tc.assertEqual([node for node in branchnode], branchnode.children())
+    tc.assertEqual([node for node in branchnode],
+                   [branchnode[0], branchnode[1]])
     with tc.assertRaises(IndexError):
         branchnode[2]
     tc.assertEqual(branchnode[0].get_raw('B'), "ia")
@@ -264,7 +260,7 @@ def test_tree_view(tc):
     # check nothing breaks when first retrieval is by index
     game2 = sgf.sgf_game_from_string(SAMPLE_SGF)
     root2 = game2.get_root()
-    tc.assertIs(root2[0], root2.children()[0])
+    tc.assertEqual(root2[0].get_raw('B'), "dg")
 
 def test_serialise_sgf_game(tc):
     sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)

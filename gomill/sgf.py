@@ -355,15 +355,6 @@ class Tree_node(Node):
         self._children = []
         Node.__init__(self, properties, parent._presenter)
 
-    def children(self):
-        """Return the children of this node.
-
-        Returns a list of Tree_nodes (the same node objects each time you
-        call it, but not the same list).
-
-        """
-        return self._children[:]
-
     def _add_child(self, node):
         self._children.append(node)
 
@@ -651,10 +642,6 @@ class _Unexpanded_root_tree_node(_Root_tree_node):
             self._game_tree, self, Tree_node, Tree_node._add_child)
         delattr(self, '_game_tree')
         self.__class__ = _Root_tree_node
-
-    def children(self):
-        self._expand()
-        return self.children()
 
     def __len__(self):
         self._expand()
