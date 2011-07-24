@@ -217,9 +217,9 @@ appropriate default value if the property is not present.
 
 .. method:: Sgf_game.get_winner()
 
-   :rtype: colour
+   :rtype: *colour*
 
-   Returns the colour of the winning player.
+   Returns the *colour* of the winning player.
 
    Returns ``None`` if the ``RE`` root node property isn't present, or if
    neither player won.
@@ -233,6 +233,80 @@ appropriate default value if the property is not present.
 
    (|sgf| allows ``DT`` to be rather more complicated than a single date, so
    there's no corresponding get_date() method.)
+
+
+Tree_node objects
+^^^^^^^^^^^^^^^^^
+
+.. class:: Tree_node
+
+   A Tree_node object represents a single node from an |sgf| file.
+
+   Don't instantiate Tree_node objects directly; retrieve them from
+   :class:`Sgf_game` objects.
+
+   Tree_node objects have the following attributes (which should be treated as
+   read-only):
+
+   .. attribute:: owner
+
+      The :class:`Sgf_game` that the node belongs to.
+
+   .. attribute:: parent
+
+      The node's parent :class:`!Tree_node` (``None`` for the root node).
+
+
+A node holds a number of :dfn:`properties`. Each property is identified by a
+short string called the :dfn:`PropIdent`, eg ``"SZ"`` or ``"B"``. See
+(((FIXME))) for a list of the standard properties. See the :term:`SGF`
+specification for full details.
+
+The principal methods for accessing the node's properties are:
+
+.. method:: Tree_node.get(identifier)
+
+   Returns a native Python representation of the value of the property whose
+   *PropIdent* is *identifier*.
+
+   Raises :exc:`KeyError` if the property isn't present.
+
+   Raises :exc:`ValueError` if the property value is malformed.
+
+   See (((FIXME))) for details of how property values are represented in
+   Python. (((FIXME: also for details of list handling, range handling, ...)))
+
+.. method:: Tree_node.set(identifier, value)
+
+   Sets the value of the property whose *PropIdent* is *identifier*.
+
+   *value* should be a native Python representation of the required property
+   value (as returned by :func:`~get`).
+
+   Raises :exc:`ValueError` if it the property value isn't acceptable.
+
+   See (((FIXME))) for details.
+
+.. method:: Tree_node.unset(identifier)
+
+   Removes the property whose *PropIdent* is *indentifier* from the node.
+
+   Raises :exc:`KeyError` if the property isn't currently present.
+
+.. method:: Tree_node.has_property(identifier)
+
+   :rtype: bool
+
+   Checks whether the property whose *PropIdent* is *identifier* is present.
+
+.. method:: Tree_node.properties()
+
+   :rtype: list of strings
+
+   Lists the properties which are present in the node.
+
+   Returns a list of *PropIdents*, in unspecified order.
+
 
 
 
