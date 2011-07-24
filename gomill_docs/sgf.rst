@@ -67,7 +67,8 @@ To create a game from existing |sgf| data, use :func:`sgf_game_from_string`:
    encoding it specifies (no matter what the ``CA`` property says), and the
    ``CA`` property is changed to match.
 
-   Raises :exc:`ValueError` if it can't parse the string.
+   Raises :exc:`ValueError` if it can't parse the string, or if the ``SZ`` or
+   ``CA`` properties are unacceptable.
 
    .. todo:: Document details of parsing (elsewhere); see parse_sgf_game()
 
@@ -83,28 +84,77 @@ Sgf_games
 
 .. class:: Sgf_game
 
-   An Sgf_game object represents the information for a single |sgf| file (a
-   ``GameTree`` in the |sgf| spec).
+   An Sgf_game object represents the information for a single |sgf| file
+   (corresponding to a ``GameTree`` in the |sgf| spec).
 
    This is typically used to represent a single game, possibly with
    variations.
 
-   The complete game tree is represented using :class:`Tree_node` objects,
-   which are used to access the |sgf| properties.
+The complete game tree is represented using :class:`Tree_node` objects,
+which are used to access the |sgf| properties. An :class:`Sgf_game` always has
+at least one node, the :dfn:`root node`.
 
-
-The following methods provide access to the |sgf| nodes. They will always
-return the same :class:`Tree_node` object for the same node.
-
-.. method:: get_root()
+.. method:: Sgf_game.get_root()
 
    :rtype: :class:`Tree_node`
 
-   Return the root node of the game tree.
+   Returns the root node of the game tree.
 
    The root node contains global properties for the game tree, and typically
    also contains 'game-info' properties. It sometimes also contains 'setup'
    properties (for example, if the game does not begin with an empty board).
+
+
+The complete game tree can be accessed from the root node, but the following
+convenience methods are also provided. They return the same :class:`Tree_node`
+objects that would be reached via the root node.
+
+Some of the convenience methods are for accessing the :dfn:`leftmost`
+variation of the game tree. This is the variation which appears first in the
+|sgf| ``GameTree``, often shown in graphical editors as the topmost horizontal
+line of nodes. In a game tree without variations, the leftmost variation is
+just the whole game.
+
+
+.. method:: Sgf_game.get_last_node()
+
+   :rtype: :class:`Tree_node`
+
+   Returns the last (leaf) node in the leftmost variation.
+
+.. method:: Sgf_game.get_main_sequence()
+
+   :rtype: list of :class:`Tree_node` objects
+
+   Returns the complete leftmost variation. The first element is the root
+   node, and the last is a leaf.
+
+.. method:: Sgf_game.get_main_sequence_below(node)
+
+   :rtype: list of :class:`Tree_node` objects
+
+   Returns the leftmost variation beneath the :class:`Tree_node` *node*. The
+   first element is the first child of *node*, and the last is a leaf.
+
+   Note that this isn't necessarily part of the leftmost variation of the
+   game as a whole.
+
+.. method:: Sgf_game.get_main_sequence_above(node)
+
+   :rtype: list of :class:`Tree_node` objects
+
+   Returns the partial variation leading to the :class:`Tree_node` *node*. The
+   first element is the root node, and the last is the parent of *node*.
+
+.. method:: Sgf_game.extend_main_sequence()
+
+   :rtype: :class:`Tree_node`
+
+   Creates a new :class:`Tree_node`, adds it to the leftmost variation, and
+   returns it.
+
+   This is equivalent to
+   :meth:`~Sgf_game.get_last_node`\ .\ :meth:`~Tree_node.new_child`
 
 
 The following methods provide convenient access to some of the root node's
@@ -112,14 +162,14 @@ The following methods provide convenient access to some of the root node's
 :meth:`~Tree_node.get` on the root node is that these methods return the
 appropriate default value if the property is not present.
 
-.. method:: get_size()
+.. method:: Sgf_game.get_size()
 
    :rtype: integer
 
    Returns the board size (``19`` if the ``SZ`` root node property isn't
    present).
 
-.. method:: get_komi()
+.. method:: Sgf_game.get_komi()
 
    :rtype: float
 
@@ -129,7 +179,7 @@ appropriate default value if the property is not present.
    Raises :exc:`ValueError` if the ``KM`` root node property is present but
    malformed.
 
-.. method:: get_handicap()
+.. method:: Sgf_game.get_handicap()
 
    :rtype: integer or ``None``
 
@@ -140,14 +190,14 @@ appropriate default value if the property is not present.
 
    Raises :exc:`ValueError` if the ``HA`` property is otherwise malformed.
 
-.. method:: get_player_name(colour)
+.. method:: Sgf_game.get_player_name(colour)
 
    :rtype: string or ``None``
 
    Returns the name of the specified player, or ``None`` if the required
    ``PB`` or ``PW`` root node property isn't present.
 
-.. method:: get_winner()
+.. method:: Sgf_game.get_winner()
 
    :rtype: colour
 
@@ -156,7 +206,7 @@ appropriate default value if the property is not present.
    Returns ``None`` if the ``RE`` root node property isn't present, or if
    neither player won.
 
-.. method:: set_date([date])
+.. method:: Sgf_game.set_date([date])
 
    Sets the ``DT`` root node property, to a single date.
 
