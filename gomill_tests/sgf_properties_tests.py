@@ -278,24 +278,21 @@ def test_LB(tc):
 
 
 def test_coder_serialise(tc):
-    # FIXME: just define coder9 and coder19?
+    c9 = sgf_properties.Coder(9, "UTF-8")
+    c19 = sgf_properties.Coder(19, "UTF-8")
 
-    def sv(identifier, value, size):
-        coder = sgf_properties.Coder(size, "UTF-8")
-        return coder.serialise(identifier, value)
+    tc.assertEqual(c9.serialise('KO', True), [""])
+    tc.assertEqual(c9.serialise('SZ', 9), ["9"])
+    tc.assertEqual(c9.serialise('KM', 3.5), ["3.5"])
+    tc.assertEqual(c9.serialise('C', "foo\\:b]ar\n"), ["foo\\\\:b\\]ar\n"])
+    tc.assertEqual(c19.serialise('B', (1, 2)), ["cr"])
+    tc.assertEqual(c9.serialise('B', None), ["tt"])
+    tc.assertEqual(c19.serialise('AW', set([(17, 1), (18, 0)])),["aa", "bb"])
+    tc.assertEqual(c9.serialise('DD', [(1, 2), (3, 4)]), ["ch", "ef"])
+    tc.assertEqual(c9.serialise('DD', []), [""])
+    tc.assertRaisesRegexp(ValueError, "empty list", c9.serialise, 'CR', [])
+    tc.assertEqual(c9.serialise('AP', ("na:me", "2.3")), ["na\\:me:2.3"])
+    tc.assertEqual(c9.serialise('FG', (515, "th]is")), ["515:th\\]is"])
+    tc.assertEqual(c9.serialise('XX', "foo\\bar"), ["foo\\\\bar"])
 
-    tc.assertEqual(sv('KO', True, 9), [""])
-    tc.assertEqual(sv('SZ', 9, 9), ["9"])
-    tc.assertEqual(sv('KM', 3.5, 9), ["3.5"])
-    tc.assertEqual(sv('C', "foo\\:b]ar\n", 9), ["foo\\\\:b\\]ar\n"])
-    tc.assertEqual(sv('B', (1, 2), 19), ["cr"])
-    tc.assertEqual(sv('B', None, 9), ["tt"])
-    tc.assertEqual(sv('AW', set([(17, 1), (18, 0)]), 19), ["aa", "bb"])
-    tc.assertEqual(sv('DD', [(1, 2), (3, 4)], 9), ["ch", "ef"])
-    tc.assertEqual(sv('DD', [], 9), [""])
-    tc.assertRaisesRegexp(ValueError, "empty list", sv, 'CR', [], 9)
-    tc.assertEqual(sv('AP', ("na:me", "2.3"), 9), ["na\\:me:2.3"])
-    tc.assertEqual(sv('FG', (515, "th]is"), 9), ["515:th\\]is"])
-    tc.assertEqual(sv('XX', "foo\\bar", 9), ["foo\\\\bar"])
-
-    tc.assertRaises(ValueError, sv, 'B', (1, 9), 9)
+    tc.assertRaises(ValueError, c9.serialise, 'B', (1, 9))
