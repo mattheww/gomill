@@ -425,11 +425,11 @@ class Tree_node(Node):
 
 class _Root_tree_node(Tree_node):
     """Variant of Tree_node used for a game root."""
-    def __init__(self, owner):
+    def __init__(self, property_map, owner):
         self.owner = owner
         self.parent = None
         self._children = []
-        Node.__init__(self, {}, owner.presenter)
+        Node.__init__(self, property_map, owner.presenter)
 
 class Sgf_game(object):
     """An SGF game tree.
@@ -464,7 +464,7 @@ class Sgf_game(object):
 
     def __init__(self, size, encoding="UTF-8"):
         self._initialise_presenter(size, encoding)
-        self.root = _Root_tree_node(self)
+        self.root = _Root_tree_node({}, self)
         self.root.set_raw('FF', "4")
         self.root.set_raw('GM', "1")
         self.root.set_raw('SZ', str(size))
@@ -640,41 +640,37 @@ class Sgf_game(object):
         self.root.set('DT', date.strftime("%Y-%m-%d"))
 
 
-class _Root_tree_node_for_parsed_game(Tree_node):
+class _Unexpanded_root_tree_node(_Root_tree_node):
     """Variant of _Root_tree_node used for _Parsed_sgf_game."""
     def __init__(self, owner, game_tree):
-        self.owner = owner
-        self.parent = None
+        _Root_tree_node.__init__(self, game_tree.sequence[0], owner)
         self._game_tree = game_tree
-        self._children = None
-        Node.__init__(self, game_tree.sequence[0], owner.presenter)
 
-    def _ensure_expanded(self):
-        if self._children is None:
-            self._children = []
-            sgf_grammar.make_tree(
-                self._game_tree, self, Tree_node, Tree_node._add_child)
-            self._game_tree = None
+    def _expand(self):
+        sgf_grammar.make_tree(
+            self._game_tree, self, Tree_node, Tree_node._add_child)
+        delattr(self, '_game_tree')
+        self.__class__ = _Root_tree_node
 
     def children(self):
-        self._ensure_expanded()
-        return self._children[:]
+        self._expand()
+        return self.children()
 
     def __len__(self):
-        self._ensure_expanded()
-        return len(self._children)
+        self._expand()
+        return self.__len__()
 
     def __getitem__(self, key):
-        self._ensure_expanded()
-        return self._children[key]
+        self._expand()
+        return self.__getitem__(key)
 
     def index(self, child):
-        self._ensure_expanded()
-        return self._children.index(child)
+        self._expand()
+        return self.index(child)
 
     def new_child(self):
-        self._ensure_expanded()
-        return Tree_node.new_child(self)
+        self._expand()
+        return self.new_child()
 
     def _main_sequence_iter(self):
         presenter = self._presenter
@@ -712,14 +708,14 @@ class _Parsed_sgf_game(Sgf_game):
         else:
             encoding = override_encoding
         self._initialise_presenter(size, encoding)
-        self.root = _Root_tree_node_for_parsed_game(self, parsed_game)
+        self.root = _Unexpanded_root_tree_node(self, parsed_game)
         if override_encoding is not None:
             self.root.set_raw("CA", self.presenter.encoding)
 
     def main_sequence_iter(self):
-        if self.root._game_tree is None:
-            return self.get_main_sequence()
-        return self.root._main_sequence_iter()
+        if isinstance(self.root, _Unexpanded_root_tree_node):
+            return self.root._main_sequence_iter()
+        return self.get_main_sequence()
 
 def sgf_game_from_parsed_game_tree(parsed_game, override_encoding=None):
     """Create an SGF game from the parser output.
