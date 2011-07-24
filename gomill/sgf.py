@@ -640,7 +640,7 @@ class Sgf_game(object):
         self.root.set('DT', date.strftime("%Y-%m-%d"))
 
 
-class _Root_tree_node_for_game_tree(Tree_node):
+class _Root_tree_node_for_parsed_game(Tree_node):
     """Variant of _Root_tree_node used for _Parsed_sgf_game."""
     def __init__(self, owner, game_tree):
         self.owner = owner
@@ -712,7 +712,7 @@ class _Parsed_sgf_game(Sgf_game):
         else:
             encoding = override_encoding
         self._initialise_presenter(size, encoding)
-        self.root = _Root_tree_node_for_game_tree(self, parsed_game)
+        self.root = _Root_tree_node_for_parsed_game(self, parsed_game)
         if override_encoding is not None:
             self.root.set_raw("CA", self.presenter.encoding)
 
