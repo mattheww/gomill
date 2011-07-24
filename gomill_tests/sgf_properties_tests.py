@@ -277,6 +277,20 @@ def test_LB(tc):
         [((6, 0), "lbl"), ((6, 1), "lb]l2")])
 
 
+def test_coder_interpret(tc):
+    c9 = sgf_properties.Coder(9, "UTF-8")
+    c19 = sgf_properties.Coder(19, "UTF-8")
+    tc.assertEqual(c9.interpret('KO', [""]), True)
+    tc.assertEqual(c9.interpret('SZ', ["9"]), 9)
+    # not sure this is the behaviour we want
+    tc.assertEqual(c9.interpret('SZ', ["9", "blah"]), 9)
+    tc.assertEqual(c9.interpret('CR', ["ab", "cd"]), set([(5, 2), (7, 0)]))
+    tc.assertRaises(ValueError, c9.interpret, 'SZ', [])
+    tc.assertRaises(ValueError, c9.interpret, 'CR', [])
+    tc.assertEqual(c9.interpret('DD', [""]), set())
+    # all lists are treated like elists
+    tc.assertEqual(c9.interpret('CR', [""]), set())
+
 def test_coder_serialise(tc):
     c9 = sgf_properties.Coder(9, "UTF-8")
     c19 = sgf_properties.Coder(19, "UTF-8")

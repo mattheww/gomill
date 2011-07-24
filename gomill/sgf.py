@@ -26,7 +26,7 @@ class Node(object):
     __slots__ = ('_property_map', '_coder')
 
     def __init__(self, property_map, coder):
-        # Map identifier (PropIdent) -> list of raw values
+        # Map identifier (PropIdent) -> nonempty list of raw values
         self._property_map = property_map
         self._coder = coder
 
