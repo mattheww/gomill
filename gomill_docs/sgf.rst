@@ -50,7 +50,8 @@ initially set: :samp:`FF[4]`, :samp:`GM[1]`, :samp:`SZ[{size}]`, and
 :samp:`CA[{encoding}]`.
 
 
-To create a game from existing |sgf| data, use :func:`sgf_game_from_string`:
+To create a game from existing |sgf| data, use the
+:func:`!sgf_game_from_string` function:
 
 .. function:: sgf_game_from_string(s[, override_encoding=None])
 
@@ -79,20 +80,37 @@ To create a game from existing |sgf| data, use :func:`sgf_game_from_string`:
          override_encoding="iso8859-1")
 
 
-Sgf_games
-^^^^^^^^^
+|sgf| output
+^^^^^^^^^^^^
+
+To output data in |sgf| format, use the :func:`!serialise_sgf_game` function:
+
+.. function:: serialise_sgf_game(sgf_game)
+
+   :rtype: string
+
+   Produces the |sgf| representation of the data in the :class:`Sgf_game`
+   *sgf_game*.
+
+   Returns an 8-bit string, in the encoding specified by the ``CA`` root node
+   property (defaulting to ``"ISO-8859-1"``).
+
+
+
+Sgf_game objects
+^^^^^^^^^^^^^^^^
 
 .. class:: Sgf_game
 
-   An Sgf_game object represents the information for a single |sgf| file
+   An :class:`!Sgf_game` object represents the data for a single |sgf| file
    (corresponding to a ``GameTree`` in the |sgf| spec).
 
    This is typically used to represent a single game, possibly with
    variations.
 
-The complete game tree is represented using :class:`Tree_node` objects,
-which are used to access the |sgf| properties. An :class:`Sgf_game` always has
-at least one node, the :dfn:`root node`.
+The complete game tree is represented using :class:`Tree_node` objects, which
+are used to access the |sgf| properties. An :class:`!Sgf_game` always has at
+least one node, the :dfn:`root node`.
 
 .. method:: Sgf_game.get_root()
 
