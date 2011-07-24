@@ -440,6 +440,16 @@ class Sgf_game(object):
 
     'encoding' must be a valid Python codec name.
 
+    The following root node properties are initially set:
+      FF[4]
+      GM[1]
+      SZ[size]
+      CA[encoding]
+
+    Changing FF and GM is permitted (but this library will carry on using the
+    FF[4] and GM[1] rules). Changing SZ and CA is not allowed (unless the
+    change leaves the effective value unchanged).
+
     """
     def _initialise_presenter(self, size, encoding):
         # This is split out for the sake of _Parsed_sgf_game.__init__
