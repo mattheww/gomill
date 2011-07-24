@@ -551,7 +551,7 @@ _text_property_type = P['text']
 del P
 
 
-class Coder(_Context):
+class Presenter(_Context):
     """Convert property values between Python and SGF-string representations.
 
     Instantiate with:
@@ -632,7 +632,7 @@ class Coder(_Context):
         """Return a Python representation of a property value.
 
         identifier -- PropIdent
-        raw_values -- nonempty list of 8-bit strings in the coder's encoding
+        raw_values -- nonempty list of 8-bit strings in the presenter's encoding
 
         See the interpret_... functions above for details of how values are
         represented as Python types.
@@ -679,7 +679,7 @@ class Coder(_Context):
         identifier -- PropIdent
         value      -- corresponding Python value
 
-        Returns a nonempty list of 8-bit strings in the coder's encoding,
+        Returns a nonempty list of 8-bit strings in the presenter's encoding,
         suitable for use as raw PropValues.
 
         See the serialise_... functions above for details of the acceptable

@@ -14,7 +14,7 @@ class Node(object):
     """An SGF node.
 
     Instantiate with a raw property map (see sgf_grammar) and an
-    sgf_properties.Coder.
+    sgf_properties.Presenter.
 
     A Node doesn't belong to a particular game (cf Tree_node below), but it
     knows its board size (in order to interpret move values) and the encoding
@@ -23,16 +23,16 @@ class Node(object):
     Changing the SZ or CA property isn't allowed.
 
     """
-    __slots__ = ('_property_map', '_coder')
+    __slots__ = ('_property_map', '_presenter')
 
-    def __init__(self, property_map, coder):
+    def __init__(self, property_map, presenter):
         # Map identifier (PropIdent) -> nonempty list of raw values
         self._property_map = property_map
-        self._coder = coder
+        self._presenter = presenter
 
     def get_size(self):
         """Return the board size used to interpret property values."""
-        return self._coder.size
+        return self._presenter.size
 
     def get_encoding(self):
         """Return the encoding used for raw property values.
@@ -40,11 +40,11 @@ class Node(object):
         Returns a string (a valid Python codec name, eg "UTF-8").
 
         """
-        return self._coder.encoding
+        return self._presenter.encoding
 
-    def get_coder(self):
-        """Return the node's sgf_properties.Coder."""
-        return self._coder
+    def get_presenter(self):
+        """Return the node's sgf_properties.Presenter."""
+        return self._presenter
 
     def has_property(self, identifier):
         """Check whether the node has the specified property."""
@@ -105,14 +105,14 @@ class Node(object):
 
 
     def _set_raw_list(self, identifier, values):
-        if identifier == "SZ" and values != [str(self._coder.size)]:
+        if identifier == "SZ" and values != [str(self._presenter.size)]:
             raise ValueError("changing size is not permitted")
         if identifier == "CA":
             try:
                 s = sgf_properties.normalise_charset_name(values[0])
             except LookupError:
                 s = None
-            if len(values) != 1 or s != self._coder.encoding:
+            if len(values) != 1 or s != self._presenter.encoding:
                 raise ValueError("changing charset is not permitted")
         self._property_map[identifier] = values
 
@@ -122,9 +122,9 @@ class Node(object):
         Raises KeyError if the property isn't currently present.
 
         """
-        if identifier == "SZ" and self._coder.size != 19:
+        if identifier == "SZ" and self._presenter.size != 19:
             raise ValueError("changing size is not permitted")
-        if identifier == "CA" and self._coder.encoding != "ISO-8859-1":
+        if identifier == "CA" and self._presenter.encoding != "ISO-8859-1":
             raise ValueError("changing charset is not permitted")
         del self._property_map[identifier]
 
@@ -182,10 +182,11 @@ class Node(object):
 
         Raises ValueError if it cannot interpret the value.
 
-        See sgf_properties.Coder.interpret() for details.
+        See sgf_properties.Presenter.interpret() for details.
 
         """
-        return self._coder.interpret(identifier, self._property_map[identifier])
+        return self._presenter.interpret(
+            identifier, self._property_map[identifier])
 
     def set(self, identifier, value):
         """Set the value of the specified property.
@@ -197,10 +198,11 @@ class Node(object):
 
         Raises ValueError if it cannot represent the value.
 
-        See sgf_properties.Coder.serialise() for details.
+        See sgf_properties.Presenter.serialise() for details.
 
         """
-        self._set_raw_list(identifier, self._coder.serialise(identifier, value))
+        self._set_raw_list(
+            identifier, self._presenter.serialise(identifier, value))
 
     def get_raw_move(self):
         """Return the raw value of the move from a node.
@@ -238,7 +240,8 @@ class Node(object):
         colour, raw = self.get_raw_move()
         if colour is None:
             return None, None
-        return colour, sgf_properties.interpret_go_point(raw, self._coder.size)
+        return (colour,
+                sgf_properties.interpret_go_point(raw, self._presenter.size))
 
     def get_setup_stones(self):
         """Retrieve Add Black / Add White / Add Empty properties from a node.
@@ -350,7 +353,7 @@ class Tree_node(Node):
         self.owner = parent.owner
         self.parent = parent
         self._children = []
-        Node.__init__(self, properties, parent._coder)
+        Node.__init__(self, properties, parent._presenter)
 
     def children(self):
         """Return the children of this node.
@@ -426,7 +429,7 @@ class _Root_tree_node(Tree_node):
         self.owner = owner
         self.parent = None
         self._children = []
-        Node.__init__(self, {}, owner.coder)
+        Node.__init__(self, {}, owner.presenter)
 
 class Sgf_game(object):
     """An SGF game.
@@ -438,32 +441,32 @@ class Sgf_game(object):
     'encoding' must be a valid Python codec name.
 
     """
-    def _initialise_coder(self, size, encoding):
+    def _initialise_presenter(self, size, encoding):
         # This is split out for the sake of _Parsed_sgf_game.__init__
         if not 1 <= size <= 26:
             raise ValueError("size out of range: %s" % size)
         self.size = size
-        self.coder = sgf_properties.Coder(size, encoding)
+        self.presenter = sgf_properties.Presenter(size, encoding)
 
     def __init__(self, size, encoding="UTF-8"):
-        self._initialise_coder(size, encoding)
+        self._initialise_presenter(size, encoding)
         self.root = _Root_tree_node(self)
         self.root.set_raw('FF', "4")
         self.root.set_raw('GM', "1")
         self.root.set_raw('SZ', str(size))
         # Read the encoding back so we get the normalised form
-        self.root.set_raw('CA', self.coder.encoding)
+        self.root.set_raw('CA', self.presenter.encoding)
 
-    def get_property_coder(self):
-        """Return the property coder.
+    def get_property_presenter(self):
+        """Return the property presenter.
 
-        Returns an sgf_properties.Coder.
+        Returns an sgf_properties.Presenter.
 
         This can be used to customise how property values are interpreted and
         serialised.
 
         """
-        return self.coder
+        return self.presenter
 
     def get_root(self):
         """Return the root node (as a Tree_node)."""
@@ -622,7 +625,7 @@ class _Root_tree_node_for_game_tree(Tree_node):
         self.parent = None
         self._game_tree = game_tree
         self._children = None
-        Node.__init__(self, game_tree.sequence[0], owner.coder)
+        Node.__init__(self, game_tree.sequence[0], owner.presenter)
 
     def _ensure_expanded(self):
         if self._children is None:
@@ -652,9 +655,9 @@ class _Root_tree_node_for_game_tree(Tree_node):
         return Tree_node.new_child(self)
 
     def _main_sequence_iter(self):
-        coder = self._coder
+        presenter = self._presenter
         for properties in sgf_grammar.main_sequence_iter(self._game_tree):
-            yield Node(properties, coder)
+            yield Node(properties, presenter)
 
 class _Parsed_sgf_game(Sgf_game):
     """An Sgf_game which was loaded from serialised form.
@@ -686,10 +689,10 @@ class _Parsed_sgf_game(Sgf_game):
                 encoding = "ISO-8859-1"
         else:
             encoding = override_encoding
-        self._initialise_coder(size, encoding)
+        self._initialise_presenter(size, encoding)
         self.root = _Root_tree_node_for_game_tree(self, parsed_game)
         if override_encoding is not None:
-            self.root.set_raw("CA", self.coder.encoding)
+            self.root.set_raw("CA", self.presenter.encoding)
 
     def main_sequence_iter(self):
         if self.root._game_tree is None:
