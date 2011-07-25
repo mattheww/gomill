@@ -313,6 +313,57 @@ The principal methods for accessing the node's properties are:
    Returns a list of *PropIdents*, in unspecified order.
 
 
+The following convenience methods are also provided, for more flexible access
+to a few of the most important properties:
+
+.. method:: Tree_node.get_move()
+
+   :rtype: tuple (*colour*, *move*)
+
+   Indicates which of the the ``B`` or ``W`` properties is present, and
+   returns its value.
+
+   Returns (``None``, ``None``) if neither property is present.
+
+.. method:: Tree_node.set_move(colour, move)
+
+   Sets the ``B`` or ``W`` property. If either property is already present,
+   the old setting is removed.
+
+.. method:: Tree_node.get_setup_stones()
+
+   :rtype: tuple (*black_points*, *white_points*, *empty_points*)
+
+   Returns the settings of the ``AB``, ``AW``, and ``AE`` properties.
+
+   Each tuple element is a set of *coords*. If the corresponding property is
+   missing, the set is empty.
+
+.. method:: Tree_node.set_setup_stones(black_points, white_points[, empty_points])
+
+   Sets the ``AB``, ``AW``, and ``AE`` properties.
+
+   Each parameter should be a sequence or set of *coords*. If a parameter
+   value is empty (or, in the case of *empty_points*, if the parameter is
+   omitted) the corresponding property will be left unset.
+
+   If any of the properties is already present, the old setting is removed.
+
+.. method:: Tree_node.has_setup_stones()
+
+   :rtype: bool
+
+   Returns ``True`` if the ``AB``, ``AW``, or ``AE`` property is present.
+
+.. method:: Tree_node.add_comment_text(text)
+
+   If the ``C`` property isn't already present, adds it with the value given
+   by the string *text*.
+
+   Otherwise, appends *text* to the existing property value, preceded by two
+   newlines.
+
+
 The following methods are provided for manipulating the tree:
 
 .. method:: Tree_node.new_child()
