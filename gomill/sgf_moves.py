@@ -67,8 +67,6 @@ def indicate_first_player(sgf_game):
 
     """
     root = sgf_game.get_root()
-    if not root:
-        return
     first_player, move = root[0].get_move()
     if first_player is None:
         return
