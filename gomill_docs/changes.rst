@@ -15,8 +15,8 @@ return to the old behaviour.
 Gomill 0.6 (2011-02-13)
 -----------------------
 
-Playoff tournament :ref:`state files <competition state>` from gomill 0.5 are
-incompatible with gomill 0.6. Tuning event state files are compatible.
+Playoff tournament :ref:`state files <competition state>` from Gomill 0.5 are
+incompatible with Gomill 0.6. Tuning event state files are compatible.
 
 * Added :doc:`All-play-all <allplayalls>` tournament type.
 

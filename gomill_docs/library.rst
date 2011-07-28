@@ -24,8 +24,8 @@ Most of the :mod:`!tournament_results` module is documented under
 :doc:`tournament_results`.
 
 
-The gomill package
-------------------
+The :mod:`gomill` package
+-------------------------
 
 All Gomill code is in modules under the :mod:`gomill` package. The package
 itself defines only a single constant:
@@ -46,7 +46,7 @@ The following parts of the library are currently documented:
    :maxdepth: 3
    :titlesonly:
 
-   SGF support <sgf>
+   sgf
 
 
 Library overview

@@ -316,7 +316,7 @@ for any reason.
 The :action:`reset` command line action deletes **all** competition output
 files, including game records and the state file.
 
-State files written by one gomill release may not be accepted by other
+State files written by one Gomill release may not be accepted by other
 releases. See :doc:`changes` for details.
 
 .. caution:: If the ringmaster loads a state file written by a hostile party,

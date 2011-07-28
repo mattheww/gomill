@@ -2,10 +2,11 @@ SGF support
 -----------
 
 .. module:: gomill.sgf
+   :synopsis: High level SGF interface
 
 .. versionadded:: 0.7
 
-The :mod:`gomill.sgf` module is the main interface to gomill's |sgf| support.
+The :mod:`!gomill.sgf` module is the main interface to Gomill's |sgf| support.
 
 It is intended for use with |sgf| version FF[4], which is specified at
 http://www.red-bean.com/sgf/index.html.
@@ -219,7 +220,7 @@ appropriate default value if the property is not present.
 
    :rtype: *colour*
 
-   Returns the *colour* of the winning player.
+   Returns the colour of the winning player.
 
    Returns ``None`` if the ``RE`` root node property isn't present, or if
    neither player won.
@@ -261,6 +262,8 @@ Tree_node objects
    :meth:`~list.index` method. A :class:`!Tree_node` with no children is
    treated as having truth value false.
 
+
+.. rubric:: Property access
 
 Each node holds a number of :dfn:`properties`. Each property is identified by
 a short string called the :dfn:`PropIdent`, eg ``"SZ"`` or ``"B"``. See
@@ -313,6 +316,8 @@ The principal methods for accessing the node's properties are:
    Returns a list of *PropIdents*, in unspecified order.
 
 
+.. rubric:: Convenience methods for properties
+
 The following convenience methods are also provided, for more flexible access
 to a few of the most important properties:
 
@@ -363,6 +368,8 @@ to a few of the most important properties:
    Otherwise, appends *text* to the existing property value, preceded by two
    newlines.
 
+
+.. rubric:: Tree manipulation
 
 The following methods are provided for manipulating the tree:
 
