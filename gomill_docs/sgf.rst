@@ -267,8 +267,8 @@ Tree_node objects
 
 Each node holds a number of :dfn:`properties`. Each property is identified by
 a short string called the :dfn:`PropIdent`, eg ``"SZ"`` or ``"B"``. See
-(((FIXME))) for a list of the standard properties. See the :term:`SGF`
-specification for full details.
+:ref:`sgf_property_list` below for a list of the standard properties. See the
+:term:`SGF` specification for full details.
 
 The principal methods for accessing the node's properties are:
 
@@ -281,8 +281,8 @@ The principal methods for accessing the node's properties are:
 
    Raises :exc:`ValueError` if the property value is malformed.
 
-   See (((FIXME))) for details of how property values are represented in
-   Python. (((FIXME: also for details of list handling, range handling, ...)))
+   See :ref:`sgf_property_types` below for details of how property values are
+   represented in Python.
 
 .. method:: Tree_node.set(identifier, value)
 
@@ -293,7 +293,8 @@ The principal methods for accessing the node's properties are:
 
    Raises :exc:`ValueError` if it the property value isn't acceptable.
 
-   See (((FIXME))) for details.
+   See :ref:`sgf_property_types` below for details of how property values
+   should be represented in Python.
 
 .. method:: Tree_node.unset(identifier)
 
@@ -332,8 +333,8 @@ to a few of the most important properties:
 
 .. method:: Tree_node.set_move(colour, move)
 
-   Sets the ``B`` or ``W`` property. If either property is already present,
-   the old setting is removed.
+   Sets the ``B`` or ``W`` property. If the other property is currently
+   present, it is removed.
 
 .. method:: Tree_node.get_setup_stones()
 
@@ -350,9 +351,7 @@ to a few of the most important properties:
 
    Each parameter should be a sequence or set of *coords*. If a parameter
    value is empty (or, in the case of *empty_points*, if the parameter is
-   omitted) the corresponding property will be left unset.
-
-   If any of the properties is already present, the old setting is removed.
+   omitted) the corresponding property will be unset.
 
 .. method:: Tree_node.has_setup_stones()
 
@@ -365,8 +364,8 @@ to a few of the most important properties:
    If the ``C`` property isn't already present, adds it with the value given
    by the string *text*.
 
-   Otherwise, appends *text* to the existing property value, preceded by two
-   newlines.
+   Otherwise, appends *text* to the existing ``C`` property value, preceded by
+   two newlines.
 
 
 .. rubric:: Tree manipulation
@@ -391,12 +390,17 @@ The following methods are provided for manipulating the tree:
    You should not continue to use a node which has been removed from its tree.
 
 
+
+.. _sgf_property_types:
+
 Property types
 ^^^^^^^^^^^^^^
 
-(((blah blah)))
+The :func:`~Tree_node.get` and :func:`~Tree_node.set` node methods convert
+between raw |SGF| property values and suitable native Python types.
 
-Summary of how |SGF| property types are represented as Python values:
+The following table shows how |SGF| property types are represented as Python
+values:
 
 =========== ========================
 |SGF| type   Python representation
@@ -419,6 +423,10 @@ Gomill does not distinguish the Point, Move, and Stone types.
 
 .. todo:: special-case for FG (and AP?). example for LB, say?
 
+.. todo:: examples
+
+
+.. _sgf_property_list:
 
 Property list
 ^^^^^^^^^^^^^
