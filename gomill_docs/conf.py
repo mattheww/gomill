@@ -12,7 +12,7 @@ version = '0.6'
 release = '0.6'
 unused_docs = []
 exclude_dirnames = ['.git']
-pygments_style = 'borland'
+pygments_style = 'vs'
 modindex_common_prefix = ['gomill.']
 
 html_theme = 'default'
