@@ -24,14 +24,14 @@ Example
   >>> g = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9];B[ee];W[ge])")
   >>> g.get_size()
   9
-  >>> root = g.get_root()
-  >>> root.get("SZ")
+  >>> root_node = g.get_root()
+  >>> root_node.get("SZ")
   9
-  >>> root.get_raw("SZ")
+  >>> root_node.get_raw("SZ")
   '9'
-  >>> root.set("RE", "B+R")
-  >>> node = g.extend_main_sequence()
-  >>> node.set_move("b", (2, 3))
+  >>> root_node.set("RE", "B+R")
+  >>> new_node = g.extend_main_sequence()
+  >>> new_node.set_move("b", (2, 3))
   >>> [node.get_move() for node in g.get_main_sequence()]
   [(None, None), ('b', (4, 4)), ('w', (4, 6)), ('b', (2, 3))]
   >>> sgf.serialise_sgf_game(g)
