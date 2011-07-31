@@ -55,13 +55,14 @@ coordinates in the same coordinate system used for a *point*.
    Carries out any captures which follow from the placement, including
    self-captures.
 
-   This method doesn't enforce any :term:`ko <simple ko>` rule.
+   This method doesn't enforce any ko rule.
 
    The return value indicates whether, immediately following this move, any
    point would be forbidden by the :term:`simple ko` rule. If so, that point
    is returned; otherwise the return value is ``None``.
 
 
+The other :class:`!Board` methods are:
 
 .. method:: Board.is_empty()
 
@@ -70,3 +71,43 @@ coordinates in the same coordinate system used for a *point*.
    Returns ``True`` if all points on the board are empty.
 
 
+.. method:: Board.area_score()
+
+   :rtype: int
+
+   Calculates the area score of a position, assuming that all stones are
+   alive. The result is the number of points controlled (occupied or
+   surrounded) by Black minus the number of points controlled by White.
+
+   Doesn't take any :term:`komi` into account.
+
+
+.. method:: Board.list_occupied_points()
+
+   :rtype: list of pairs (*colour*, *point*)
+
+   Returns a list of all nonempty points, in unspecified order.
+
+
+.. method:: Board.copy()
+
+   :rtype: :class:`!Board`
+
+   Returns an independent copy of this Board.
+
+.. method:: Board.apply_setup(black_points, white_points, empty_points)
+
+   :rtype: bool
+
+   Adds and/or removes stones on arbitrary points. This is intended to support
+   behaviour like |SGF| ``AB``/``AW``/``AE`` properties.
+
+   Each parameter is an iterable of *points*.
+
+   This method applies all the specified additions and removals, then removes
+   any groups with no liberties (so the resulting position is always legal).
+
+   If the same point is specified in more than one list, the order in which
+   the instructions are applied is undefined.
+
+   Returns ``True`` if the position was legal as specified.
