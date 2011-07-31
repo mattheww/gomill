@@ -57,11 +57,11 @@ directly:
 
    The *size* parameter is an integer from 1 to 26, indicating the board size.
 
-   The optional *encoding* parameter FIXME ((( say it's a string, valid Python
-   codec name, link to encoding stuff ))).
+   The optional *encoding* parameter specifies the :ref:`raw property encoding
+   <raw_property_encoding>` to use for the game.
 
-When a game is created this way, the following root node properties are
-initially set: :samp:`FF[4]`, :samp:`GM[1]`, :samp:`SZ[{size}]`, and
+When a game is created this way, the following root properties are initially
+set: :samp:`FF[4]`, :samp:`GM[1]`, :samp:`SZ[{size}]`, and
 :samp:`CA[{encoding}]`.
 
 
@@ -75,13 +75,13 @@ To create a game from existing |sgf| data, use the
    Creates an :class:`Sgf_game` from the |sgf| data in *s*, which must be an
    8-bit string.
 
-   The board size and raw property encoding are taken from the ``SZ`` and
-   ``CA`` properties in the root node (defaulting to ``19`` and
-   ``"ISO-8859-1"``, respectively).
+   The board size and :ref:`raw property encoding <raw_property_encoding>` are
+   taken from the ``SZ`` and ``CA`` properties in the root node (defaulting to
+   ``19`` and ``"ISO-8859-1"``, respectively).
 
    If *override_encoding* is present, the source data is assumed to be in the
    encoding it specifies (no matter what the ``CA`` property says), and the
-   ``CA`` property is changed to match.
+   ``CA`` property and raw property encoding are changed to match.
 
    Raises :exc:`ValueError` if it can't parse the string, or if the ``SZ`` or
    ``CA`` properties are unacceptable.
@@ -107,7 +107,7 @@ To output data in |sgf| format, use the :func:`!serialise_sgf_game` function:
    Produces the |sgf| representation of the data in the :class:`Sgf_game`
    *sgf_game*.
 
-   Returns an 8-bit string, in the encoding specified by the ``CA`` root node
+   Returns an 8-bit string, in the encoding specified by the ``CA`` root
    property (defaulting to ``"ISO-8859-1"``).
 
 
@@ -199,17 +199,16 @@ appropriate default value if the property is not present.
 
    :rtype: integer
 
-   Returns the board size (``19`` if the ``SZ`` root node property isn't
-   present).
+   Returns the board size (``19`` if the ``SZ`` root property isn't present).
 
 .. method:: Sgf_game.get_komi()
 
    :rtype: float
 
-   Returns the :term:`komi` (``0.0`` if the ``KM`` root node property isn't
+   Returns the :term:`komi` (``0.0`` if the ``KM`` root property isn't
    present).
 
-   Raises :exc:`ValueError` if the ``KM`` root node property is present but
+   Raises :exc:`ValueError` if the ``KM`` root property is present but
    malformed.
 
 .. method:: Sgf_game.get_handicap()
@@ -218,8 +217,8 @@ appropriate default value if the property is not present.
 
    Returns the number of handicap stones.
 
-   Returns ``None`` if the ``HA`` root node property isn't present, or if it
-   has (illegal) value zero.
+   Returns ``None`` if the ``HA`` root property isn't present, or if it has
+   (illegal) value zero.
 
    Raises :exc:`ValueError` if the ``HA`` property is otherwise malformed.
 
@@ -228,7 +227,7 @@ appropriate default value if the property is not present.
    :rtype: string or ``None``
 
    Returns the name of the specified player, or ``None`` if the required
-   ``PB`` or ``PW`` root node property isn't present.
+   ``PB`` or ``PW`` root property isn't present.
 
 .. method:: Sgf_game.get_winner()
 
@@ -236,12 +235,12 @@ appropriate default value if the property is not present.
 
    Returns the colour of the winning player.
 
-   Returns ``None`` if the ``RE`` root node property isn't present, or if
-   neither player won.
+   Returns ``None`` if the ``RE`` root property isn't present, or if neither
+   player won.
 
 .. method:: Sgf_game.set_date([date])
 
-   Sets the ``DT`` root node property, to a single date.
+   Sets the ``DT`` root property, to a single date.
 
    If *date* is specified, it should be a :class:`datetime.date`. Otherwise
    the current date is used.
@@ -429,7 +428,7 @@ Text         8-bit UTF-8 string
 Point        *move*
 =========== ========================
 
-Gomill does not distinguish the Point, Move, and Stone types.
+Gomill does not distinguish the Point, Move, and Stone |sgf| property types.
 
 .. todo:: list, elist
 
@@ -438,6 +437,8 @@ Gomill does not distinguish the Point, Move, and Stone types.
 .. todo:: special-case for FG (and AP?). example for LB, say?
 
 .. todo:: examples
+
+.. todo:: private properties
 
 
 .. _sgf_property_list:
@@ -520,12 +521,48 @@ Gomill knows the types of the following |sgf| properties:
 ======  ==========================  ===================
 
 
-
+.. _raw_property_encoding:
 
 Character encoding handling
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. todo:: Character encoding support; define 'raw property encoding'
+The |sgf| format is defined as containing ASCII-encoded data, possibly with
+non-ASCII characters in Text and SimpleText property values. The functions for
+loading and serialising |sgf| data work with 8-bit Python strings.
+
+The encoding used for Text and SimpleText property values is given by the
+``CA`` root property (if it isn't present, the encoding is ``ISO-8859-1``).
+
+In order for an encoding to be used in Gomill, it must exist as a Python
+built-in codec, and it must be compatible with ASCII (at least whitespace,
+``\``, ``]``, and ``:`` must be in the usual places). Behaviour is unspecified
+if a non-ASCII-compatible encoding is requested.
+
+When encodings are passed as parameters (or returned from functions), and when
+they appear in the ``CA`` property, they are represented using the names or
+aliases of Python built-in codecs (eg ``"UTF-8"`` or ``"ISO-8859-1"``). See
+`standard encodings`__ for a list.
+
+  .. __: http://docs.python.org/release/2.7/library/codecs.html#standard-encodings
+
+.. todo:: mention encoding name normalisation?
+
+Each :class:`~gomill.sgf.Sgf_game` and :class:`~gomill.sgf.Tree_node` has a
+fixed :dfn:`raw property encoding`, which is the encoding used internally to
+store the property values. The :meth:`Tree_node.get_raw` and
+:meth:`Tree_node.set_raw` methods use the raw property encoding.
+
+When an |sgf| game is loaded from a file, the raw property encoding is
+normally the original file encoding.
+
+When an |sgf| game is serialised to a string, the raw property encoding is
+used.
+
+:class:`~gomill.sgf.Sgf_game` enforces the constraint that the ``CA`` root
+property corresponds to the raw property encoding (if the encoding is
+``ISO-8859-1``, then the property may be absent).
+
+
 
 
 The :mod:`~!gomill.sgf_moves` module
