@@ -1,5 +1,5 @@
-The :mod:`gomill_commmon` module
---------------------------------
+The :mod:`~gomill.gomill_common` module
+---------------------------------------
 
 .. module:: gomill.gomill_common
    :synopsis: Go-related utility functions
