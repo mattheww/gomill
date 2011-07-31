@@ -30,7 +30,7 @@ class _Region(object):
         self.neighbouring_colours = set()
 
 class Board(object):
-    """State of a go board.
+    """A legal Go position.
 
     Supports playing stones with captures, and area scoring.
 
