@@ -24,4 +24,5 @@ can be used.
    gomill_package
    library_overview
    sgf
+   gomill_common
 

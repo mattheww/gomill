@@ -47,7 +47,7 @@ library documentation (in particular, when describing parameters and return
 types).
 
 *colour* values are used to represent players, as well as stones on the board.
-(When it is also necessary to represent an empty point, ``None`` is used.)
+(When a way to represent an empty point is needed, ``None`` is used.)
 
 *point* values are treated as (row, column), with the bottom left as
 ``(0, 0)``. This is the orientation used in |GTP| (but not |SGF|). So the
@@ -66,4 +66,7 @@ coordinates for a 9x9 board are as follows::
 
 There are functions in :mod:`~gomill.gomill_common` to convert between these
 coordinates and the conventional (``T19``\ -style) notation.
+
+Gomill is designed to work with square boards, up to 25x25 (which is the upper
+limit of the conventional notation, and the upper limit for |GTP|).
 
