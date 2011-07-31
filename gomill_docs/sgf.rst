@@ -330,6 +330,26 @@ The principal methods for accessing the node's properties are:
    Returns a list of *PropIdents*, in unspecified order.
 
 
+.. rubric:: Board size and raw property encoding
+
+Each :class:`!Tree_node` knows its game's board size, and its :ref:`raw
+property encoding <raw_property_encoding>` (because these are needed to
+interpret property values). They can be retrieved using the following methods
+(and they cannot be changed):
+
+.. method:: Tree_node.get_size()
+
+   :rtype: int
+
+.. method:: Tree_node.get_encoding()
+
+   :rtype: string
+
+An attempt to change the value of the ``SZ`` or ``CA`` property so that it
+doesn't match these values will raise :exc:`Valuerror` (even if the node isn't
+the root).
+
+
 .. rubric:: Convenience methods for properties
 
 The following convenience methods are also provided, for more flexible access
