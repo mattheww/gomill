@@ -6,19 +6,18 @@ The :mod:`~gomill.boards` module
 
 The :mod:`!gomill.boards` module contains Gomill's Go board representation.
 
-.. todo:: explain it's not at all designed for performance, even as Python
-   code goes, and certainly not for implementing a playing engine.
+The implementation is not designed for speed (even as Python code goes), and
+is certainly not appropriate for implementing a playing engine.
 
-The behaviour of functions in this module is unspecified if they are passed
-out-of-range coordinates.
+The module contains a single class:
 
 
 .. class:: Board(side)
 
-   A :class:`!Board` object represents a position on a Go board.
+   A :class:`!Board` object represents a legal position on a Go board.
 
    Instantiate with the board size, as an int >= 1. Only square boards are
-   supported.
+   supported. The board is initially empty.
 
    Board objects do not maintain any history information.
 
@@ -35,8 +34,12 @@ out-of-range coordinates.
 
 
 The principal :class:`!Board` methods are :meth:`~!Board.get` and
-:meth:`~!Board.play`. Their *row* and *col* parameters should be ints giving
-coordinates in the same coordinate system used for a *point*.
+:meth:`~!Board.play`. Their *row* and *col* parameters should be ints
+representing coordinates in the :ref:`system <go_related_data_representation>`
+used for a *point*.
+
+The behaviour of :class:`!Board` methods is unspecified if they are passed
+out-of-range coordinates.
 
 .. method:: Board.get(row, col)
 
@@ -70,6 +73,11 @@ The other :class:`!Board` methods are:
 
    Returns ``True`` if all points on the board are empty.
 
+.. method:: Board.list_occupied_points()
+
+   :rtype: list of pairs (*colour*, *point*)
+
+   Returns a list of all nonempty points, in unspecified order.
 
 .. method:: Board.area_score()
 
@@ -81,19 +89,11 @@ The other :class:`!Board` methods are:
 
    Doesn't take any :term:`komi` into account.
 
-
-.. method:: Board.list_occupied_points()
-
-   :rtype: list of pairs (*colour*, *point*)
-
-   Returns a list of all nonempty points, in unspecified order.
-
-
 .. method:: Board.copy()
 
    :rtype: :class:`!Board`
 
-   Returns an independent copy of this Board.
+   Returns an independent copy of the board.
 
 .. method:: Board.apply_setup(black_points, white_points, empty_points)
 

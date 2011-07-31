@@ -29,6 +29,8 @@ Generic data representation
 Unless otherwise stated, *string* values are 8-bit UTF-8 strings.
 
 
+.. _go_related_data_representation:
+
 Go-related data representation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
