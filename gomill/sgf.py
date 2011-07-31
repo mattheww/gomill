@@ -61,7 +61,7 @@ class Node(object):
     def get_raw_list(self, identifier):
         """Return the raw values of the specified property.
 
-        Returns a list of 8-bit strings, in the raw property encoding.
+        Returns a nonempty list of 8-bit strings, in the raw property encoding.
 
         The strings contain the exact bytes that go between the square brackets
         (without interpreting escapes or performing any whitespace conversion).

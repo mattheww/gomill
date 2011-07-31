@@ -84,7 +84,8 @@ To create a game from existing |sgf| data, use the
    ``CA`` property and raw property encoding are changed to match.
 
    Raises :exc:`ValueError` if it can't parse the string, or if the ``SZ`` or
-   ``CA`` properties are unacceptable.
+   ``CA`` properties are unacceptable. No error is reported for other
+   malformed property values.
 
    .. todo:: Document details of parsing (elsewhere); see parse_sgf_game()
 
@@ -401,6 +402,72 @@ to a few of the most important properties:
    two newlines.
 
 
+.. rubric:: Access to raw property values
+
+Raw property values are 8-bit strings, containing the exact bytes that go
+between the ``[`` and ``]`` in the |SGF| file. They should be treated as being
+encoded in the node's :ref:`raw property encoding <raw_property_encoding>`
+(but there is no guarantee that they hold properly encoded data).
+
+The following methods are provided for access to raw property values. They can
+be used to access malformed values, or to avoid the standard escape processing
+and whitespace conversion for Text and SimpleText values.
+
+When setting raw property values, any string that is a well formed |sgf|
+*PropValue* is accepted: that is, any string that that doesn't contain an
+unescaped ``]`` or end with an unescaped ``\``. There is no check that the
+string is properly encoded in the raw property encoding.
+
+.. method:: Tree_node.get_raw_list(identifier)
+
+   :rtype: nonempty list of 8-bit strings
+
+   Returns the raw values of the property whose *PropIdent* is *identifier*.
+
+   Raises :exc:`KeyError` if the property isn't currently present.
+
+   If the property value is an empty elist, returns a list containing a single
+   empty string.
+
+.. method:: Tree_node.get_raw(identifier)
+
+   :rtype: 8-bit string
+
+   Returns the raw value of the property whose *PropIdent* is *identifier*.
+
+   Raises :exc:`KeyError` if the property isn't currently present.
+
+   If the property has multiple `PropValue`\ s, returns the first. If the
+   property value is an empty elist, returns an empty string.
+
+.. method:: Tree_node.get_raw_property_map(identifier)
+
+   :rtype: dict: string → list of 8-bit strings
+
+   Returns a dict mapping property identifiers to lists of raw values.
+
+   Returns the same dict object each time it's called.
+
+   Treat the returned dict object as read-only.
+
+.. method:: Tree_node.set_raw_list(identifier, values)
+
+   Sets the raw values of the property whose *PropIdent* is *identifier*.
+
+   *values* must be a nonempty list of 8-bit strings. To specify an empty
+   elist, pass a list containing a single empty string.
+
+   Raises :exc:`ValueError` if the identifier isn't a well-formed *PropIdent*,
+   or if any value isn't a well-formed *PropValue*.
+
+.. method:: Tree_node.set_raw(identifier, value)
+
+   Sets the raw value of the property whose *PropIdent* is *identifier*.
+
+   Raises :exc:`ValueError` if the identifier isn't a well-formed *PropIdent*,
+   or if the value isn't a well-formed *PropValue*.
+
+
 .. rubric:: Tree manipulation
 
 The following methods are provided for manipulating the tree:
@@ -573,7 +640,10 @@ store the property values. The :meth:`Tree_node.get_raw` and
 :meth:`Tree_node.set_raw` methods use the raw property encoding.
 
 When an |sgf| game is loaded from a file, the raw property encoding is
-normally the original file encoding.
+normally the original file encoding. Improperly encoded property values will
+not be detected until they are accessed (:meth:`~Tree_node.get` will raise
+:exc:`ValueError`; use :meth:`~Tree_node.get_raw` to retrieve the actual
+bytes).
 
 When an |sgf| game is serialised to a string, the raw property encoding is
 used.
