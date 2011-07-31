@@ -2,7 +2,7 @@ The :mod:`~gomill.boards` module
 --------------------------------
 
 .. module:: gomill.boards
-   :synopsis: Go board representation
+   :synopsis: Go board representation.
 
 The :mod:`!gomill.boards` module contains Gomill's Go board representation.
 
@@ -100,7 +100,7 @@ The other :class:`!Board` methods are:
    :rtype: bool
 
    Adds and/or removes stones on arbitrary points. This is intended to support
-   behaviour like |SGF| ``AB``/``AW``/``AE`` properties.
+   behaviour like |sgf| ``AB``/``AW``/``AE`` properties.
 
    Each parameter is an iterable of *points*.
 

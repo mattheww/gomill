@@ -210,7 +210,7 @@ recognise the ``claim`` keyword.
 You must also set :setting:`allow_claim` ``True`` in the :setting-cls:`Player`
 definition for this mechanism to be used.
 
-The |SGF| result of a claimed game will simply be ``B+`` or ``W+``.
+The |sgf| result of a claimed game will simply be ``B+`` or ``W+``.
 
 
 .. _startup checks:
@@ -289,9 +289,9 @@ The full set of files that may be present in the competition directory is:
 :file:`{code}.hist`     the :ref:`history file <logging>`
 :file:`{code}.report`   the :ref:`report file <competition report file>`
 :file:`{code}.cmd`      the :ref:`remote control file <remote control file>`
-:file:`{code}.games/`   |SGF| :ref:`game records <game records>`
-:file:`{code}.void/`    |SGF| game records for :ref:`void games <void games>`
-:file:`{code}.gtplogs/` |GTP| logs
+:file:`{code}.games/`   |sgf| :ref:`game records <game records>`
+:file:`{code}.void/`    |sgf| game records for :ref:`void games <void games>`
+:file:`{code}.gtplogs/` |gtp| logs
                         (from :option:`--log-gtp <ringmaster --log-gtp>`)
 ======================= =======================================================
 

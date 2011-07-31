@@ -179,11 +179,11 @@ terminal and report output in UTF-8.
 
 Non-ASCII characters in the control file must be encoded in UTF-8.
 
-|GTP| engines may return UTF-8 characters in in response to :gtp:`!name`,
+|gtp| engines may return UTF-8 characters in in response to :gtp:`!name`,
 :gtp:`!version`, :gtp:`gomill-describe_engine`, or
 :gtp:`gomill-explain_last_move`.
 
-In practice, non-ASCII characters from |GTP| engines will normally be passed
+In practice, non-ASCII characters from |gtp| engines will normally be passed
 through untranslated, so if you have a non-UTF-8 environment things will
 probably work reasonably (if your terminal uses the same encoding).
 

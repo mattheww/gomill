@@ -2,14 +2,16 @@ SGF support
 -----------
 
 .. module:: gomill.sgf
-   :synopsis: High level SGF interface
+   :synopsis: High level SGF interface.
 
 .. versionadded:: 0.7
 
-The :mod:`!gomill.sgf` module is the main interface to Gomill's |sgf| support.
+The :mod:`gomill.sgf` module is the main interface to Gomill's |sgf| support.
+The :mod:`gomill.sgf_moves` module contains some higher-level functions for
+processing moves and positions.
 
-It is intended for use with |sgf| version FF[4], which is specified at
-http://www.red-bean.com/sgf/index.html.
+These modules are intended for use with |sgf| version FF[4], which is
+specified at http://www.red-bean.com/sgf/index.html.
 
 .. contents:: Page contents
    :local:
@@ -406,13 +408,13 @@ Property types
 ^^^^^^^^^^^^^^
 
 The :func:`~Tree_node.get` and :func:`~Tree_node.set` node methods convert
-between raw |SGF| property values and suitable native Python types.
+between raw |sgf| property values and suitable native Python types.
 
-The following table shows how |SGF| property types are represented as Python
+The following table shows how |sgf| property types are represented as Python
 values:
 
 =========== ========================
-|SGF| type   Python representation
+|sgf| type   Python representation
 =========== ========================
 None         ``True``
 Number       int
@@ -440,10 +442,10 @@ Gomill does not distinguish the Point, Move, and Stone types.
 Property list
 ^^^^^^^^^^^^^
 
-Gomill knows the types of the following |SGF| properties:
+Gomill knows the types of the following |sgf| properties:
 
 ======  ==========================  ===================
-  Id     |SGF| type                  Meaning
+  Id     |sgf| type                  Meaning
 ======  ==========================  ===================
 ``AB``  list of Point               Add Black
 ``AE``  list of Point               Add Empty

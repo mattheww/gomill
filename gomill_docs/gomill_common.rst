@@ -2,7 +2,7 @@ The :mod:`~gomill.gomill_common` module
 ---------------------------------------
 
 .. module:: gomill.gomill_common
-   :synopsis: Go-related utility functions
+   :synopsis: Go-related utility functions.
 
 The :mod:`!gomill.gomill_common` module provides Go-related utility functions,
 used throughout Gomill.

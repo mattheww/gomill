@@ -43,21 +43,21 @@ Glossary
 
 
   controller
-    A program implementing the 'referee' side of the |GTP| protocol.
+    A program implementing the 'referee' side of the |gtp| protocol.
 
-    The |GTP| protocol can be seen as a client-server protocol, with the
+    The |gtp| protocol can be seen as a client-server protocol, with the
     controller as the client.
 
 
   engine
-    A program implementing the 'playing' side of the |GTP| protocol.
+    A program implementing the 'playing' side of the |gtp| protocol.
 
-    The |GTP| protocol can be seen as a client-server protocol, with the
+    The |gtp| protocol can be seen as a client-server protocol, with the
     engine as the server.
 
 
   player
-    A |GTP| engine, together with a particular configuration.
+    A |gtp| engine, together with a particular configuration.
 
 
   competition
