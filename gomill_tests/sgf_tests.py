@@ -349,6 +349,12 @@ def test_parsed_sgf_game_encoding(tc):
     (;FF[4]C[\xa3]CA[utf-8]GM[1]SZ[19])
     """))
 
+    tc.assertRaisesRegexp(
+        ValueError, "unknown encoding: unknownencoding",
+        sgf.sgf_game_from_string, """
+        (;FF[4]CA[unknownencoding]GM[1]SZ[19])
+        """)
+
 def test_override_encoding(tc):
     g1 = sgf.sgf_game_from_string("""
     (;FF[4]C[£]CA[iso-8859-1]GM[1]SZ[19])
