@@ -48,9 +48,9 @@ def format_vertex(coords):
     row, col = coords
     return column_letters[col] + str(row+1)
 
-def format_vertex_list(l):
+def format_vertex_list(moves):
     """Return a list of coordinates as a string like 'A1,B2'."""
-    return ",".join(map(format_vertex, l))
+    return ",".join(map(format_vertex, moves))
 
 def coords_from_vertex(vertex, board_size):
     """Interpret a string representing a vertex, as specified by GTP.
