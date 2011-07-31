@@ -3,7 +3,7 @@
 from gomill.gomill_common import *
 
 
-class Group(object):
+class _Group(object):
     """Represent a solidly-connected group.
 
     Public attributes:
@@ -15,7 +15,7 @@ class Group(object):
 
     """
 
-class Region(object):
+class _Region(object):
     """Represent an empty region.
 
     Public attributes:
@@ -76,7 +76,7 @@ class Board(object):
                 elif neigh_colour == colour:
                     if coords not in points:
                         to_handle.add(coords)
-        group = Group()
+        group = _Group()
         group.colour = colour
         group.points = points
         group.is_surrounded = is_surrounded
@@ -101,7 +101,7 @@ class Board(object):
                         to_handle.add(coords)
                 else:
                     neighbouring_colours.add(neigh_colour)
-        region = Region()
+        region = _Region()
         region.points = points
         region.neighbouring_colours = neighbouring_colours
         return region
@@ -109,7 +109,7 @@ class Board(object):
     def _find_surrounded_groups(self):
         """Find solidly-connected groups with 0 liberties.
 
-        Returns a list of Groups.
+        Returns a list of _Groups.
 
         """
         surrounded = []
