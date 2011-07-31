@@ -26,7 +26,7 @@ The :mod:`gomill` package includes the following modules:
 - :mod:`~!gomill.sgf_grammar`
 - :mod:`~!gomill.sgf_properties`
 - :mod:`~gomill.sgf`
-- :mod:`~!gomill.sgf_moves`
+- :mod:`~gomill.sgf_moves`
 
 
 .. rubric:: |gtp| controller side

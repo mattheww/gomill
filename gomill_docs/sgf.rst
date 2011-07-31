@@ -7,8 +7,11 @@ SGF support
 .. versionadded:: 0.7
 
 The :mod:`gomill.sgf` module is the main interface to Gomill's |sgf| support.
+This module is independent of the rest of Gomill.
+
 The :mod:`gomill.sgf_moves` module contains some higher-level functions for
-processing moves and positions.
+processing moves and positions, and provides a link to the
+:mod:`~gomill.boards` module.
 
 These modules are intended for use with |sgf| version FF[4], which is
 specified at http://www.red-bean.com/sgf/index.html.
@@ -523,4 +526,50 @@ Character encoding handling
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. todo:: Character encoding support; define 'raw property encoding'
+
+
+The :mod:`~!gomill.sgf_moves` module
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. module:: gomill.sgf_moves
+   :synopsis: Higher-level processing of moves and positions from SGF games.
+
+The :mod:`!gomill.sgf_moves` module contains some higher-level functions for
+processing moves and positions, and provides a link to the
+:mod:`~gomill.boards` module.
+
+.. function:: get_setup_and_moves(sgf_game)
+
+   :rtype: pair (:class:`~gomill.boards.Board`, list of *moves*)
+
+   Returns the initial setup and the following moves from an
+   :class:`~gomill.sgf.Sgf_game`.
+
+   The board represents the position described by ``AB`` and/or ``AW``
+   properties in the |SGF| game's root node. :exc:`ValueError` is raised if
+   this position isn't legal.
+
+   The moves are from the game's leftmost variation. Doesn't check that the
+   moves are legal.
+
+   :exc:`ValueError` is raised if there are any ``AB``/``AW``/``AE``
+   properties after the root node.
+
+
+.. function:: set_initial_position(sgf_game, board)
+
+   Adds ``AB``/``AW``/``AE`` properties to an :class:`~gomill.sgf.Sgf_game`'s
+   root node, to reflect the position from a :class:`~gomill.boards.Board`.
+
+   Replaces any existing ``AB``/``AW``/``AE`` properties in the root node.
+
+
+.. function:: indicate_first_player(sgf_game)
+
+   Adds a ``PL`` property to an :class:`~gomill.sgf.Sgf_game`'s root node if
+   appropriate, to indicate which colour is first to play.
+
+   Looks at the first child of the root to see who the first player is, and
+   sets ``PL`` it isn't the expected player (Black normally, but White if
+   there is a handicap), or if there are non-handicap setup stones.
 
