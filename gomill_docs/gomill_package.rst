@@ -1,0 +1,69 @@
+The :mod:`gomill` package
+-------------------------
+
+All Gomill code is contained in modules under the :mod:`!gomill` package.
+
+.. contents:: Page contents
+   :local:
+   :backlinks: none
+
+
+Package module contents
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The package module itself defines only a single constant:
+
+.. module:: gomill
+   :synopsis: Tools for testing and tuning Go-playing programs
+
+.. data:: __version__
+
+   The library version, as a string (like ``"0.7"``).
+
+   .. versionadded:: 0.7
+
+
+Generic data representation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Unless otherwise stated, *string* values are 8-bit UTF-8 strings.
+
+
+Go-related data representation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Gomill represents Go colours and moves internally as follows:
+
+======== ===========================================
+ Name     Possible values
+======== ===========================================
+*colour* single-character string: ``'b'`` or ``'w'``
+*point*  pair (*int*, *int*) of coordinates
+*move*   *point* or ``None`` (for a pass)
+======== ===========================================
+
+The terms *colour*, *point*, and *move* are used as above throughout this
+library documentation (in particular, when describing parameters and return
+types).
+
+*colour* values are used to represent players, as well as stones on the board.
+(When it is also necessary to represent an empty point, ``None`` is used.)
+
+*point* values are treated as (row, column), with the bottom left as
+``(0, 0)``. This is the orientation used in |GTP| (but not |SGF|). So the
+coordinates for a 9x9 board are as follows::
+
+  9 (8,0)  .  .  .  .  .  (8,8)
+  8  .  .  .  .  .  .  .  .  .
+  7  .  .  .  .  .  .  .  .  .
+  6  .  .  .  .  .  .  .  .  .
+  5  .  .  .  .  .  .  .  .  .
+  4  .  .  .  .  .  .  .  .  .
+  3  .  .  .  .  .  .  .  .  .
+  2  .  .  .  .  .  .  .  .  .
+  1 (0,0)  .  .  .  .  .  (0,8)
+     A  B  C  D  E  F  G  H  J
+
+There are functions in :mod:`~gomill.gomill_common` to convert between these
+coordinates and the conventional (``T19``\ -style) notation.
+

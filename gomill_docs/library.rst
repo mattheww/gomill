@@ -4,109 +4,24 @@ The Gomill library
 Gomill is intended to be useful as a Python library for developing |gtp|- and
 |sgf|-based tools.
 
+As of Gomill |version|, much of the library API is not formally documented.
+Only the parts which are described in this documentation should be considered
+stable public interfaces.
+
+Nonetheless, the remaining source files contain fairly detailed documentation,
+and the :doc:`example scripts <example_scripts>` illustrate how some of then
+can be used.
 
 .. contents:: Page contents
    :local:
    :backlinks: none
 
 
-Library status
---------------
-
-As of Gomill |version|, most of the library API is not formally documented,
-and should not be considered entirely stable.
-
-Nonetheless, the source files contain fairly detailed documentation, and the
-:doc:`example scripts <example_scripts>` illustrate how various parts of the
-library can be used.
-
-Most of the :mod:`!tournament_results` module is documented under
-:doc:`tournament_results`.
-
-
-The :mod:`gomill` package
--------------------------
-
-All Gomill code is in modules under the :mod:`gomill` package. The package
-itself defines only a single constant:
-
-.. currentmodule:: gomill
-.. data:: __version__
-
-   The library version, as a string (like ``"0.7"``).
-
-   .. versionadded:: 0.7
-
-
-.. todo:: write this more nicely
-
-The following parts of the library are currently documented:
-
 .. toctree::
    :maxdepth: 3
    :titlesonly:
 
+   gomill_package
+   library_overview
    sgf
-
-
-Library overview
-----------------
-
-Generic support code
-
-- :mod:`!gomill_utils`
-- :mod:`!compact_tracebacks`
-- :mod:`!ascii_tables`
-- :mod:`!job_manager`
-- :mod:`!settings`
-
-
-Go-related support code
-
-- :mod:`!gomill_common`
-- :mod:`!ascii_boards`
-- :mod:`!boards`
-- :mod:`!handicap_layout`
-
-
-|sgf| support
-
-- :mod:`!sgf_grammar`
-- :mod:`!sgf_properties`
-- :mod:`!sgf`
-- :mod:`!sgf_moves`
-
-
-|gtp| controller side
-
-- :mod:`!gtp_controller`
-- :mod:`!gtp_games`
-
-
-|gtp| engine side
-
-- :mod:`!gtp_engine`
-- :mod:`!gtp_states`
-- :mod:`!gtp_proxy`
-
-
-Competitions
-
-- :mod:`!competition_schedulers`
-- :mod:`!competitions`
-- :mod:`!tournament_results`
-- :mod:`!tournaments`
-- :mod:`!playoffs`
-- :mod:`!allplayalls`
-- :mod:`!cem_tuners`
-- :mod:`!mcts_tuners`
-
-
-The Ringmaster
-
-- :mod:`!game_jobs`
-- :mod:`!terminal_input`
-- :mod:`!ringmaster_presenters`
-- :mod:`!ringmasters`
-- :mod:`!ringmaster_command_line`
 
