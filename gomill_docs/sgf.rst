@@ -135,7 +135,7 @@ least one node, the :dfn:`root node`.
    Returns the root node of the game tree.
 
    The root node contains global properties for the game tree, and typically
-   also contains 'game-info' properties. It sometimes also contains 'setup'
+   also contains *game-info* properties. It sometimes also contains *setup*
    properties (for example, if the game does not begin with an empty board).
 
 
@@ -329,6 +329,32 @@ The principal methods for accessing the node's properties are:
    Lists the properties which are present in the node.
 
    Returns a list of *PropIdents*, in unspecified order.
+
+.. method:: Tree_node.find_property(identifier)
+
+   Returns the value of the property whose *PropIdent* is *identifier*,
+   looking in the node's ancestors if necessary.
+
+   This is intended for use with properties of type *game-info*, and with
+   properties which have the *inherit* attribute.
+
+   It looks first in the node itself, then in its parent, and so on up to the
+   root, returning the first value it finds. Otherwise the behaviour is the
+   same as :meth:`~Tree_node.get`.
+
+   Raises :exc:`KeyError` if no node defining the property is found.
+
+
+.. method:: Tree_node.find(identifier)
+
+   :rtype: :class:`!Tree_node` or ``None``
+
+   Returns the nearest node defining the property whose *PropIdent* is
+   *identifier*.
+
+   Searches in the same way as :meth:`~Tree_node.find_property`, but returns
+   the node rather than the property value. Returns ``None`` if no node
+   defining the property is found.
 
 
 .. rubric:: Convenience methods for properties
