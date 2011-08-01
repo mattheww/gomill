@@ -6,8 +6,11 @@ SGF support
 
 .. versionadded:: 0.7
 
-The :mod:`gomill.sgf` module is the main interface to Gomill's |sgf| support.
-This module is independent of the rest of Gomill.
+Gomill's |sgf| support is intended for use with version FF[4], which is
+specified at http://www.red-bean.com/sgf/index.html.
+
+The :mod:`gomill.sgf` module provides the main support. This module is
+independent of the rest of Gomill.
 
 The :mod:`gomill.sgf_moves` module contains some higher-level functions for
 processing moves and positions, and provides a link to the
@@ -17,9 +20,6 @@ The :mod:`!gomill.sgf_grammar` and :mod:`!gomill.sgf_properties` modules are
 used to implement the :mod:`~gomill.sgf` module, and are not currently
 documented.
 
-
-These modules are intended for use with |sgf| version FF[4], which is
-specified at http://www.red-bean.com/sgf/index.html.
 
 .. contents:: Page contents
    :local:
@@ -49,8 +49,8 @@ Example
 
 
 
-Loading |sgf| data
-^^^^^^^^^^^^^^^^^^
+|sgf| input
+^^^^^^^^^^^
 
 |sgf| data is represented using :class:`Sgf_game` objects. A game can either
 be created from scratch or loaded from a string.
@@ -60,7 +60,7 @@ directly:
 
 .. class:: Sgf_game(size, encoding="UTF-8"])
 
-   The *size* parameter is an integer from 1 to 26, indicating the board size.
+   *size* is an integer from 1 to 26, indicating the board size.
 
    The optional *encoding* parameter specifies the :ref:`raw property encoding
    <raw_property_encoding>` to use for the game.
