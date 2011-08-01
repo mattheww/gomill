@@ -422,8 +422,7 @@ to a few of the most important properties:
 
 Each :class:`!Tree_node` knows its game's board size, and its :ref:`raw
 property encoding <raw_property_encoding>` (because these are needed to
-interpret property values). They can be retrieved using the following methods
-(and they cannot be changed):
+interpret property values). They can be retrieved using the following methods:
 
 .. method:: Tree_node.get_size()
 
@@ -434,7 +433,7 @@ interpret property values). They can be retrieved using the following methods
    :rtype: string
 
 An attempt to change the value of the ``SZ`` or ``CA`` property so that it
-doesn't match these values will raise :exc:`Valuerror` (even if the node isn't
+doesn't match these values will raise :exc:`ValueError` (even if the node isn't
 the root).
 
 
