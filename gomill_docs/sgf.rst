@@ -703,7 +703,7 @@ processing moves and positions, and provides a link to the
 
 .. function:: get_setup_and_moves(sgf_game)
 
-   :rtype: pair (:class:`~gomill.boards.Board`, list of *moves*)
+   :rtype: tuple (:class:`~gomill.boards.Board`, list of *moves*)
 
    Returns the initial setup and the following moves from an
    :class:`~gomill.sgf.Sgf_game`.
