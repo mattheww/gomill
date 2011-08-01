@@ -13,6 +13,11 @@ The :mod:`gomill.sgf_moves` module contains some higher-level functions for
 processing moves and positions, and provides a link to the
 :mod:`~gomill.boards` module.
 
+The :mod:`!gomill.sgf_grammar` and :mod:`!gomill.sgf_properties` modules are
+used to implement the :mod:`~gomill.sgf` module, and are not currently
+documented.
+
+
 These modules are intended for use with |sgf| version FF[4], which is
 specified at http://www.red-bean.com/sgf/index.html.
 
@@ -219,7 +224,7 @@ appropriate default value if the property is not present.
    Returns the number of handicap stones.
 
    Returns ``None`` if the ``HA`` root property isn't present, or if it has
-   (illegal) value zero.
+   value zero (which isn't strictly permitted).
 
    Raises :exc:`ValueError` if the ``HA`` property is otherwise malformed.
 
@@ -283,6 +288,9 @@ Each node holds a number of :dfn:`properties`. Each property is identified by
 a short string called the :dfn:`PropIdent`, eg ``"SZ"`` or ``"B"``. See
 :ref:`sgf_property_list` below for a list of the standard properties. See the
 :term:`SGF` specification for full details.
+
+Gomill doesn't enforce |SGF|'s restrictions on where properties can appear
+(eg, the distinction between *setup* and *move* properties).
 
 The principal methods for accessing the node's properties are:
 
