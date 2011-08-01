@@ -278,8 +278,10 @@ Tree_node objects
 
    A :class:`!Tree_node` acts as a list-like container of its children: it can
    be indexed, sliced, and iterated over like a list, and it supports the
-   :meth:`~list.index` method. A :class:`!Tree_node` with no children is
+   `index`__ method. A :class:`!Tree_node` with no children is
    treated as having truth value false.
+
+   .. __: http://docs.python.org/release/2.7/library/stdtypes.html#mutable-sequence-types
 
 
 .. rubric:: Property access

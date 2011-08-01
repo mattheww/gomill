@@ -9,3 +9,4 @@ abs function library/functions.html
 max function library/functions.html
 min function library/functions.html
 round function library/functions.html
+datetime.date class library/datetime.html
