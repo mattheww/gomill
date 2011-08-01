@@ -388,19 +388,19 @@ to a few of the most important properties:
 
 .. method:: Tree_node.get_setup_stones()
 
-   :rtype: tuple (*black_points*, *white_points*, *empty_points*)
+   :rtype: tuple (set of *points*, set of *points*, set of *points*)
 
    Returns the settings of the ``AB``, ``AW``, and ``AE`` properties.
 
-   Each tuple element is a set of *points*. If the corresponding property is
-   missing, the set is empty.
+   The tuple elements represent black, white, and empty points respectively.
+   If a property is missing, the corresponding set is empty.
 
-.. method:: Tree_node.set_setup_stones(black_points, white_points[, empty_points])
+.. method:: Tree_node.set_setup_stones(black, white[, empty])
 
    Sets the ``AB``, ``AW``, and ``AE`` properties.
 
    Each parameter should be a sequence or set of *points*. If a parameter
-   value is empty (or, in the case of *empty_points*, if the parameter is
+   value is empty (or, in the case of *empty*, if the parameter is
    omitted) the corresponding property will be unset.
 
 .. method:: Tree_node.has_setup_stones()
