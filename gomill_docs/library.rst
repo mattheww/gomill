@@ -26,5 +26,6 @@ can be used.
    common
    boards
    ascii_boards
+   handicap_layout
    sgf
 

@@ -18,7 +18,7 @@ The :mod:`gomill` package includes the following modules:
 - :mod:`~gomill.common`
 - :mod:`~gomill.boards`
 - :mod:`~gomill.ascii_boards`
-- :mod:`~!gomill.handicap_layout`
+- :mod:`~gomill.handicap_layout`
 
 
 .. rubric:: |sgf| support
