@@ -25,5 +25,6 @@ can be used.
    library_overview
    common
    boards
+   ascii_boards
    sgf
 
