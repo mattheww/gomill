@@ -1,6 +1,6 @@
 """Domain-independent utility functions for gomill.
 
-This module is designed to be used with 'from gomill_utils import *'.
+This module is designed to be used with 'from utils import *'.
 
 This is for generic utilities; see common for Go-specific utility functions.
 

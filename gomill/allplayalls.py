@@ -8,7 +8,7 @@ from gomill import tournament_results
 from gomill.competitions import (
     Competition, CompetitionError, ControlFileError)
 from gomill.settings import *
-from gomill.gomill_utils import format_float
+from gomill.utils import format_float
 
 
 class Competitor_config(Quiet_config):

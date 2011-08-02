@@ -4,7 +4,7 @@ import sys
 from optparse import OptionParser
 
 test_modules = [
-    'gomill_utils_tests',
+    'utils_tests',
     'common_tests',
     'board_tests',
     'sgf_grammar_tests',

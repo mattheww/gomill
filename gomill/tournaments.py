@@ -9,7 +9,7 @@ from gomill import competitions
 from gomill.competitions import (
     Competition, NoGameAvailable, CompetitionError, ControlFileError)
 from gomill.settings import *
-from gomill.gomill_utils import format_percent
+from gomill.utils import format_percent
 
 # These all appear as Matchup_description attributes
 matchup_settings = competitions.game_settings + [

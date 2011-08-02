@@ -3,7 +3,7 @@
 from __future__ import division
 
 from gomill import ascii_tables
-from gomill.gomill_utils import format_float, format_percent
+from gomill.utils import format_float, format_percent
 from gomill.common import colour_name
 
 class Matchup_description(object):

@@ -6,7 +6,7 @@ The :mod:`gomill` package includes the following modules:
 
 .. rubric:: Generic support code
 
-- :mod:`~!gomill.gomill_utils`
+- :mod:`~!gomill.utils`
 - :mod:`~!gomill.compact_tracebacks`
 - :mod:`~!gomill.ascii_tables`
 - :mod:`~!gomill.job_manager`
