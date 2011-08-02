@@ -2,7 +2,7 @@
 
 from gomill import __version__
 from gomill.gomill_utils import *
-from gomill.gomill_common import *
+from gomill.common import *
 from gomill import gtp_controller
 from gomill import handicap_layout
 from gomill import boards

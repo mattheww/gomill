@@ -2,8 +2,7 @@
 
 This module is designed to be used with 'from gomill_utils import *'.
 
-This is for generic utilities; see gomill_common for Go-specific utility
-functions.
+This is for generic utilities; see common for Go-specific utility functions.
 
 """
 

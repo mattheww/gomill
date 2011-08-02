@@ -7,7 +7,7 @@ ascii_boards facilities.
 
 from __future__ import with_statement
 
-from gomill.gomill_common import format_vertex, coords_from_vertex
+from gomill.common import format_vertex, coords_from_vertex
 from gomill import ascii_boards
 from gomill import boards
 

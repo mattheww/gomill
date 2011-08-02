@@ -15,7 +15,7 @@ The :mod:`gomill` package includes the following modules:
 
 .. rubric:: Go-related support code
 
-- :mod:`~gomill.gomill_common`
+- :mod:`~gomill.common`
 - :mod:`~gomill.boards`
 - :mod:`~!gomill.ascii_boards`
 - :mod:`~!gomill.handicap_layout`

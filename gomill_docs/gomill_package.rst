@@ -66,7 +66,7 @@ coordinates for a 9x9 board are as follows::
   1 (0,0)  .  .  .  .  .  (0,8)
      A  B  C  D  E  F  G  H  J
 
-There are functions in :mod:`~gomill.gomill_common` to convert between these
+There are functions in :mod:`~gomill.common` to convert between these
 coordinates and the conventional (``T19``\ -style) notation.
 
 Gomill is designed to work with square boards, up to 25x25 (which is the upper

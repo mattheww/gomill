@@ -10,7 +10,7 @@ import re
 import sys
 import os
 
-from gomill.gomill_common import *
+from gomill.common import *
 from gomill import compact_tracebacks
 
 

@@ -1,15 +1,15 @@
-"""Tests for gomill_common.py."""
+"""Tests for common.py."""
 
 from gomill_tests import gomill_test_support
 
-from gomill import gomill_common
+from gomill import common
 
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
 def test_opponent_of(tc):
-    oo = gomill_common.opponent_of
+    oo = common.opponent_of
     tc.assertEqual(oo('b'), 'w')
     tc.assertEqual(oo('w'), 'b')
     tc.assertRaises(ValueError, oo, 'x')
@@ -17,21 +17,21 @@ def test_opponent_of(tc):
     tc.assertRaises(ValueError, oo, 'B')
 
 def test_format_vertex(tc):
-    fv = gomill_common.format_vertex
+    fv = common.format_vertex
     tc.assertEqual(fv(None), "pass")
     tc.assertEqual(fv((0, 0)), "A1")
     tc.assertEqual(fv((8, 8)), "J9")
     tc.assertEqual(fv((1, 5)), "F2")
 
 def test_format_vertex_list(tc):
-    fvl = gomill_common.format_vertex_list
+    fvl = common.format_vertex_list
     tc.assertEqual(fvl([]), "")
     tc.assertEqual(fvl([(0, 0)]), "A1")
     tc.assertEqual(fvl([(0, 0), (1, 5)]), "A1,F2")
     tc.assertEqual(fvl([(0, 0), None, (1, 5)]), "A1,pass,F2")
 
 def test_coords_from_vertex(tc):
-    cv = gomill_common.coords_from_vertex
+    cv = common.coords_from_vertex
     tc.assertEqual(cv("pass", 9), None)
     tc.assertEqual(cv("pAss", 9), None)
     tc.assertEqual(cv("A1", 9), (0, 0))

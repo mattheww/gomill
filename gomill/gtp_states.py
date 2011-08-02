@@ -3,7 +3,7 @@
 import math
 
 from gomill import __version__
-from gomill.gomill_common import *
+from gomill.common import *
 from gomill import ascii_boards
 from gomill import boards
 from gomill import gtp_engine

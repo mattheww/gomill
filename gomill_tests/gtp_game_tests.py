@@ -5,7 +5,7 @@ import cPickle as pickle
 from gomill import gtp_controller
 from gomill import gtp_games
 from gomill import sgf
-from gomill.gomill_common import format_vertex
+from gomill.common import format_vertex
 
 from gomill_tests import test_framework
 from gomill_tests import gomill_test_support

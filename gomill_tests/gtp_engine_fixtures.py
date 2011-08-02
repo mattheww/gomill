@@ -6,7 +6,7 @@ from gomill import gtp_controller
 from gomill import gtp_engine
 from gomill.gtp_engine import GtpError, GtpFatalError
 from gomill.gtp_controller import GtpChannelError
-from gomill.gomill_common import *
+from gomill.common import *
 
 from gomill_tests import test_framework
 from gomill_tests import gtp_controller_test_support

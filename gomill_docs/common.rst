@@ -1,13 +1,13 @@
-The :mod:`~gomill.gomill_common` module
----------------------------------------
+The :mod:`~gomill.common` module
+--------------------------------
 
-.. module:: gomill.gomill_common
+.. module:: gomill.common
    :synopsis: Go-related utility functions.
 
-The :mod:`!gomill.gomill_common` module provides Go-related utility functions,
-used throughout Gomill.
+The :mod:`!gomill.common` module provides Go-related utility functions, used
+throughout Gomill.
 
-It is desgned to be safe to use as ``from gomill_common import *``.
+It is desgned to be safe to use as ``from common import *``.
 
 .. function:: opponent_of(colour)
 

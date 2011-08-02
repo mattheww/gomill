@@ -23,7 +23,7 @@ can be used.
 
    gomill_package
    library_overview
-   gomill_common
+   common
    boards
    sgf
 

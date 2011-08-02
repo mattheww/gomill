@@ -6,7 +6,7 @@ from gomill import __version__
 from gomill_tests.test_framework import unittest2
 from gomill_tests import test_framework
 
-from gomill.gomill_common import *
+from gomill.common import *
 from gomill import ascii_boards
 from gomill import boards
 
