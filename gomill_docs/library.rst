@@ -8,9 +8,9 @@ As of Gomill |version|, much of the library API is not formally documented.
 Only the parts which are described in this documentation should be considered
 stable public interfaces.
 
-Nonetheless, the remaining source files contain fairly detailed documentation,
-and the :doc:`example scripts <example_scripts>` illustrate how some of then
-can be used.
+Nonetheless, the source files for the remaining modules contain fairly
+detailed documentation, and the :doc:`example scripts <example_scripts>`
+illustrate how some of then can be used.
 
 .. contents:: Page contents
    :local:

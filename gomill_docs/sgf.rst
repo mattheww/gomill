@@ -90,9 +90,7 @@ To create a game from existing |sgf| data, use the
 
    Raises :exc:`ValueError` if it can't parse the string, or if the ``SZ`` or
    ``CA`` properties are unacceptable. No error is reported for other
-   malformed property values.
-
-   .. todo:: Document details of parsing (elsewhere); see parse_sgf_game()
+   malformed property values. See also :ref:`parsing_details` below.
 
    Example::
 
@@ -688,6 +686,27 @@ property corresponds to the raw property encoding (if the encoding is
 ``ISO-8859-1``, then the property may be absent).
 
 
+.. _parsing_details:
+
+Parsing details
+^^^^^^^^^^^^^^^
+
+The parser permits non-|sgf| content to appear before the beginning and after
+the end of the game. It identifies the start of |sgf| content by looking for
+``(;`` (with possible whitespace between the two characters).
+
+The parser accepts at most 8 letters in property identifiers (there is no
+formal limit in the specification, but no standard property has more than 2).
+
+The parser doesn't perform any checks on property values. In particular, it
+allows multiple values to be present for any property.
+
+The parser doesn't, in general, attempt to 'fix' ill-formed |sgf| content. As
+an exception, if a property identifier appears more than once in a node it is
+converted to a single property with multiple values.
+
+The parser doesn't permit lower-case letters in property identifiers (these
+are allowed in some ancient |sgf| variants).
 
 
 The :mod:`~!gomill.sgf_moves` module
