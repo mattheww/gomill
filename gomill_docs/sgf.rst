@@ -688,8 +688,8 @@ property corresponds to the raw property encoding (if the encoding is
 
 .. _parsing_details:
 
-Parsing details
-^^^^^^^^^^^^^^^
+Parsing
+^^^^^^^
 
 The parser permits non-|sgf| content to appear before the beginning and after
 the end of the game. It identifies the start of |sgf| content by looking for
