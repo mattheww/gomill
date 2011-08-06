@@ -293,7 +293,8 @@ Tree_node objects
 Each node holds a number of :dfn:`properties`. Each property is identified by
 a short string called the :dfn:`PropIdent`, eg ``"SZ"`` or ``"B"``. See
 :ref:`sgf_property_list` below for a list of the standard properties. See the
-:term:`SGF` specification for full details.
+:term:`SGF` specification for full details. See :ref:`parsing_details` below
+for restrictions on well-formed *PropIdents*.
 
 Gomill doesn't enforce |SGF|'s restrictions on where properties can appear
 (eg, the distinction between *setup* and *move* properties).
@@ -313,8 +314,9 @@ The principal methods for accessing the node's properties are:
    See :ref:`sgf_property_types` below for details of how property values are
    represented in Python.
 
-   See :ref:`sgf_property_list` below for a list of the known properties. Any
-   other property is treated as having type Text.
+   See :ref:`sgf_property_list` below for a list of the known properties.
+   Setting nonstandard properties is permitted; they are treated as having
+   type Text.
 
 .. method:: Tree_node.set(identifier, value)
 
@@ -493,7 +495,7 @@ string is properly encoded in the raw property encoding.
 
    :rtype: dict: string → list of 8-bit strings
 
-   Returns a dict mapping property identifiers to lists of raw values.
+   Returns a dict mapping *PropIdents* to lists of raw values.
 
    Returns the same dict object each time it's called.
 
@@ -754,18 +756,18 @@ The parser permits non-|sgf| content to appear before the beginning and after
 the end of the game. It identifies the start of |sgf| content by looking for
 ``(;`` (with possible whitespace between the two characters).
 
-The parser accepts at most 8 letters in property identifiers (there is no
-formal limit in the specification, but no standard property has more than 2).
+The parser accepts at most 8 letters in *PropIdents* (there is no formal limit
+in the specification, but no standard property has more than 2).
 
 The parser doesn't perform any checks on property values. In particular, it
 allows multiple values to be present for any property.
 
 The parser doesn't, in general, attempt to 'fix' ill-formed |sgf| content. As
-an exception, if a property identifier appears more than once in a node it is
+an exception, if a *PropIdent* appears more than once in a node it is
 converted to a single property with multiple values.
 
-The parser doesn't permit lower-case letters in property identifiers (these
-are allowed in some ancient |sgf| variants).
+The parser doesn't permit lower-case letters in *PropIdents* (these are
+allowed in some ancient |sgf| variants).
 
 
 The :mod:`!sgf_moves` module
