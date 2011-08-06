@@ -437,6 +437,9 @@ interpret property values). They can be retrieved using the following methods:
 
    :rtype: string
 
+   This returns the name of the encoding in a normalised form, which may not
+   be identical to the string returned by ``get("CA")``.
+
 An attempt to change the value of the ``SZ`` or ``CA`` property so that it
 doesn't match these values will raise :exc:`ValueError` (even if the node isn't
 the root).
@@ -699,8 +702,9 @@ Character encoding handling
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The |sgf| format is defined as containing ASCII-encoded data, possibly with
-non-ASCII characters in Text and SimpleText property values. The functions for
-loading and serialising |sgf| data work with 8-bit Python strings.
+non-ASCII characters in Text and SimpleText property values. The Gomill
+functions for loading and serialising |sgf| data work with 8-bit Python
+strings.
 
 The encoding used for Text and SimpleText property values is given by the
 ``CA`` root property (if it isn't present, the encoding is ``ISO-8859-1``).
@@ -716,8 +720,6 @@ aliases of Python built-in codecs (eg ``"UTF-8"`` or ``"ISO-8859-1"``). See
 `standard encodings`__ for a list.
 
   .. __: http://docs.python.org/release/2.7/library/codecs.html#standard-encodings
-
-.. todo:: mention encoding name normalisation?
 
 Each :class:`~gomill.sgf.Sgf_game` and :class:`~gomill.sgf.Tree_node` has a
 fixed :dfn:`raw property encoding`, which is the encoding used internally to
