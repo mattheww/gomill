@@ -9,6 +9,7 @@ from gomill import boards
 from gomill import gtp_engine
 from gomill import handicap_layout
 from gomill import sgf
+from gomill import sgf_grammar
 from gomill import sgf_moves
 from gomill.gtp_engine import GtpError
 
@@ -523,7 +524,7 @@ class Gtp_state(object):
                 value = value.replace("\\_", " ").replace("\\\\", "\\")
             except Exception:
                 gtp_engine.report_bad_arguments()
-            root.set_raw(identifier, value)
+            root.set_raw(identifier, sgf_grammar.escape_text(value))
         sgf_moves.set_initial_position(sgf_game, self.history_base)
         for move in self.move_history:
             node = sgf_game.extend_main_sequence()
