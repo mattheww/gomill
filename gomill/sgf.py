@@ -442,7 +442,7 @@ class Sgf_game(object):
       CA[encoding]
 
     Changing FF and GM is permitted (but this library will carry on using the
-    FF[4] and GM[1] rules). Changing SZ and CA is not allowed (unless the
+    FF[4] and GM[1] rules). Changing SZ and CA is not permitted (unless the
     change leaves the effective value unchanged).
 
     """
