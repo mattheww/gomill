@@ -27,10 +27,10 @@ documented.
    :local:
    :backlinks: none
 
-Example
-^^^^^^^
+Examples
+^^^^^^^^
 
-::
+Reading and writing::
 
   >>> from gomill import sgf
   >>> g = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9];B[ee];W[ge])")
@@ -48,6 +48,18 @@ Example
   [(None, None), ('b', (4, 4)), ('w', (4, 6)), ('b', (2, 3))]
   >>> sgf.serialise_sgf_game(g)
   '(;FF[4]GM[1]RE[B+R]SZ[9];B[ee];W[ge];B[dg])\n'
+
+
+Recording a game::
+
+  g = sgf.Sgf_game(size=13)
+  for move_info in ...:
+      node = g.extend_main_sequence()
+      node.set_move(move_info.colour, move_info.move)
+      if move_info.comment is not None:
+          node.set("C", move_info.comment)
+  with open(pathname, "w") as f:
+      f.write(sgf.serialise_sgf_game(g))
 
 See also the :script:`show_sgf.py` example script.
 
@@ -281,12 +293,25 @@ Tree_node objects
 
       The node's parent :class:`!Tree_node` (``None`` for the root node).
 
-   A :class:`!Tree_node` acts as a list-like container of its children: it can
-   be indexed, sliced, and iterated over like a list, and it supports the
-   `index`__ method. A :class:`!Tree_node` with no children is
-   treated as having truth value false.
 
-   .. __: http://docs.python.org/release/2.7/library/stdtypes.html#mutable-sequence-types
+.. rubric:: Tree navigation
+
+A :class:`!Tree_node` acts as a list-like container of its children: it can be
+indexed, sliced, and iterated over like a list, and it supports the `index`__
+method. A :class:`!Tree_node` with no children is treated as having truth
+value false. For example, to find all leaf nodes::
+
+  def print_leaf_comments(node):
+      if node:
+          for child in node:
+              print_leaf_comments(child)
+      else:
+          if node.has_property("C"):
+              print node.get("C")
+          else:
+              print "--"
+
+.. __: http://docs.python.org/release/2.7/library/stdtypes.html#mutable-sequence-types
 
 
 .. rubric:: Property access
