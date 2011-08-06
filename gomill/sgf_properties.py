@@ -136,8 +136,8 @@ def serialise_real(f, context=None):
 
     f -- real number (int or float)
 
-    If the value is too small to conveniently express as a decimal, returns "0"
-    (this currently happens if f is less than 0.0001).
+    If the absolute value is too small to conveniently express as a decimal,
+    returns "0" (this currently happens if abs(f) is less than 0.0001).
 
     """
     f = float(f)
