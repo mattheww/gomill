@@ -28,4 +28,5 @@ illustrate how some of them can be used.
    ascii_boards
    handicap_layout
    sgf
+   tournament_results
 

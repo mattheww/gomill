@@ -46,7 +46,7 @@ The :mod:`gomill` package includes the following modules:
 
 - :mod:`~!gomill.competition_schedulers`
 - :mod:`~!gomill.competitions`
-- :mod:`~!gomill.tournament_results`
+- :mod:`~gomill.tournament_results`
 - :mod:`~!gomill.tournaments`
 - :mod:`~!gomill.playoffs`
 - :mod:`~!gomill.allplayalls`

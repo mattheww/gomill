@@ -1,6 +1,9 @@
 Tournament results API
 ----------------------
 
+.. module:: gomill.tournament_results
+   :synopsis: Retrieving and reporting on tournament results.
+
 This is a Python interface for processing the game results stored in a
 tournament's :ref:`state file <competition state>`. It can be used to write
 custom reports, or to find games with particular results.
@@ -12,7 +15,6 @@ Note that it can be used only for :ref:`tournaments <tournaments>` (not for
    :local:
    :backlinks: none
 
-.. currentmodule:: tournament_results
 
 General
 ^^^^^^^
@@ -25,12 +27,10 @@ their keys in the control file's :setting:`players` dictionary).
   case, the player code used for the second player will be the player code
   from the control file with ``'#2'`` appended.
 
-In the descriptions below, *colour* represents a single-character string,
-either ``'b'`` or ``'w'``.
-
-The classes described here are implemented in the :mod:`!tournament_results`
-and :mod:`!gtp_games` modules, but you should not normally import these
-directly. See :ref:`using_the_api_in_scripts`.
+The classes described here are implemented in the
+:mod:`!gomill.tournament_results` and :mod:`!gomill.gtp_games` modules, but
+you should not normally import these directly. See
+:ref:`using_the_api_in_scripts`.
 
 
 Tournament_results objects
@@ -76,7 +76,7 @@ Tournament_results objects
 
    .. method:: get_matchup_results(matchup_id)
 
-      :rtype: list of :class:`~gtp_games.Game_result` objects
+      :rtype: list of :class:`~.Game_result` objects
 
       Return the individual game results for the matchup with the specified id.
 
@@ -295,7 +295,7 @@ Matchup_stats objects
       The *colour* taken by the second player.
 
 
-.. currentmodule:: gtp_games
+.. currentmodule:: gomill.gtp_games
 
 Game_result objects
 ^^^^^^^^^^^^^^^^^^^
@@ -312,9 +312,9 @@ Game_result objects
       :samp:`ringmaster.get_sgf_pathname({game_id})`.
 
    The :ref:`player codes <player codes>` used here are the same as the ones
-   in the corresponding :class:`~tournament_results.Matchup_description`'s
-   :attr:`~tournament_results.Matchup_description.player_1` and
-   :attr:`~tournament_results.Matchup_description.player_2` attributes.
+   in the corresponding :class:`.Matchup_description`'s
+   :attr:`~.Matchup_description.player_1` and
+   :attr:`~.Matchup_description.player_2` attributes.
 
    See :ref:`playing games` and :ref:`details of scoring` for an explanation
    of the possible game results. Games with unknown result can be
@@ -322,7 +322,7 @@ Game_result objects
    ``False``.
 
    Game_results can be retrieved from
-   :class:`~tournament_results.Tournament_results` objects.
+   :class:`.Tournament_results` objects.
 
    Game_results have the following attributes (which should be treated as
    read-only):

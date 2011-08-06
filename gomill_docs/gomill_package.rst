@@ -3,6 +3,9 @@ The :mod:`gomill` package
 
 All Gomill code is contained in modules under the :mod:`!gomill` package.
 
+The package includes both the 'toolkit' (Go board, |sgf|, and |gtp|) code, and
+the code implementing the ringmaster.
+
 .. contents:: Page contents
    :local:
    :backlinks: none
