@@ -5,6 +5,8 @@ The ringmaster now applies handicap stone compensation when using its internal
 scorer. Set :setting:`internal_scorer_handicap_compensation` to ``"no"`` to
 return to the old behaviour.
 
+* Improved handling of long responses to the :gtp:`!version` |gtp| command.
+
 * Added support for handicap stone compensation when scoring games.
 
 * Gomill now checks the response to the :gtp:`!fixed_handicap` |gtp| command.

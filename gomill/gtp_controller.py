@@ -761,6 +761,26 @@ class Gtp_controller(object):
         self.gtp_aliases = aliases
 
 
+def _fix_version(name, version):
+    """Clean up version strings."""
+    version = sanitise_utf8(version)
+    if version.lower().startswith(name.lower()):
+        version = version[len(name):].lstrip()
+    # Some engines unfortunately include usage instructions in the version
+    # string (apparently for the sake of kgsGTP); try to clean this up.
+    if len(version) > 64:
+        # MoGo
+        a, b, c = version.partition(". Please read http:")
+        if b:
+            return a
+        # Pachi
+        a, b, c = version.partition(": I'm playing")
+        if b:
+            return a
+        # Other
+        return version.split()[0]
+    return version
+
 def describe_engine(controller, default="unknown"):
     """Retrieve a description of a controller's engine via GTP.
 
@@ -769,33 +789,25 @@ def describe_engine(controller, default="unknown"):
     This uses the 'name', 'version', and 'gomill-describe_engine' commands.
 
     Returns a pair of utf-8 strings (short, long):
-      short -- single-line form (engine name and version)
+      short -- single-line form (engine name, and version if it's not too long)
       long  -- multi-line form (engine name, version, description)
 
-    Truncates long version strings.
+    Attempts to clean up over-long version strings.
 
     May propagate GtpChannelError.
 
     """
-    def fix_version(name, version):
-        """Clean up version strings."""
-        version = sanitise_utf8(version)
-        if version.lower().startswith(name.lower()):
-            version = version[len(name):].lstrip()
-        # For MoGo's stupidly long version string
-        a, b, c = version.partition(". Please read http:")
-        if b:
-            return a
-        return version
-
     try:
         name = sanitise_utf8(controller.do_command("name"))
     except BadGtpResponse:
         name = default
     try:
-        version = fix_version(name, controller.do_command("version"))
+        version = _fix_version(name, controller.do_command("version"))
         if version:
-            short_s = name + ":" + version[:32].rstrip()
+            if len(version) <= 32:
+                short_s = name + ":" + version
+            else:
+                short_s = name
             long_s = name + ":" + version
         else:
             long_s = short_s = name

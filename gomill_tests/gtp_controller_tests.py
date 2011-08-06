@@ -594,6 +594,19 @@ def test_gtp_aliases_safe(tc):
     tc.assertEqual(ar.exception.gtp_command, "nonesuch")
 
 
+def test_fix_version(tc):
+    fv = gtp_controller._fix_version
+    tc.assertEqual(fv("foo", "bar"), "bar")
+    tc.assertEqual(fv("foo", "FOO bar"), "bar")
+    tc.assertEqual(fv("foo", "asd " * 16), "asd " * 16)
+    tc.assertEqual(fv("foo", "asd " * 17), "asd")
+    tc.assertEqual(
+        fv("MoGo", "MoGo release 1. Please read http://www.lri.fr/~gelly/MoGo.htm for more information. That is NOT an official developpement MoGo version, but it is a public release. Its strength highly depends on your hardware and the time settings."),
+        "release 1")
+    tc.assertEqual(
+        fv("Pachi UCT Engine", "8.99 (Hakugen-devel): I'm playing UCT. When I'm losing, I will resign, if I think I win, I play until you pass. Anyone can send me 'winrate' in private chat to get my assessment of the position."),
+        "8.99 (Hakugen-devel)")
+
 def test_describe_engine(tc):
     channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
