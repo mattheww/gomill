@@ -85,7 +85,8 @@ To create a game from existing |sgf| data, use the
 
    The board size and :ref:`raw property encoding <raw_property_encoding>` are
    taken from the ``SZ`` and ``CA`` properties in the root node (defaulting to
-   ``19`` and ``"ISO-8859-1"``, respectively).
+   ``19`` and ``"ISO-8859-1"``, respectively). Board sizes greater than ``26``
+   are rejected.
 
    If *override_encoding* is present, the source data is assumed to be in the
    encoding it specifies (no matter what the ``CA`` property says), and the
