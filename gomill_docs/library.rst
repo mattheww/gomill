@@ -10,7 +10,7 @@ stable public interfaces.
 
 Nonetheless, the source files for the remaining modules contain fairly
 detailed documentation, and the :doc:`example scripts <example_scripts>`
-illustrate how some of then can be used.
+illustrate how some of them can be used.
 
 .. contents:: Page contents
    :local:
