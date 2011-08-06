@@ -301,7 +301,8 @@ The principal methods for accessing the node's properties are:
 
    Raises :exc:`KeyError` if the property isn't present.
 
-   Raises :exc:`ValueError` if the property value is malformed.
+   Raises :exc:`ValueError` if it detects that the property value is
+   malformed.
 
    See :ref:`sgf_property_types` below for details of how property values are
    represented in Python.
@@ -313,7 +314,7 @@ The principal methods for accessing the node's properties are:
    *value* should be a native Python representation of the required property
    value (as returned by :func:`~get`).
 
-   Raises :exc:`ValueError` if it the property value isn't acceptable.
+   Raises :exc:`ValueError` if the property value isn't acceptable.
 
    See :ref:`sgf_property_types` below for details of how property values
    should be represented in Python.
@@ -550,15 +551,37 @@ Point        *move*
 
 Gomill does not distinguish the Point, Move, and Stone |sgf| property types.
 
-.. todo:: list, elist
+Values of type None are returned as ``True`` by :func:`~Tree_node.get`;
+:func:`~Tree_node.set` accepts any value.
 
-.. todo:: compose
+Values of list or elist types are represented as Python lists. An empty elist
+is represented as an empty Python list (in contrast, the raw value is a list
+containing a single empty string).
 
-.. todo:: special-case for FG (and AP?). example for LB, say?
+Values of compose types are represented as Python pairs (tuples of length
+two). ``FG`` values are either a pair (int, string) or ``None``.
 
-.. todo:: examples
+For example, the ``LB`` property has type 'list of Point:SimpleText', so its
+values are lists of pairs (*move*, string)::
 
-.. todo:: private properties
+   >>> node.set('LB', [((6, 0), "label 1"), ((6, 1), "label 2")])
+   >>> node.get_raw('LB')
+   'LB[ac:label 1][bc:label 2]'
+
+
+In some cases, :func:`~Tree_node.get` will accept values which are not
+strictly permitted in |sgf|. In particular, if a property has a type which is
+not a list, any values after the first are just ignored, and empty lists are
+accepted for all list types, not only elists.
+
+.. I don't think this is worth saying.
+
+   In general, :func:`~Tree_node.set` tries not to allow a malformed value to be
+   stored in the property, but does not try hard to prevent garbage input
+   happening to produce a valid value.
+
+Neither :func:`~Tree_node.get` nor :func:`~Tree_node.set` pays attention to
+range restrictions for values of type Number.
 
 
 .. _sgf_property_list:
@@ -639,6 +662,8 @@ Gomill knows the types of the following |sgf| properties:
 ``WR``  SimpleText                  White rank
 ``WT``  SimpleText                  White team
 ======  ==========================  ===================
+
+.. todo:: private properties
 
 
 .. _raw_property_encoding:
