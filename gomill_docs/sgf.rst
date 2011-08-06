@@ -47,6 +47,7 @@ Example
   >>> sgf.serialise_sgf_game(g)
   '(;FF[4]GM[1]RE[B+R]SZ[9];B[ee];W[ge];B[dg])\n'
 
+See also the :script:`show_sgf.py` example script.
 
 
 |sgf| input
@@ -773,6 +774,7 @@ The :mod:`!gomill.sgf_moves` module contains some higher-level functions for
 processing moves and positions, and provides a link to the
 :mod:`~gomill.boards` module.
 
+
 .. function:: get_setup_and_moves(sgf_game)
 
    :rtype: tuple (:class:`~gomill.boards.Board`, list of *moves*)
@@ -789,6 +791,8 @@ processing moves and positions, and provides a link to the
 
    :exc:`ValueError` is raised if there are any ``AB``/``AW``/``AE``
    properties after the root node.
+
+   See also the :script:`show_sgf.py` example script.
 
 
 .. function:: set_initial_position(sgf_game, board)

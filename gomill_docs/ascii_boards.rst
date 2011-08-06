@@ -34,6 +34,8 @@ interpreting ASCII diagrams of Go board positions.
       1  .  .  .  .  .  .  .  .  .
          A  B  C  D  E  F  G  H  J
 
+   See also the :script:`show_sgf.py` example script.
+
 
 .. function:: play_diagram(board, diagram)
 

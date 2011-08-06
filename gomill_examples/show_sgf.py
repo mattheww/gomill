@@ -7,9 +7,9 @@ This demonstrates the sgf and ascii_boards modules.
 import sys
 from optparse import OptionParser
 
+from gomill import ascii_boards
 from gomill import sgf
 from gomill import sgf_moves
-from gomill import ascii_boards
 
 def show_sgf_file(pathname, move_number):
     f = open(pathname)
