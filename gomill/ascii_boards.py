@@ -1,6 +1,7 @@
 """ASCII board representation."""
 
 from gomill.common import *
+from gomill import boards
 from gomill.common import column_letters
 
 def render_grid(point_formatter, size):
@@ -42,24 +43,38 @@ def render_board(board):
         return _point_strings.get(board.get(row, col), " ?")
     return "\n".join(render_grid(format_pt, board.side))
 
-def play_diagram(board, diagram):
+def play_diagram(diagram, size, board=None):
     """Set up the position from a diagram.
 
-    board   -- Board
     diagram -- board representation as from render_board()
+    size    -- int
+
+    Returns a Board.
+
+    If the optional 'board' parameter is provided, it must be an empty board of
+    the right size; the same object will be returned.
 
     """
+    if board is None:
+        board = boards.Board(size)
+    else:
+        if board.side != size:
+            raise ValueError("wrong board size, must be %d" % size)
+        if not board.is_empty():
+            raise ValueError("board not empty")
     lines = diagram.split("\n")
     colours = {'#' : 'b', 'o' : 'w', '.' : None}
-    if board.side > 9:
+    if size > 9:
         extra_offset = 1
     else:
         extra_offset = 0
     try:
         for (row, col) in board.board_coords:
-            colour = colours[lines[board.side-row-1][3*(col+1)+extra_offset]]
+            colour = colours[lines[size-row-1][3*(col+1)+extra_offset]]
             if colour is not None:
                 board.play(row, col, colour)
     except Exception:
         raise ValueError
+    return board
+
 
