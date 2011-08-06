@@ -625,6 +625,8 @@ class Presenter(_Context):
             else:
                 raw = raw_values
         else:
+            if len(raw_values) > 1:
+                raise ValueError("multiple values")
             raw = raw_values[0]
         return property_type.interpreter(raw, self)
 
@@ -641,9 +643,6 @@ class Presenter(_Context):
 
         Note that in some cases the interpret_... functions accept values which
         are not strictly permitted by the specification.
-
-        If the property's value type is not a list type, any raw values after
-        the first are ignored.
 
         elist handling: if the property's value type is a list type and
         'raw_values' is a list containing a single empty string, passes an

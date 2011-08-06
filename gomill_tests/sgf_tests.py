@@ -126,8 +126,7 @@ def test_node_get(tc):
                    [((6, 0), "lbl"), ((6, 1), "lbl2")])  # Label
     # Check we (leniently) treat lists like elists on read
     tc.assertEqual(root.get('AE'), set())
-    # Check we (leniently) ignore excess values for scalars
-    tc.assertEqual(root.get('PW'), "White engine")
+    tc.assertRaisesRegexp(ValueError, "multiple values", root.get, 'PW')
 
 def test_text_values(tc):
     def check(s):

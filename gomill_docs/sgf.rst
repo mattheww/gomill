@@ -582,9 +582,7 @@ support them).
 
 In some cases, :meth:`~Tree_node.get` will accept values which are not
 strictly permitted in |sgf|, if there's a sensible way to interpret them. In
-particular, if a property has a type which is not a list, any values after the
-first are just ignored, and empty lists are accepted for all list types (not
-only elists).
+particular, empty lists are accepted for all list types (not only elists).
 
 In some cases, :meth:`~Tree_node.set` will accept values which are not exactly
 in the Python representation listed, if there's a natural way to convert them

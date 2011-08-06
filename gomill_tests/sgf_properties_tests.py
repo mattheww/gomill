@@ -282,8 +282,8 @@ def test_presenter_interpret(tc):
     p19 = sgf_properties.Presenter(19, "UTF-8")
     tc.assertEqual(p9.interpret('KO', [""]), True)
     tc.assertEqual(p9.interpret('SZ', ["9"]), 9)
-    # not sure this is the behaviour we want
-    tc.assertEqual(p9.interpret('SZ', ["9", "blah"]), 9)
+    tc.assertRaisesRegexp(ValueError, "multiple values",
+                          p9.interpret, 'SZ', ["9", "blah"])
     tc.assertEqual(p9.interpret('CR', ["ab", "cd"]), set([(5, 2), (7, 0)]))
     tc.assertRaises(ValueError, p9.interpret, 'SZ', [])
     tc.assertRaises(ValueError, p9.interpret, 'CR', [])
