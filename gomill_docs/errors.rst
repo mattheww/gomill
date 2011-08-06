@@ -183,9 +183,5 @@ Non-ASCII characters in the control file must be encoded in UTF-8.
 :gtp:`!version`, :gtp:`gomill-describe_engine`, or
 :gtp:`gomill-explain_last_move`.
 
-In practice, non-ASCII characters from |gtp| engines will normally be passed
-through untranslated, so if you have a non-UTF-8 environment things will
-probably work reasonably (if your terminal uses the same encoding).
-
 SGF files written by Gomill always explicitly specify UTF-8 encoding.
 
