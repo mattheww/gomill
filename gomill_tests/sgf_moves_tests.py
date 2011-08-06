@@ -61,6 +61,11 @@ def test_get_setup_and_moves(tc):
     tc.assertEqual(moves2,
                    [('b', (5, 6)), ('w', (5, 7))])
 
+    g3 = sgf.sgf_game_from_string("(;AB[ab][ba]AW[aa])")
+    tc.assertRaisesRegexp(ValueError, "setup position not legal",
+                          sgf_moves.get_setup_and_moves, g3)
+
+
 def test_get_setup_and_moves_move_in_root(tc):
     # A move in the root node is allowed (though deprecated) if there are no
     # setup stones.
