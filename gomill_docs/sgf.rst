@@ -7,7 +7,9 @@ SGF support
 .. versionadded:: 0.7
 
 Gomill's |sgf| support is intended for use with version FF[4], which is
-specified at http://www.red-bean.com/sgf/index.html.
+specified at http://www.red-bean.com/sgf/index.html. It has support for the
+game-specific properties for Go, but not those of other games. Point, Move and
+Stone values are interpreted as Go points.
 
 The :mod:`gomill.sgf` module provides the main support. This module is
 independent of the rest of Gomill.
@@ -142,6 +144,9 @@ least one node, the :dfn:`root node`.
    also contains *game-info* properties. It sometimes also contains *setup*
    properties (for example, if the game does not begin with an empty board).
 
+   Changing the ``FF`` and ``GM`` properties is permitted, but Gomill will
+   carry on using the FF[4] and GM[1] (Go) rules. Changing ``SZ`` and ``CA``
+   is not permitted (unless the change leaves the effective value unchanged).
 
 The complete game tree can be accessed from the root node, but the following
 convenience methods are also provided. They return the same :class:`Tree_node`
@@ -620,7 +625,8 @@ Examples::
 Property list
 ^^^^^^^^^^^^^
 
-Gomill knows the types of the following |sgf| properties:
+Gomill knows the types of all general and Go-specific |sgf| properties defined
+in FF[4]:
 
 ======  ==========================  ===================
   Id     |sgf| type                  Meaning
