@@ -69,6 +69,12 @@ def test_get_setup_and_moves(tc):
     tc.assertRaisesRegexp(ValueError, "setup properties after the root node",
                           sgf_moves.get_setup_and_moves, g4)
 
+    g5 = sgf.sgf_game_from_string("(;SZ[26];B[ab];W[bc])")
+    board5, moves5 = sgf_moves.get_setup_and_moves(g5)
+    tc.assertEqual(moves5,
+                   [('b', (24, 0)), ('w', (23, 1))])
+
+
 def test_get_setup_and_moves_move_in_root(tc):
     # A move in the root node is allowed (though deprecated) if there are no
     # setup stones.
