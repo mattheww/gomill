@@ -789,8 +789,10 @@ module.
    The moves are from the game's leftmost variation. Doesn't check that the
    moves are legal.
 
-   :exc:`ValueError` is raised if there are any ``AB``/``AW``/``AE``
-   properties after the root node.
+   Raises :exc:`ValueError` if the game has structure it doesn't support.
+
+   Currently doesn't support ``AB``/``AW``/``AE`` properties after the root
+   node.
 
    See also the :script:`show_sgf.py` example script.
 

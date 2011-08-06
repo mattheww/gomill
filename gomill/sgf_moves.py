@@ -28,13 +28,17 @@ def get_setup_and_moves(sgf_game):
     """
     size = sgf_game.get_size()
     board = boards.Board(size)
-    ab, aw, ae = sgf_game.get_root().get_setup_stones()
+    root = sgf_game.get_root()
+    nodes = sgf_game.main_sequence_iter()
+    ab, aw, ae = root.get_setup_stones()
     if ab or aw:
         is_legal = board.apply_setup(ab, aw, ae)
         if not is_legal:
             raise ValueError("setup position not legal")
-    nodes = sgf_game.main_sequence_iter()
-    nodes.next()
+        colour, raw = root.get_raw_move()
+        if colour is not None:
+            raise ValueError("mixed setup and moves in root node")
+        nodes.next()
     moves = []
     for node in nodes:
         if node.has_setup_stones():

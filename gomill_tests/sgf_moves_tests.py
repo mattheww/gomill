@@ -61,6 +61,28 @@ def test_get_setup_and_moves(tc):
     tc.assertEqual(moves2,
                    [('b', (5, 6)), ('w', (5, 7))])
 
+def test_get_setup_and_moves_move_in_root(tc):
+    # A move in the root node is allowed (though deprecated) if there are no
+    # setup stones.
+    g1 = sgf.Sgf_game(size=9)
+    root = g1.get_root()
+    root.set("B", (1, 2));
+    node = g1.extend_main_sequence()
+    node.set("W", (3, 4))
+    board1, moves1 = sgf_moves.get_setup_and_moves(g1)
+    tc.assertTrue(board1.is_empty())
+    tc.assertEqual(moves1,
+                   [('b', (1, 2)), ('w', (3, 4))])
+
+    g2 = sgf.Sgf_game(size=9)
+    root = g2.get_root()
+    root.set("B", (1, 2));
+    root.set("AW", [(3, 3)]);
+    node = g2.extend_main_sequence()
+    node.set("W", (3, 4))
+    tc.assertRaisesRegexp(ValueError, "mixed setup and moves in root node",
+                          sgf_moves.get_setup_and_moves, g2)
+
 
 def test_set_initial_position(tc):
     board = boards.Board(9)
