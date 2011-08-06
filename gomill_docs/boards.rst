@@ -6,6 +6,8 @@ The :mod:`~gomill.boards` module
 
 The :mod:`!gomill.boards` module contains Gomill's Go board representation.
 
+Everything in this module works with boards of arbitrarily large sizes.
+
 The implementation is not designed for speed (even as Python code goes), and
 is certainly not appropriate for implementing a playing engine.
 
