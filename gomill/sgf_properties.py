@@ -2,9 +2,9 @@
 
 This is intended for use with SGF FF[4]; see http://www.red-bean.com/sgf/
 
-This supports all generic properties and Go-specific properties, but not
-properties for other games. Point, Move and Stone values are interpreted as
-Go points.
+This supports all general properties and Go-specific properties, but not
+properties for other games. Point, Move and Stone values are interpreted as Go
+points.
 
 """
 
