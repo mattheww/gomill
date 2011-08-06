@@ -65,6 +65,9 @@ def test_get_setup_and_moves(tc):
     tc.assertRaisesRegexp(ValueError, "setup position not legal",
                           sgf_moves.get_setup_and_moves, g3)
 
+    g4 = sgf.sgf_game_from_string("(;SZ[9];B[ab];AW[bc])")
+    tc.assertRaisesRegexp(ValueError, "setup properties after the root node",
+                          sgf_moves.get_setup_and_moves, g4)
 
 def test_get_setup_and_moves_move_in_root(tc):
     # A move in the root node is allowed (though deprecated) if there are no
