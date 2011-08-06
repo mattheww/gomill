@@ -28,7 +28,7 @@ scripts.
 
   A 'traditional' twogtp implementation.
 
-  This demonstrates the :mod:`~!gomill.gtp_games` module.
+  This demonstrates the :mod:`!gtp_games` module.
 
 
 .. script:: find_forfeits.py
@@ -43,17 +43,17 @@ scripts.
   A |gtp| engine intended for testing |gtp| controllers.
 
   This demonstrates the low-level engine-side |gtp| code (the
-  :mod:`~!gomill.gtp_engine` module).
+  :mod:`!gtp_engine` module).
 
 
 .. script:: gtp_stateful_player
 
   A |gtp| engine which maintains the board position.
 
-  This demonstrates the :mod:`~!gomill.gtp_states` module, which can be used
-  to make a |gtp| engine from a stateless move-generating program, or to add
-  commands like :gtp:`!undo` and :gtp:`!loadsgf` to an engine which doesn't
-  natively support them.
+  This demonstrates the :mod:`!gtp_states` module, which can be used to make a
+  |gtp| engine from a stateless move-generating program, or to add commands
+  like :gtp:`!undo` and :gtp:`!loadsgf` to an engine which doesn't natively
+  support them.
 
 
 .. script:: kgs_proxy.py
@@ -64,8 +64,8 @@ scripts.
 
   .. _`kgsGtp`: http://senseis.xmp.net/?KgsGtp
 
-  This demonstrates the :mod:`~!gomill.gtp_proxy` module, and may be
-  independently useful.
+  This demonstrates the :mod:`!gtp_proxy` module, and may be independently
+  useful.
 
 
 .. script:: mogo_wrapper.py
@@ -77,6 +77,6 @@ scripts.
   .. _`Mogo`: http://www.lri.fr/~gelly/MoGo_Download.htm
   .. _`Quarry`: http://home.gna.org/quarry/
 
-  This demonstrates the :mod:`~!gomill.gtp_proxy` module, and may be
-  independently useful.
+  This demonstrates the :mod:`!gtp_proxy` module, and may be independently
+  useful.
 
