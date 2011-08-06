@@ -321,7 +321,7 @@ The principal methods for accessing the node's properties are:
 
 .. method:: Tree_node.unset(identifier)
 
-   Removes the property whose *PropIdent* is *indentifier* from the node.
+   Removes the property whose *PropIdent* is *identifier* from the node.
 
    Raises :exc:`KeyError` if the property isn't currently present.
 
