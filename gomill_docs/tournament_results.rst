@@ -107,14 +107,10 @@ Matchup_description objects
       The :ref:`matchup id <matchup id>` (a string, usually 1 to 3 characters).
 
    .. attribute:: player_1
+                  player_2
 
-      The :ref:`player code <player codes>` of the first player.
-
-   .. attribute:: player_2
-
-      The :ref:`player code <player codes>` of the second player.
-
-      :attr:`!player_1` and :attr:`!player_2` are always different.
+      The :ref:`player codes <player codes>` of the two players. These are
+      never equal.
 
    .. attribute:: name
 
@@ -184,66 +180,48 @@ Matchup_stats objects
    treated as read-only):
 
    .. attribute:: player_1
+                  player_2
 
-      :ref:`player code <player codes>` of the first player.
-
-   .. attribute:: player_2
-
-      :ref:`player code <player codes>` of the second player.
+      The :ref:`player codes <player codes>` of the two players. These are
+      never equal.
 
    .. attribute:: total
 
       Integer. The number of games played in the matchup.
 
    .. attribute:: wins_1
+                  wins_2
 
-      Integer. The number of games won by the first player.
-
-   .. attribute:: wins_2
-
-      Integer. The number of games won by the second player.
+      Integer. The number of games won by each player.
 
    .. attribute:: forfeits_1
+                  forfeits_2
 
-      Integer. The number of games in which the first player lost by forfeit.
-
-   .. attribute:: forfeits_2
-
-      Integer. The number of games in which the second player lost by forfeit.
+      Integer. The number of games in which each player lost by forfeit.
 
    .. attribute:: unknown
 
       Integer. The number of games whose result is unknown.
 
    .. attribute:: average_time_1
+                  average_time_2
 
-      float or ``None``. The average CPU time taken by the first player.
-
-   .. attribute:: average_time_2
-
-      float or ``None``. The average CPU time taken by the second player.
+      float or ``None``. The average CPU time taken by each player.
 
       If CPU times are available for only some games, the average is taken
       over the games for which they are available. If they aren't available
       for any games, the average is given as ``None``. See :ref:`cpu time`
       for notes on how CPU times are obtained.
 
-
    .. attribute:: played_1b
+                  played_2b
 
-      Integer. The number of games in which the first player took Black.
+      Integer. The number of games in which each player took Black.
 
    .. attribute:: played_1w
+                  played_2w
 
-      Integer. The number of games in which the first player took White.
-
-   .. attribute:: played_2b
-
-      Integer. The number of games in which the second player took Black.
-
-   .. attribute:: played_2w
-
-      Integer. The number of games in which the second player took White.
+      Integer. The number of games in which each player took White.
 
    .. attribute:: alternating
 
@@ -267,32 +245,23 @@ Matchup_stats objects
       Integer. The number of games in which White won.
 
    .. attribute:: wins_1b
+                  wins_2b
 
-      Integer. The number of games in which the first player won with Black.
+      Integer. The number of games in which each player won with Black.
 
    .. attribute:: wins_1w
+                  wins_2w
 
-      Integer. The number of games in which the first player won with White.
-
-   .. attribute:: wins_2b
-
-      Integer. The number of games in which the second player won with Black.
-
-   .. attribute:: wins_2w
-
-      Integer. The number of games in which the second player won with White.
+      Integer. The number of games in which each player won with White.
 
 
    If :attr:`alternating` is ``False``, the following attributes are also
    available:
 
    .. attribute:: colour_1
+                  colour_2
 
-      The *colour* taken by the first player.
-
-   .. attribute:: colour_2
-
-      The *colour* taken by the second player.
+      The *colour* taken by each player.
 
 
 .. currentmodule:: gomill.gtp_games
