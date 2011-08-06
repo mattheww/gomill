@@ -51,9 +51,9 @@ types).
 *colour* values are used to represent players, as well as stones on the board.
 (When a way to represent an empty point is needed, ``None`` is used.)
 
-*point* values are treated as (row, column), with the bottom left as
-``(0, 0)``. This is the orientation used in |gtp| (but not |sgf|). So the
-coordinates for a 9x9 board are as follows::
+*point* values are treated as (row, column). The bottom left is ``(0, 0)``
+(the same orientation as |gtp|, but not |sgf|). So the coordinates for a 9x9
+board are as follows::
 
   9 (8,0)  .  .  .  .  .  (8,8)
   8  .  .  .  .  .  .  .  .  .
