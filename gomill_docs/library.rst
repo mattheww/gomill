@@ -4,7 +4,7 @@ The Gomill library
 Gomill is intended to be useful as a Python library for developing |gtp|- and
 |sgf|-based tools.
 
-As of Gomill |version|, much of the library API is not formally documented.
+As of Gomill |version|, not all of the library API is formally documented.
 Only the parts which are described in this documentation should be considered
 stable public interfaces.
 

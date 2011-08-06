@@ -29,7 +29,7 @@ The package module itself defines only a single constant:
 Generic data representation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Unless otherwise stated, *string* values are 8-bit UTF-8 strings.
+Unless otherwise stated, string values are 8-bit UTF-8 strings.
 
 
 .. _go_related_data_representation:
