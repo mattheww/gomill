@@ -12,8 +12,7 @@ interpreting ASCII diagrams of Go board positions.
 
    :rtype: string
 
-   Returns an ASCII diagram of the position on the
-   :class:`~gomill.boards.Board` *board*.
+   Returns an ASCII diagram of the position on the :class:`.Board` *board*.
 
    The returned string does not end with a newline.
 
@@ -43,7 +42,6 @@ interpreting ASCII diagrams of Go board positions.
 
    *diagram* must be a string in the format returned by :func:`render_board`.
 
-   *board* should be an empty :class:`~gomill.boards.Board` object, of the
-   right size.
+   *board* should be an empty :class:`.Board` object, of the right size.
 
    Raises :exc:`ValueError` if it can't interpret the diagram.

@@ -33,10 +33,9 @@ The module contains a single class:
       A list of *points*, giving all points on the board.
 
 
-The principal :class:`!Board` methods are :meth:`~!Board.get` and
-:meth:`~!Board.play`. Their *row* and *col* parameters should be ints
-representing coordinates in the :ref:`system <go_related_data_representation>`
-used for a *point*.
+The principal :class:`!Board` methods are :meth:`!get` and :meth:`!play`.
+Their *row* and *col* parameters should be ints representing coordinates in
+the :ref:`system <go_related_data_representation>` used for a *point*.
 
 The behaviour of :class:`!Board` methods is unspecified if they are passed
 out-of-range coordinates.

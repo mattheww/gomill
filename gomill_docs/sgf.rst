@@ -14,10 +14,10 @@ independent of the rest of Gomill.
 
 The :mod:`gomill.sgf_moves` module contains some higher-level functions for
 processing moves and positions, and provides a link to the
-:mod:`~gomill.boards` module.
+:mod:`.boards` module.
 
 The :mod:`!gomill.sgf_grammar` and :mod:`!gomill.sgf_properties` modules are
-used to implement the :mod:`~gomill.sgf` module, and are not currently
+used to implement the :mod:`!sgf` module, and are not currently
 documented.
 
 
@@ -192,7 +192,7 @@ just the whole game.
    returns it.
 
    This is equivalent to
-   :meth:`~Sgf_game.get_last_node`\ .\ :meth:`~Tree_node.new_child`
+   :meth:`get_last_node`\ .\ :meth:`~Tree_node.new_child`
 
 
 The following methods provide convenient access to some of the root node's
@@ -316,7 +316,7 @@ The principal methods for accessing the node's properties are:
    Sets the value of the property whose *PropIdent* is *identifier*.
 
    *value* should be a native Python representation of the required property
-   value (as returned by :func:`~get`).
+   value (as returned by :meth:`get`).
 
    Raises :exc:`ValueError` if the property value isn't acceptable.
 
@@ -356,7 +356,7 @@ The principal methods for accessing the node's properties are:
 
    It looks first in the node itself, then in its parent, and so on up to the
    root, returning the first value it finds. Otherwise the behaviour is the
-   same as :meth:`~Tree_node.get`.
+   same as :meth:`get`.
 
    Raises :exc:`KeyError` if no node defining the property is found.
 
@@ -368,9 +368,9 @@ The principal methods for accessing the node's properties are:
    Returns the nearest node defining the property whose *PropIdent* is
    *identifier*.
 
-   Searches in the same way as :meth:`~Tree_node.find_property`, but returns
-   the node rather than the property value. Returns ``None`` if no node
-   defining the property is found.
+   Searches in the same way as :meth:`find_property`, but returns the node
+   rather than the property value. Returns ``None`` if no node defining the
+   property is found.
 
 
 .. rubric:: Convenience methods for properties
@@ -540,7 +540,7 @@ The following methods are provided for manipulating the tree:
 Property types
 ^^^^^^^^^^^^^^
 
-The :func:`~Tree_node.get` and :func:`~Tree_node.set` node methods convert
+The :meth:`~Tree_node.get` and :meth:`~Tree_node.set` node methods convert
 between raw |sgf| property values and suitable native Python types.
 
 The following table shows how |sgf| property types are represented as Python
@@ -568,31 +568,31 @@ containing a single empty string).
 Values of compose types are represented as Python pairs (tuples of length
 two). ``FG`` values are either a pair (int, string) or ``None``.
 
-For Text and SimpleText values, :func:`~Tree_node.get` and
-:func:`~Tree_node.set` take care of escaping. You can store arbitrary strings
+For Text and SimpleText values, :meth:`~Tree_node.get` and
+:meth:`~Tree_node.set` take care of escaping. You can store arbitrary strings
 in a Text value and retrieve them unchanged, with the following exceptions:
 
 * all linebreaks are are normalised to ``\n``
 
 * whitespace other than line breaks is converted to a single space
 
-:func:`~Tree_node.get` accepts compressed point lists, but
-:func:`~Tree_node.set` never produces them (some |sgf| viewers still don't
+:meth:`~Tree_node.get` accepts compressed point lists, but
+:meth:`~Tree_node.set` never produces them (some |sgf| viewers still don't
 support them).
 
-In some cases, :func:`~Tree_node.get` will accept values which are not
+In some cases, :meth:`~Tree_node.get` will accept values which are not
 strictly permitted in |sgf|, if there's a sensible way to interpret them. In
 particular, if a property has a type which is not a list, any values after the
 first are just ignored, and empty lists are accepted for all list types (not
 only elists).
 
-In some cases, :func:`~Tree_node.set` will accept values which are not exactly
+In some cases, :meth:`~Tree_node.set` will accept values which are not exactly
 in the Python representation listed, if there's a natural way to convert them
 to the |sgf| representation.
 
-Both :func:`~Tree_node.get` and :func:`~Tree_node.set` check that Point values
-are in range for the board size. Neither :func:`~Tree_node.get` nor
-:func:`~Tree_node.set` pays attention to range restrictions for values of type
+Both :meth:`~Tree_node.get` and :meth:`~Tree_node.set` check that Point values
+are in range for the board size. Neither :meth:`~Tree_node.get` nor
+:meth:`~Tree_node.set` pays attention to range restrictions for values of type
 Number.
 
 Examples::
@@ -722,10 +722,10 @@ aliases of Python built-in codecs (eg ``"UTF-8"`` or ``"ISO-8859-1"``). See
 
   .. __: http://docs.python.org/release/2.7/library/codecs.html#standard-encodings
 
-Each :class:`~gomill.sgf.Sgf_game` and :class:`~gomill.sgf.Tree_node` has a
-fixed :dfn:`raw property encoding`, which is the encoding used internally to
-store the property values. The :meth:`Tree_node.get_raw` and
-:meth:`Tree_node.set_raw` methods use the raw property encoding.
+Each :class:`.Sgf_game` and :class:`.Tree_node` has a fixed :dfn:`raw property
+encoding`, which is the encoding used internally to store the property values.
+The :meth:`Tree_node.get_raw` and :meth:`Tree_node.set_raw` methods use the
+raw property encoding.
 
 When an |sgf| game is loaded from a file, the raw property encoding is
 normally the original file encoding. Improperly encoded property values will
@@ -736,9 +736,9 @@ bytes).
 When an |sgf| game is serialised to a string, the raw property encoding is
 used.
 
-:class:`~gomill.sgf.Sgf_game` enforces the constraint that the ``CA`` root
-property corresponds to the raw property encoding (if the encoding is
-``ISO-8859-1``, then the property may be absent).
+:class:`.Sgf_game` enforces the constraint that the ``CA`` root property
+corresponds to the raw property encoding (if the encoding is ``ISO-8859-1``,
+then the property may be absent).
 
 
 .. _parsing_details:
@@ -764,23 +764,23 @@ The parser doesn't permit lower-case letters in property identifiers (these
 are allowed in some ancient |sgf| variants).
 
 
-The :mod:`~!gomill.sgf_moves` module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The :mod:`!sgf_moves` module
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. module:: gomill.sgf_moves
    :synopsis: Higher-level processing of moves and positions from SGF games.
 
 The :mod:`!gomill.sgf_moves` module contains some higher-level functions for
-processing moves and positions, and provides a link to the
-:mod:`~gomill.boards` module.
+processing moves and positions, and provides a link to the :mod:`.boards`
+module.
 
 
 .. function:: get_setup_and_moves(sgf_game)
 
-   :rtype: tuple (:class:`~gomill.boards.Board`, list of *moves*)
+   :rtype: tuple (:class:`.Board`, list of *moves*)
 
    Returns the initial setup and the following moves from an
-   :class:`~gomill.sgf.Sgf_game`.
+   :class:`.Sgf_game`.
 
    The board represents the position described by ``AB`` and/or ``AW``
    properties in the |SGF| game's root node. :exc:`ValueError` is raised if
@@ -797,16 +797,16 @@ processing moves and positions, and provides a link to the
 
 .. function:: set_initial_position(sgf_game, board)
 
-   Adds ``AB``/``AW``/``AE`` properties to an :class:`~gomill.sgf.Sgf_game`'s
-   root node, to reflect the position from a :class:`~gomill.boards.Board`.
+   Adds ``AB``/``AW``/``AE`` properties to an :class:`.Sgf_game`'s root node,
+   to reflect the position from a :class:`.Board`.
 
    Replaces any existing ``AB``/``AW``/``AE`` properties in the root node.
 
 
 .. function:: indicate_first_player(sgf_game)
 
-   Adds a ``PL`` property to an :class:`~gomill.sgf.Sgf_game`'s root node if
-   appropriate, to indicate which colour is first to play.
+   Adds a ``PL`` property to an :class:`.Sgf_game`'s root node if appropriate,
+   to indicate which colour is first to play.
 
    Looks at the first child of the root to see who the first player is, and
    sets ``PL`` it isn't the expected player (Black normally, but White if
