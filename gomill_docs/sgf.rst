@@ -307,6 +307,9 @@ The principal methods for accessing the node's properties are:
    See :ref:`sgf_property_types` below for details of how property values are
    represented in Python.
 
+   See :ref:`sgf_property_list` below for a list of the known properties. Any
+   other property is treated as having type Text.
+
 .. method:: Tree_node.set(identifier, value)
 
    Sets the value of the property whose *PropIdent* is *identifier*.
@@ -318,6 +321,9 @@ The principal methods for accessing the node's properties are:
 
    See :ref:`sgf_property_types` below for details of how property values
    should be represented in Python.
+
+   See :ref:`sgf_property_list` below for a list of the known properties. Any
+   other property is treated as having type Text.
 
 .. method:: Tree_node.unset(identifier)
 
@@ -685,8 +691,6 @@ Gomill knows the types of the following |sgf| properties:
 ``WR``  SimpleText                  White rank
 ``WT``  SimpleText                  White team
 ======  ==========================  ===================
-
-.. todo:: private properties
 
 
 .. _raw_property_encoding:
