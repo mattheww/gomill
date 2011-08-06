@@ -4,7 +4,7 @@ from gomill import boards
 from gomill import sgf_properties
 
 
-def get_setup_and_moves(sgf_game):
+def get_setup_and_moves(sgf_game, board=None):
     """Return the initial setup and the following moves from an Sgf_game.
 
     Returns a pair (board, moves)
@@ -25,9 +25,18 @@ def get_setup_and_moves(sgf_game):
 
     Doesn't check whether the moves are legal.
 
+    If the optional 'board' parameter is provided, it must be an empty board of
+    the right size; the same object will be returned.
+
     """
     size = sgf_game.get_size()
-    board = boards.Board(size)
+    if board is None:
+        board = boards.Board(size)
+    else:
+        if board.side != size:
+            raise ValueError("wrong board size, must be %d" % size)
+        if not board.is_empty():
+            raise ValueError("board not empty")
     root = sgf_game.get_root()
     nodes = sgf_game.main_sequence_iter()
     ab, aw, ae = root.get_setup_stones()

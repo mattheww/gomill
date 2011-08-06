@@ -91,6 +91,20 @@ def test_get_setup_and_moves_move_in_root(tc):
     tc.assertRaisesRegexp(ValueError, "mixed setup and moves in root node",
                           sgf_moves.get_setup_and_moves, g2)
 
+def test_get_setup_and_moves_board_provided(tc):
+    b = boards.Board(9)
+    g1 = sgf.sgf_game_from_string(SAMPLE_SGF)
+    board1, moves1 = sgf_moves.get_setup_and_moves(g1, b)
+    tc.assertIs(board1, b)
+    tc.assertDiagramEqual(ascii_boards.render_board(board1), DIAGRAM1)
+    tc.assertEqual(moves1,
+                   [('b', (2, 3)), ('w', (3, 4)), ('b', None), ('w', None)])
+    tc.assertRaisesRegexp(ValueError, "board not empty",
+                          sgf_moves.get_setup_and_moves, g1, b)
+    b2 = boards.Board(19)
+    tc.assertRaisesRegexp(ValueError, "wrong board size, must be 9$",
+                          sgf_moves.get_setup_and_moves, g1, b2)
+
 
 def test_set_initial_position(tc):
     board = boards.Board(9)

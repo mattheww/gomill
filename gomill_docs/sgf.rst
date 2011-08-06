@@ -775,7 +775,7 @@ processing moves and positions, and provides a link to the :mod:`.boards`
 module.
 
 
-.. function:: get_setup_and_moves(sgf_game)
+.. function:: get_setup_and_moves(sgf_game[, board])
 
    :rtype: tuple (:class:`.Board`, list of *moves*)
 
@@ -793,6 +793,10 @@ module.
 
    Currently doesn't support ``AB``/``AW``/``AE`` properties after the root
    node.
+
+   If the optional *board* parameter is provided, it must be an empty
+   :class:`.Board` of the right size; the same object will be returned (this
+   option is provided so you can use a different Board class).
 
    See also the :script:`show_sgf.py` example script.
 
