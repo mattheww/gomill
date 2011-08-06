@@ -551,9 +551,6 @@ Point        *move*
 
 Gomill does not distinguish the Point, Move, and Stone |sgf| property types.
 
-Values of type None are returned as ``True`` by :func:`~Tree_node.get`;
-:func:`~Tree_node.set` accepts any value.
-
 Values of list or elist types are represented as Python lists. An empty elist
 is represented as an empty Python list (in contrast, the raw value is a list
 containing a single empty string).
@@ -561,27 +558,53 @@ containing a single empty string).
 Values of compose types are represented as Python pairs (tuples of length
 two). ``FG`` values are either a pair (int, string) or ``None``.
 
-For example, the ``LB`` property has type 'list of Point:SimpleText', so its
-values are lists of pairs (*move*, string)::
+For Text and SimpleText values, :func:`~Tree_node.get` and
+:func:`~Tree_node.set` take care of escaping. You can store arbitrary strings
+in a Text value and retrieve them unchanged, with the following exceptions:
 
-   >>> node.set('LB', [((6, 0), "label 1"), ((6, 1), "label 2")])
-   >>> node.get_raw('LB')
-   'LB[ac:label 1][bc:label 2]'
+* all linebreaks are are normalised to ``\n``
 
+* whitespace other than line breaks is converted to a single space
+
+:func:`~Tree_node.get` accepts compressed point lists, but
+:func:`~Tree_node.set` never produces them (some |sgf| viewers still don't
+support them).
 
 In some cases, :func:`~Tree_node.get` will accept values which are not
-strictly permitted in |sgf|. In particular, if a property has a type which is
-not a list, any values after the first are just ignored, and empty lists are
-accepted for all list types, not only elists.
+strictly permitted in |sgf|, if there's a sensible way to interpret them. In
+particular, if a property has a type which is not a list, any values after the
+first are just ignored, and empty lists are accepted for all list types (not
+only elists).
 
-.. I don't think this is worth saying.
+In some cases, :func:`~Tree_node.set` will accept values which are not exactly
+in the Python representation listed, if there's a natural way to convert them
+to the |sgf| representation.
 
-   In general, :func:`~Tree_node.set` tries not to allow a malformed value to be
-   stored in the property, but does not try hard to prevent garbage input
-   happening to produce a valid value.
+Both :func:`~Tree_node.get` and :func:`~Tree_node.set` check that Point values
+are in range for the board size. Neither :func:`~Tree_node.get` nor
+:func:`~Tree_node.set` pays attention to range restrictions for values of type
+Number.
 
-Neither :func:`~Tree_node.get` nor :func:`~Tree_node.set` pays attention to
-range restrictions for values of type Number.
+Examples::
+
+   >>> node.set('KO', True)
+   >>> node.get_raw('KO')
+   ''
+   >>> node.set('HA', 3)
+   >>> node.set('KM', 5.5)
+   >>> node.set('GB', 2)
+   >>> node.set('PL', 'w')
+   >>> node.set('RE', 'W+R')
+   >>> node.set('GC', 'Example game\n[for documentation]')
+   >>> node.get_raw('GC')
+   'Example game\n[for documentation\\]'
+   >>> node.set('B', (2, 3))
+   >>> node.get_raw('B')
+   'dg'
+   >>> node.set('LB', [((6, 0), "label 1"), ((6, 1), "label 2")])
+   >>> node.get_raw_list('LB')
+   ['ac:label 1', 'bc:label 2']
+
 
 
 .. _sgf_property_list:
