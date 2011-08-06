@@ -95,21 +95,21 @@ def test_render_board_13x13(tc):
     b.play(3, 4, 'w')
     tc.assertDiagramEqual(ascii_boards.render_board(b), _13x13_expected)
 
-def test_play_diagram(tc):
+def test_interpret_diagram(tc):
     b1 = boards.Board(9)
     b1.play(2, 3, 'b')
     b1.play(3, 4, 'w')
-    b2 = ascii_boards.play_diagram(_9x9_expected, 9)
+    b2 = ascii_boards.interpret_diagram(_9x9_expected, 9)
     tc.assertEqual(b1, b2)
     b3 = boards.Board(9)
-    b4 = ascii_boards.play_diagram(_9x9_expected, 9, b3)
+    b4 = ascii_boards.interpret_diagram(_9x9_expected, 9, b3)
     tc.assertIs(b3, b4)
     tc.assertEqual(b1, b3)
     tc.assertRaisesRegexp(ValueError, "board not empty",
-                          ascii_boards.play_diagram, _9x9_expected, 9, b3)
+                          ascii_boards.interpret_diagram, _9x9_expected, 9, b3)
     b5 = boards.Board(19)
     tc.assertRaisesRegexp(ValueError, "wrong board size, must be 9$",
-                          ascii_boards.play_diagram, _9x9_expected, 9, b5)
+                          ascii_boards.interpret_diagram, _9x9_expected, 9, b5)
 
 def test_copy(tc):
     b1 = boards.Board(9)
@@ -154,7 +154,7 @@ class Score_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
     parameter_names = ('diagram', 'score')
 
     def runTest(self):
-        b = ascii_boards.play_diagram(self.diagram, 9)
+        b = ascii_boards.interpret_diagram(self.diagram, 9)
         self.assertEqual(b.area_score(), self.score, "wrong score")
 
 

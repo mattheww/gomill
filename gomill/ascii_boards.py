@@ -43,7 +43,7 @@ def render_board(board):
         return _point_strings.get(board.get(row, col), " ?")
     return "\n".join(render_grid(format_pt, board.side))
 
-def play_diagram(diagram, size, board=None):
+def interpret_diagram(diagram, size, board=None):
     """Set up the position from a diagram.
 
     diagram -- board representation as from render_board()

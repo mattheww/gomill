@@ -36,14 +36,14 @@ interpreting ASCII diagrams of Go board positions.
    See also the :script:`show_sgf.py` example script.
 
 
-.. function:: play_diagram(diagram, size[, board])
+.. function:: interpret_diagram(diagram, size[, board])
 
    :rtype: :class:`.Board`
 
    Returns the position given in an ASCII diagram.
 
    *diagram* must be a string in the format returned by :func:`render_board`,
-   representing a position from a board with the specified size.
+   representing a position with the specified size.
 
    Raises :exc:`ValueError` if it can't interpret the diagram.
 
