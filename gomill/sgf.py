@@ -445,7 +445,7 @@ class Sgf_game(object):
 
     """
     def _initialise_presenter(self, size, encoding):
-        # This is split out for the sake of _Parsed_sgf_game.__init__
+        # This is split out for the sake of _Loaded_sgf_game.__init__
         if not 1 <= size <= 26:
             raise ValueError("size out of range: %s" % size)
         self.size = size
@@ -630,7 +630,7 @@ class Sgf_game(object):
 
 
 class _Unexpanded_root_tree_node(_Root_tree_node):
-    """Variant of _Root_tree_node used for _Parsed_sgf_game."""
+    """Variant of _Root_tree_node used for _Loaded_sgf_game."""
     def __init__(self, owner, coarse_tree):
         _Root_tree_node.__init__(self, coarse_tree.sequence[0], owner)
         self._coarse_tree = coarse_tree
@@ -662,7 +662,7 @@ class _Unexpanded_root_tree_node(_Root_tree_node):
         for properties in sgf_grammar.main_sequence_iter(self._coarse_tree):
             yield Node(properties, presenter)
 
-class _Parsed_sgf_game(Sgf_game):
+class _Loaded_sgf_game(Sgf_game):
     """An Sgf_game which was loaded from serialised form.
 
     Do not instantiate directly; use sgf_game_from_string() or
@@ -722,7 +722,7 @@ def sgf_game_from_coarse_game_tree(coarse_game, override_encoding=None):
     property is set to match.
 
     """
-    return _Parsed_sgf_game(coarse_game, override_encoding)
+    return _Loaded_sgf_game(coarse_game, override_encoding)
 
 def sgf_game_from_string(s, override_encoding=None):
     """Read a single SGF game from a string.
@@ -738,7 +738,7 @@ def sgf_game_from_string(s, override_encoding=None):
     handling.
 
     """
-    return _Parsed_sgf_game(sgf_grammar.parse_sgf_game(s), override_encoding)
+    return _Loaded_sgf_game(sgf_grammar.parse_sgf_game(s), override_encoding)
 
 
 def serialise_sgf_game(sgf_game):

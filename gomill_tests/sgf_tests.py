@@ -300,7 +300,7 @@ def test_encoding(tc):
                           sgf.Sgf_game, 19, "unknownencoding")
 
 
-def test_parsed_sgf_game_encoding(tc):
+def test_loaded_sgf_game_encoding(tc):
     g1 = sgf.sgf_game_from_string("""
     (;FF[4]C[£]CA[utf-8]GM[1]SZ[19])
     """)
