@@ -2,7 +2,7 @@ The :mod:`~gomill.ascii_boards` module
 --------------------------------------
 
 .. module:: gomill.ascii_boards
-   :synopsis: ASCII Go board representation.
+   :synopsis: ASCII Go board diagrams.
 
 The :mod:`!gomill.ascii_boards` module contains functions for producing and
 interpreting ASCII diagrams of Go board positions.
