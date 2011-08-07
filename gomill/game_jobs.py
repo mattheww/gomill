@@ -317,7 +317,7 @@ class Game_job(object):
             "White %s %s" % (w_player, game.engine_descriptions[w_player]),
             ]
         root.set('C', "\n".join(notes))
-        self._write_sgf(pathname, sgf.serialise_sgf_game(sgf_game))
+        self._write_sgf(pathname, sgf_game.serialise())
 
     def _record_game(self, game):
         """Record the game in the standard sgf directory."""

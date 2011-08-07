@@ -810,6 +810,6 @@ class Game(object):
         """Write an SGF description of the game to the specified pathname."""
         sgf_game = self.make_sgf(game_end_message)
         f = open(pathname, "w")
-        f.write(sgf.serialise_sgf_game(sgf_game))
+        f.write(sgf_game.serialise())
         f.close()
 

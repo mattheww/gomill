@@ -102,8 +102,7 @@ class Game_fixture(test_framework.Fixture):
         self.game.run()
 
     def sgf_string(self):
-        return gomill_test_support.scrub_sgf(
-            sgf.serialise_sgf_game(self.game.make_sgf()))
+        return gomill_test_support.scrub_sgf(self.game.make_sgf().serialise())
 
 
 def test_game(tc):
@@ -525,7 +524,7 @@ def test_make_sgf(tc):
 W[gb];B[ea];W[ga];B[tt];C[one beat two B+18]W[tt])
 """)
     tc.assertMultiLineEqual(gomill_test_support.scrub_sgf(
-        sgf.serialise_sgf_game(fx.game.make_sgf(game_end_message="zzzz"))), """\
+        fx.game.make_sgf(game_end_message="zzzz").serialise()), """\
 (;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[0]RE[B+18]SZ[9];B[ei];W[gi]
 ;B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];W[gc];B[eb];
 W[gb];B[ea];W[ga];B[tt];C[one beat two B+18

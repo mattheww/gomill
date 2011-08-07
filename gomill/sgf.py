@@ -551,6 +551,20 @@ class Sgf_game(object):
         coarse_game = sgf_grammar.parse_sgf_game(s)
         return cls.from_coarse_game_tree(coarse_game, override_encoding)
 
+    def serialise(self):
+        """Serialise the SGF data as a string.
+
+        Returns an 8-bit string, in the encoding specified by the CA property
+        in the root node (defaulting to "ISO-8859-1").
+
+        """
+        # We can use the raw properties directly, because at present the raw
+        # property encoding always matches the CA property.
+        coarse_tree = sgf_grammar.make_coarse_game_tree(
+            self.root, lambda node:node, Node.get_raw_property_map)
+        return sgf_grammar.serialise_game_tree(coarse_tree)
+
+
     def get_property_presenter(self):
         """Return the property presenter.
 
@@ -720,18 +734,4 @@ class Sgf_game(object):
         if date is None:
             date = datetime.date.today()
         self.root.set('DT', date.strftime("%Y-%m-%d"))
-
-
-def serialise_sgf_game(sgf_game):
-    """Serialise an SGF game as a string.
-
-    Returns an 8-bit string, in the encoding specified by the CA property in
-    the root node (defaulting to "ISO-8859-1").
-
-    """
-    # We can use the raw properties directly, because at present the raw
-    # property encoding always matches the CA property.
-    coarse_tree = sgf_grammar.make_coarse_game_tree(
-        sgf_game.get_root(), lambda node:node, Node.get_raw_property_map)
-    return sgf_grammar.serialise_game_tree(coarse_tree)
 

@@ -261,9 +261,9 @@ def test_tree_view(tc):
     root2 = game2.get_root()
     tc.assertEqual(root2[0].get_raw('B'), "dg")
 
-def test_serialise_sgf_game(tc):
+def test_serialise(tc):
     sgf_game = sgf.Sgf_game.from_string(SAMPLE_SGF_VAR)
-    serialised = sgf.serialise_sgf_game(sgf_game)
+    serialised = sgf_game.serialise()
     tc.assertEqual(serialised, dedent("""\
     (;FF[4]AB[ai][bh][ee]AP[testsuite:0]AW[fd][gc]CA[utf-8]DT[2009-06-06]GM[1]
     KM[7.5]PB[Black engine]PL[B]RE[W+R]SZ[9]VW[];B[dg];C[comment
@@ -282,7 +282,7 @@ def test_encoding(tc):
     root.set("C", "£")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "£")
-    tc.assertEqual(sgf.serialise_sgf_game(g1), dedent("""\
+    tc.assertEqual(g1.serialise(), dedent("""\
     (;FF[4]C[£]CA[UTF-8]GM[1]SZ[19])
     """))
 
@@ -292,7 +292,7 @@ def test_encoding(tc):
     root.set("C", "£")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "\xa3")
-    tc.assertEqual(sgf.serialise_sgf_game(g2), dedent("""\
+    tc.assertEqual(g2.serialise(), dedent("""\
     (;FF[4]C[\xa3]CA[ISO-8859-1]GM[1]SZ[19])
     """))
 
@@ -308,7 +308,7 @@ def test_loaded_sgf_game_encoding(tc):
     tc.assertEqual(root.get_encoding(), "UTF-8")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "£")
-    tc.assertEqual(sgf.serialise_sgf_game(g1), dedent("""\
+    tc.assertEqual(g1.serialise(), dedent("""\
     (;FF[4]C[£]CA[utf-8]GM[1]SZ[19])
     """))
 
@@ -319,7 +319,7 @@ def test_loaded_sgf_game_encoding(tc):
     tc.assertEqual(root.get_encoding(), "ISO-8859-1")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "\xa3")
-    tc.assertEqual(sgf.serialise_sgf_game(g2), dedent("""\
+    tc.assertEqual(g2.serialise(), dedent("""\
     (;FF[4]C[\xa3]CA[iso-8859-1]GM[1]SZ[19])
     """))
 
@@ -330,7 +330,7 @@ def test_loaded_sgf_game_encoding(tc):
     tc.assertEqual(root.get_encoding(), "ISO-8859-1")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "\xa3")
-    tc.assertEqual(sgf.serialise_sgf_game(g3), dedent("""\
+    tc.assertEqual(g3.serialise(), dedent("""\
     (;FF[4]C[\xa3]GM[1]SZ[19])
     """))
 
@@ -344,7 +344,7 @@ def test_loaded_sgf_game_encoding(tc):
     tc.assertEqual(root.get_encoding(), "UTF-8")
     tc.assertEqual(root.get("C"), "\xa3")
     tc.assertEqual(root.get_raw("C"), "\xa3")
-    tc.assertEqual(sgf.serialise_sgf_game(g4), dedent("""\
+    tc.assertEqual(g4.serialise(), dedent("""\
     (;FF[4]C[\xa3]CA[utf-8]GM[1]SZ[19])
     """))
 
@@ -362,7 +362,7 @@ def test_override_encoding(tc):
     tc.assertEqual(root.get_encoding(), "UTF-8")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "£")
-    tc.assertEqual(sgf.serialise_sgf_game(g1), dedent("""\
+    tc.assertEqual(g1.serialise(), dedent("""\
     (;FF[4]C[£]CA[UTF-8]GM[1]SZ[19])
     """))
 
@@ -373,7 +373,7 @@ def test_override_encoding(tc):
     tc.assertEqual(root.get_encoding(), "ISO-8859-1")
     tc.assertEqual(root.get("C"), "£")
     tc.assertEqual(root.get_raw("C"), "\xa3")
-    tc.assertEqual(sgf.serialise_sgf_game(g2), dedent("""\
+    tc.assertEqual(g2.serialise(), dedent("""\
     (;FF[4]C[\xa3]CA[ISO-8859-1]GM[1]SZ[19])
     """))
 
@@ -386,7 +386,7 @@ def test_tree_mutation(tc):
     n2.set("N", "n2")
     n3 = n1.new_child()
     n3.set("N", "n3")
-    tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
+    tc.assertEqual(sgf_game.serialise(),
                    "(;FF[4]CA[UTF-8]GM[1]SZ[9](;N[n1];N[n3])(;N[n2]))\n")
     tc.assertEqual(
         [node.get_raw_property_map() for node in sgf_game.main_sequence_iter()],
@@ -394,7 +394,7 @@ def test_tree_mutation(tc):
     tc.assertIs(sgf_game.get_last_node(), n3)
 
     n1.delete()
-    tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
+    tc.assertEqual(sgf_game.serialise(),
                    "(;FF[4]CA[UTF-8]GM[1]SZ[9];N[n2])\n")
     tc.assertRaises(ValueError, root.delete)
 
@@ -407,14 +407,14 @@ def test_tree_mutation_from_coarse_game(tc):
     tc.assertEqual(n3.get("N"), "n3")
     n5 = n3.new_child()
     n5.set("N", "n5")
-    tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
+    tc.assertEqual(sgf_game.serialise(),
                    "(;SZ[9](;N[n1];N[n3];N[n5])(;N[n2])(;N[n4]))\n")
     tc.assertEqual(
         [node.get_raw_property_map() for node in sgf_game.main_sequence_iter()],
         [node.get_raw_property_map() for node in root, root[0], n3, n5])
     tc.assertIs(sgf_game.get_last_node(), n5)
     n3.delete()
-    tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
+    tc.assertEqual(sgf_game.serialise(),
                    "(;SZ[9](;N[n1])(;N[n2])(;N[n4]))\n")
     tc.assertRaises(ValueError, root.delete)
 
@@ -423,13 +423,13 @@ def test_extend_main_sequence(tc):
     for i in xrange(6):
         g1.extend_main_sequence().set("N", "e%d" % i)
     tc.assertEqual(
-        sgf.serialise_sgf_game(g1),
+        g1.serialise(),
         "(;FF[4]CA[UTF-8]GM[1]SZ[9];N[e0];N[e1];N[e2];N[e3];N[e4];N[e5])\n")
     g2 = sgf.Sgf_game.from_string("(;SZ[9](;N[n1];N[n3])(;N[n2]))")
     for i in xrange(6):
         g2.extend_main_sequence().set("N", "e%d" % i)
     tc.assertEqual(
-        sgf.serialise_sgf_game(g2),
+        g2.serialise(),
         "(;SZ[9](;N[n1];N[n3];N[e0];N[e1];N[e2];N[e3];N[e4];N[e5])(;N[n2]))\n")
 
 
@@ -607,7 +607,7 @@ def test_node_set(tc):
     root.set('TW', set())
     root.set('XX', "nonsense [none]sense more n\\onsens\\e")
 
-    tc.assertEqual(sgf.serialise_sgf_game(sgf_game), dedent("""\
+    tc.assertEqual(sgf_game.serialise(), dedent("""\
     (;FF[4]AB[ai][bh][ee]DD[ef][gd]GM[1]KM[0.5]KO[]SZ[9]TW[]
     XX[nonsense [none\\]sense more n\\\\onsens\\\\e])
     """))
@@ -618,7 +618,7 @@ def test_node_unset(tc):
     tc.assertEqual(root.get('HA'), 3)
     root.unset('HA')
     tc.assertRaises(KeyError, root.unset, 'PL')
-    tc.assertEqual(sgf.serialise_sgf_game(sgf_game),
+    tc.assertEqual(sgf_game.serialise(),
                    "(;FF[4]GM[1]SZ[9])\n")
 
 def test_set_and_unset_size(tc):

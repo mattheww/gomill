@@ -124,14 +124,14 @@ def test_set_initial_position(tc):
 def test_indicate_first_player(tc):
     g1 = sgf.Sgf_game.from_string("(;FF[4]GM[1]SZ[9];B[aa];W[ab])")
     sgf_moves.indicate_first_player(g1)
-    tc.assertEqual(sgf.serialise_sgf_game(g1),
+    tc.assertEqual(g1.serialise(),
                    "(;FF[4]GM[1]SZ[9];B[aa];W[ab])\n")
     g2 = sgf.Sgf_game.from_string("(;FF[4]GM[1]SZ[9];W[aa];B[ab])")
     sgf_moves.indicate_first_player(g2)
-    tc.assertEqual(sgf.serialise_sgf_game(g2),
+    tc.assertEqual(g2.serialise(),
                    "(;FF[4]GM[1]PL[W]SZ[9];W[aa];B[ab])\n")
     g3 = sgf.Sgf_game.from_string("(;AW[bc]FF[4]GM[1]SZ[9];B[aa];W[ab])")
     sgf_moves.indicate_first_player(g3)
-    tc.assertEqual(sgf.serialise_sgf_game(g3),
+    tc.assertEqual(g3.serialise(),
                    "(;FF[4]AW[bc]GM[1]PL[B]SZ[9];B[aa];W[ab])\n")
 

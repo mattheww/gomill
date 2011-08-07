@@ -533,7 +533,7 @@ class Gtp_state(object):
                 node.set("C", move.comments)
         sgf_moves.indicate_first_player(sgf_game)
         f = open(pathname, "w")
-        f.write(sgf.serialise_sgf_game(sgf_game))
+        f.write(sgf_game.serialise())
         f.close()
 
 
