@@ -425,6 +425,8 @@ to a few of the most important properties:
    Sets the ``B`` or ``W`` property. If the other property is currently
    present, it is removed.
 
+   Gomill doesn't attempt to ensure that moves are legal.
+
 .. method:: Tree_node.get_setup_stones()
 
    :rtype: tuple (set of *points*, set of *points*, set of *points*)
