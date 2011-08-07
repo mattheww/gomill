@@ -420,6 +420,40 @@ class _Root_tree_node(Tree_node):
         self._children = []
         Node.__init__(self, property_map, owner.presenter)
 
+class _Unexpanded_root_tree_node(_Root_tree_node):
+    """Variant of _Root_tree_node used with FIXME."""
+    def __init__(self, owner, coarse_tree):
+        _Root_tree_node.__init__(self, coarse_tree.sequence[0], owner)
+        self._coarse_tree = coarse_tree
+
+    def _expand(self):
+        sgf_grammar.make_tree(
+            self._coarse_tree, self, Tree_node, Tree_node._add_child)
+        delattr(self, '_coarse_tree')
+        self.__class__ = _Root_tree_node
+
+    def __len__(self):
+        self._expand()
+        return self.__len__()
+
+    def __getitem__(self, key):
+        self._expand()
+        return self.__getitem__(key)
+
+    def index(self, child):
+        self._expand()
+        return self.index(child)
+
+    def new_child(self):
+        self._expand()
+        return self.new_child()
+
+    def _main_sequence_iter(self):
+        presenter = self._presenter
+        for properties in sgf_grammar.main_sequence_iter(self._coarse_tree):
+            yield Node(properties, presenter)
+
+
 class Sgf_game(object):
     """An SGF game tree.
 
@@ -444,19 +478,20 @@ class Sgf_game(object):
     change leaves the effective value unchanged).
 
     """
-    def _initialise_presenter(self, size, encoding):
-        # This is split out for the sake of _Loaded_sgf_game.__init__
+    def __new__(cls, size, encoding="UTF-8"):
+        # To complete initialisation after this, you need to set 'root'.
         if not 1 <= size <= 26:
             raise ValueError("size out of range: %s" % size)
-        self.size = size
-        self.presenter = sgf_properties.Presenter(size, encoding)
+        game = super(Sgf_game, cls).__new__(cls)
+        game.size = size
+        game.presenter = sgf_properties.Presenter(size, encoding)
+        return game
 
-    def __init__(self, size, encoding="UTF-8"):
-        self._initialise_presenter(size, encoding)
+    def __init__(self, *args, **kwargs):
         self.root = _Root_tree_node({}, self)
         self.root.set_raw('FF', "4")
         self.root.set_raw('GM', "1")
-        self.root.set_raw('SZ', str(size))
+        self.root.set_raw('SZ', str(self.size))
         # Read the encoding back so we get the normalised form
         self.root.set_raw('CA', self.presenter.encoding)
 
@@ -544,6 +579,8 @@ class Sgf_game(object):
         nodes without building the entire game tree.
 
         """
+        if isinstance(self.root, _Unexpanded_root_tree_node):
+            return self.root._main_sequence_iter()
         return iter(self.get_main_sequence())
 
     def extend_main_sequence(self):
@@ -629,79 +666,6 @@ class Sgf_game(object):
         self.root.set('DT', date.strftime("%Y-%m-%d"))
 
 
-class _Unexpanded_root_tree_node(_Root_tree_node):
-    """Variant of _Root_tree_node used for _Loaded_sgf_game."""
-    def __init__(self, owner, coarse_tree):
-        _Root_tree_node.__init__(self, coarse_tree.sequence[0], owner)
-        self._coarse_tree = coarse_tree
-
-    def _expand(self):
-        sgf_grammar.make_tree(
-            self._coarse_tree, self, Tree_node, Tree_node._add_child)
-        delattr(self, '_coarse_tree')
-        self.__class__ = _Root_tree_node
-
-    def __len__(self):
-        self._expand()
-        return self.__len__()
-
-    def __getitem__(self, key):
-        self._expand()
-        return self.__getitem__(key)
-
-    def index(self, child):
-        self._expand()
-        return self.index(child)
-
-    def new_child(self):
-        self._expand()
-        return self.new_child()
-
-    def _main_sequence_iter(self):
-        presenter = self._presenter
-        for properties in sgf_grammar.main_sequence_iter(self._coarse_tree):
-            yield Node(properties, presenter)
-
-class _Loaded_sgf_game(Sgf_game):
-    """An Sgf_game which was loaded from serialised form.
-
-    Do not instantiate directly; use sgf_game_from_string() or
-    sgf_game_from_coarse_game_tree().
-
-    """
-    # This doesn't build the Tree_nodes (other than the root) until required.
-
-    # It provides an implementation of main_sequence_iter() which reads
-    # directly from the original Coarse_game_tree; this stops being used as
-    # soon as the tree is expanded.
-
-    def __init__(self, coarse_game, override_encoding=None):
-        try:
-            size_s = coarse_game.sequence[0]['SZ'][0]
-        except KeyError:
-            size = 19
-        else:
-            try:
-                size = int(size_s)
-            except ValueError:
-                raise ValueError("bad SZ property: %s" % size_s)
-        if override_encoding is None:
-            try:
-                encoding = coarse_game.sequence[0]['CA'][0]
-            except KeyError:
-                encoding = "ISO-8859-1"
-        else:
-            encoding = override_encoding
-        self._initialise_presenter(size, encoding)
-        self.root = _Unexpanded_root_tree_node(self, coarse_game)
-        if override_encoding is not None:
-            self.root.set_raw("CA", self.presenter.encoding)
-
-    def main_sequence_iter(self):
-        if isinstance(self.root, _Unexpanded_root_tree_node):
-            return self.root._main_sequence_iter()
-        return self.get_main_sequence()
-
 def sgf_game_from_coarse_game_tree(coarse_game, override_encoding=None):
     """Create an SGF game from the parser output.
 
@@ -722,7 +686,27 @@ def sgf_game_from_coarse_game_tree(coarse_game, override_encoding=None):
     property is set to match.
 
     """
-    return _Loaded_sgf_game(coarse_game, override_encoding)
+    try:
+        size_s = coarse_game.sequence[0]['SZ'][0]
+    except KeyError:
+        size = 19
+    else:
+        try:
+            size = int(size_s)
+        except ValueError:
+            raise ValueError("bad SZ property: %s" % size_s)
+    if override_encoding is None:
+        try:
+            encoding = coarse_game.sequence[0]['CA'][0]
+        except KeyError:
+            encoding = "ISO-8859-1"
+    else:
+        encoding = override_encoding
+    game = Sgf_game.__new__(Sgf_game, size, encoding)
+    game.root = _Unexpanded_root_tree_node(game, coarse_game)
+    if override_encoding is not None:
+        game.root.set_raw("CA", game.presenter.encoding)
+    return game
 
 def sgf_game_from_string(s, override_encoding=None):
     """Read a single SGF game from a string.
@@ -738,7 +722,8 @@ def sgf_game_from_string(s, override_encoding=None):
     handling.
 
     """
-    return _Loaded_sgf_game(sgf_grammar.parse_sgf_game(s), override_encoding)
+    coarse_game = sgf_grammar.parse_sgf_game(s)
+    return sgf_game_from_coarse_game_tree(coarse_game, override_encoding)
 
 
 def serialise_sgf_game(sgf_game):
