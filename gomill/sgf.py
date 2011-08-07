@@ -722,13 +722,6 @@ class Sgf_game(object):
         self.root.set('DT', date.strftime("%Y-%m-%d"))
 
 
-def sgf_game_from_coarse_game_tree(coarse_game, override_encoding=None):
-    return Sgf_game.from_coarse_game_tree(coarse_game, override_encoding)
-
-def sgf_game_from_string(s, override_encoding=None):
-    return Sgf_game.from_string(s, override_encoding)
-
-
 def serialise_sgf_game(sgf_game):
     """Serialise an SGF game as a string.
 

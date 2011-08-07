@@ -43,7 +43,7 @@ DIAGRAM2 = """\
 
 
 def test_get_setup_and_moves(tc):
-    g1 = sgf.sgf_game_from_string(SAMPLE_SGF)
+    g1 = sgf.Sgf_game.from_string(SAMPLE_SGF)
     board1, moves1 = sgf_moves.get_setup_and_moves(g1)
     tc.assertDiagramEqual(ascii_boards.render_board(board1), DIAGRAM1)
     tc.assertEqual(moves1,
@@ -61,15 +61,15 @@ def test_get_setup_and_moves(tc):
     tc.assertEqual(moves2,
                    [('b', (5, 6)), ('w', (5, 7))])
 
-    g3 = sgf.sgf_game_from_string("(;AB[ab][ba]AW[aa])")
+    g3 = sgf.Sgf_game.from_string("(;AB[ab][ba]AW[aa])")
     tc.assertRaisesRegexp(ValueError, "setup position not legal",
                           sgf_moves.get_setup_and_moves, g3)
 
-    g4 = sgf.sgf_game_from_string("(;SZ[9];B[ab];AW[bc])")
+    g4 = sgf.Sgf_game.from_string("(;SZ[9];B[ab];AW[bc])")
     tc.assertRaisesRegexp(ValueError, "setup properties after the root node",
                           sgf_moves.get_setup_and_moves, g4)
 
-    g5 = sgf.sgf_game_from_string("(;SZ[26];B[ab];W[bc])")
+    g5 = sgf.Sgf_game.from_string("(;SZ[26];B[ab];W[bc])")
     board5, moves5 = sgf_moves.get_setup_and_moves(g5)
     tc.assertEqual(moves5,
                    [('b', (24, 0)), ('w', (23, 1))])
@@ -99,7 +99,7 @@ def test_get_setup_and_moves_move_in_root(tc):
 
 def test_get_setup_and_moves_board_provided(tc):
     b = boards.Board(9)
-    g1 = sgf.sgf_game_from_string(SAMPLE_SGF)
+    g1 = sgf.Sgf_game.from_string(SAMPLE_SGF)
     board1, moves1 = sgf_moves.get_setup_and_moves(g1, b)
     tc.assertIs(board1, b)
     tc.assertDiagramEqual(ascii_boards.render_board(board1), DIAGRAM1)
@@ -122,15 +122,15 @@ def test_set_initial_position(tc):
     tc.assertRaises(KeyError, root.get, 'AE')
 
 def test_indicate_first_player(tc):
-    g1 = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9];B[aa];W[ab])")
+    g1 = sgf.Sgf_game.from_string("(;FF[4]GM[1]SZ[9];B[aa];W[ab])")
     sgf_moves.indicate_first_player(g1)
     tc.assertEqual(sgf.serialise_sgf_game(g1),
                    "(;FF[4]GM[1]SZ[9];B[aa];W[ab])\n")
-    g2 = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9];W[aa];B[ab])")
+    g2 = sgf.Sgf_game.from_string("(;FF[4]GM[1]SZ[9];W[aa];B[ab])")
     sgf_moves.indicate_first_player(g2)
     tc.assertEqual(sgf.serialise_sgf_game(g2),
                    "(;FF[4]GM[1]PL[W]SZ[9];W[aa];B[ab])\n")
-    g3 = sgf.sgf_game_from_string("(;AW[bc]FF[4]GM[1]SZ[9];B[aa];W[ab])")
+    g3 = sgf.Sgf_game.from_string("(;AW[bc]FF[4]GM[1]SZ[9];B[aa];W[ab])")
     sgf_moves.indicate_first_player(g3)
     tc.assertEqual(sgf.serialise_sgf_game(g3),
                    "(;FF[4]AW[bc]GM[1]PL[B]SZ[9];B[aa];W[ab])\n")

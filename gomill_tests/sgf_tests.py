@@ -36,7 +36,7 @@ def test_sgf_game_from_coarse_game_tree(tc):
     coarse_game = Namespace()
     coarse_game.sequence = [{'SZ' : ["9"]}, {'B' : ["aa"]}]
     coarse_game.children = []
-    g1 = sgf.sgf_game_from_coarse_game_tree(coarse_game)
+    g1 = sgf.Sgf_game.from_coarse_game_tree(coarse_game)
     tc.assertEqual(g1.get_size(), 9)
     root = g1.get_root()
     tc.assertIs(root.get_raw_property_map(), coarse_game.sequence[0])
@@ -48,24 +48,24 @@ def test_sgf_game_from_coarse_game_tree(tc):
     coarse_game2.sequence = [{'SZ' : ["0"]}, {'B' : ["aa"]}]
     coarse_game2.children = []
     tc.assertRaisesRegexp(ValueError, "size out of range: 0",
-                          sgf.sgf_game_from_coarse_game_tree, coarse_game2)
+                          sgf.Sgf_game.from_coarse_game_tree, coarse_game2)
 
 def test_sgf_game_from_string(tc):
-    g1 = sgf.sgf_game_from_string("(;)")
+    g1 = sgf.Sgf_game.from_string("(;)")
     tc.assertEqual(g1.get_size(), 19)
     tc.assertRaisesRegexp(ValueError, "unexpected end of SGF data",
-                          sgf.sgf_game_from_string, "(;SZ[9]")
-    g2 = sgf.sgf_game_from_string("(;SZ[9])")
+                          sgf.Sgf_game.from_string, "(;SZ[9]")
+    g2 = sgf.Sgf_game.from_string("(;SZ[9])")
     tc.assertEqual(g2.get_size(), 9)
     tc.assertRaisesRegexp(ValueError, "bad SZ property: a",
-                          sgf.sgf_game_from_string, "(;SZ[a])")
+                          sgf.Sgf_game.from_string, "(;SZ[a])")
     tc.assertRaisesRegexp(ValueError, "size out of range: 27",
-                          sgf.sgf_game_from_string, "(;SZ[27])")
+                          sgf.Sgf_game.from_string, "(;SZ[27])")
     tc.assertRaisesRegexp(ValueError, "unknown encoding: $",
-                          sgf.sgf_game_from_string, "(;CA[])")
+                          sgf.Sgf_game.from_string, "(;CA[])")
 
 def test_node(tc):
-    sgf_game = sgf.sgf_game_from_string(
+    sgf_game = sgf.Sgf_game.from_string(
         r"(;KM[6.5]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
     node0 = sgf_game.get_root()
     node1 = list(sgf_game.main_sequence_iter())[1]
@@ -85,13 +85,13 @@ def test_node(tc):
     tc.assertRaises(KeyError, node0.get_raw, 'XX')
 
 def test_property_combination(tc):
-    sgf_game = sgf.sgf_game_from_string("(;XX[1]YY[2]XX[3]YY[4])")
+    sgf_game = sgf.Sgf_game.from_string("(;XX[1]YY[2]XX[3]YY[4])")
     node0 = sgf_game.get_root()
     tc.assertEqual(node0.get_raw_list("XX"), ["1", "3"])
     tc.assertEqual(node0.get_raw_list("YY"), ["2", "4"])
 
 def test_node_get(tc):
-    sgf_game = sgf.sgf_game_from_string(dedent(r"""
+    sgf_game = sgf.Sgf_game.from_string(dedent(r"""
     (;AP[testsuite:0]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]PB[Black engine]
     PL[B]PW[White engine][xs]RE[W+R]SZ[9]AB[ai][bh][ee]AW[fd][gc]AE[]BM[2]VW[]
     EV[Test
@@ -130,7 +130,7 @@ def test_node_get(tc):
 
 def test_text_values(tc):
     def check(s):
-        sgf_game = sgf.sgf_game_from_string(s)
+        sgf_game = sgf.Sgf_game.from_string(s)
         return sgf_game.get_root().get("C")
     # Round-trip check of Text values through tokeniser, parser, and
     # text_value().
@@ -168,7 +168,7 @@ on two lines]
 """
 
 def test_node_string(tc):
-    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF)
+    sgf_game = sgf.Sgf_game.from_string(SAMPLE_SGF)
     node = sgf_game.get_root()
     tc.assertMultiLineEqual(str(node), dedent("""\
     AB[ai][bh][ee]
@@ -187,7 +187,7 @@ def test_node_string(tc):
     """))
 
 def test_node_get_move(tc):
-    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF)
+    sgf_game = sgf.Sgf_game.from_string(SAMPLE_SGF)
     nodes = list(sgf_game.main_sequence_iter())
     tc.assertEqual(nodes[0].get_move(), (None, None))
     tc.assertEqual(nodes[1].get_move(), ('b', (2, 3)))
@@ -196,7 +196,7 @@ def test_node_get_move(tc):
     tc.assertEqual(nodes[4].get_move(), ('w', None))
 
 def test_node_get_setup_stones(tc):
-    sgf_game = sgf.sgf_game_from_string(
+    sgf_game = sgf.Sgf_game.from_string(
         r"(;KM[6.5]SZ[9]C[sample\: comment]AB[ai][bh][ee]AE[bb];B[dg])")
     node0 = sgf_game.get_root()
     node1 = list(sgf_game.main_sequence_iter())[1]
@@ -208,7 +208,7 @@ def test_node_get_setup_stones(tc):
                    (set(), set(), set()))
 
 def test_sgf_game(tc):
-    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    sgf_game = sgf.Sgf_game.from_string(SAMPLE_SGF_VAR)
     nodes = list(sgf_game.main_sequence_iter())
     tc.assertEqual(sgf_game.get_size(), 9)
     tc.assertEqual(sgf_game.get_komi(), 7.5)
@@ -221,7 +221,7 @@ def test_sgf_game(tc):
 
 
 def test_tree_view(tc):
-    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    sgf_game = sgf.Sgf_game.from_string(SAMPLE_SGF_VAR)
     root = sgf_game.get_root()
     tc.assertIsInstance(root, sgf.Tree_node)
     tc.assertIs(root.parent, None)
@@ -257,12 +257,12 @@ def test_tree_view(tc):
     tc.assertIs(sgf_game.get_last_node(), root[0][0][0][0][0][0][0])
 
     # check nothing breaks when first retrieval is by index
-    game2 = sgf.sgf_game_from_string(SAMPLE_SGF)
+    game2 = sgf.Sgf_game.from_string(SAMPLE_SGF)
     root2 = game2.get_root()
     tc.assertEqual(root2[0].get_raw('B'), "dg")
 
 def test_serialise_sgf_game(tc):
-    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    sgf_game = sgf.Sgf_game.from_string(SAMPLE_SGF_VAR)
     serialised = sgf.serialise_sgf_game(sgf_game)
     tc.assertEqual(serialised, dedent("""\
     (;FF[4]AB[ai][bh][ee]AP[testsuite:0]AW[fd][gc]CA[utf-8]DT[2009-06-06]GM[1]
@@ -271,7 +271,7 @@ def test_serialise_sgf_game(tc):
     ;B[];C[Nonfinal comment]VW[aa:bb](;B[ia];W[ib];B[ic])(;B[ib];W[ic](;B[id])(;
     B[ie])))
     """))
-    sgf_game2 = sgf.sgf_game_from_string(serialised)
+    sgf_game2 = sgf.Sgf_game.from_string(serialised)
     tc.assertEqual(map(str, sgf_game.get_main_sequence()),
                    map(str, sgf_game2.get_main_sequence()))
 
@@ -301,7 +301,7 @@ def test_encoding(tc):
 
 
 def test_loaded_sgf_game_encoding(tc):
-    g1 = sgf.sgf_game_from_string("""
+    g1 = sgf.Sgf_game.from_string("""
     (;FF[4]C[£]CA[utf-8]GM[1]SZ[19])
     """)
     root = g1.get_root()
@@ -312,7 +312,7 @@ def test_loaded_sgf_game_encoding(tc):
     (;FF[4]C[£]CA[utf-8]GM[1]SZ[19])
     """))
 
-    g2 = sgf.sgf_game_from_string("""
+    g2 = sgf.Sgf_game.from_string("""
     (;FF[4]C[\xa3]CA[iso-8859-1]GM[1]SZ[19])
     """)
     root = g2.get_root()
@@ -323,7 +323,7 @@ def test_loaded_sgf_game_encoding(tc):
     (;FF[4]C[\xa3]CA[iso-8859-1]GM[1]SZ[19])
     """))
 
-    g3 = sgf.sgf_game_from_string("""
+    g3 = sgf.Sgf_game.from_string("""
     (;FF[4]C[\xa3]GM[1]SZ[19])
     """)
     root = g3.get_root()
@@ -337,7 +337,7 @@ def test_loaded_sgf_game_encoding(tc):
     # This is invalidly encoded, but we get junk results rather than errors,
     # because of the optimisation that means we don't try to transcode utf-8 to
     # utf-8.
-    g4 = sgf.sgf_game_from_string("""
+    g4 = sgf.Sgf_game.from_string("""
     (;FF[4]C[\xa3]CA[utf-8]GM[1]SZ[19])
     """)
     root = g4.get_root()
@@ -350,12 +350,12 @@ def test_loaded_sgf_game_encoding(tc):
 
     tc.assertRaisesRegexp(
         ValueError, "unknown encoding: unknownencoding",
-        sgf.sgf_game_from_string, """
+        sgf.Sgf_game.from_string, """
         (;FF[4]CA[unknownencoding]GM[1]SZ[19])
         """)
 
 def test_override_encoding(tc):
-    g1 = sgf.sgf_game_from_string("""
+    g1 = sgf.Sgf_game.from_string("""
     (;FF[4]C[£]CA[iso-8859-1]GM[1]SZ[19])
     """, override_encoding="utf-8")
     root = g1.get_root()
@@ -366,7 +366,7 @@ def test_override_encoding(tc):
     (;FF[4]C[£]CA[UTF-8]GM[1]SZ[19])
     """))
 
-    g2 = sgf.sgf_game_from_string("""
+    g2 = sgf.Sgf_game.from_string("""
     (;FF[4]C[\xa3]CA[utf-8]GM[1]SZ[19])
     """, override_encoding="iso-8859-1")
     root = g2.get_root()
@@ -399,7 +399,7 @@ def test_tree_mutation(tc):
     tc.assertRaises(ValueError, root.delete)
 
 def test_tree_mutation_from_coarse_game(tc):
-    sgf_game = sgf.sgf_game_from_string("(;SZ[9](;N[n1];N[n3])(;N[n2]))")
+    sgf_game = sgf.Sgf_game.from_string("(;SZ[9](;N[n1];N[n3])(;N[n2]))")
     root = sgf_game.get_root()
     n4 = root.new_child()
     n4.set("N", "n4")
@@ -425,7 +425,7 @@ def test_extend_main_sequence(tc):
     tc.assertEqual(
         sgf.serialise_sgf_game(g1),
         "(;FF[4]CA[UTF-8]GM[1]SZ[9];N[e0];N[e1];N[e2];N[e3];N[e4];N[e5])\n")
-    g2 = sgf.sgf_game_from_string("(;SZ[9](;N[n1];N[n3])(;N[n2]))")
+    g2 = sgf.Sgf_game.from_string("(;SZ[9](;N[n1];N[n3])(;N[n2]))")
     for i in xrange(6):
         g2.extend_main_sequence().set("N", "e%d" % i)
     tc.assertEqual(
@@ -434,7 +434,7 @@ def test_extend_main_sequence(tc):
 
 
 def test_get_sequence_above(tc):
-    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    sgf_game = sgf.Sgf_game.from_string(SAMPLE_SGF_VAR)
     root = sgf_game.get_root()
     branchnode = root[0][0][0][0]
     leaf = branchnode[1][0][1]
@@ -447,12 +447,12 @@ def test_get_sequence_above(tc):
                    [root, root[0], root[0][0], root[0][0][0],
                     branchnode, branchnode[1], branchnode[1][0]])
 
-    sgf_game2 = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    sgf_game2 = sgf.Sgf_game.from_string(SAMPLE_SGF_VAR)
     tc.assertRaisesRegexp(ValueError, "node doesn't belong to this game",
                           sgf_game2.get_sequence_above, leaf)
 
 def test_get_main_sequence_below(tc):
-    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    sgf_game = sgf.Sgf_game.from_string(SAMPLE_SGF_VAR)
     root = sgf_game.get_root()
     branchnode = root[0][0][0][0]
     leaf = branchnode[1][0][1]
@@ -465,12 +465,12 @@ def test_get_main_sequence_below(tc):
                    [root[0], root[0][0], root[0][0][0], branchnode,
                     branchnode[0], branchnode[0][0], branchnode[0][0][0]])
 
-    sgf_game2 = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    sgf_game2 = sgf.Sgf_game.from_string(SAMPLE_SGF_VAR)
     tc.assertRaisesRegexp(ValueError, "node doesn't belong to this game",
                           sgf_game2.get_main_sequence_below, branchnode)
 
 def test_main_sequence(tc):
-    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    sgf_game = sgf.Sgf_game.from_string(SAMPLE_SGF_VAR)
     root = sgf_game.get_root()
 
     nodes = list(sgf_game.main_sequence_iter())
@@ -498,7 +498,7 @@ def test_main_sequence(tc):
             tree_node = tree_node[0]
 
 def test_find(tc):
-    sgf_game = sgf.sgf_game_from_string(SAMPLE_SGF_VAR)
+    sgf_game = sgf.Sgf_game.from_string(SAMPLE_SGF_VAR)
     root = sgf_game.get_root()
     branchnode = root[0][0][0][0]
     leaf = branchnode[1][0][1]
@@ -524,7 +524,7 @@ def test_find(tc):
     tc.assertRaises(KeyError, leaf.find_property, "XX")
 
 def test_node_set_raw(tc):
-    sgf_game = sgf.sgf_game_from_string(dedent(r"""
+    sgf_game = sgf.Sgf_game.from_string(dedent(r"""
     (;AP[testsuite:0]CA[utf-8]DT[2009-06-06]FF[4]GM[1]KM[7.5]
     PB[Black engine]PW[White engine]RE[W+R]SZ[9]
     AB[ai][bh][ee]AW[fd][gc]BM[2]VW[]
@@ -577,7 +577,7 @@ def test_node_aliasing(tc):
     # Check that node objects retrieved by different means use the same
     # property map.
 
-    sgf_game = sgf.sgf_game_from_string(dedent(r"""
+    sgf_game = sgf.Sgf_game.from_string(dedent(r"""
     (;C[root];C[node 1])
     """))
     root = sgf_game.get_root()
@@ -598,7 +598,7 @@ def test_node_aliasing(tc):
     tc.assertEqual(tree_node.get_raw_list('XX'), ["1", "2", "3"])
 
 def test_node_set(tc):
-    sgf_game = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9])")
+    sgf_game = sgf.Sgf_game.from_string("(;FF[4]GM[1]SZ[9])")
     root = sgf_game.get_root()
     root.set("KO", True)
     root.set("KM", 0.5)
@@ -613,7 +613,7 @@ def test_node_set(tc):
     """))
 
 def test_node_unset(tc):
-    sgf_game = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9]HA[3])")
+    sgf_game = sgf.Sgf_game.from_string("(;FF[4]GM[1]SZ[9]HA[3])")
     root = sgf_game.get_root()
     tc.assertEqual(root.get('HA'), 3)
     root.unset('HA')
@@ -622,20 +622,20 @@ def test_node_unset(tc):
                    "(;FF[4]GM[1]SZ[9])\n")
 
 def test_set_and_unset_size(tc):
-    g1 = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9]HA[3])")
+    g1 = sgf.Sgf_game.from_string("(;FF[4]GM[1]SZ[9]HA[3])")
     root1 = g1.get_root()
     tc.assertRaisesRegexp(ValueError, "changing size is not permitted",
                           root1.set, "SZ", 19)
     root1.set("SZ", 9)
     tc.assertRaisesRegexp(ValueError, "changing size is not permitted",
                           root1.unset, "SZ")
-    g2 = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[19]HA[3])")
+    g2 = sgf.Sgf_game.from_string("(;FF[4]GM[1]SZ[19]HA[3])")
     root2 = g2.get_root()
     root2.unset("SZ")
     root2.set("SZ", 19)
 
 def test_set_and_unset_charset(tc):
-    g1 = sgf.sgf_game_from_string("(;FF[4]CA[utf-8]GM[1]SZ[9]HA[3])")
+    g1 = sgf.Sgf_game.from_string("(;FF[4]CA[utf-8]GM[1]SZ[9]HA[3])")
     root1 = g1.get_root()
     tc.assertRaisesRegexp(ValueError, "changing charset is not permitted",
                           root1.set, "CA", "iso-8859-1")
@@ -645,14 +645,14 @@ def test_set_and_unset_charset(tc):
     root1.set("CA", "UTF8")
     tc.assertRaisesRegexp(ValueError, "changing charset is not permitted",
                           root1.unset, "CA")
-    g2 = sgf.sgf_game_from_string("(;FF[4]CA[iso-8859-1]GM[1]SZ[19]HA[3])")
+    g2 = sgf.Sgf_game.from_string("(;FF[4]CA[iso-8859-1]GM[1]SZ[19]HA[3])")
     root2 = g2.get_root()
     root2.unset("CA")
     root2.set("CA", "iso-8859-1")
 
 
 def test_node_set_move(tc):
-    sgf_game = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9];B[aa];B[bb])")
+    sgf_game = sgf.Sgf_game.from_string("(;FF[4]GM[1]SZ[9];B[aa];B[bb])")
     root, n1, n2 = sgf_game.get_main_sequence()
     tc.assertEqual(root.get_move(), (None, None))
     root.set_move('b', (1, 1))
@@ -666,7 +666,7 @@ def test_node_set_move(tc):
     tc.assertRaises(KeyError, n2.get, 'W')
 
 def test_node_setup_stones(tc):
-    sgf_game = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9]AW[aa:bb])")
+    sgf_game = sgf.Sgf_game.from_string("(;FF[4]GM[1]SZ[9]AW[aa:bb])")
     root = sgf_game.get_root()
     root.set_setup_stones(
         [(1, 2), (3, 4)],

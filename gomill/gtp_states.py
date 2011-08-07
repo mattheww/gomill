@@ -432,7 +432,7 @@ class Gtp_state(object):
         except EnvironmentError:
             raise GtpError("cannot load file")
         try:
-            sgf_game = sgf.sgf_game_from_string(s)
+            sgf_game = sgf.Sgf_game.from_string(s)
         except ValueError:
             raise GtpError("cannot load file")
         new_size = sgf_game.get_size()
