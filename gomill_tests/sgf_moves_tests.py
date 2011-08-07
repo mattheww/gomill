@@ -113,13 +113,7 @@ def test_get_setup_and_moves_board_provided(tc):
 
 
 def test_set_initial_position(tc):
-    board = boards.Board(9)
-    board.play(0, 0, 'b')
-    board.play(6, 5, 'w')
-    board.play(1, 1, 'b')
-    board.play(6, 6, 'w')
-    board.play(4, 4, 'b')
-    tc.assertDiagramEqual(ascii_boards.render_board(board), DIAGRAM1)
+    board = ascii_boards.interpret_diagram(DIAGRAM1, 9)
     sgf_game = sgf.Sgf_game(9)
     sgf_moves.set_initial_position(sgf_game, board)
     root = sgf_game.get_root()
