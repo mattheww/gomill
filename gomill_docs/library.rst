@@ -21,8 +21,8 @@ illustrate how some of them can be used.
    :maxdepth: 3
    :titlesonly:
 
-   gomill_package
    library_overview
+   gomill_package
    common
    boards
    ascii_boards
