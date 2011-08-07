@@ -666,13 +666,13 @@ class _Parsed_sgf_game(Sgf_game):
     """An Sgf_game which was loaded from serialised form.
 
     Do not instantiate directly; use sgf_game_from_string() or
-    sgf_game_from_parsed_game_tree().
+    sgf_game_from_coarse_game_tree().
 
     """
     # This doesn't build the Tree_nodes (other than the root) until required.
 
     # It provides an implementation of main_sequence_iter() which reads
-    # directly from the original Parsed_game_tree; this stops being used as
+    # directly from the original Coarse_game_tree; this stops being used as
     # soon as the tree is expanded.
 
     def __init__(self, parsed_game, override_encoding=None):
@@ -702,16 +702,16 @@ class _Parsed_sgf_game(Sgf_game):
             return self.root._main_sequence_iter()
         return self.get_main_sequence()
 
-def sgf_game_from_parsed_game_tree(parsed_game, override_encoding=None):
+def sgf_game_from_coarse_game_tree(parsed_game, override_encoding=None):
     """Create an SGF game from the parser output.
 
-    parsed_game       -- Parsed_game_tree
+    parsed_game       -- Coarse_game_tree
     override_encoding -- encoding name, eg "UTF-8" (optional)
 
     Returns an Sgf_game.
 
     The nodes' property maps (as returned by get_raw_property_map()) will be
-    the same dictionary objects as the ones from the Parsed_game_tree.
+    the same dictionary objects as the ones from the Coarse_game_tree.
 
     The board size and raw property encoding are taken from the SZ and CA
     properties in the root node (defaulting to 19 and "ISO-8859-1",
@@ -734,7 +734,7 @@ def sgf_game_from_string(s, override_encoding=None):
     Raises ValueError if it can't parse the string. See parse_sgf_game() for
     details.
 
-    See sgf_game_from_parsed_game_tree for details of size and encoding
+    See sgf_game_from_coarse_game_tree for details of size and encoding
     handling.
 
     """
@@ -750,7 +750,7 @@ def serialise_sgf_game(sgf_game):
     """
     # We can use the raw properties directly, because at present the raw
     # property encoding always matches the CA property.
-    game_tree = sgf_grammar.make_parsed_game_tree(
+    game_tree = sgf_grammar.make_coarse_game_tree(
         sgf_game.get_root(), lambda node:node, Node.get_raw_property_map)
     return sgf_grammar.serialise_game_tree(game_tree)
 

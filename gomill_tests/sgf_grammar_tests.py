@@ -113,8 +113,8 @@ def test_parser_structure(tc):
     parse_sgf_game = sgf_grammar.parse_sgf_game
 
     def shape(s):
-        parsed_game = parse_sgf_game(s)
-        return len(parsed_game.sequence), len(parsed_game.children)
+        coarse_game = parse_sgf_game(s)
+        return len(coarse_game.sequence), len(coarse_game.children)
 
     tc.assertEqual(shape("(;C[abc]KO[];B[bc])"), (2, 0))
     tc.assertEqual(shape("initial junk (;C[abc]KO[];B[bc])"), (2, 0))
@@ -162,18 +162,18 @@ def test_parser_tree_structure(tc):
     parse_sgf_game = sgf_grammar.parse_sgf_game
 
     def shape(s):
-        parsed_game = parse_sgf_game(s)
-        return len(parsed_game.sequence), len(parsed_game.children)
+        coarse_game = parse_sgf_game(s)
+        return len(coarse_game.sequence), len(coarse_game.children)
 
     tc.assertEqual(shape("(;C[abc]AB[ab](;B[bc]))"), (1, 1))
     tc.assertEqual(shape("(;C[abc]AB[ab](;B[bc])))"), (1, 1))
     tc.assertEqual(shape("(;C[abc]AB[ab](;B[bc])(;B[bd]))"), (1, 2))
 
     def shapetree(s):
-        def _shapetree(parsed_game):
+        def _shapetree(coarse_game):
             return (
-                len(parsed_game.sequence),
-                [_shapetree(pg) for pg in parsed_game.children])
+                len(coarse_game.sequence),
+                [_shapetree(pg) for pg in coarse_game.children])
         return _shapetree(parse_sgf_game(s))
 
     tc.assertEqual(shapetree("(;C[abc]AB[ab](;B[bc])))"),
@@ -217,8 +217,8 @@ def test_parser_properties(tc):
     parse_sgf_game = sgf_grammar.parse_sgf_game
 
     def props(s):
-        parsed_game = parse_sgf_game(s)
-        return parsed_game.sequence
+        coarse_game = parse_sgf_game(s)
+        return coarse_game.sequence
 
     tc.assertEqual(props("(;C[abc]KO[]AB[ai][bh][ee];B[ bc])"),
                    [{'C': ['abc'], 'KO': [''], 'AB': ['ai', 'bh', 'ee']},
@@ -335,6 +335,6 @@ def test_serialise_game_tree(tc):
     serialised = ("(;AB[aa][ab][ac]C[comment \xa3];W[ab];C[];C[]"
                   "(;B[bc])(;B[bd];W[ca](;B[da])(;B[db];\n"
                   "W[ea])))\n")
-    parsed_game = sgf_grammar.parse_sgf_game(serialised)
-    tc.assertEqual(sgf_grammar.serialise_game_tree(parsed_game), serialised)
+    coarse_game = sgf_grammar.parse_sgf_game(serialised)
+    tc.assertEqual(sgf_grammar.serialise_game_tree(coarse_game), serialised)
 

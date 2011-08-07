@@ -30,13 +30,13 @@ def test_new_sgf_game(tc):
     tc.assertEqual(root.parent, None)
     tc.assertIs(root.owner, g1)
 
-def test_sgf_game_from_parsed_game_tree(tc):
+def test_sgf_game_from_coarse_game_tree(tc):
     class Namespace(object):
         pass
     parsed_game = Namespace()
     parsed_game.sequence = [{'SZ' : ["9"]}, {'B' : ["aa"]}]
     parsed_game.children = []
-    g1 = sgf.sgf_game_from_parsed_game_tree(parsed_game)
+    g1 = sgf.sgf_game_from_coarse_game_tree(parsed_game)
     tc.assertEqual(g1.get_size(), 9)
     root = g1.get_root()
     tc.assertIs(root.get_raw_property_map(), parsed_game.sequence[0])
@@ -48,7 +48,7 @@ def test_sgf_game_from_parsed_game_tree(tc):
     parsed_game2.sequence = [{'SZ' : ["0"]}, {'B' : ["aa"]}]
     parsed_game2.children = []
     tc.assertRaisesRegexp(ValueError, "size out of range: 0",
-                          sgf.sgf_game_from_parsed_game_tree, parsed_game2)
+                          sgf.sgf_game_from_coarse_game_tree, parsed_game2)
 
 def test_sgf_game_from_string(tc):
     g1 = sgf.sgf_game_from_string("(;)")

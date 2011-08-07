@@ -106,15 +106,16 @@ def tokenise(s, start_position=0):
                     break
     return result, i
 
-class Parsed_game_tree(object):
+class Coarse_game_tree(object):
     """An SGF GameTree.
 
-    This is a direct representation of the SGF parse tree. The 'children'
-    represent variations, not individual nodes.
+    This is a direct representation of the SGF parse tree. It's 'coarse' in the
+    sense that the objects in the tree structure represent node sequences, not
+    individual nodes.
 
     Public attributes
       sequence -- nonempty list of property maps
-      children -- list of Parsed_game_trees
+      children -- list of Coarse_game_trees
 
     The sequence represents the nodes before the variations.
 
@@ -157,7 +158,7 @@ def _parse_sgf_game(s, start_position):
                         sequence = None
                     if token == '(':
                         stack.append(game_tree)
-                        game_tree = Parsed_game_tree()
+                        game_tree = Coarse_game_tree()
                         sequence = []
                     else:
                         # token == ')'
@@ -196,7 +197,7 @@ def parse_sgf_game(s):
 
     s -- 8-bit string
 
-    Returns a Parsed_game_tree.
+    Returns a Coarse_game_tree.
 
     Applies the rules for FF[4].
 
@@ -221,7 +222,7 @@ def parse_sgf_collection(s):
 
     s -- 8-bit string
 
-    Returns a nonempty list of Parsed_game_trees.
+    Returns a nonempty list of Coarse_game_trees.
 
     Raises ValueError if no games were found in the string.
 
@@ -277,7 +278,7 @@ def block_format(pieces, width=79):
 def serialise_game_tree(game_tree):
     """Serialise an SGF game as a string.
 
-    game_tree -- Parsed_game_tree
+    game_tree -- Coarse_game_tree
 
     Returns an 8-bit string, ending with a newline.
 
@@ -310,9 +311,9 @@ def serialise_game_tree(game_tree):
 
 
 def make_tree(game_tree, root, node_builder, node_adder):
-    """Construct a node tree from a Parsed_game_tree.
+    """Construct a node tree from a Coarse_game_tree.
 
-    game_tree    -- Parsed_game_tree
+    game_tree    -- Coarse_game_tree
     root         -- node
     node_builder -- function taking parameters (parent node, property map)
                     returning a node
@@ -339,14 +340,14 @@ def make_tree(game_tree, root, node_builder, node_adder):
                 node_adder(node, child)
                 to_build.append((child, child_tree, 0))
 
-def make_parsed_game_tree(root, get_children, get_properties):
-    """Construct a Parsed_game_tree from a node tree.
+def make_coarse_game_tree(root, get_children, get_properties):
+    """Construct a Coarse_game_tree from a node tree.
 
     root           -- node
     get_children   -- function taking a node, returning a sequence of nodes
     get_properties -- function taking a node, returning a property map
 
-    Returns a Parsed_game_tree.
+    Returns a Coarse_game_tree.
 
     Walks the node tree based at 'root' using get_children(), and uses
     get_properties() to extract the raw properties.
@@ -354,7 +355,7 @@ def make_parsed_game_tree(root, get_children, get_properties):
     Makes no further assumptions about the node type.
 
     """
-    result = Parsed_game_tree()
+    result = Coarse_game_tree()
     to_serialise = [(result, root)]
     while to_serialise:
         game_tree, node = to_serialise.pop()
@@ -365,16 +366,16 @@ def make_parsed_game_tree(root, get_children, get_properties):
                 break
             node = children[0]
         for child in children:
-            child_tree = Parsed_game_tree()
+            child_tree = Coarse_game_tree()
             game_tree.children.append(child_tree)
             to_serialise.append((child_tree, child))
     return result
 
 
 def main_sequence_iter(game_tree):
-    """Provide the 'leftmost' complete sequence of a Parsed_game_tree.
+    """Provide the 'leftmost' complete sequence of a Coarse_game_tree.
 
-    game_tree -- Parsed_game_tree
+    game_tree -- Coarse_game_tree
 
     Returns an iterable of property maps.
 
