@@ -46,7 +46,7 @@ Reading and writing::
   >>> new_node.set_move("b", (2, 3))
   >>> [node.get_move() for node in g.get_main_sequence()]
   [(None, None), ('b', (4, 4)), ('w', (4, 6)), ('b', (2, 3))]
-  >>> sgf.serialise_sgf_game(g)
+  >>> g.serialise()
   '(;FF[4]GM[1]RE[B+R]SZ[9];B[ee];W[ge];B[dg])\n'
 
 
@@ -59,7 +59,7 @@ Recording a game::
       if move_info.comment is not None:
           node.set("C", move_info.comment)
   with open(pathname, "w") as f:
-      f.write(sgf.serialise_sgf_game(g))
+      f.write(g.serialise())
 
 See also the :script:`show_sgf.py` example script.
 
@@ -117,6 +117,18 @@ To create a game from existing |sgf| data, use the
      g = sgf.Sgf_game.from_string(
          "(;FF[4]GM[1]SZ[9]CA[UTF-8];B[ee];W[ge])",
          override_encoding="iso8859-1")
+
+
+To retrieve the |sgf| data as a string, use the :meth:`!serialise` method:
+
+.. method:: Sgf_game.serialise()
+
+   :rtype: string
+
+   Produces the |sgf| representation of the data in the :class:`!Sgf_game`.
+
+   Returns an 8-bit string, in the encoding specified by the ``CA`` root
+   property (defaulting to ``"ISO-8859-1"``).
 
 
 The complete game tree is represented using :class:`Tree_node` objects, which
@@ -248,25 +260,6 @@ appropriate default value if the property is not present.
    there's no corresponding get_date() method.)
 
 
-|sgf| output
-^^^^^^^^^^^^
-
-.. todo:: sort this out
-
-
-To output data in |sgf| format, use the :func:`!serialise_sgf_game` function:
-
-.. function:: serialise_sgf_game(sgf_game)
-
-   :rtype: string
-
-   Produces the |sgf| representation of the data in the :class:`Sgf_game`
-   *sgf_game*.
-
-   Returns an 8-bit string, in the encoding specified by the ``CA`` root
-   property (defaulting to ``"ISO-8859-1"``).
-
-
 Tree_node objects
 ^^^^^^^^^^^^^^^^^
 
@@ -317,7 +310,7 @@ a short string called the :dfn:`PropIdent`, eg ``"SZ"`` or ``"B"``. See
 :term:`SGF` specification for full details. See :ref:`parsing_details` below
 for restrictions on well-formed *PropIdents*.
 
-Gomill doesn't enforce |SGF|'s restrictions on where properties can appear
+Gomill doesn't enforce |sgf|'s restrictions on where properties can appear
 (eg, the distinction between *setup* and *move* properties).
 
 The principal methods for accessing the node's properties are:
@@ -479,7 +472,7 @@ the root).
 .. rubric:: Access to raw property values
 
 Raw property values are 8-bit strings, containing the exact bytes that go
-between the ``[`` and ``]`` in the |SGF| file. They should be treated as being
+between the ``[`` and ``]`` in the |sgf| file. They should be treated as being
 encoded in the node's :ref:`raw property encoding <raw_property_encoding>`
 (but there is no guarantee that they hold properly encoded data).
 
@@ -812,7 +805,7 @@ module.
    :class:`.Sgf_game`.
 
    The board represents the position described by ``AB`` and/or ``AW``
-   properties in the |SGF| game's root node. :exc:`ValueError` is raised if
+   properties in the |sgf| game's root node. :exc:`ValueError` is raised if
    this position isn't legal.
 
    The moves are from the game's leftmost variation. Doesn't check that the
