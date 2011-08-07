@@ -33,7 +33,7 @@ Examples
 Reading and writing::
 
   >>> from gomill import sgf
-  >>> g = sgf.sgf_game_from_string("(;FF[4]GM[1]SZ[9];B[ee];W[ge])")
+  >>> g = sgf.Sgf_game.from_string("(;FF[4]GM[1]SZ[9];B[ee];W[ge])")
   >>> g.get_size()
   9
   >>> root_node = g.get_root()
@@ -64,14 +64,19 @@ Recording a game::
 See also the :script:`show_sgf.py` example script.
 
 
-|sgf| input
-^^^^^^^^^^^
+Sgf_game objects
+^^^^^^^^^^^^^^^^
 
-|sgf| data is represented using :class:`Sgf_game` objects. A game can either
-be created from scratch or loaded from a string.
+|sgf| data is represented using :class:`!Sgf_game` objects. Each object
+represents the data for a single |sgf| file (corresponding to a ``GameTree``
+in the |sgf| spec). This is typically used to represent a single game,
+possibly with variations (but it could be something else, such as a problem
+set).
 
-To create a game from scratch, instantiate an :class:`Sgf_game` object
-directly:
+An :class:`!Sgf_game` can either be created from scratch or loaded from a
+string.
+
+To create one from scratch, instantiate an :class:`!Sgf_game` object directly:
 
 .. class:: Sgf_game(size, encoding="UTF-8"])
 
@@ -84,15 +89,14 @@ When a game is created this way, the following root properties are initially
 set: :samp:`FF[4]`, :samp:`GM[1]`, :samp:`SZ[{size}]`, and
 :samp:`CA[{encoding}]`.
 
-
 To create a game from existing |sgf| data, use the
-:func:`!sgf_game_from_string` function:
+:func:`!Sgf_game.from_string` classmethod:
 
-.. function:: sgf_game_from_string(s[, override_encoding=None])
+.. classmethod:: Sgf_game.from_string(s[, override_encoding=None])
 
-   :rtype: :class:`Sgf_game`
+   :rtype: :class:`!Sgf_game`
 
-   Creates an :class:`Sgf_game` from the |sgf| data in *s*, which must be an
+   Creates an :class:`!Sgf_game` from the |sgf| data in *s*, which must be an
    8-bit string.
 
    The board size and :ref:`raw property encoding <raw_property_encoding>` are
@@ -110,38 +114,10 @@ To create a game from existing |sgf| data, use the
 
    Example::
 
-     g = sgf.sgf_game_from_string(
+     g = sgf.Sgf_game.from_string(
          "(;FF[4]GM[1]SZ[9]CA[UTF-8];B[ee];W[ge])",
          override_encoding="iso8859-1")
 
-
-|sgf| output
-^^^^^^^^^^^^
-
-To output data in |sgf| format, use the :func:`!serialise_sgf_game` function:
-
-.. function:: serialise_sgf_game(sgf_game)
-
-   :rtype: string
-
-   Produces the |sgf| representation of the data in the :class:`Sgf_game`
-   *sgf_game*.
-
-   Returns an 8-bit string, in the encoding specified by the ``CA`` root
-   property (defaulting to ``"ISO-8859-1"``).
-
-
-
-Sgf_game objects
-^^^^^^^^^^^^^^^^
-
-.. class:: Sgf_game
-
-   An :class:`!Sgf_game` object represents the data for a single |sgf| file
-   (corresponding to a ``GameTree`` in the |sgf| spec).
-
-   This is typically used to represent a single game, possibly with
-   variations.
 
 The complete game tree is represented using :class:`Tree_node` objects, which
 are used to access the |sgf| properties. An :class:`!Sgf_game` always has at
@@ -270,6 +246,25 @@ appropriate default value if the property is not present.
 
    (|sgf| allows ``DT`` to be rather more complicated than a single date, so
    there's no corresponding get_date() method.)
+
+
+|sgf| output
+^^^^^^^^^^^^
+
+.. todo:: sort this out
+
+
+To output data in |sgf| format, use the :func:`!serialise_sgf_game` function:
+
+.. function:: serialise_sgf_game(sgf_game)
+
+   :rtype: string
+
+   Produces the |sgf| representation of the data in the :class:`Sgf_game`
+   *sgf_game*.
+
+   Returns an 8-bit string, in the encoding specified by the ``CA`` root
+   property (defaulting to ``"ISO-8859-1"``).
 
 
 Tree_node objects
