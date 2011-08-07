@@ -69,7 +69,7 @@ def serialise_go_point(move, size):
     if move is None:
         # Prefer 'tt' where possible, for the sake of older code
         if size <= 19:
-           return "tt"
+            return "tt"
         else:
             return ""
     row, col = move
