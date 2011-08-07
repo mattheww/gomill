@@ -421,7 +421,7 @@ class _Root_tree_node(Tree_node):
         Node.__init__(self, property_map, owner.presenter)
 
 class _Unexpanded_root_tree_node(_Root_tree_node):
-    """Variant of _Root_tree_node used with FIXME."""
+    """Variant of _Root_tree_node used with 'loaded' Sgf_games."""
     def __init__(self, owner, coarse_tree):
         _Root_tree_node.__init__(self, coarse_tree.sequence[0], owner)
         self._coarse_tree = coarse_tree
