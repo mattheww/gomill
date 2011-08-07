@@ -467,8 +467,10 @@ _property_types_by_name = {
     'simpletext' :  _make_property_type('simpletext'),
     'text' :        _make_property_type('text'),
     'point' :       _make_property_type('point'),
+    'move' :        _make_property_type('point'),
     'point_list' :  _make_property_type('point_list'),
     'point_elist' : _make_property_type('point_list', allows_empty_list=True),
+    'stone_list' :  _make_property_type('point_list'),
     'AP' :          _make_property_type('AP'),
     'ARLN_list' :   _make_property_type('ARLN_list'),
     'FG' :          _make_property_type('FG'),
@@ -478,13 +480,13 @@ _property_types_by_name = {
 P = _property_types_by_name
 
 _property_types_by_ident = {
-  'AB' : P['point_list'],                 # setup         Add Black
+  'AB' : P['stone_list'],                 # setup         Add Black
   'AE' : P['point_list'],                 # setup         Add Empty
   'AN' : P['simpletext'],                 # game-info     Annotation
   'AP' : P['AP'],                         # root          Application
   'AR' : P['ARLN_list'],                  # -             Arrow
-  'AW' : P['point_list'],                 # setup         Add White
-  'B'  : P['point'],                      # move          Black
+  'AW' : P['stone_list'],                 # setup         Add White
+  'B'  : P['move'],                       # move          Black
   'BL' : P['real'],                       # move          Black time left
   'BM' : P['double'],                     # move          Bad move
   'BR' : P['simpletext'],                 # game-info     Black rank
@@ -541,7 +543,7 @@ _property_types_by_ident = {
   'US' : P['simpletext'],                 # game-info     User
   'V'  : P['real'],                       # -             Value
   'VW' : P['point_elist'],                # - [inherit]   View
-  'W'  : P['point'],                      # move          White
+  'W'  : P['move'],                       # move          White
   'WL' : P['real'],                       # move          White time left
   'WR' : P['simpletext'],                 # game-info     White rank
   'WT' : P['simpletext'],                 # game-info     White team
