@@ -23,8 +23,6 @@ class Node(object):
     Changing the SZ or CA property isn't allowed.
 
     """
-    __slots__ = ('_property_map', '_presenter')
-
     def __init__(self, property_map, presenter):
         # Map identifier (PropIdent) -> nonempty list of raw values
         self._property_map = property_map
