@@ -9,7 +9,9 @@ This module is encoding-agnostic: it works with 8-bit strings in an arbitrary
 
 
 In the documentation below, a _property map_ is a dict mapping a PropIdent to a
-nonempty list of raw property values.
+nonempty list of raw property values. The keys should pass
+is_valid_property_identifier(), and all values should pass
+is_valid_property_value().
 
 """
 
@@ -353,6 +355,8 @@ def make_coarse_game_tree(root, get_children, get_properties):
     get_properties() to extract the raw properties.
 
     Makes no further assumptions about the node type.
+
+    Doesn't check that the property maps have well-formed keys and values.
 
     """
     result = Coarse_game_tree()
