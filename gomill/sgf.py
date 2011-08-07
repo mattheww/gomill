@@ -495,6 +495,62 @@ class Sgf_game(object):
         # Read the encoding back so we get the normalised form
         self.root.set_raw('CA', self.presenter.encoding)
 
+    @classmethod
+    def from_coarse_game_tree(cls, coarse_game, override_encoding=None):
+        """Alternative constructor: create an Sgf_game from the parser output.
+
+        coarse_game       -- Coarse_game_tree
+        override_encoding -- encoding name, eg "UTF-8" (optional)
+
+        The nodes' property maps (as returned by get_raw_property_map()) will
+        be the same dictionary objects as the ones from the Coarse_game_tree.
+
+        The board size and raw property encoding are taken from the SZ and CA
+        properties in the root node (defaulting to 19 and "ISO-8859-1",
+        respectively).
+
+        If override_encoding is specified, the source data is assumed to be in
+        the specified encoding (no matter what the CA property says), and the
+        CA property is set to match.
+
+        """
+        try:
+            size_s = coarse_game.sequence[0]['SZ'][0]
+        except KeyError:
+            size = 19
+        else:
+            try:
+                size = int(size_s)
+            except ValueError:
+                raise ValueError("bad SZ property: %s" % size_s)
+        if override_encoding is None:
+            try:
+                encoding = coarse_game.sequence[0]['CA'][0]
+            except KeyError:
+                encoding = "ISO-8859-1"
+        else:
+            encoding = override_encoding
+        game = cls.__new__(cls, size, encoding)
+        game.root = _Unexpanded_root_tree_node(game, coarse_game)
+        if override_encoding is not None:
+            game.root.set_raw("CA", game.presenter.encoding)
+        return game
+
+    @classmethod
+    def from_string(cls, s, override_encoding=None):
+        """Alternative constructor: read a single Sgf_game from a string.
+
+        s -- 8-bit string
+
+        Raises ValueError if it can't parse the string. See parse_sgf_game()
+        for details.
+
+        See from_coarse_game_tree for details of size and encoding handling.
+
+        """
+        coarse_game = sgf_grammar.parse_sgf_game(s)
+        return cls.from_coarse_game_tree(coarse_game, override_encoding)
+
     def get_property_presenter(self):
         """Return the property presenter.
 
@@ -667,63 +723,10 @@ class Sgf_game(object):
 
 
 def sgf_game_from_coarse_game_tree(coarse_game, override_encoding=None):
-    """Create an SGF game from the parser output.
-
-    coarse_game       -- Coarse_game_tree
-    override_encoding -- encoding name, eg "UTF-8" (optional)
-
-    Returns an Sgf_game.
-
-    The nodes' property maps (as returned by get_raw_property_map()) will be
-    the same dictionary objects as the ones from the Coarse_game_tree.
-
-    The board size and raw property encoding are taken from the SZ and CA
-    properties in the root node (defaulting to 19 and "ISO-8859-1",
-    respectively).
-
-    If override_encoding is specified, the source data is assumed to be in the
-    specified encoding (no matter what the CA property says), and the CA
-    property is set to match.
-
-    """
-    try:
-        size_s = coarse_game.sequence[0]['SZ'][0]
-    except KeyError:
-        size = 19
-    else:
-        try:
-            size = int(size_s)
-        except ValueError:
-            raise ValueError("bad SZ property: %s" % size_s)
-    if override_encoding is None:
-        try:
-            encoding = coarse_game.sequence[0]['CA'][0]
-        except KeyError:
-            encoding = "ISO-8859-1"
-    else:
-        encoding = override_encoding
-    game = Sgf_game.__new__(Sgf_game, size, encoding)
-    game.root = _Unexpanded_root_tree_node(game, coarse_game)
-    if override_encoding is not None:
-        game.root.set_raw("CA", game.presenter.encoding)
-    return game
+    return Sgf_game.from_coarse_game_tree(coarse_game, override_encoding)
 
 def sgf_game_from_string(s, override_encoding=None):
-    """Read a single SGF game from a string.
-
-    s -- 8-bit string
-
-    Returns an Sgf_game.
-
-    Raises ValueError if it can't parse the string. See parse_sgf_game() for
-    details.
-
-    See sgf_game_from_coarse_game_tree for details of size and encoding
-    handling.
-
-    """
-    coarse_game = sgf_grammar.parse_sgf_game(s)
-    return sgf_game_from_coarse_game_tree(coarse_game, override_encoding)
+    return Sgf_game.from_string(s, override_encoding)
 
 
 def serialise_sgf_game(sgf_game):
