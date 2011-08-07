@@ -7,6 +7,10 @@ Nothing in this module is Go-specific.
 This module is encoding-agnostic: it works with 8-bit strings in an arbitrary
 'ascii-compatible' encoding.
 
+
+In the documentation below, a _property map_ is a dict mapping a PropIdent to a
+nonempty list of raw property values.
+
 """
 
 import re
@@ -113,9 +117,6 @@ class Parsed_game_tree(object):
       children -- list of Parsed_game_trees
 
     The sequence represents the nodes before the variations.
-
-    A property map is a dict mapping a PropIdent to a nonempty list of raw
-    property values.
 
     A raw property value is an 8-bit string containing a PropValue without its
     enclosing brackets, but with backslashes and line endings left untouched
