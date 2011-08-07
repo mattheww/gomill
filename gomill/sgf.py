@@ -478,7 +478,7 @@ class Sgf_game(object):
     change leaves the effective value unchanged).
 
     """
-    def __new__(cls, size, encoding="UTF-8"):
+    def __new__(cls, size, encoding="UTF-8", *args, **kwargs):
         # To complete initialisation after this, you need to set 'root'.
         if not 1 <= size <= 26:
             raise ValueError("size out of range: %s" % size)
