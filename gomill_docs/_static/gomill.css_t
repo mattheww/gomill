@@ -36,3 +36,8 @@ th.field-name {
   font-weight: normal;
 }
 
+div#library-overview table.docutils {
+  width : 100%;
+  margin-bottom: 3ex;
+}
+

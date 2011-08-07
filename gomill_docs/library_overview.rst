@@ -3,62 +3,72 @@ Library overview
 
 The :mod:`gomill` package includes the following modules:
 
+.. the descriptions here should normally match the module :synopsis:, and
+   therefore the module index.
 
-.. rubric:: Generic support code
+========================================= ========================================================================
+Generic support code
+========================================= ========================================================================
+:mod:`~gomill.utils`
+:mod:`~!gomill.compact_tracebacks`
+:mod:`~!gomill.ascii_tables`
+:mod:`~!gomill.job_manager`
+:mod:`~!gomill.settings`
+========================================= ========================================================================
 
-- :mod:`~!gomill.utils`
-- :mod:`~!gomill.compact_tracebacks`
-- :mod:`~!gomill.ascii_tables`
-- :mod:`~!gomill.job_manager`
-- :mod:`~!gomill.settings`
+========================================= ========================================================================
+ Go-related support code
+========================================= ========================================================================
+:mod:`~gomill.common`                     Go-related utility functions.
+:mod:`~gomill.boards`                     Go board representation.
+:mod:`~gomill.ascii_boards`               ASCII Go board diagrams.
+:mod:`~gomill.handicap_layout`            Standard layout of fixed handicap stones.
+========================================= ========================================================================
 
+========================================= ========================================================================
+ |sgf|  support
+========================================= ========================================================================
+:mod:`~!gomill.sgf_grammar`
+:mod:`~!gomill.sgf_properties`
+:mod:`~gomill.sgf`                        High level |sgf| interface.
+:mod:`~gomill.sgf_moves`                  Higher-level processing of moves and positions from |sgf| games
+========================================= ========================================================================
 
-.. rubric:: Go-related support code
+========================================= ========================================================================
+ |gtp| controller side
+========================================= ========================================================================
+:mod:`~!gomill.gtp_controller`
+:mod:`~!gomill.gtp_games`
+========================================= ========================================================================
 
-- :mod:`~gomill.common`
-- :mod:`~gomill.boards`
-- :mod:`~gomill.ascii_boards`
-- :mod:`~gomill.handicap_layout`
+========================================= ========================================================================
+ |gtp| engine side
+========================================= ========================================================================
+:mod:`~!gomill.gtp_engine`
+:mod:`~!gomill.gtp_states`
+:mod:`~!gomill.gtp_proxy`
+========================================= ========================================================================
 
+========================================= ========================================================================
+ Competitions
+========================================= ========================================================================
+:mod:`~!gomill.competition_schedulers`
+:mod:`~!gomill.competitions`
+:mod:`~gomill.tournament_results`         Retrieving and reporting on tournament results.
+:mod:`~!gomill.tournaments`
+:mod:`~!gomill.playoffs`
+:mod:`~!gomill.allplayalls`
+:mod:`~!gomill.cem_tuners`
+:mod:`~!gomill.mcts_tuners`
+========================================= ========================================================================
 
-.. rubric:: |sgf| support
-
-- :mod:`~!gomill.sgf_grammar`
-- :mod:`~!gomill.sgf_properties`
-- :mod:`~gomill.sgf`
-- :mod:`~gomill.sgf_moves`
-
-
-.. rubric:: |gtp| controller side
-
-- :mod:`~!gomill.gtp_controller`
-- :mod:`~!gomill.gtp_games`
-
-
-.. rubric:: |gtp| engine side
-
-- :mod:`~!gomill.gtp_engine`
-- :mod:`~!gomill.gtp_states`
-- :mod:`~!gomill.gtp_proxy`
-
-
-.. rubric:: Competitions
-
-- :mod:`~!gomill.competition_schedulers`
-- :mod:`~!gomill.competitions`
-- :mod:`~gomill.tournament_results`
-- :mod:`~!gomill.tournaments`
-- :mod:`~!gomill.playoffs`
-- :mod:`~!gomill.allplayalls`
-- :mod:`~!gomill.cem_tuners`
-- :mod:`~!gomill.mcts_tuners`
-
-
-.. rubric:: The Ringmaster
-
-- :mod:`~!gomill.game_jobs`
-- :mod:`~!gomill.terminal_input`
-- :mod:`~!gomill.ringmaster_presenters`
-- :mod:`~!gomill.ringmasters`
-- :mod:`~!gomill.ringmaster_command_line`
+========================================= ========================================================================
+ The ringmaster
+========================================= ========================================================================
+:mod:`~!gomill.game_jobs`
+:mod:`~!gomill.terminal_input`
+:mod:`~!gomill.ringmaster_presenters`
+:mod:`~!gomill.ringmasters`
+:mod:`~!gomill.ringmaster_command_line`
+========================================= ========================================================================
 
