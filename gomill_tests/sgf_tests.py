@@ -445,6 +445,18 @@ def test_reparent(tc):
         ValueError, "new parent doesn't belong to the same game",
         n3.reparent, g2.get_root())
 
+def test_reparent_index(tc):
+    g1 = sgf.Sgf_game.from_string("(;SZ[9](;N[n1];N[n3])(;N[n2]))")
+    root = g1.get_root()
+    n1 = root[0]
+    n2 = root[1]
+    n3 = root[0][0]
+    tc.assertEqual(n1.get("N"), "n1")
+    tc.assertEqual(n2.get("N"), "n2")
+    tc.assertEqual(n3.get("N"), "n3")
+    n3.reparent(root, index=1)
+    tc.assertEqual(g1.serialise(), "(;SZ[9](;N[n1])(;N[n3])(;N[n2]))\n")
+
 def test_extend_main_sequence(tc):
     g1 = sgf.Sgf_game(9)
     for i in xrange(6):

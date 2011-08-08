@@ -387,13 +387,17 @@ class Tree_node(Node):
             raise ValueError("can't remove the root node")
         self.parent._children.remove(self)
 
-    def reparent(self, new_parent):
+    def reparent(self, new_parent, index=None):
         """Move this node to a new place in the tree.
 
         new_parent -- Tree_node from the same game.
 
         Raises ValueError if the new parent is this node or one of its
         descendants.
+
+        If 'index' is specified, the node is inserted in the new parent's child
+        list at the specified index (behaves like list.insert); otherwise it's
+        placed at the end.
 
         """
         if new_parent.owner != self.owner:
@@ -408,7 +412,10 @@ class Tree_node(Node):
         # self.parent is not None because moving the root would create a loop.
         self.parent._children.remove(self)
         self.parent = new_parent
-        new_parent._children.append(self)
+        if index is None:
+            new_parent._children.append(self)
+        else:
+            new_parent._children.insert(index, self)
 
     def find(self, identifier):
         """Find the nearest ancestor-or-self containing the specified property.
