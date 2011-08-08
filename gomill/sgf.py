@@ -365,14 +365,20 @@ class Tree_node(Node):
     def index(self, child):
         return self._children.index(child)
 
-    def new_child(self):
+    def new_child(self, index=None):
         """Create a new Tree_node and add it as this node's last child.
+
+        If 'index' is specified, the new node is inserted in the child list at
+        the specified index instead (behaves like list.insert).
 
         Returns the new node.
 
         """
         child = Tree_node(self, {})
-        self._children.append(child)
+        if index is None:
+            self._children.append(child)
+        else:
+            self._children.insert(index, child)
         return child
 
     def delete(self):

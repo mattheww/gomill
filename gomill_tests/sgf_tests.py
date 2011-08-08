@@ -386,16 +386,20 @@ def test_tree_mutation(tc):
     n2.set("N", "n2")
     n3 = n1.new_child()
     n3.set("N", "n3")
-    tc.assertEqual(sgf_game.serialise(),
-                   "(;FF[4]CA[UTF-8]GM[1]SZ[9](;N[n1];N[n3])(;N[n2]))\n")
+    n4 = root.new_child(1)
+    n4.set("N", "n4")
+    tc.assertEqual(
+        sgf_game.serialise(),
+        "(;FF[4]CA[UTF-8]GM[1]SZ[9](;N[n1];N[n3])(;N[n4])(;N[n2]))\n")
     tc.assertEqual(
         [node.get_raw_property_map() for node in sgf_game.main_sequence_iter()],
         [node.get_raw_property_map() for node in root, root[0], n3])
     tc.assertIs(sgf_game.get_last_node(), n3)
 
     n1.delete()
-    tc.assertEqual(sgf_game.serialise(),
-                   "(;FF[4]CA[UTF-8]GM[1]SZ[9];N[n2])\n")
+    tc.assertEqual(
+        sgf_game.serialise(),
+        "(;FF[4]CA[UTF-8]GM[1]SZ[9](;N[n4])(;N[n2]))\n")
     tc.assertRaises(ValueError, root.delete)
 
 def test_tree_mutation_from_coarse_game(tc):
