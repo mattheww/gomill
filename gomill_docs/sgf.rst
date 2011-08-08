@@ -560,6 +560,24 @@ The following methods are provided for manipulating the tree:
 
    You should not continue to use a node which has been removed from its tree.
 
+.. method:: Tree_node.reparent(new_parent[, index])
+
+   Moves the node from one part of the tree to another (along with all its
+   descendents).
+
+   *new_parent* must be a node belonging to the same game.
+
+   Raises :exc:`ValueError` if the operation would create a loop in the tree
+   (ie, if *new_parent* is the node being moved or one of its descendents).
+
+   If the optional integer *index* parameter is present, the new node is
+   inserted in the new parent's list of children at the specified index;
+   otherwise it is placed at the end.
+
+   This method can be used to reorder variations. For example, to make a node
+   the leftmost variation of its parent::
+
+     node.reparent(node.parent, 0)
 
 
 .. _sgf_property_types:
