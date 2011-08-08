@@ -539,12 +539,16 @@ string is properly encoded in the raw property encoding.
 
 The following methods are provided for manipulating the tree:
 
-.. method:: Tree_node.new_child()
+.. method:: Tree_node.new_child([index])
 
    :rtype: :class:`!Tree_node`
 
    Creates a new :class:`!Tree_node` and adds it to the tree as this node's
    last child.
+
+   If the optional integer *index* parameter is present, the new node is
+   inserted in the list of children at the specified index instead (with the
+   same behaviour as :meth:`!list.insert`).
 
    Returns the new node.
 
