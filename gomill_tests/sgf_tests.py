@@ -436,6 +436,8 @@ def test_reparent(tc):
     tc.assertEqual(n3.get("N"), "n3")
     n3.reparent(n2)
     tc.assertEqual(g1.serialise(), "(;SZ[9](;N[n1])(;N[n2];N[n3]))\n")
+    n3.reparent(n2)
+    tc.assertEqual(g1.serialise(), "(;SZ[9](;N[n1])(;N[n2];N[n3]))\n")
     tc.assertRaisesRegexp(ValueError, "would create a loop",
                           root.reparent, n3)
     tc.assertRaisesRegexp(ValueError, "would create a loop",
@@ -456,6 +458,10 @@ def test_reparent_index(tc):
     tc.assertEqual(n3.get("N"), "n3")
     n3.reparent(root, index=1)
     tc.assertEqual(g1.serialise(), "(;SZ[9](;N[n1])(;N[n3])(;N[n2]))\n")
+    n3.reparent(root, index=1)
+    tc.assertEqual(g1.serialise(), "(;SZ[9](;N[n1])(;N[n3])(;N[n2]))\n")
+    n3.reparent(root, index=2)
+    tc.assertEqual(g1.serialise(), "(;SZ[9](;N[n1])(;N[n2])(;N[n3]))\n")
 
 def test_extend_main_sequence(tc):
     g1 = sgf.Sgf_game(9)
