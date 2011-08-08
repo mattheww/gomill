@@ -422,6 +422,29 @@ def test_tree_mutation_from_coarse_game(tc):
                    "(;SZ[9](;N[n1])(;N[n2])(;N[n4]))\n")
     tc.assertRaises(ValueError, root.delete)
 
+def test_reparent(tc):
+    g1 = sgf.Sgf_game.from_string("(;SZ[9](;N[n1];N[n3])(;N[n2]))")
+    root = g1.get_root()
+    # Test with unexpanded root
+    tc.assertRaisesRegexp(ValueError, "would create a loop",
+                          root.reparent, root)
+    n1 = root[0]
+    n2 = root[1]
+    n3 = root[0][0]
+    tc.assertEqual(n1.get("N"), "n1")
+    tc.assertEqual(n2.get("N"), "n2")
+    tc.assertEqual(n3.get("N"), "n3")
+    n3.reparent(n2)
+    tc.assertEqual(g1.serialise(), "(;SZ[9](;N[n1])(;N[n2];N[n3]))\n")
+    tc.assertRaisesRegexp(ValueError, "would create a loop",
+                          root.reparent, n3)
+    tc.assertRaisesRegexp(ValueError, "would create a loop",
+                          n3.reparent, n3)
+    g2 = sgf.Sgf_game(9)
+    tc.assertRaisesRegexp(
+        ValueError, "new parent doesn't belong to the same game",
+        n3.reparent, g2.get_root())
+
 def test_extend_main_sequence(tc):
     g1 = sgf.Sgf_game(9)
     for i in xrange(6):
