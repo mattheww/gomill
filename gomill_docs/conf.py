@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 needs_sphinx = '1.0'
-extensions = ['sphinx.ext.todo', 'sphinx.ext.pngmath', 'sphinx.ext.intersphinx']
+extensions = ['sphinx.ext.todo', 'sphinx.ext.pngmath', 'sphinx.ext.intersphinx',
+              'sphinx.ext.viewcode']
 templates_path = ['_templates']
 source_suffix = '.rst'
 source_encoding = 'utf-8'
