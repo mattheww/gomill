@@ -44,9 +44,9 @@ DIAGRAM2 = """\
 
 def test_get_setup_and_moves(tc):
     g1 = sgf.Sgf_game.from_string(SAMPLE_SGF)
-    board1, moves1 = sgf_moves.get_setup_and_moves(g1)
+    board1, plays1 = sgf_moves.get_setup_and_moves(g1)
     tc.assertDiagramEqual(ascii_boards.render_board(board1), DIAGRAM1)
-    tc.assertEqual(moves1,
+    tc.assertEqual(plays1,
                    [('b', (2, 3)), ('w', (3, 4)), ('b', None), ('w', None)])
 
     g2 = sgf.Sgf_game(size=9)
@@ -56,9 +56,9 @@ def test_get_setup_and_moves(tc):
     node.set("B", (5, 6))
     node = g2.extend_main_sequence()
     node.set("W", (5, 7))
-    board2, moves2 = sgf_moves.get_setup_and_moves(g2)
+    board2, plays2 = sgf_moves.get_setup_and_moves(g2)
     tc.assertDiagramEqual(ascii_boards.render_board(board2), DIAGRAM2)
-    tc.assertEqual(moves2,
+    tc.assertEqual(plays2,
                    [('b', (5, 6)), ('w', (5, 7))])
 
     g3 = sgf.Sgf_game.from_string("(;AB[ab][ba]AW[aa])")
@@ -70,8 +70,8 @@ def test_get_setup_and_moves(tc):
                           sgf_moves.get_setup_and_moves, g4)
 
     g5 = sgf.Sgf_game.from_string("(;SZ[26];B[ab];W[bc])")
-    board5, moves5 = sgf_moves.get_setup_and_moves(g5)
-    tc.assertEqual(moves5,
+    board5, plays5 = sgf_moves.get_setup_and_moves(g5)
+    tc.assertEqual(plays5,
                    [('b', (24, 0)), ('w', (23, 1))])
 
 
@@ -83,9 +83,9 @@ def test_get_setup_and_moves_move_in_root(tc):
     root.set("B", (1, 2));
     node = g1.extend_main_sequence()
     node.set("W", (3, 4))
-    board1, moves1 = sgf_moves.get_setup_and_moves(g1)
+    board1, plays1 = sgf_moves.get_setup_and_moves(g1)
     tc.assertTrue(board1.is_empty())
-    tc.assertEqual(moves1,
+    tc.assertEqual(plays1,
                    [('b', (1, 2)), ('w', (3, 4))])
 
     g2 = sgf.Sgf_game(size=9)
@@ -100,10 +100,10 @@ def test_get_setup_and_moves_move_in_root(tc):
 def test_get_setup_and_moves_board_provided(tc):
     b = boards.Board(9)
     g1 = sgf.Sgf_game.from_string(SAMPLE_SGF)
-    board1, moves1 = sgf_moves.get_setup_and_moves(g1, b)
+    board1, plays1 = sgf_moves.get_setup_and_moves(g1, b)
     tc.assertIs(board1, b)
     tc.assertDiagramEqual(ascii_boards.render_board(board1), DIAGRAM1)
-    tc.assertEqual(moves1,
+    tc.assertEqual(plays1,
                    [('b', (2, 3)), ('w', (3, 4)), ('b', None), ('w', None)])
     tc.assertRaisesRegexp(ValueError, "board not empty",
                           sgf_moves.get_setup_and_moves, g1, b)
