@@ -105,7 +105,8 @@ def test_serialise_real(tc):
     tc.assertEqual(serialise_real(1e17), "100000000000000000")
     tc.assertEqual(serialise_real(1e18), "1000000000000000000")
     tc.assertEqual(serialise_real(-1e18), "-1000000000000000000")
-    tc.assertRaises(ValueError, serialise_real, float(1e400))
+    # 1e400 is inf
+    tc.assertRaises(ValueError, serialise_real, 1e400)
     # Python 2.5 returns 0
     #tc.assertRaises(ValueError, serialise_real, float("NaN"))
 
