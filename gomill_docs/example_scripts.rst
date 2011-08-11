@@ -24,6 +24,13 @@ scripts.
   :mod:`~gomill.ascii_boards` modules.
 
 
+.. script:: split_sgf_collection.py
+
+  Splits a file containing an |sgf| game collection into multiple files.
+
+  This demonstrates the parsing functions from the :mod:`!sgf_grammar` module.
+
+
 .. script:: twogtp
 
   A 'traditional' twogtp implementation.
