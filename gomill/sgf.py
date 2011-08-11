@@ -226,11 +226,11 @@ class Node(object):
     def get_move(self):
         """Retrieve the move from a node.
 
-        Returns a pair (colour, coords)
+        Returns a pair (colour, move)
 
         colour is 'b' or 'w'.
 
-        coords are (row, col), or None for a pass.
+        move is (row, col), or None for a pass.
 
         Returns None, None if the node contains no B or W property.
 
@@ -268,11 +268,11 @@ class Node(object):
         d = self._property_map
         return ("AB" in d or "AW" in d or "AE" in d)
 
-    def set_move(self, colour, coords):
+    def set_move(self, colour, move):
         """Set the B or W property.
 
         colour -- 'b' or 'w'.
-        coords -- (row, col), or None for a pass.
+        move -- (row, col), or None for a pass.
 
         Replaces any existing B or W property in the node.
 
@@ -283,7 +283,7 @@ class Node(object):
             del self._property_map['B']
         if 'W' in self._property_map:
             del self._property_map['W']
-        self.set(colour.upper(), coords)
+        self.set(colour.upper(), move)
 
     def set_setup_stones(self, black, white, empty=None):
         """Set Add Black / Add White / Add Empty properties.
