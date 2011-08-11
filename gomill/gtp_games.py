@@ -447,7 +447,7 @@ class Game(object):
                 raise BadGtpResponse(
                     "invalid response from place_free_handicap command "
                     "to %s: %s" % (self.players["b"], e))
-            vertices = [format_vertex(coords) for coords in points]
+            vertices = [format_vertex(point) for point in points]
             self.send_command("w", "set_free_handicap", *vertices)
         else:
             # May propagate ValueError
