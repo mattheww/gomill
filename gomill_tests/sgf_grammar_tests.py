@@ -330,6 +330,12 @@ def test_simpletext_value(tc):
     tc.assertEqual(simpletext_value("abc\\"), "abc")
     tc.assertEqual(simpletext_value("abc]"), "abc]")
 
+def test_escape_text(tc):
+    tc.assertEqual(sgf_grammar.escape_text("abc"), "abc")
+    tc.assertEqual(sgf_grammar.escape_text(r"a\bc"), r"a\\bc")
+    tc.assertEqual(sgf_grammar.escape_text(r"ab[c]"), r"ab[c\]")
+    tc.assertEqual(sgf_grammar.escape_text(r"a\]bc"), r"a\\\]bc")
+
 def test_text_roundtrip(tc):
     def roundtrip(s):
         return sgf_grammar.text_value(sgf_grammar.escape_text(s))
