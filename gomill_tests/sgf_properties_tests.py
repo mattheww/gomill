@@ -316,3 +316,17 @@ def test_presenter_serialise(tc):
     tc.assertEqual(p9.serialise('XX', "foo\\bar"), ["foo\\\\bar"])
 
     tc.assertRaises(ValueError, p9.serialise, 'B', (1, 9))
+
+def test_presenter_private_properties(tc):
+    p9 = sgf_properties.Presenter(9, "UTF-8")
+    tc.assertEqual(p9.serialise('XX', "9"), ["9"])
+    tc.assertEqual(p9.interpret('XX', ["9"]), "9")
+    p9.set_private_property_type(p9.get_property_type("SZ"))
+    tc.assertEqual(p9.serialise('XX', 9), ["9"])
+    tc.assertEqual(p9.interpret('XX', ["9"]), 9)
+    p9.set_private_property_type(None)
+    tc.assertRaisesRegexp(ValueError, "unknown property",
+                          p9.serialise, 'XX', "foo\\bar")
+    tc.assertRaisesRegexp(ValueError, "unknown property",
+                          p9.interpret, 'XX', ["asd"])
+
