@@ -62,7 +62,7 @@ class Player(object):
         """
         board = game_state.board
         empties = []
-        for row, col in board.board_coords:
+        for row, col in board.board_points:
             if board.get(row, col) is None:
                 empties.append((row, col))
         result = gtp_states.Move_generator_result()

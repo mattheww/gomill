@@ -69,7 +69,7 @@ def interpret_diagram(diagram, size, board=None):
     else:
         extra_offset = 0
     try:
-        for (row, col) in board.board_coords:
+        for (row, col) in board.board_points:
             colour = colours[lines[size-row-1][3*(col+1)+extra_offset]]
             if colour is not None:
                 board.play(row, col, colour)

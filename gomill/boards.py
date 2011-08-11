@@ -36,14 +36,14 @@ class Board(object):
 
     Public attributes:
       side         -- board size (eg 9)
-      board_coords -- list of coordinates of all points on the board
+      board_points -- list of coordinates of all points on the board
 
     Behaviour is unspecified if methods are passed out-of-range coordinates.
 
     """
     def __init__(self, side):
         self.side = side
-        self.board_coords = [(_row, _col) for _row in range(side)
+        self.board_points = [(_row, _col) for _row in range(side)
                              for _col in range(side)]
         self.board = []
         for row in range(side):
@@ -114,7 +114,7 @@ class Board(object):
         """
         surrounded = []
         handled = set()
-        for (row, col) in self.board_coords:
+        for (row, col) in self.board_points:
             colour = self.board[row][col]
             if colour is None:
                 continue
@@ -199,7 +199,7 @@ class Board(object):
             for row, col in group.points:
                 self.board[row][col] = None
         self._is_empty = True
-        for (row, col) in self.board_coords:
+        for (row, col) in self.board_points:
             if self.board[row][col] is not None:
                 self._is_empty = False
                 break
@@ -212,7 +212,7 @@ class Board(object):
 
         """
         result = []
-        for (row, col) in self.board_coords:
+        for (row, col) in self.board_points:
             colour = self.board[row][col]
             if colour is not None:
                 result.append((colour, (row, col)))
@@ -230,7 +230,7 @@ class Board(object):
         """
         scores = {'b' : 0, 'w' : 0}
         handled = set()
-        for (row, col) in self.board_coords:
+        for (row, col) in self.board_points:
             colour = self.board[row][col]
             if colour is not None:
                 scores[colour] += 1

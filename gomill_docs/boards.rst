@@ -30,7 +30,7 @@ The module contains a single class:
 
       The board size.
 
-   .. attribute:: board_coords
+   .. attribute:: board_points
 
       A list of *points*, giving all points on the board.
 
