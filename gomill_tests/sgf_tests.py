@@ -334,15 +334,13 @@ def test_loaded_sgf_game_encoding(tc):
     (;FF[4]C[\xa3]GM[1]SZ[19])
     """))
 
-    # This is invalidly encoded, but we get junk results rather than errors,
-    # because of the optimisation that means we don't try to transcode utf-8 to
-    # utf-8.
+    # This is invalidly encoded. get() notices, but serialise() doesn't care.
     g4 = sgf.Sgf_game.from_string("""
     (;FF[4]C[\xa3]CA[utf-8]GM[1]SZ[19])
     """)
     root = g4.get_root()
     tc.assertEqual(root.get_encoding(), "UTF-8")
-    tc.assertEqual(root.get("C"), "\xa3")
+    tc.assertRaises(UnicodeDecodeError, root.get, "C")
     tc.assertEqual(root.get_raw("C"), "\xa3")
     tc.assertEqual(g4.serialise(), dedent("""\
     (;FF[4]C[\xa3]CA[utf-8]GM[1]SZ[19])

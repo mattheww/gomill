@@ -19,11 +19,8 @@ def test_interpret_simpletext(tc):
                    u.encode("utf-8"))
     tc.assertEqual(interpret(u.encode("iso-8859-1"), "ISO-8859-1"),
                    u.encode("utf-8"))
-    # This is invalidly encoded, but we get junk results rather than errors,
-    # because of the optimisation that means we don't try to transcode utf-8 to
-    # utf-8.
-    tc.assertEqual(interpret(u.encode("iso-8859-1"), "UTF-8"),
-                   u.encode("iso-8859-1"))
+    tc.assertRaises(UnicodeDecodeError, interpret,
+                    u.encode("iso-8859-1"), "UTF-8")
     tc.assertRaises(UnicodeDecodeError, interpret, u.encode("utf-8"), "ASCII")
 
 def test_serialise_simpletext(tc):
@@ -49,11 +46,8 @@ def test_interpret_text(tc):
                    u.encode("utf-8"))
     tc.assertEqual(interpret(u.encode("iso-8859-1"), "ISO-8859-1"),
                    u.encode("utf-8"))
-    # This is invalidly encoded, but we get junk results rather than errors,
-    # because of the optimisation that means we don't try to transcode utf-8 to
-    # utf-8.
-    tc.assertEqual(interpret(u.encode("iso-8859-1"), "UTF-8"),
-                   u.encode("iso-8859-1"))
+    tc.assertRaises(UnicodeDecodeError, interpret,
+                    u.encode("iso-8859-1"), "UTF-8")
     tc.assertRaises(UnicodeDecodeError, interpret, u.encode("utf-8"), "ASCII")
 
 def test_serialise_text(tc):

@@ -201,6 +201,16 @@ def serialise_colour(colour, context=None):
     return colour.upper()
 
 
+def _transcode(s, encoding):
+    """Common implementation for interpret_text and interpret_simpletext."""
+    # If encoding is UTF-8, we don't need to transcode, but we still want to
+    # report an error if it's not property encoded.
+    u = s.decode(encoding)
+    if encoding == "UTF-8":
+        return s
+    else:
+        return u.encode("utf-8")
+
 def interpret_simpletext(s, context):
     """Convert a raw SimpleText value to a string.
 
@@ -211,10 +221,7 @@ def interpret_simpletext(s, context):
     Returns an 8-bit utf-8 string.
 
     """
-    s = sgf_grammar.simpletext_value(s)
-    if context.encoding != "UTF-8":
-        s = s.decode(context.encoding).encode("utf-8")
-    return s
+    return _transcode(sgf_grammar.simpletext_value(s), context.encoding)
 
 def serialise_simpletext(s, context):
     """Serialise a SimpleText value.
@@ -239,10 +246,7 @@ def interpret_text(s, context):
     Returns an 8-bit utf-8 string.
 
     """
-    s = sgf_grammar.text_value(s)
-    if context.encoding != "UTF-8":
-        s = s.decode(context.encoding).encode("utf-8")
-    return s
+    return _transcode(sgf_grammar.text_value(s), context.encoding)
 
 def serialise_text(s, context):
     """Serialise a Text value.
