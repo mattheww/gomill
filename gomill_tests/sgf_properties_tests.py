@@ -15,9 +15,9 @@ def test_interpret_simpletext(tc):
         return sgf_properties.interpret_simpletext(s, context)
     tc.assertEqual(interpret("a\nb\\\\c", "utf-8"), "a b\\c")
     u = u"test \N{POUND SIGN}"
-    tc.assertEqual(interpret(u.encode("utf-8"), "utf-8"),
+    tc.assertEqual(interpret(u.encode("utf-8"), "UTF-8"),
                    u.encode("utf-8"))
-    tc.assertEqual(interpret(u.encode("iso-8859-1"), "iso-8859-1"),
+    tc.assertEqual(interpret(u.encode("iso-8859-1"), "ISO-8859-1"),
                    u.encode("utf-8"))
 
 def test_serialise_simpletext(tc):
@@ -26,12 +26,12 @@ def test_serialise_simpletext(tc):
         return sgf_properties.serialise_simpletext(s, context)
     tc.assertEqual(serialise("ab\\c", "utf-8"), "ab\\\\c")
     u = u"test \N{POUND SIGN}"
-    tc.assertEqual(serialise(u.encode("utf-8"), "utf-8"),
+    tc.assertEqual(serialise(u.encode("utf-8"), "UTF-8"),
                    u.encode("utf-8"))
-    tc.assertEqual(serialise(u.encode("utf-8"), "iso-8859-1"),
+    tc.assertEqual(serialise(u.encode("utf-8"), "ISO-8859-1"),
                    u.encode("iso-8859-1"))
     tc.assertRaises(UnicodeEncodeError, serialise,
-                    u"\N{EN DASH}".encode("utf-8"), "iso-8859-1")
+                    u"\N{EN DASH}".encode("utf-8"), "ISO-8859-1")
 
 def test_interpret_text(tc):
     def interpret(s, encoding):
@@ -39,9 +39,9 @@ def test_interpret_text(tc):
         return sgf_properties.interpret_text(s, context)
     tc.assertEqual(interpret("a\nb\\\\c", "utf-8"), "a\nb\\c")
     u = u"test \N{POUND SIGN}"
-    tc.assertEqual(interpret(u.encode("utf-8"), "utf-8"),
+    tc.assertEqual(interpret(u.encode("utf-8"), "UTF-8"),
                    u.encode("utf-8"))
-    tc.assertEqual(interpret(u.encode("iso-8859-1"), "iso-8859-1"),
+    tc.assertEqual(interpret(u.encode("iso-8859-1"), "ISO-8859-1"),
                    u.encode("utf-8"))
 
 def test_serialise_text(tc):
@@ -50,12 +50,12 @@ def test_serialise_text(tc):
         return sgf_properties.serialise_text(s, context)
     tc.assertEqual(serialise("ab\\c", "utf-8"), "ab\\\\c")
     u = u"test \N{POUND SIGN}"
-    tc.assertEqual(serialise(u.encode("utf-8"), "utf-8"),
+    tc.assertEqual(serialise(u.encode("utf-8"), "UTF-8"),
                    u.encode("utf-8"))
-    tc.assertEqual(serialise(u.encode("utf-8"), "iso-8859-1"),
+    tc.assertEqual(serialise(u.encode("utf-8"), "ISO-8859-1"),
                    u.encode("iso-8859-1"))
     tc.assertRaises(UnicodeEncodeError, serialise,
-                    u"\N{EN DASH}".encode("utf-8"), "iso-8859-1")
+                    u"\N{EN DASH}".encode("utf-8"), "ISO-8859-1")
 
 
 def test_interpret_number(tc):
