@@ -71,8 +71,8 @@ class Game_fixture(test_framework.Fixture):
         expected_moves -- list of pairs (colour, vertex)
 
         """
-        game_moves = [(colour, format_vertex(coords))
-                      for (colour, coords, comment) in self.game.moves]
+        game_moves = [(colour, format_vertex(move))
+                      for (colour, move, comment) in self.game.moves]
         self.tc.assertListEqual(game_moves, expected_moves)
 
     def run_score_test(self, b_score, w_score, allowed_scorers="bw"):
