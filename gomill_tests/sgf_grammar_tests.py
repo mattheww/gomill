@@ -330,6 +330,20 @@ def test_simpletext_value(tc):
     tc.assertEqual(simpletext_value("abc\\"), "abc")
     tc.assertEqual(simpletext_value("abc]"), "abc]")
 
+def test_text_roundtrip(tc):
+    def roundtrip(s):
+        return sgf_grammar.text_value(sgf_grammar.escape_text(s))
+    tc.assertEqual(roundtrip(r"abc"), r"abc")
+    tc.assertEqual(roundtrip(r"a\bc"), r"a\bc")
+    tc.assertEqual(roundtrip("abc\\"), "abc\\")
+    tc.assertEqual(roundtrip("ab]c"), "ab]c")
+    tc.assertEqual(roundtrip("abc]"), "abc]")
+    tc.assertEqual(roundtrip(r"abc\]"), r"abc\]")
+    tc.assertEqual(roundtrip("ab\nc"), "ab\nc")
+    tc.assertEqual(roundtrip("ab\n  c"), "ab\n  c")
+
+    tc.assertEqual(roundtrip("ab\tc"), "ab c")
+    tc.assertEqual(roundtrip("ab\r\nc\n"), "ab\nc\n")
 
 def test_serialise_game_tree(tc):
     serialised = ("(;AB[aa][ab][ac]C[comment \xa3];W[ab];C[];C[]"
