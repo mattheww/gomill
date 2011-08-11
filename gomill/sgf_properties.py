@@ -372,7 +372,7 @@ def serialise_AP(value, context):
 def interpret_ARLN_list(values, context):
     """Interpret an AR (arrow) or LN (line) property value.
 
-    Returns a list of pairs (coords, coords).
+    Returns a list of pairs (point, point), where point is a pair (row, col)
 
     """
     result = []
@@ -385,7 +385,7 @@ def interpret_ARLN_list(values, context):
 def serialise_ARLN_list(values, context):
     """Serialise an AR (arrow) or LN (line) property value.
 
-    values -- list of pairs (coords, coords)
+    values -- list of pairs (point, point), where point is a pair (row, col)
 
     """
     return ["%s:%s" % (serialise_point(p1, context),
@@ -425,7 +425,7 @@ def serialise_FG(value, context):
 def interpret_LB_list(values, context):
     """Interpret an LB (label) property value.
 
-    Returns a list of pairs (coords, string).
+    Returns a list of pairs ((row, col), string).
 
     """
     result = []
@@ -438,7 +438,7 @@ def interpret_LB_list(values, context):
 def serialise_LB_list(values, context):
     """Serialise an LB (label) property value.
 
-    values -- list of pairs (coords, string)
+    values -- list of pairs ((row, col), string)
 
     """
     return ["%s:%s" % (serialise_point(point, context),
