@@ -33,7 +33,7 @@ handicap_pattern = [
 def handicap_points(number_of_stones, board_size):
     """Return the handicap points for a given number of stones and board size.
 
-    Returns a list of coords, length 'number_of_stones'.
+    Returns a list of pairs (row, col), length 'number_of_stones'.
 
     Raises ValueError if there isn't a placement pattern for the specified
     number of handicap stones and board size.
