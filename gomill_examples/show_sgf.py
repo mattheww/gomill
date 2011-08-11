@@ -21,17 +21,17 @@ def show_sgf_file(pathname, move_number):
         raise StandardError("bad sgf file")
 
     try:
-        board, moves = sgf_moves.get_setup_and_moves(sgf_game)
+        board, plays = sgf_moves.get_setup_and_moves(sgf_game)
     except ValueError, e:
         raise StandardError(str(e))
     if move_number is not None:
         move_number = max(0, move_number-1)
-        moves = moves[:move_number]
+        plays = plays[:move_number]
 
-    for colour, coords in moves:
-        if coords is None:
+    for colour, move in plays:
+        if move is None:
             continue
-        row, col = coords
+        row, col = move
         try:
             board.play(row, col, colour)
         except ValueError:
