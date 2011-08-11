@@ -66,16 +66,16 @@ class Board(object):
             point = to_handle.pop()
             points.add(point)
             r, c = point
-            for coords in [(r-1, c), (r+1, c), (r, c-1), (r, c+1)]:
-                (r1, c1) = coords
+            for neighbour in [(r-1, c), (r+1, c), (r, c-1), (r, c+1)]:
+                (r1, c1) = neighbour
                 if not ((0 <= r1 < self.side) and (0 <= c1 < self.side)):
                     continue
                 neigh_colour = self.board[r1][c1]
                 if neigh_colour is None:
                     is_surrounded = False
                 elif neigh_colour == colour:
-                    if coords not in points:
-                        to_handle.add(coords)
+                    if neighbour not in points:
+                        to_handle.add(neighbour)
         group = _Group()
         group.colour = colour
         group.points = points
@@ -91,14 +91,14 @@ class Board(object):
             point = to_handle.pop()
             points.add(point)
             r, c = point
-            for coords in [(r-1, c), (r+1, c), (r, c-1), (r, c+1)]:
-                (r1, c1) = coords
+            for neighbour in [(r-1, c), (r+1, c), (r, c-1), (r, c+1)]:
+                (r1, c1) = neighbour
                 if not ((0 <= r1 < self.side) and (0 <= c1 < self.side)):
                     continue
                 neigh_colour = self.board[r1][c1]
                 if neigh_colour is None:
-                    if coords not in points:
-                        to_handle.add(coords)
+                    if neighbour not in points:
+                        to_handle.add(neighbour)
                 else:
                     neighbouring_colours.add(neigh_colour)
         region = _Region()
@@ -118,8 +118,8 @@ class Board(object):
             colour = self.board[row][col]
             if colour is None:
                 continue
-            coords = (row, col)
-            if coords in handled:
+            point = (row, col)
+            if point in handled:
                 continue
             group = self._make_group(row, col, colour)
             if group.is_surrounded:
@@ -235,8 +235,8 @@ class Board(object):
             if colour is not None:
                 scores[colour] += 1
                 continue
-            coords = (row, col)
-            if coords in handled:
+            point = (row, col)
+            if point in handled:
                 continue
             region = self._make_empty_region(row, col)
             region_size = len(region.points)
