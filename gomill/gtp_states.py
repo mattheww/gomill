@@ -449,11 +449,11 @@ class Gtp_state(object):
             # Handicap isn't important, so soldier on
             handicap = None
         try:
-            sgf_board, raw_sgf_moves = sgf_moves.get_setup_and_moves(sgf_game)
+            sgf_board, plays = sgf_moves.get_setup_and_moves(sgf_game)
         except ValueError, e:
             raise GtpError(str(e))
         history_moves = [History_move(colour, coords)
-                         for (colour, coords) in raw_sgf_moves]
+                         for (colour, coords) in plays]
         if move_number is None:
             new_move_history = history_moves
         else:
