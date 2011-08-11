@@ -7,11 +7,11 @@ from gomill import sgf_properties
 def get_setup_and_moves(sgf_game, board=None):
     """Return the initial setup and the following moves from an Sgf_game.
 
-    Returns a pair (board, moves)
+    Returns a pair (board, plays)
 
       board -- boards.Board
-      moves -- list of pairs (colour, coords)
-               coords are (row, col), or None for a pass.
+      plays -- list of pairs (colour, move)
+               moves are (row, col), or None for a pass.
 
     The board represents the position described by AB and/or AW properties
     in the root node.
@@ -67,8 +67,8 @@ def set_initial_position(sgf_game, board):
 
     """
     stones = {'b' : set(), 'w' : set()}
-    for (colour, coords) in board.list_occupied_points():
-        stones[colour].add(coords)
+    for (colour, point) in board.list_occupied_points():
+        stones[colour].add(point)
     sgf_game.get_root().set_setup_stones(stones['b'], stones['w'])
 
 def indicate_first_player(sgf_game):
