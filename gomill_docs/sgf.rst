@@ -821,7 +821,7 @@ module.
 
 .. function:: get_setup_and_moves(sgf_game[, board])
 
-   :rtype: tuple (:class:`.Board`, list of *moves*)
+   :rtype: tuple (:class:`.Board`, list of tuples (*colour*, *move*))
 
    Returns the initial setup and the following moves from an
    :class:`.Sgf_game`.
