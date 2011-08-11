@@ -67,7 +67,7 @@ def interpret_vertex(arg, board_size):
 
     """
     try:
-        return coords_from_vertex(arg, board_size)
+        return move_from_vertex(arg, board_size)
     except ValueError, e:
         raise GtpError(str(e))
 

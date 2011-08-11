@@ -437,7 +437,7 @@ class Game(object):
             vertices = self.send_command(
                 "b", "place_free_handicap", str(handicap))
             try:
-                points = [coords_from_vertex(vt, self.board_size)
+                points = [move_from_vertex(vt, self.board_size)
                           for vt in vertices.split(" ")]
                 if None in points:
                     raise ValueError("response included 'pass'")
@@ -456,7 +456,7 @@ class Game(object):
                 vertices = self.send_command(
                     colour, "fixed_handicap", str(handicap))
                 try:
-                    seen_points = [coords_from_vertex(vt, self.board_size)
+                    seen_points = [move_from_vertex(vt, self.board_size)
                                    for vt in vertices.split(" ")]
                     if set(seen_points) != set(points):
                         raise ValueError
@@ -498,7 +498,7 @@ class Game(object):
             self.seen_claim = True
             return
         try:
-            move = coords_from_vertex(move_s, self.board_size)
+            move = move_from_vertex(move_s, self.board_size)
         except ValueError:
             self._forfeit_to(opponent, "%s attempted ill-formed move %s" % (
                 self.players[colour], move_s))

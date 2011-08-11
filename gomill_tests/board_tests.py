@@ -7,7 +7,7 @@ ascii_boards facilities.
 
 from __future__ import with_statement
 
-from gomill.common import format_vertex, coords_from_vertex
+from gomill.common import format_vertex, move_from_vertex
 from gomill import ascii_boards
 from gomill import boards
 
@@ -136,7 +136,7 @@ class Play_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
         for move in self.moves:
             colour, vertex = move.split()
             colour = colour.lower()
-            row, col = coords_from_vertex(vertex, b.side)
+            row, col = move_from_vertex(vertex, b.side)
             ko_point = b.play(row, col, colour)
         self.assertDiagramEqual(ascii_boards.render_board(b),
                                 self.diagram.rstrip())
@@ -166,7 +166,7 @@ class Setup_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
 
     def runTest(self):
         def _interpret(moves):
-            return [coords_from_vertex(v, b.side) for v in moves]
+            return [move_from_vertex(v, b.side) for v in moves]
 
         b = boards.Board(9)
         is_legal = b.apply_setup(_interpret(self.black_points),

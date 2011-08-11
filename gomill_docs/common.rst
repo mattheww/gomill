@@ -53,18 +53,18 @@ It is desgned to be safe to use as ``from common import *``.
      >>> format_vertex_list([])
      ''
 
-.. function:: coords_from_vertex(vertex, board_size)
+.. function:: move_from_vertex(vertex, board_size)
 
    :rtype: *move*
 
    Interprets the string *vertex* as conventional notation, assuming a square
    board whose side is *board_size*::
 
-     >>> coords_from_vertex("A4", 9)
+     >>> move_from_vertex("A4", 9)
      (3, 0)
-     >>> coords_from_vertex("a4", 9)
+     >>> move_from_vertex("a4", 9)
      (3, 0)
-     >>> coords_from_vertex("pass", 9)
+     >>> move_from_vertex("pass", 9)
      None
 
    Raises :exc:`ValueError` if it can't parse the string, or if the resulting

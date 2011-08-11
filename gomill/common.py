@@ -7,7 +7,7 @@ This is for Go-specific utilities; see utils for generic utility functions.
 """
 
 __all__ = ["opponent_of", "colour_name", "format_vertex", "format_vertex_list",
-           "coords_from_vertex"]
+           "move_from_vertex"]
 
 _opponents = {"b":"w", "w":"b"}
 def opponent_of(colour):
@@ -51,7 +51,7 @@ def format_vertex_list(moves):
     """Return a list of coordinates as a string like 'A1,B2'."""
     return ",".join(map(format_vertex, moves))
 
-def coords_from_vertex(vertex, board_size):
+def move_from_vertex(vertex, board_size):
     """Interpret a string representing a vertex, as specified by GTP.
 
     Returns a pair of coordinates (row, col) in range(0, board_size)

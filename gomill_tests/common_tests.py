@@ -30,8 +30,8 @@ def test_format_vertex_list(tc):
     tc.assertEqual(fvl([(0, 0), (1, 5)]), "A1,F2")
     tc.assertEqual(fvl([(0, 0), None, (1, 5)]), "A1,pass,F2")
 
-def test_coords_from_vertex(tc):
-    cv = common.coords_from_vertex
+def test_move_from_vertex(tc):
+    cv = common.move_from_vertex
     tc.assertEqual(cv("pass", 9), None)
     tc.assertEqual(cv("pAss", 9), None)
     tc.assertEqual(cv("A1", 9), (0, 0))
