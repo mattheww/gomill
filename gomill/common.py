@@ -34,17 +34,17 @@ def colour_name(colour):
 
 column_letters = "ABCDEFGHJKLMNOPQRSTUVWXZ"
 
-def format_vertex(coords):
+def format_vertex(move):
     """Return coordinates as a string like 'A1', or 'pass'.
 
-    coords -- pair (row, col), or None for a pass
+    move -- pair (row, col), or None for a pass
 
     The result is suitable for use directly in GTP responses.
 
     """
-    if coords is None:
+    if move is None:
         return "pass"
-    row, col = coords
+    row, col = move
     return column_letters[col] + str(row+1)
 
 def format_vertex_list(moves):
