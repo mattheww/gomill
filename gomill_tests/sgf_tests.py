@@ -219,6 +219,13 @@ def test_sgf_game(tc):
     tc.assertEqual(nodes[2].get('C'), "comment\non two lines")
     tc.assertEqual(nodes[4].get('C'), "Nonfinal comment")
 
+    g2 = sgf.Sgf_game.from_string("(;)")
+    tc.assertEqual(g2.get_size(), 19)
+    tc.assertEqual(g2.get_komi(), 0.0)
+    tc.assertIs(g2.get_handicap(), None)
+    tc.assertIs(g2.get_player_name('b'), None)
+    tc.assertIs(g2.get_player_name('w'), None)
+    tc.assertEqual(g2.get_winner(), None)
 
 def test_tree_view(tc):
     sgf_game = sgf.Sgf_game.from_string(SAMPLE_SGF_VAR)
