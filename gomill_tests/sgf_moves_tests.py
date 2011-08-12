@@ -134,4 +134,8 @@ def test_indicate_first_player(tc):
     sgf_moves.indicate_first_player(g3)
     tc.assertEqual(g3.serialise(),
                    "(;FF[4]AW[bc]GM[1]PL[B]SZ[9];B[aa];W[ab])\n")
+    g4 = sgf.Sgf_game.from_string("(;FF[4]GM[1]SZ[9];C[no game])")
+    sgf_moves.indicate_first_player(g4)
+    tc.assertEqual(g4.serialise(),
+                   "(;FF[4]GM[1]SZ[9];C[no game])\n")
 
