@@ -27,7 +27,11 @@ def check_engine(tc, engine, command, args, expected,
         tc.assertFalse(failure,
                        "unexpected GTP failure response: %s" % response)
     if expected is not None:
-        tc.assertEqual(response, expected, "GTP response not as expected")
+        if command == "showboard":
+            tc.assertDiagramEqual(response, expected,
+                                  "showboard response not as expected")
+        else:
+            tc.assertEqual(response, expected, "GTP response not as expected")
     if expect_end:
         tc.assertTrue(end, "expected end-session not seen")
     else:
