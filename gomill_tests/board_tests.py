@@ -111,6 +111,10 @@ def test_interpret_diagram(tc):
     tc.assertRaisesRegexp(ValueError, "wrong board size, must be 9$",
                           ascii_boards.interpret_diagram, _9x9_expected, 9, b5)
 
+    tc.assertRaises(ValueError, ascii_boards.interpret_diagram, "nonsense", 9)
+    b6 = ascii_boards.interpret_diagram(_13x13_expected, 13)
+    tc.assertDiagramEqual(ascii_boards.render_board(b6), _13x13_expected)
+
 def test_copy(tc):
     b1 = boards.Board(9)
     b1.play(2, 3, 'b')
