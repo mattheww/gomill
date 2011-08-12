@@ -69,6 +69,8 @@ def test_node(tc):
         r"(;KM[6.5]C[sample\: comment]AB[ai][bh][ee]AE[];B[dg])")
     node0 = sgf_game.get_root()
     node1 = list(sgf_game.main_sequence_iter())[1]
+    tc.assertEqual(node0.get_size(), 19)
+    tc.assertEqual(node0.get_encoding(), "ISO-8859-1")
     tc.assertIs(node0.has_property('KM'), True)
     tc.assertIs(node0.has_property('XX'), False)
     tc.assertIs(node1.has_property('KM'), False)
