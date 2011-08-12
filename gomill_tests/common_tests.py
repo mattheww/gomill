@@ -48,4 +48,6 @@ def test_move_from_vertex(tc):
     tc.assertRaises(ValueError, cv, "@9", 9)
     tc.assertRaises(ValueError, cv, "A-3", 9)
     tc.assertRaises(ValueError, cv, None, 9)
+    tc.assertRaises(ValueError, cv, "A1", 0)
+    tc.assertRaises(ValueError, cv, "A1", 30)
 
