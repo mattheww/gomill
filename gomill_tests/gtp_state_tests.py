@@ -50,6 +50,19 @@ class Gtp_state_fixture(test_framework.Fixture):
         gtp_engine_test_support.check_engine(
             self.tc, self.engine, *args, **kwargs)
 
+    def check_board_empty_9(self):
+        self.check_command('showboard', [], dedent("""
+        9  .  .  .  .  .  .  .  .  .
+        8  .  .  .  .  .  .  .  .  .
+        7  .  .  .  .  .  .  .  .  .
+        6  .  .  .  .  .  .  .  .  .
+        5  .  .  .  .  .  .  .  .  .
+        4  .  .  .  .  .  .  .  .  .
+        3  .  .  .  .  .  .  .  .  .
+        2  .  .  .  .  .  .  .  .  .
+        1  .  .  .  .  .  .  .  .  .
+           A  B  C  D  E  F  G  H  J"""))
+
 def test_gtp_state(tc):
     fx = Gtp_state_fixture(tc)
 
@@ -126,17 +139,7 @@ def test_clear_board_and_boardsize(tc):
     1  .  .  .  .  .  .  .  .  .
        A  B  C  D  E  F  G  H  J"""))
     fx.check_command('clear_board', [], "")
-    fx.check_command('showboard', [], dedent("""
-    9  .  .  .  .  .  .  .  .  .
-    8  .  .  .  .  .  .  .  .  .
-    7  .  .  .  .  .  .  .  .  .
-    6  .  .  .  .  .  .  .  .  .
-    5  .  .  .  .  .  .  .  .  .
-    4  .  .  .  .  .  .  .  .  .
-    3  .  .  .  .  .  .  .  .  .
-    2  .  .  .  .  .  .  .  .  .
-    1  .  .  .  .  .  .  .  .  .
-       A  B  C  D  E  F  G  H  J"""))
+    fx.check_board_empty_9()
     fx.check_command('play', ['W', 'A4'], "")
     fx.check_command('boardsize', ['11'], "")
     fx.check_command('showboard', [], dedent("""
@@ -211,17 +214,7 @@ def test_undo(tc):
        A  B  C  D  E  F  G  H  J"""))
     fx.check_command('gomill-explain_last_move', [], "preprogrammed move A3")
     fx.check_command('undo', [], "")
-    fx.check_command('showboard', [], dedent("""
-    9  .  .  .  .  .  .  .  .  .
-    8  .  .  .  .  .  .  .  .  .
-    7  .  .  .  .  .  .  .  .  .
-    6  .  .  .  .  .  .  .  .  .
-    5  .  .  .  .  .  .  .  .  .
-    4  .  .  .  .  .  .  .  .  .
-    3  .  .  .  .  .  .  .  .  .
-    2  .  .  .  .  .  .  .  .  .
-    1  .  .  .  .  .  .  .  .  .
-       A  B  C  D  E  F  G  H  J"""))
+    fx.check_board_empty_9()
     fx.check_command('gomill-explain_last_move', [], "")
     fx.check_command('undo', [], "cannot undo", expect_failure=True)
 
@@ -316,61 +309,19 @@ def test_place_free_handicap(tc):
     fx.check_command('place_free_handicap', ['6'],
                      "invalid result from move generator: A1,A2,A3,A4,A5,A1",
                      expect_failure=True)
-    fx.check_command('showboard', [], dedent("""
-    9  .  .  .  .  .  .  .  .  .
-    8  .  .  .  .  .  .  .  .  .
-    7  .  .  .  .  .  .  .  .  .
-    6  .  .  .  .  .  .  .  .  .
-    5  .  .  .  .  .  .  .  .  .
-    4  .  .  .  .  .  .  .  .  .
-    3  .  .  .  .  .  .  .  .  .
-    2  .  .  .  .  .  .  .  .  .
-    1  .  .  .  .  .  .  .  .  .
-       A  B  C  D  E  F  G  H  J"""))
+    fx.check_board_empty_9()
     fx.check_command('place_free_handicap', ['2'],
                      "invalid result from move generator: A1,A2,A3",
                      expect_failure=True)
-    fx.check_command('showboard', [], dedent("""
-    9  .  .  .  .  .  .  .  .  .
-    8  .  .  .  .  .  .  .  .  .
-    7  .  .  .  .  .  .  .  .  .
-    6  .  .  .  .  .  .  .  .  .
-    5  .  .  .  .  .  .  .  .  .
-    4  .  .  .  .  .  .  .  .  .
-    3  .  .  .  .  .  .  .  .  .
-    2  .  .  .  .  .  .  .  .  .
-    1  .  .  .  .  .  .  .  .  .
-       A  B  C  D  E  F  G  H  J"""))
+    fx.check_board_empty_9()
     fx.check_command('place_free_handicap', ['4'],
                      "invalid result from move generator: A1,A2,A3,pass",
                      expect_failure=True)
-    fx.check_command('showboard', [], dedent("""
-    9  .  .  .  .  .  .  .  .  .
-    8  .  .  .  .  .  .  .  .  .
-    7  .  .  .  .  .  .  .  .  .
-    6  .  .  .  .  .  .  .  .  .
-    5  .  .  .  .  .  .  .  .  .
-    4  .  .  .  .  .  .  .  .  .
-    3  .  .  .  .  .  .  .  .  .
-    2  .  .  .  .  .  .  .  .  .
-    1  .  .  .  .  .  .  .  .  .
-       A  B  C  D  E  F  G  H  J"""))
+    fx.check_board_empty_9()
     fx.check_command('place_free_handicap', ['8'],
                      "ValueError: need more than 1 value to unpack",
                      expect_internal_error=True)
-    fx.check_command('showboard', [], dedent("""
-    9  .  .  .  .  .  .  .  .  .
-    8  .  .  .  .  .  .  .  .  .
-    7  .  .  .  .  .  .  .  .  .
-    6  .  .  .  .  .  .  .  .  .
-    5  .  .  .  .  .  .  .  .  .
-    4  .  .  .  .  .  .  .  .  .
-    3  .  .  .  .  .  .  .  .  .
-    2  .  .  .  .  .  .  .  .  .
-    1  .  .  .  .  .  .  .  .  .
-       A  B  C  D  E  F  G  H  J"""))
-
-
+    fx.check_board_empty_9()
 
 def test_set_free_handicap(tc):
     fx = Gtp_state_fixture(tc)
@@ -402,40 +353,10 @@ def test_set_free_handicap(tc):
                      "invalid number of stones", expect_failure=True)
     fx.check_command('set_free_handicap', ["C3", "asdasd"],
                      "invalid vertex: 'asdasd'", expect_failure=True)
-    fx.check_command('showboard', [], dedent("""
-    9  .  .  .  .  .  .  .  .  .
-    8  .  .  .  .  .  .  .  .  .
-    7  .  .  .  .  .  .  .  .  .
-    6  .  .  .  .  .  .  .  .  .
-    5  .  .  .  .  .  .  .  .  .
-    4  .  .  .  .  .  .  .  .  .
-    3  .  .  .  .  .  .  .  .  .
-    2  .  .  .  .  .  .  .  .  .
-    1  .  .  .  .  .  .  .  .  .
-       A  B  C  D  E  F  G  H  J"""))
+    fx.check_board_empty_9()
     fx.check_command('set_free_handicap', ["C3", "pass"],
                      "'pass' not permitted", expect_failure=True)
-    fx.check_command('showboard', [], dedent("""
-    9  .  .  .  .  .  .  .  .  .
-    8  .  .  .  .  .  .  .  .  .
-    7  .  .  .  .  .  .  .  .  .
-    6  .  .  .  .  .  .  .  .  .
-    5  .  .  .  .  .  .  .  .  .
-    4  .  .  .  .  .  .  .  .  .
-    3  .  .  .  .  .  .  .  .  .
-    2  .  .  .  .  .  .  .  .  .
-    1  .  .  .  .  .  .  .  .  .
-       A  B  C  D  E  F  G  H  J"""))
+    fx.check_board_empty_9()
     fx.check_command('set_free_handicap', ["C3", "E5", "C3"],
                      "engine error: C3 is occupied", expect_failure=True)
-    fx.check_command('showboard', [], dedent("""
-    9  .  .  .  .  .  .  .  .  .
-    8  .  .  .  .  .  .  .  .  .
-    7  .  .  .  .  .  .  .  .  .
-    6  .  .  .  .  .  .  .  .  .
-    5  .  .  .  .  .  .  .  .  .
-    4  .  .  .  .  .  .  .  .  .
-    3  .  .  .  .  .  .  .  .  .
-    2  .  .  .  .  .  .  .  .  .
-    1  .  .  .  .  .  .  .  .  .
-       A  B  C  D  E  F  G  H  J"""))
+    fx.check_board_empty_9()
