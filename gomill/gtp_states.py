@@ -2,8 +2,6 @@
 
 from __future__ import with_statement
 
-import math
-
 from gomill import __version__
 from gomill.common import *
 from gomill import ascii_boards
@@ -154,8 +152,6 @@ class Gtp_state(object):
       komi
       simple ko ban
 
-    Komi is tracked as an integer (treat as +.5 for scoring jigo).
-
 
     Instantiate with a _move generator function_ and a list of acceptable board
     sizes (default 19 only).
@@ -170,7 +166,7 @@ class Gtp_state(object):
     """
 
     def __init__(self, move_generator, acceptable_sizes=None):
-        self.komi = 0
+        self.komi = 0.0
         self.time_settings = None
         self.time_status = {
             'b' : (None, None),
@@ -233,20 +229,12 @@ class Gtp_state(object):
         self.move_history = moves
 
     def set_komi(self, f):
-        max_komi = 625
-        try:
-            k = int(math.floor(f))
-        except OverflowError:
-            if f < 0:
-                k = -max_komi
-            else:
-                k = max_komi
-        else:
-            if k < -max_komi:
-                k = -max_komi
-            if k > max_komi:
-                k = max_komi
-        self.komi = k
+        max_komi = 625.0
+        if f < -max_komi:
+            f = -max_komi
+        elif f > max_komi:
+            f = max_komi
+        self.komi = f
 
     def handle_boardsize(self, args):
         try:

@@ -94,9 +94,7 @@ def test_gtp_state(tc):
     fx.player.set_next_move("C9")
     fx.check_command('genmove', ['B'], "C9")
     game_state = fx.player.last_game_state
-    # gtp_states currently rounds komi to an integer.
-    # FIXME: Get rid of this flooring behaviour
-    tc.assertEqual(game_state.komi, 5)
+    tc.assertEqual(game_state.komi, 5.5)
     tc.assertEqual(game_state.history_base, boards.Board(9))
     tc.assertEqual(len(game_state.move_history), 2)
     tc.assertEqual(game_state.move_history[0],
@@ -187,6 +185,36 @@ def test_play(tc):
     1  .  .  .  .  .  .  .  .  .
        A  B  C  D  E  F  G  H  J"""))
 
+def test_komi(tc):
+    fx = Gtp_state_fixture(tc)
+    fx.check_command('genmove', ['B'], "pass")
+    tc.assertEqual(fx.player.last_game_state.komi, 0.0)
+    fx.check_command('komi', ['1'], "")
+    fx.check_command('genmove', ['B'], "pass")
+    tc.assertEqual(fx.player.last_game_state.komi, 1.0)
+    fx.check_command('komi', ['1.0'], "")
+    fx.check_command('genmove', ['B'], "pass")
+    tc.assertEqual(fx.player.last_game_state.komi, 1.0)
+    fx.check_command('komi', ['7.5'], "")
+    fx.check_command('genmove', ['B'], "pass")
+    tc.assertEqual(fx.player.last_game_state.komi, 7.5)
+    fx.check_command('komi', ['-3.5'], "")
+    fx.check_command('genmove', ['B'], "pass")
+    tc.assertEqual(fx.player.last_game_state.komi, -3.5)
+    fx.check_command('komi', ['20000'], "")
+    fx.check_command('genmove', ['B'], "pass")
+    tc.assertEqual(fx.player.last_game_state.komi, 625.0)
+    fx.check_command('komi', ['-20000'], "")
+    fx.check_command('genmove', ['B'], "pass")
+    tc.assertEqual(fx.player.last_game_state.komi, -625.0)
+    fx.check_command('komi', ['nonsense'], "invalid float: 'nonsense'",
+                     expect_failure=True)
+    fx.check_command('komi', ['NaN'], "invalid float: 'NaN'",
+                     expect_failure=True)
+    fx.check_command('komi', ['inf'], "invalid float: 'inf'",
+                     expect_failure=True)
+    fx.check_command('komi', ['-1e400'], "invalid float: '-1e400'",
+                     expect_failure=True)
 
 def test_undo(tc):
     fx = Gtp_state_fixture(tc)
@@ -495,10 +523,9 @@ def test_savesgf(tc):
     fx.check_command("komi", ['5.5'], "")
     fx.check_command("play", ['W', 'A2'], "")
     fx.check_command('gomill-savesgf', ['out3.sgf'], "")
-    # FIXME: KM should really be 5.5
     tc.assertEqual(scrub_sgf(fx.gtp_state._load_file('out3.sgf')),
                    "(;FF[4]AB[dd][dp][pd]AP[gomill:VER]CA[UTF-8]DT[***]"
-                   "GM[1]HA[3]KM[5]SZ[19]\n;W[ar])\n")
+                   "GM[1]HA[3]KM[5.5]\nSZ[19];W[ar])\n")
     fx.check_command(
         'gomill-savesgf', ['force_fail'],
         "error writing file: [Errno 2] "
