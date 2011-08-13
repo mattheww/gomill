@@ -41,8 +41,8 @@ Changes to (previously) undocumented parts of the library:
 * :func:`!gtp_engine.interpret_float` now rejects infinities and NaNs.
 
 * Changes to the :mod:`!gtp_states` module: tightened error handling, removed
-  the komi-mangling feature, renamed :attr:`History_move.coords` to
-  :attr:`History_move.move`.
+  the komi-mangling feature, renamed :attr:`!History_move.coords` to
+  :attr:`!History_move.move`.
 
 
 Gomill 0.6 (2011-02-13)

@@ -385,7 +385,7 @@ Using the API in scripts
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 To write a standalone script using the tournaments results API, obtain a
-:class:`Tournament_results` object from a :class:`!Ringmaster` object as
+:class:`.Tournament_results` object from a :class:`!Ringmaster` object as
 follows::
 
   from gomill import ringmasters

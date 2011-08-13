@@ -9,7 +9,7 @@ The :mod:`gomill` package includes the following modules:
 ========================================= ========================================================================
 Generic support code
 ========================================= ========================================================================
-:mod:`~gomill.utils`
+:mod:`~!gomill.utils`
 :mod:`~!gomill.compact_tracebacks`
 :mod:`~!gomill.ascii_tables`
 :mod:`~!gomill.job_manager`
