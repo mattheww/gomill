@@ -203,12 +203,13 @@ class Gtp_state(object):
         self.history_base = board
         self.move_history = []
 
-    def reset_to_moves(self, moves):
+    def reset_to_moves(self, history_moves):
         """Reset to history base and play the specified moves.
 
-        moves -- list of History_move objects.
+        history_moves -- list of History_move objects.
 
-        'moves' becomes the new move history. Takes ownership of 'moves'.
+        'history_moves' becomes the new move history. Takes ownership of
+        'history_moves'.
 
         Raises ValueError if there is an invalid move in the list.
 
@@ -216,17 +217,17 @@ class Gtp_state(object):
         self.board = self.history_base.copy()
         simple_ko_point = None
         simple_ko_player = None
-        for move in moves:
-            if move.is_pass():
+        for history_move in history_moves:
+            if history_move.is_pass():
                 self.simple_ko_point = None
                 continue
-            row, col = move.coords
+            row, col = history_move.coords
             # Propagates ValueError if the move is bad
-            simple_ko_point = self.board.play(row, col, move.colour)
-            simple_ko_player = opponent_of(move.colour)
+            simple_ko_point = self.board.play(row, col, history_move.colour)
+            simple_ko_player = opponent_of(history_move.colour)
         self.simple_ko_point = simple_ko_point
         self.simple_ko_player = simple_ko_player
-        self.move_history = moves
+        self.move_history = history_moves
 
     def set_komi(self, f):
         max_komi = 625.0
@@ -560,11 +561,11 @@ class Gtp_state(object):
                 gtp_engine.report_bad_arguments()
             root.set_raw(identifier, sgf_grammar.escape_text(value))
         sgf_moves.set_initial_position(sgf_game, self.history_base)
-        for move in self.move_history:
+        for history_move in self.move_history:
             node = sgf_game.extend_main_sequence()
-            node.set_move(move.colour, move.coords)
-            if move.comments is not None:
-                node.set("C", move.comments)
+            node.set_move(history_move.colour, history_move.coords)
+            if history_move.comments is not None:
+                node.set("C", history_move.comments)
         sgf_moves.indicate_first_player(sgf_game)
         try:
             self._save_file(pathname, sgf_game.serialise())
@@ -602,13 +603,13 @@ class Gtp_state(object):
                 }
 
 
-def get_last_move(moves, player):
+def get_last_move(history_moves, player):
     """Get the last move from the move history, checking it's by the opponent.
 
     This is a convenience function for use by move generators.
 
-    moves  -- list of History_move objects
-    player -- player to play current move (kiai_colour)
+    history_moves -- list of History_move objects
+    player        -- player to play current move ('b' or 'w')
 
     Returns a pair (move_is_available, coords)
     where coords is (row, col), or None for a pass.
@@ -617,13 +618,13 @@ def get_last_move(moves, player):
     is False and coords is None.
 
     """
-    if not moves:
+    if not history_moves:
         return False, None
-    if moves[-1].colour != opponent_of(player):
+    if history_moves[-1].colour != opponent_of(player):
         return False, None
-    return True, moves[-1].coords
+    return True, history_moves[-1].coords
 
-def get_last_move_and_cookie(moves, player):
+def get_last_move_and_cookie(history_moves, player):
     """Interpret recent move history.
 
     This is a convenience function for use by move generators.
@@ -639,9 +640,10 @@ def get_last_move_and_cookie(moves, player):
     wasn't by the current player, cookie is None.
 
     """
-    move_is_available, opponents_move = get_last_move(moves, player)
-    if move_is_available and len(moves) > 1 and moves[-2].colour == player:
-        cookie = moves[-2].cookie
+    move_is_available, opponents_move = get_last_move(history_moves, player)
+    if (move_is_available and len(history_moves) > 1 and
+        history_moves[-2].colour == player):
+        cookie = history_moves[-2].cookie
     else:
         cookie = None
     return move_is_available, opponents_move, cookie
