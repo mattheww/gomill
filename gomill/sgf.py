@@ -701,6 +701,14 @@ class Sgf_game(object):
         """Return the board size as an integer."""
         return self.size
 
+    def get_charset(self):
+        """Return the effective value of the CA root property.
+
+        This applies the default, and returns the normalised form.
+
+        """
+        return self.root.get_encoding()
+
     def get_komi(self):
         """Return the komi as a float.
 

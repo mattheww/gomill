@@ -212,6 +212,16 @@ appropriate default value if the property is not present.
 
    Returns the board size (``19`` if the ``SZ`` root property isn't present).
 
+.. method:: Sgf_game.get_charset()
+
+   :rtype: string
+
+   Returns the effective value of the ``CA`` root property (``IS0-8859-1`` if
+   the ``CA`` root property isn't present).
+
+   This returns a codec name in normalised form, which may not be identical to
+   the string returned by ``get_root().get("CA")``.
+
 .. method:: Sgf_game.get_komi()
 
    :rtype: float
