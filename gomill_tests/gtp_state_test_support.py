@@ -50,3 +50,30 @@ class Player(object):
         self.resign_next_move = False
         return result
 
+class Testing_gtp_state(gtp_states.Gtp_state):
+    """Variant of Gtp_state suitable for use in tests."""
+    def _choose_free_handicap_moves(self, number_of_stones):
+        """Implementation of place_free_handicap.
+
+        Returns for a given number of stones:
+         2 -- A1 A2 A3          (too many stones)
+         4 -- A1 A2 A3 pass     (pass isn't permitted)
+         5 -- A1 A2 A3 A4 A5    (which is ok)
+         6 -- A1 A2 A3 A4 A5 A1 (repeated point)
+         8 -- not even the right result type
+         otherwise Gtp_state default (which is to use the fixed handicap points)
+
+        """
+        if number_of_stones == 2:
+            return ((0, 0), (1, 0), (2, 0))
+        elif number_of_stones == 4:
+            return ((0, 0), (1, 0), (2, 0), None)
+        elif number_of_stones == 5:
+            return ((0, 0), (1, 0), (2, 0), (3, 0), (4, 0))
+        elif number_of_stones == 6:
+            return ((0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (0, 0))
+        elif number_of_stones == 8:
+            return "nonsense"
+        else:
+            return super(Testing_gtp_state, self).\
+                   _choose_free_handicap_moves(number_of_stones)

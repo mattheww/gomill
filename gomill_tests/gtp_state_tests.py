@@ -27,7 +27,7 @@ class Gtp_state_fixture(test_framework.Fixture):
     def __init__(self, tc):
         self.tc = tc
         self.player = gtp_state_test_support.Player()
-        gtp_state = gtp_states.Gtp_state(
+        gtp_state = gtp_state_test_support.Testing_gtp_state(
             move_generator=self.player.genmove,
             acceptable_sizes=(9, 11, 13, 19))
         self.engine = gtp_engine.Gtp_engine_protocol()
@@ -260,6 +260,117 @@ def test_fixed_handicap(tc):
                      expect_failure=True)
     fx.check_command('fixed_handicap', [], "invalid arguments",
                      expect_failure=True)
+
+def test_place_free_handicap(tc):
+    # See gtp_state_test_support.Testing_gtp_state for description of the choice
+    # of points.
+    fx = Gtp_state_fixture(tc)
+    fx.check_command('place_free_handicap', [3], "C3 G7 C7")
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  #  .  .  .  #  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  .  .  #  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('genmove', ['b'], "pass")
+    tc.assertEqual(fx.player.last_game_state.handicap, 3)
+    fx.check_command('boardsize', ['19'], "")
+    fx.check_command('place_free_handicap', ['7'], "D4 Q16 D16 Q4 D10 Q10 K10")
+    fx.check_command('place_free_handicap', ['7'], "board not empty",
+                     expect_failure=True)
+    fx.check_command('boardsize', ['9'], "")
+    fx.check_command('play', ['B', 'B2'], "")
+    fx.check_command('place_free_handicap', ['2'], "board not empty",
+                     expect_failure=True)
+    fx.check_command('clear_board', [], "")
+    fx.check_command('place_free_handicap', ['0'], "invalid number of stones",
+                     expect_failure=True)
+    fx.check_command('place_free_handicap', ['1'], "invalid number of stones",
+                     expect_failure=True)
+    fx.check_command('place_free_handicap', ['2.5'], "invalid int: '2.5'",
+                     expect_failure=True)
+    fx.check_command('place_free_handicap', [], "invalid arguments",
+                     expect_failure=True)
+    fx.check_command('place_free_handicap', ['10'],
+                     "C3 G7 C7 G3 C5 G5 E3 E7 E5")
+    fx.check_command('clear_board', [''], "")
+    fx.check_command('place_free_handicap', ['5'],
+                     "A1 A2 A3 A4 A5")
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  #  .  .  .  .  .  .  .  .
+    4  #  .  .  .  .  .  .  .  .
+    3  #  .  .  .  .  .  .  .  .
+    2  #  .  .  .  .  .  .  .  .
+    1  #  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('clear_board', [''], "")
+    fx.check_command('place_free_handicap', ['6'],
+                     "invalid result from move generator: A1,A2,A3,A4,A5,A1",
+                     expect_failure=True)
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  .  .  .  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('place_free_handicap', ['2'],
+                     "invalid result from move generator: A1,A2,A3",
+                     expect_failure=True)
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  .  .  .  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('place_free_handicap', ['4'],
+                     "invalid result from move generator: A1,A2,A3,pass",
+                     expect_failure=True)
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  .  .  .  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('place_free_handicap', ['8'],
+                     "ValueError: need more than 1 value to unpack",
+                     expect_internal_error=True)
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  .  .  .  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+
+
 
 def test_set_free_handicap(tc):
     fx = Gtp_state_fixture(tc)
