@@ -37,8 +37,8 @@ class Gtp_state_fixture(test_framework.Fixture):
             gtp_states.History_move, self.assertHistoryMoveEqual)
 
     def assertHistoryMoveEqual(self, hm1, hm2, msg=None):
-        t1 = (hm1.colour, hm1.coords, hm1.comments, hm1.cookie)
-        t2 = (hm2.colour, hm2.coords, hm2.comments, hm2.cookie)
+        t1 = (hm1.colour, hm1.move, hm1.comments, hm1.cookie)
+        t2 = (hm2.colour, hm2.move, hm2.comments, hm2.cookie)
         self.tc.assertEqual(t1, t2, "History_moves differ")
 
     def check_command(self, *args, **kwargs):

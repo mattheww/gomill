@@ -19,7 +19,7 @@ class History_move(object):
 
     Public attributes:
       colour
-      coords   -- (row, col), or None for a pass
+      move     -- (row, col), or None for a pass
       comments -- multiline string, or None
       cookie
 
@@ -34,14 +34,14 @@ class History_move(object):
     of data.
 
     """
-    def __init__(self, colour, coords, comments=None, cookie=None):
+    def __init__(self, colour, move, comments=None, cookie=None):
         self.colour = colour
-        self.coords = coords
+        self.move = move
         self.comments = comments
         self.cookie = cookie
 
     def is_pass(self):
-        return (self.coords is None)
+        return (self.move is None)
 
 
 class Game_state(object):
@@ -221,7 +221,7 @@ class Gtp_state(object):
             if history_move.is_pass():
                 self.simple_ko_point = None
                 continue
-            row, col = history_move.coords
+            row, col = history_move.move
             # Propagates ValueError if the move is bad
             simple_ko_point = self.board.play(row, col, history_move.colour)
             simple_ko_player = opponent_of(history_move.colour)
@@ -345,18 +345,18 @@ class Gtp_state(object):
         except ValueError:
             gtp_engine.report_bad_arguments()
         colour = gtp_engine.interpret_colour(colour_s)
-        coords = gtp_engine.interpret_vertex(vertex_s, self.board_size)
-        if coords is None:
+        move = gtp_engine.interpret_vertex(vertex_s, self.board_size)
+        if move is None:
             self.simple_ko_point = None
             self.move_history.append(History_move(colour, None))
             return
-        row, col = coords
+        row, col = move
         try:
             self.simple_ko_point = self.board.play(row, col, colour)
             self.simple_ko_player = opponent_of(colour)
         except ValueError:
             raise GtpError("illegal move")
-        self.move_history.append(History_move(colour, coords))
+        self.move_history.append(History_move(colour, move))
 
     def handle_showboard(self, args):
         return "\n%s\n" % ascii_boards.render_board(self.board)
@@ -475,8 +475,8 @@ class Gtp_state(object):
             sgf_board, plays = sgf_moves.get_setup_and_moves(sgf_game)
         except ValueError, e:
             raise GtpError(str(e))
-        history_moves = [History_move(colour, coords)
-                         for (colour, coords) in plays]
+        history_moves = [History_move(colour, move)
+                         for (colour, move) in plays]
         if move_number is None:
             new_move_history = history_moves
         else:
@@ -563,7 +563,7 @@ class Gtp_state(object):
         sgf_moves.set_initial_position(sgf_game, self.history_base)
         for history_move in self.move_history:
             node = sgf_game.extend_main_sequence()
-            node.set_move(history_move.colour, history_move.coords)
+            node.set_move(history_move.colour, history_move.move)
             if history_move.comments is not None:
                 node.set("C", history_move.comments)
         sgf_moves.indicate_first_player(sgf_game)
@@ -611,18 +611,18 @@ def get_last_move(history_moves, player):
     history_moves -- list of History_move objects
     player        -- player to play current move ('b' or 'w')
 
-    Returns a pair (move_is_available, coords)
-    where coords is (row, col), or None for a pass.
+    Returns a pair (move_is_available, move)
+    where move is (row, col), or None for a pass.
 
     If the last move is unknown, or it wasn't by the opponent, move_is_available
-    is False and coords is None.
+    is False and move is None.
 
     """
     if not history_moves:
         return False, None
     if history_moves[-1].colour != opponent_of(player):
         return False, None
-    return True, history_moves[-1].coords
+    return True, history_moves[-1].move
 
 def get_last_move_and_cookie(history_moves, player):
     """Interpret recent move history.
