@@ -623,10 +623,15 @@ Double       ``1`` or ``2`` (int)
 Colour       *colour*
 SimpleText   8-bit UTF-8 string
 Text         8-bit UTF-8 string
-Point        *move*
+Stone        *point*
+Point        *point*
+Move         *move*
 =========== ========================
 
-Gomill does not distinguish the Point, Move, and Stone |sgf| property types.
+Gomill doesn't distinguish the Point and Stone |sgf| property types. It
+rejects representations of 'pass' for the Point and Stone types, but accepts
+them for Move (this is not what is described in the |sgf| specification, but
+it does correspond to the properties in which 'pass' makes sense).
 
 Values of list or elist types are represented as Python lists. An empty elist
 is represented as an empty Python list (in contrast, the raw value is a list

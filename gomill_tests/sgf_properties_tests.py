@@ -115,6 +115,50 @@ def test_serialise_real(tc):
     #tc.assertRaises(ValueError, serialise_real, float("NaN"))
 
 
+def test_interpret_move(tc):
+    def interpret_move(s, size):
+        context = sgf_properties._Context(size, "UTF-8")
+        return sgf_properties.interpret_move(s, context)
+    tc.assertEqual(interpret_move("aa", 19), (18, 0))
+    tc.assertEqual(interpret_move("ai", 19), (10, 0))
+    tc.assertEqual(interpret_move("ba",  9), (8, 1))
+    tc.assertEqual(interpret_move("tt", 21), (1, 19))
+    tc.assertIs(interpret_move("tt", 19), None)
+    tc.assertIs(interpret_move("", 19), None)
+    tc.assertIs(interpret_move("", 21), None)
+    tc.assertRaises(ValueError, interpret_move, "Aa", 19)
+    tc.assertRaises(ValueError, interpret_move, "aA", 19)
+    tc.assertRaises(ValueError, interpret_move, "aaa", 19)
+    tc.assertRaises(ValueError, interpret_move, "a", 19)
+    tc.assertRaises(ValueError, interpret_move, "au", 19)
+    tc.assertRaises(ValueError, interpret_move, "ua", 19)
+    tc.assertRaises(ValueError, interpret_move, "a`", 19)
+    tc.assertRaises(ValueError, interpret_move, "`a", 19)
+    tc.assertRaises(ValueError, interpret_move, "11", 19)
+    tc.assertRaises(ValueError, interpret_move, " aa", 19)
+    tc.assertRaises(ValueError, interpret_move, "aa\x00", 19)
+    tc.assertRaises(TypeError, interpret_move, None, 19)
+    #tc.assertRaises(TypeError, interpret_move, ('a', 'a'), 19)
+
+def test_serialise_move(tc):
+    def serialise_move(s, size):
+        context = sgf_properties._Context(size, "UTF-8")
+        return sgf_properties.serialise_move(s, context)
+    tc.assertEqual(serialise_move((18, 0), 19), "aa")
+    tc.assertEqual(serialise_move((10, 0), 19), "ai")
+    tc.assertEqual(serialise_move((8, 1), 19), "bk")
+    tc.assertEqual(serialise_move((8, 1), 9), "ba")
+    tc.assertEqual(serialise_move((1, 19), 21), "tt")
+    tc.assertEqual(serialise_move(None, 19), "tt")
+    tc.assertEqual(serialise_move(None, 20), "")
+    tc.assertRaises(ValueError, serialise_move, (3, 3), 0)
+    tc.assertRaises(ValueError, serialise_move, (3, 3), 27)
+    tc.assertRaises(ValueError, serialise_move, (9, 0), 9)
+    tc.assertRaises(ValueError, serialise_move, (-1, 0), 9)
+    tc.assertRaises(ValueError, serialise_move, (0, 9), 9)
+    tc.assertRaises(ValueError, serialise_move, (0, -1), 9)
+    tc.assertRaises(TypeError, serialise_move, (1, 1.5), 9)
+
 def test_interpret_point(tc):
     def interpret_point(s, size):
         context = sgf_properties._Context(size, "UTF-8")
@@ -123,9 +167,9 @@ def test_interpret_point(tc):
     tc.assertEqual(interpret_point("ai", 19), (10, 0))
     tc.assertEqual(interpret_point("ba",  9), (8, 1))
     tc.assertEqual(interpret_point("tt", 21), (1, 19))
-    tc.assertIs(interpret_point("tt", 19), None)
-    tc.assertIs(interpret_point("", 19), None)
-    tc.assertIs(interpret_point("", 21), None)
+    tc.assertRaises(ValueError, interpret_point, "tt", 19)
+    tc.assertRaises(ValueError, interpret_point, "", 19)
+    tc.assertRaises(ValueError, interpret_point, "", 21)
     tc.assertRaises(ValueError, interpret_point, "Aa", 19)
     tc.assertRaises(ValueError, interpret_point, "aA", 19)
     tc.assertRaises(ValueError, interpret_point, "aaa", 19)
@@ -149,8 +193,8 @@ def test_serialise_point(tc):
     tc.assertEqual(serialise_point((8, 1), 19), "bk")
     tc.assertEqual(serialise_point((8, 1), 9), "ba")
     tc.assertEqual(serialise_point((1, 19), 21), "tt")
-    tc.assertEqual(serialise_point(None, 19), "tt")
-    tc.assertEqual(serialise_point(None, 20), "")
+    tc.assertRaises(ValueError, serialise_point, None, 19)
+    tc.assertRaises(ValueError, serialise_point, None, 20)
     tc.assertRaises(ValueError, serialise_point, (3, 3), 0)
     tc.assertRaises(ValueError, serialise_point, (3, 3), 27)
     tc.assertRaises(ValueError, serialise_point, (9, 0), 9)
@@ -230,6 +274,7 @@ def test_serialise_point_list(tc):
     tc.assertEqual(spl([], 9), [])
     tc.assertEqual(ipl(spl([(1,2), (3,4), (4,5)], 19), 19),
                    set([(1,2), (3,4), (4,5)]))
+    tc.assertRaises(ValueError, spl, [(18, 0), None], 19)
 
 
 def test_AP(tc):
@@ -258,6 +303,8 @@ def test_ARLN(tc):
                    ['ab:cd', 'de:fg'])
     tc.assertEqual(interpret(['ab:cd', 'de:fg'], 9),
                    [((7, 0), (5, 2)), ((4, 3), (2, 5))])
+    tc.assertRaises(ValueError, serialise, [((7, 0), None)], 9)
+    tc.assertRaises(ValueError, interpret, ['ab:tt', 'de:fg'], 9)
 
 def test_FG(tc):
     def serialise(arg):
@@ -286,6 +333,8 @@ def test_LB(tc):
     tc.assertEqual(
         interpret(["ac:lbl", "bc:lb\\]l2"], 9),
         [((6, 0), "lbl"), ((6, 1), "lb]l2")])
+    tc.assertRaises(ValueError, serialise, [(None, "lbl")], 9)
+    tc.assertRaises(ValueError, interpret, [':lbl', 'de:lbl2'], 9)
 
 
 def test_presenter_interpret(tc):

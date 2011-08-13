@@ -267,7 +267,33 @@ def serialise_text(s, context):
 
 
 def interpret_point(s, context):
-    """Convert a raw SGF Point, Move, or Stone value to coordinates.
+    """Convert a raw SGF Point or Stone value to coordinates.
+
+    See interpret_go_point() above for details.
+
+    Returns a pair (row, col).
+
+    """
+    result = interpret_go_point(s, context.size)
+    if result is None:
+        raise ValueError
+    return result
+
+def serialise_point(point, context):
+    """Serialise a Point or Stone value.
+
+    point -- pair (row, col)
+
+    See serialise_go_point() above for details.
+
+    """
+    if point is None:
+        raise ValueError
+    return serialise_go_point(point, context.size)
+
+
+def interpret_move(s, context):
+    """Convert a raw SGF Move value to coordinates.
 
     See interpret_go_point() above for details.
 
@@ -276,8 +302,8 @@ def interpret_point(s, context):
     """
     return interpret_go_point(s, context.size)
 
-def serialise_point(move, context):
-    """Serialise a Point, Move, or Stone value.
+def serialise_move(move, context):
+    """Serialise a Move value.
 
     move -- pair (row, col), or None for a pass
 
@@ -309,11 +335,8 @@ def interpret_point_list(values, context):
         # No need to use parse_compose(), as \: would always be an error.
         p1, is_rectangle, p2 = s.partition(":")
         if is_rectangle:
-            try:
-                top, left = interpret_point(p1, context)
-                bottom, right = interpret_point(p2, context)
-            except TypeError:
-                raise ValueError
+            top, left = interpret_point(p1, context)
+            bottom, right = interpret_point(p2, context)
             if not (bottom <= top and left <= right):
                 raise ValueError
             for row in xrange(bottom, top+1):
@@ -321,8 +344,6 @@ def interpret_point_list(values, context):
                     result.add((row, col))
         else:
             pt = interpret_point(p1, context)
-            if pt is None:
-                raise ValueError
             result.add(pt)
     return result
 
@@ -475,7 +496,7 @@ _property_types_by_name = {
     'simpletext' :  _make_property_type('simpletext'),
     'text' :        _make_property_type('text'),
     'point' :       _make_property_type('point'),
-    'move' :        _make_property_type('point'),
+    'move' :        _make_property_type('move'),
     'point_list' :  _make_property_type('point_list'),
     'point_elist' : _make_property_type('point_list', allows_empty_list=True),
     'stone_list' :  _make_property_type('point_list'),
