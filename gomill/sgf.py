@@ -20,7 +20,7 @@ class Node(object):
     knows its board size (in order to interpret move values) and the encoding
     to use for the raw property strings.
 
-    Changing the SZ or CA property isn't allowed.
+    Changing the SZ property isn't allowed.
 
     """
     def __init__(self, property_map, presenter):
@@ -105,13 +105,6 @@ class Node(object):
     def _set_raw_list(self, identifier, values):
         if identifier == "SZ" and values != [str(self._presenter.size)]:
             raise ValueError("changing size is not permitted")
-        if identifier == "CA":
-            try:
-                s = sgf_properties.normalise_charset_name(values[0])
-            except LookupError:
-                s = None
-            if len(values) != 1 or s != self._presenter.encoding:
-                raise ValueError("changing charset is not permitted")
         self._property_map[identifier] = values
 
     def unset(self, identifier):
@@ -122,8 +115,6 @@ class Node(object):
         """
         if identifier == "SZ" and self._presenter.size != 19:
             raise ValueError("changing size is not permitted")
-        if identifier == "CA" and self._presenter.encoding != "ISO-8859-1":
-            raise ValueError("changing charset is not permitted")
         del self._property_map[identifier]
 
 
@@ -510,8 +501,9 @@ class Sgf_game(object):
       CA[encoding]
 
     Changing FF and GM is permitted (but this library will carry on using the
-    FF[4] and GM[1] rules). Changing SZ and CA is not permitted (unless the
-    change leaves the effective value unchanged).
+    FF[4] and GM[1] rules). Changing SZ is not permitted (unless the change
+    leaves the effective value unchanged). Changing CA is permitted; this
+    controls the encoding used by serialise().
 
     """
     def __new__(cls, size, encoding="UTF-8", *args, **kwargs):
@@ -593,12 +585,31 @@ class Sgf_game(object):
         Returns an 8-bit string, in the encoding specified by the CA property
         in the root node (defaulting to "ISO-8859-1").
 
+        If the raw property encoding and the target encoding match (which is
+        the usual case), the raw property values are included unchanged in the
+        output (even if they are improperly encoded.)
+
+        Otherwise, if any raw property value is improperly encoded,
+        UnicodeDecodeError is raised, and if any property value can't be
+        represented in the target encoding, UnicodeEncodeError is raised.
+
+        If the target encoding doesn't identify a Python codec, ValueError is
+        raised. Behaviour is unspecified if the target encoding isn't
+        ASCII-compatible (eg, UTF-16).
+
         """
-        # We can use the raw properties directly, because at present the raw
-        # property encoding always matches the CA property.
+        try:
+            encoding = self.get_charset()
+        except ValueError:
+            raise ValueError("unsupported charset: %s" %
+                             self.root.get_raw_list("CA"))
         coarse_tree = sgf_grammar.make_coarse_game_tree(
             self.root, lambda node:node, Node.get_raw_property_map)
-        return sgf_grammar.serialise_game_tree(coarse_tree)
+        serialised = sgf_grammar.serialise_game_tree(coarse_tree)
+        if encoding == self.root.get_encoding():
+            return serialised
+        else:
+            return serialised.decode(self.root.get_encoding()).encode(encoding)
 
 
     def get_property_presenter(self):
@@ -706,8 +717,17 @@ class Sgf_game(object):
 
         This applies the default, and returns the normalised form.
 
+        Raises ValueError if the CA property doesn't identify a Python codec.
+
         """
-        return self.root.get_encoding()
+        try:
+            s = self.root.get("CA")
+        except KeyError:
+            return "ISO-8859-1"
+        try:
+            return sgf_properties.normalise_charset_name(s)
+        except LookupError:
+            raise ValueError("no codec available for CA %s" % s)
 
     def get_komi(self):
         """Return the komi as a float.
