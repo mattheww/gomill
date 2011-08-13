@@ -287,7 +287,7 @@ class Gtp_state(object):
                         for (row, col) in points)
 
     def handle_set_free_handicap(self, args):
-        if len(args) < 2:
+        if not 2 <= len(args) < (self.board_size * self.board_size):
             gtp_engine.report_bad_arguments()
         if not self.board.is_empty():
             raise GtpError("board not empty")
