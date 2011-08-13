@@ -130,6 +130,9 @@ To retrieve the |sgf| data as a string, use the :meth:`!serialise` method:
    Returns an 8-bit string, in the encoding specified by the ``CA`` root
    property (defaulting to ``"ISO-8859-1"``).
 
+   See :ref:`transcoding <transcoding>` below for details of the behaviour if
+   the ``CA`` property is changed from its initial value.
+
 
 The complete game tree is represented using :class:`Tree_node` objects, which
 are used to access the |sgf| properties. An :class:`!Sgf_game` always has at
@@ -146,8 +149,10 @@ least one node, the :dfn:`root node`.
    properties (for example, if the game does not begin with an empty board).
 
    Changing the ``FF`` and ``GM`` properties is permitted, but Gomill will
-   carry on using the FF[4] and GM[1] (Go) rules. Changing ``SZ`` and ``CA``
-   is not permitted (unless the change leaves the effective value unchanged).
+   carry on using the FF[4] and GM[1] (Go) rules. Changing ``SZ`` is not
+   permitted (unless the change leaves the effective value unchanged).
+   Changing ``CA`` is permitted (this controls the encoding used by
+   :meth:`serialise`).
 
 The complete game tree can be accessed from the root node, but the following
 convenience methods are also provided. They return the same :class:`Tree_node`
@@ -216,11 +221,18 @@ appropriate default value if the property is not present.
 
    :rtype: string
 
-   Returns the effective value of the ``CA`` root property (``IS0-8859-1`` if
+   Returns the effective value of the ``CA`` root property (``ISO-8859-1`` if
    the ``CA`` root property isn't present).
 
-   This returns a codec name in normalised form, which may not be identical to
-   the string returned by ``get_root().get("CA")``.
+   The returned value is a codec name in normalised form, which may not be
+   identical to the string returned by ``get_root().get("CA")``. Raises
+   :exc:`ValueError` if the property value doesn't identify a Python codec.
+
+   This gives the encoding that would be used by :meth:`serialise`. It is not
+   necessarily the same as the :ref:`raw property encoding
+   <raw_property_encoding>` (use :meth:`~Tree_node.get_encoding` on the root
+   node to retrieve that).
+
 
 .. method:: Sgf_game.get_komi()
 
@@ -471,12 +483,12 @@ interpret property values). They can be retrieved using the following methods:
 
    :rtype: string
 
-   This returns the name of the encoding in a normalised form, which may not
-   be identical to the string returned by ``get("CA")``.
+   This returns the name of the raw property encoding (in a normalised form,
+   which may not be the same as the string originally used to specify the
+   encoding).
 
-An attempt to change the value of the ``SZ`` or ``CA`` property so that it
-doesn't match these values will raise :exc:`ValueError` (even if the node isn't
-the root).
+An attempt to change the value of the ``SZ`` property so that it doesn't match
+the board size will raise :exc:`ValueError` (even if the node isn't the root).
 
 
 .. rubric:: Access to raw property values
@@ -762,17 +774,17 @@ functions for loading and serialising |sgf| data work with 8-bit Python
 strings.
 
 The encoding used for Text and SimpleText property values is given by the
-``CA`` root property (if it isn't present, the encoding is ``ISO-8859-1``).
+``CA`` root property (if that isn't present, the encoding is ``ISO-8859-1``).
 
 In order for an encoding to be used in Gomill, it must exist as a Python
 built-in codec, and it must be compatible with ASCII (at least whitespace,
 ``\``, ``]``, and ``:`` must be in the usual places). Behaviour is unspecified
 if a non-ASCII-compatible encoding is requested.
 
-When encodings are passed as parameters (or returned from functions), and when
-they appear in the ``CA`` property, they are represented using the names or
-aliases of Python built-in codecs (eg ``"UTF-8"`` or ``"ISO-8859-1"``). See
-`standard encodings`__ for a list.
+When encodings are passed as parameters (or returned from functions), they are
+represented using the names or aliases of Python built-in codecs (eg
+``"UTF-8"`` or ``"ISO-8859-1"``). See `standard encodings`__ for a list.
+Values of the ``CA`` property are interpreted in the same way.
 
   .. __: http://docs.python.org/release/2.7/library/codecs.html#standard-encodings
 
@@ -781,18 +793,33 @@ encoding`, which is the encoding used internally to store the property values.
 The :meth:`Tree_node.get_raw` and :meth:`Tree_node.set_raw` methods use the
 raw property encoding.
 
-When an |sgf| game is loaded from a file, the raw property encoding is
-normally the original file encoding. Improperly encoded property values will
-not be detected until they are accessed (:meth:`~Tree_node.get` will raise
-:exc:`ValueError`; use :meth:`~Tree_node.get_raw` to retrieve the actual
+When an |sgf| game is loaded from a file, the raw property encoding is the
+original file encoding (unless overridden). Improperly encoded property values
+will not be detected until they are accessed (:meth:`~Tree_node.get` will
+raise :exc:`ValueError`; use :meth:`~Tree_node.get_raw` to retrieve the actual
 bytes).
 
-When an |sgf| game is serialised to a string, the raw property encoding is
-used.
 
-:class:`.Sgf_game` enforces the constraint that the ``CA`` root property
-corresponds to the raw property encoding (if the encoding is ``ISO-8859-1``,
-then the property may be absent).
+.. _transcoding:
+
+.. rubric:: Transcoding
+
+When an |sgf| game is serialised to a string, the encoding represented by the
+``CA`` root property is used. This :dfn:`target encoding` will be the same as
+the raw property encoding unless ``CA`` has been changed since the
+:class:`.Sgf_game` was created.
+
+When the raw property encoding and the target encoding match, the raw property
+values are included unchanged in the output (even if they are improperly
+encoded.)
+
+Otherwise, if any raw property value is improperly encoded,
+:exc:`UnicodeDecodeError` is raised, and if any property value can't be
+represented in the target encoding, :exc:`UnicodeEncodeError` is raised.
+
+If the target encoding doesn't identify a Python codec, :exc:`ValueError` is
+raised. The behaviour of :meth:`~Sgf_game.serialise` is unspecified if the
+target encoding isn't ASCII-compatible (eg, UTF-16).
 
 
 .. _parsing_details:
