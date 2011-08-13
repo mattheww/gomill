@@ -555,3 +555,24 @@ def test_get_last_move(tc):
     tc.assertEqual(format_vertex(move), "B3")
     tc.assertEqual(gtp_states.get_last_move(history_moves, 'w'), (False, None))
 
+def test_get_last_move_and_cookie(tc):
+    fx = Gtp_state_fixture(tc)
+    fx.player.set_next_move("A3", "preprogrammed move A3", "COOKIE 1")
+    fx.check_command('genmove', ['B'], "A3")
+    history_moves = fx.player.last_game_state.move_history
+    tc.assertEqual(gtp_states.get_last_move_and_cookie(history_moves, 'b'),
+                   (False, None, None))
+    tc.assertEqual(gtp_states.get_last_move_and_cookie(history_moves, 'w'),
+                   (False, None, None))
+
+    fx.check_command('play', ['W', 'B3'], "")
+    fx.check_command('genmove', ['B'], "pass")
+    history_moves = fx.player.last_game_state.move_history
+    move_is_available, move, cookie = gtp_states.get_last_move_and_cookie(
+        history_moves, 'b')
+    tc.assertIs(move_is_available, True)
+    tc.assertEqual(format_vertex(move), "B3")
+    tc.assertIs(cookie, "COOKIE 1")
+    tc.assertEqual(gtp_states.get_last_move_and_cookie(history_moves, 'w'),
+                   (False, None, None))
+

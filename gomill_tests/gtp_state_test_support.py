@@ -14,13 +14,15 @@ class Player(object):
     def __init__(self):
         self.next_move = None
         self.next_comment = None
+        self.next_cookie = None
         self.last_game_state = None
         self.resign_next_move = False
 
-    def set_next_move(self, vertex, comment=None):
+    def set_next_move(self, vertex, comment=None, cookie=None):
         """Specify what to return from the next genmove-like command."""
         self.next_move = move_from_vertex(vertex, 19)
         self.next_comment = comment
+        self.next_cookie = cookie
 
     def set_next_move_resign(self):
         self.resign_next_move = True
@@ -45,8 +47,11 @@ class Player(object):
             result.pass_move = True
         if self.next_comment is not None:
             result.comments = self.next_comment
+        if self.next_cookie is not None:
+            result.cookie = self.next_cookie
         self.next_move = None
         self.next_comment = None
+        self.next_cookie = None
         self.resign_next_move = False
         return result
 
