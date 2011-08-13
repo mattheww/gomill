@@ -41,6 +41,8 @@ def handicap_points(number_of_stones, board_size):
     """
     if number_of_stones > max_fixed_handicap_for_board_size(board_size):
         raise ValueError
+    if number_of_stones < 2:
+        raise ValueError
     if board_size < 13:
         altitude = 2
     else:
