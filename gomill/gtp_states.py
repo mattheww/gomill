@@ -578,7 +578,10 @@ class Gtp_state(object):
             if move.comments is not None:
                 node.set("C", move.comments)
         sgf_moves.indicate_first_player(sgf_game)
-        self._save_file(pathname, sgf_game.serialise())
+        try:
+            self._save_file(pathname, sgf_game.serialise())
+        except EnvironmentError, e:
+            raise GtpError("error writing file: %s" % e)
 
 
     def get_handlers(self):

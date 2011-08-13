@@ -468,3 +468,9 @@ def test_savesgf(tc):
     tc.assertEqual(scrub_sgf(fx.gtp_state._load_file('out3.sgf')),
                    "(;FF[4]AB[dd][dp][pd]AP[gomill:VER]CA[UTF-8]DT[***]"
                    "GM[1]HA[3]KM[5]SZ[19]\n;W[ar])\n")
+    fx.check_command(
+        'gomill-savesgf', ['force_fail'],
+        "error writing file: [Errno 2] "
+        "No such file or directory: '/nonexistent_directory/foo.sgf'",
+        expect_failure=True)
+
