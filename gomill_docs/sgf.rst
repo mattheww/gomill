@@ -19,8 +19,7 @@ processing moves and positions, and provides a link to the
 :mod:`.boards` module.
 
 The :mod:`!gomill.sgf_grammar` and :mod:`!gomill.sgf_properties` modules are
-used to implement the :mod:`!sgf` module, and are not currently
-documented.
+used to implement the :mod:`!sgf` module, and are not currently documented.
 
 
 .. contents:: Page contents
@@ -61,7 +60,8 @@ Recording a game::
   with open(pathname, "w") as f:
       f.write(g.serialise())
 
-See also the :script:`show_sgf.py` example script.
+See also the :script:`show_sgf.py` and :script:`split_sgf_collection.py`
+example scripts.
 
 
 Sgf_game objects
