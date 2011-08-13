@@ -90,7 +90,7 @@ def interpret_int(arg):
     # as integers not in a suitable range for boardsize. The clipping of high
     # integers is what it does for command ids.
     try:
-        result = int(arg)
+        result = int(arg, 10)
     except ValueError:
         raise GtpError("invalid int: '%s'" % arg)
     if result < 0:
