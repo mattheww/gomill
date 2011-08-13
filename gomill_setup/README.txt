@@ -11,6 +11,11 @@ The documentation is distributed separately in HTML form. It can be downloaded
 from the above web site, or viewed online at
 http://mjw.woodcraft.me.uk/gomill/doc/
 
+A Git repository containing Gomill releases (but not detailed history) is
+available:
+  git clone http://mjw.woodcraft.me.uk/gomill/git/
+It has a web interface at http://mjw.woodcraft.me.uk/gitweb/gomill/
+
 
 Contents
 --------
@@ -180,4 +185,4 @@ Changelog
 
 See the 'Changes' page in the HTML documentation (docs/changes.rst).
 
-                                                                mjw 2011-02-13
+                                                                mjw 2011-08-13

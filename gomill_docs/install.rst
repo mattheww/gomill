@@ -34,6 +34,13 @@ Once you have downloaded the source archive, extract it using a command like
 :file:`gomill-{version}`, referred to below as the :dfn:`distribution
 directory`.
 
+Alternatively, you can access releases using Git::
+
+  git clone http://mjw.woodcraft.me.uk/gomill/git/ gomill
+
+which would create :file:`gomill` as the distribution directory.
+
+
 
 Running the ringmaster
 ----------------------
