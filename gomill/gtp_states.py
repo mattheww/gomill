@@ -287,8 +287,10 @@ class Gtp_state(object):
                         for (row, col) in points)
 
     def handle_set_free_handicap(self, args):
-        if not 2 <= len(args) < (self.board_size * self.board_size):
-            gtp_engine.report_bad_arguments()
+        max_points = handicap_layout.max_free_handicap_for_board_size(
+            self.board_size)
+        if not 2 <= len(args) <= max_points:
+            raise GtpError("invalid number of stones")
         if not self.board.is_empty():
             raise GtpError("board not empty")
         try:

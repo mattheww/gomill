@@ -282,10 +282,13 @@ def test_set_free_handicap(tc):
     fx.check_command('set_free_handicap', ["C3", "E5"], "board not empty",
                      expect_failure=True)
     fx.check_command('clear_board', [], "")
-    fx.check_command('set_free_handicap', ["C3"], "invalid arguments",
+    fx.check_command('set_free_handicap', ["C3"], "invalid number of stones",
                      expect_failure=True)
-    fx.check_command('set_free_handicap', [], "invalid arguments",
+    fx.check_command('set_free_handicap', [], "invalid number of stones",
                      expect_failure=True)
+    all_points = [format_vertex((i, j)) for i in range(9) for j in range(9)]
+    fx.check_command('set_free_handicap', all_points,
+                     "invalid number of stones", expect_failure=True)
     fx.check_command('set_free_handicap', ["C3", "asdasd"],
                      "invalid vertex: 'asdasd'", expect_failure=True)
     fx.check_command('showboard', [], dedent("""
@@ -314,20 +317,6 @@ def test_set_free_handicap(tc):
        A  B  C  D  E  F  G  H  J"""))
     fx.check_command('set_free_handicap', ["C3", "E5", "C3"],
                      "engine error: C3 is occupied", expect_failure=True)
-    fx.check_command('showboard', [], dedent("""
-    9  .  .  .  .  .  .  .  .  .
-    8  .  .  .  .  .  .  .  .  .
-    7  .  .  .  .  .  .  .  .  .
-    6  .  .  .  .  .  .  .  .  .
-    5  .  .  .  .  .  .  .  .  .
-    4  .  .  .  .  .  .  .  .  .
-    3  .  .  .  .  .  .  .  .  .
-    2  .  .  .  .  .  .  .  .  .
-    1  .  .  .  .  .  .  .  .  .
-       A  B  C  D  E  F  G  H  J"""))
-    all_points = [format_vertex((i, j)) for i in range(9) for j in range(9)]
-    fx.check_command('set_free_handicap', all_points,
-                     "invalid arguments", expect_failure=True)
     fx.check_command('showboard', [], dedent("""
     9  .  .  .  .  .  .  .  .  .
     8  .  .  .  .  .  .  .  .  .
