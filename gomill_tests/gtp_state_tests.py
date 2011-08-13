@@ -224,3 +224,36 @@ def test_undo(tc):
     fx.check_command('gomill-explain_last_move', [], "")
     fx.check_command('undo', [], "cannot undo", expect_failure=True)
 
+def test_fixed_handicap(tc):
+    fx = Gtp_state_fixture(tc)
+    fx.check_command('fixed_handicap', [3], "C3 G7 C7")
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  #  .  .  .  #  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  .  .  #  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('boardsize', ['19'], "")
+    fx.check_command('fixed_handicap', ['7'], "D4 Q16 D16 Q4 D10 Q10 K10")
+    fx.check_command('fixed_handicap', ['7'], "board not empty",
+                     expect_failure=True)
+    fx.check_command('boardsize', ['9'], "")
+    fx.check_command('play', ['B', 'B2'], "")
+    fx.check_command('fixed_handicap', ['2'], "board not empty",
+                     expect_failure=True)
+    fx.check_command('clear_board', [], "")
+    fx.check_command('fixed_handicap', ['0'], "invalid number of stones",
+                     expect_failure=True)
+    fx.check_command('fixed_handicap', ['1'], "invalid number of stones",
+                     expect_failure=True)
+    fx.check_command('fixed_handicap', ['10'], "invalid number of stones",
+                     expect_failure=True)
+    fx.check_command('fixed_handicap', ['2.5'], "invalid int: '2.5'",
+                     expect_failure=True)
+    fx.check_command('fixed_handicap', [], "invalid arguments",
+                     expect_failure=True)
