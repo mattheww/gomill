@@ -289,6 +289,8 @@ class Gtp_state(object):
     def handle_set_free_handicap(self, args):
         if len(args) < 2:
             gtp_engine.report_bad_arguments()
+        if not self.board.is_empty():
+            raise GtpError("board not empty")
         for vertex_s in args:
             row, col = gtp_engine.interpret_vertex(vertex_s, self.board_size)
             try:
