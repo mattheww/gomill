@@ -32,3 +32,32 @@ def test_sanitise_utf8(tc):
     s = u"test \N{POUND SIGN}".encode("utf-8")
     tc.assertIs(su(s), s)
     tc.assertEqual(su(u"test \N{POUND SIGN}".encode("latin1")), "test ?")
+
+def test_isinf(tc):
+    tc.assertIs(utils.isinf(0), False)
+    tc.assertIs(utils.isinf(0.0), False)
+    tc.assertIs(utils.isinf(3), False)
+    tc.assertIs(utils.isinf(3.0), False)
+    tc.assertIs(utils.isinf(1e300), False)
+    tc.assertIs(utils.isinf(1e400), True)
+    tc.assertIs(utils.isinf(-1e300), False)
+    tc.assertIs(utils.isinf(-1e400), True)
+    tc.assertIs(utils.isinf(1e-300), False)
+    tc.assertIs(utils.isinf(1e-400), False)
+    tc.assertIs(utils.isinf(float("inf")), True)
+    tc.assertIs(utils.isinf(float("-inf")), True)
+    tc.assertIs(utils.isinf(float("NaN")), False)
+
+def test_nan(tc):
+    tc.assertIs(utils.isnan(0), False)
+    tc.assertIs(utils.isnan(0.0), False)
+    tc.assertIs(utils.isnan(1e300), False)
+    tc.assertIs(utils.isnan(1e400), False)
+    tc.assertIs(utils.isnan(-1e300), False)
+    tc.assertIs(utils.isnan(-1e400), False)
+    tc.assertIs(utils.isnan(1e-300), False)
+    tc.assertIs(utils.isnan(1e-400), False)
+    tc.assertIs(utils.isnan(float("inf")), False)
+    tc.assertIs(utils.isnan(float("-inf")), False)
+    tc.assertIs(utils.isnan(float("NaN")), True)
+

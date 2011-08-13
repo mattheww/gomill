@@ -11,6 +11,7 @@ import sys
 import os
 
 from gomill.common import *
+from gomill.utils import isinf, isnan
 from gomill import compact_tracebacks
 
 
@@ -107,13 +108,14 @@ def interpret_float(arg):
     Raises GtpError with an appropriate message if 'arg' isn't a valid GTP
     float specification.
 
-    Accepts strings accepted as a float by the platform libc. The result might
-    be a special value such as NaN or inf.
+    Accepts strings accepted as a float by the platform libc; rejects
+    infinities and NaNs.
 
     """
-    # Gnugo accepts 'NaN', so we will too.
     try:
         result = float(arg)
+        if isinf(result) or isnan(result):
+            raise ValueError
     except ValueError:
         raise GtpError("invalid float: '%s'" % arg)
     return result

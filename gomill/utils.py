@@ -8,7 +8,7 @@ This is for generic utilities; see common for Go-specific utility functions.
 
 from __future__ import division
 
-__all__ = ["format_float", "format_percent", "sanitise_utf8"]
+__all__ = ["format_float", "format_percent", "sanitise_utf8", "isinf", "isnan"]
 
 def format_float(f):
     """Format a Python float in a friendly way.
@@ -62,3 +62,13 @@ def sanitise_utf8(s):
                 .encode("utf-8"))
     else:
         return s
+
+try:
+    from math import isinf, isnan
+except ImportError:
+    # Python < 2.6
+    def isinf(f):
+        return (f == float("1e500") or f == float("-1e500"))
+    def isnan(f):
+        return (f != f)
+
