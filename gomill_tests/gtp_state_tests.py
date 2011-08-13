@@ -68,6 +68,7 @@ def test_gtp_state(tc):
 
     fx.check_command('nonsense', [''], "unknown command",
                      expect_failure=True)
+    fx.check_command('protocol_version', [''], "2")
 
     fx.player.set_next_move("A3", "preprogrammed move 0")
     fx.check_command('genmove', ['B'], "A3")
@@ -120,6 +121,7 @@ def test_gtp_state(tc):
 
     fx.player.set_next_move_resign()
     fx.check_command('genmove', ['B'], "resign")
+    fx.check_command('quit', [''], "", expect_end=True)
 
 
 def test_clear_board_and_boardsize(tc):
