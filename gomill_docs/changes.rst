@@ -1,7 +1,7 @@
 Changes
 =======
 
-Gomill 0.7 (2011-FIXME)
+Gomill 0.7 (2011-08-13)
 -----------------------
 
 The ringmaster now applies handicap stone compensation when using its internal
