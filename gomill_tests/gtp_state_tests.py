@@ -532,3 +532,26 @@ def test_savesgf(tc):
         "No such file or directory: '/nonexistent_directory/foo.sgf'",
         expect_failure=True)
 
+def test_get_last_move(tc):
+    fx = Gtp_state_fixture(tc)
+    fx.player.set_next_move("A3", "preprogrammed move A3")
+    fx.check_command('genmove', ['B'], "A3")
+    history_moves = fx.player.last_game_state.move_history
+    tc.assertEqual(gtp_states.get_last_move(history_moves, 'b'), (False, None))
+    tc.assertEqual(gtp_states.get_last_move(history_moves, 'w'), (False, None))
+
+    fx.player.set_next_move("B3", "preprogrammed move B3")
+    fx.check_command('genmove', ['W'], "B3")
+    history_moves = fx.player.last_game_state.move_history
+    tc.assertEqual(gtp_states.get_last_move(history_moves, 'b'), (False, None))
+    move_is_available, move = gtp_states.get_last_move(history_moves, 'w')
+    tc.assertIs(move_is_available, True)
+    tc.assertEqual(format_vertex(move), "A3")
+
+    fx.check_command('genmove', ['B'], "pass")
+    history_moves = fx.player.last_game_state.move_history
+    move_is_available, move = gtp_states.get_last_move(history_moves, 'b')
+    tc.assertIs(move_is_available, True)
+    tc.assertEqual(format_vertex(move), "B3")
+    tc.assertEqual(gtp_states.get_last_move(history_moves, 'w'), (False, None))
+
