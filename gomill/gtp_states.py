@@ -330,8 +330,18 @@ class Gtp_state(object):
         if number_of_stones == max_points:
             number_of_stones = max_points - 1
         moves = self._choose_free_handicap_moves(number_of_stones)
-        for row, col in moves:
-            self.board.play(row, col, 'b')
+        try:
+            try:
+                if len(moves) > number_of_stones:
+                    raise ValueError
+                for row, col in moves:
+                    self.board.play(row, col, 'b')
+            except (ValueError, TypeError):
+                raise GtpError("invalid result from move generator: %s"
+                               % format_vertex_list(moves))
+        except Exception:
+            self.reset()
+            raise
         self.simple_ko_point = None
         self.handicap = number_of_stones
         self.set_history_base(self.board.copy())
