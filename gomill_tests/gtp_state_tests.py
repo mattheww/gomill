@@ -439,3 +439,32 @@ def test_loadsgf(tc):
     1  .  .  .  .  .  .  .  .  .
        A  B  C  D  E  F  G  H  J"""))
 
+def test_savesgf(tc):
+    scrub_sgf = gomill_test_support.scrub_sgf
+
+    fx = Gtp_state_fixture(tc)
+    fx.check_command("play", ['b', 'D4'], "")
+    fx.player.set_next_move("C3", "preprogrammed move C3")
+    fx.check_command('genmove', ['w'], "C3")
+    fx.check_command('gomill-savesgf', ['out1.sgf'], "")
+    tc.assertEqual(scrub_sgf(fx.gtp_state._load_file('out1.sgf')),
+                   "(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[0]"
+                   "SZ[9];B[df];\nC[preprogrammed move C3]W[cg])\n")
+    fx.check_command(
+        'gomill-savesgf',
+        ['out2.sgf', "PB=testplayer", "PW=GNU\_Go:3.8", "RE=W+3.5"],
+        "")
+    tc.assertEqual(scrub_sgf(fx.gtp_state._load_file('out2.sgf')),
+                   "(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[0]"
+                   "PB[testplayer]\nPW[GNU Go:3.8]RE[W+3.5]SZ[9];B[df]"
+                   ";C[preprogrammed move C3]W[cg])\n")
+
+    fx.check_command("boardsize", ['19'], "")
+    fx.check_command("fixed_handicap", ['3'], "D4 Q16 D16")
+    fx.check_command("komi", ['5.5'], "")
+    fx.check_command("play", ['w', 'A2'], "")
+    fx.check_command('gomill-savesgf', ['out3.sgf'], "")
+    # FIXME: KM should really be 5.5
+    tc.assertEqual(scrub_sgf(fx.gtp_state._load_file('out3.sgf')),
+                   "(;FF[4]AB[dd][dp][pd]AP[gomill:VER]CA[UTF-8]DT[***]"
+                   "GM[1]HA[3]KM[5]SZ[19]\n;W[ar])\n")

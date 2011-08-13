@@ -69,6 +69,9 @@ class Testing_gtp_state(gtp_states.Gtp_state):
         except KeyError:
             raise EnvironmentError("unknown file: %s" % pathname)
 
+    def _save_file(self, pathname, contents):
+        self._file_contents[pathname] = contents
+
     def _choose_free_handicap_moves(self, number_of_stones):
         """Implementation of place_free_handicap.
 

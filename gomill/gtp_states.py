@@ -536,6 +536,18 @@ class Gtp_state(object):
         except IndexError:
             return None
 
+    def _save_file(self, pathname, contents):
+        """Write a string to the specified file.
+
+        Subclasses can override this to change how gomill-savesgf interprets
+        filenames.
+
+        May raise EnvironmentError.
+
+        """
+        with open(pathname, "w") as f:
+            f.write(contents)
+
     def handle_savesgf(self, args):
         try:
             pathname = args[0]
@@ -566,9 +578,7 @@ class Gtp_state(object):
             if move.comments is not None:
                 node.set("C", move.comments)
         sgf_moves.indicate_first_player(sgf_game)
-        f = open(pathname, "w")
-        f.write(sgf_game.serialise())
-        f.close()
+        self._save_file(pathname, sgf_game.serialise())
 
 
     def get_handlers(self):
