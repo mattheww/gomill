@@ -125,6 +125,10 @@ Online Documentation: http://mjw.woodcraft.me.uk/gomill/doc/%(VERSION)s/
 
 Changelog: http://mjw.woodcraft.me.uk/gomill/doc/%(VERSION)s/changes.html
 
+Git: http://mjw.woodcraft.me.uk/gomill/git/
+
+Gitweb: http://mjw.woodcraft.me.uk/gitweb/gomill/
+
 """ % vars()
 
 setup(name='gomill',
