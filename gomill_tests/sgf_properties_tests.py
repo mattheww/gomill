@@ -87,6 +87,10 @@ def test_interpret_real(tc):
     tc.assertEqual(interpret_real("+0.5"), 0.5)
     tc.assertRaises(ValueError, interpret_real, "+")
     tc.assertRaises(ValueError, interpret_real, "0xaf")
+    tc.assertRaises(ValueError, interpret_real, "inf")
+    tc.assertRaises(ValueError, interpret_real, "-inf")
+    tc.assertRaises(ValueError, interpret_real, "NaN")
+    tc.assertRaises(ValueError, interpret_real, "1e400")
     #tc.assertRaises(TypeError, interpret_real, 1.0)
 
 def test_serialise_real(tc):

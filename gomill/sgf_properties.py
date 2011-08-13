@@ -11,6 +11,7 @@ points.
 import codecs
 
 from gomill import sgf_grammar
+from gomill.utils import isinf, isnan
 
 def normalise_charset_name(s):
     """Convert an encoding name to the form implied in the SGF spec.
@@ -124,12 +125,15 @@ def interpret_real(s, context=None):
     """Convert a raw Real value to the float it represents.
 
     This is more lenient than the SGF spec: it accepts strings accepted as a
-    float by the platform libc.
+    float by the platform libc. It rejects infinities and NaNs.
 
     """
-    # Would be nice to at least reject Inf and NaN, but Python 2.5 is deficient
-    # here.
-    return float(s)
+    result = float(s)
+    if isinf(result):
+        raise ValueError("infinite")
+    if isnan(result):
+        raise ValueError("not a number")
+    return result
 
 def serialise_real(f, context=None):
     """Serialise a Real value.
