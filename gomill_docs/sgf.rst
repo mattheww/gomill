@@ -144,19 +144,21 @@ least one node, the :dfn:`root node`.
 
    Returns the root node of the game tree.
 
-   The root node contains global properties for the game tree, and typically
-   also contains *game-info* properties. It sometimes also contains *setup*
-   properties (for example, if the game does not begin with an empty board).
+The root node contains global properties for the game tree, and typically also
+contains *game-info* properties. It sometimes also contains *setup* properties
+(for example, if the game does not begin with an empty board).
 
-   Changing the ``FF`` and ``GM`` properties is permitted, but Gomill will
-   carry on using the FF[4] and GM[1] (Go) rules. Changing ``SZ`` is not
-   permitted (unless the change leaves the effective value unchanged).
-   Changing ``CA`` is permitted (this controls the encoding used by
-   :meth:`serialise`).
+Changing the ``FF`` and ``GM`` properties is permitted, but Gomill will carry
+on using the FF[4] and GM[1] (Go) rules. Changing ``SZ`` is not permitted (but
+if the size is 19 you may remove the property). Changing ``CA`` is permitted
+(this controls the encoding used by :meth:`serialise`).
 
-The complete game tree can be accessed from the root node, but the following
-convenience methods are also provided. They return the same :class:`Tree_node`
-objects that would be reached via the root node.
+
+.. rubric:: Convenience methods for tree access
+
+The complete game tree can be accessed through the root node, but the
+following convenience methods are also provided. They return the same
+:class:`Tree_node` objects that would be reached via the root node.
 
 Some of the convenience methods are for accessing the :dfn:`leftmost`
 variation of the game tree. This is the variation which appears first in the
@@ -205,6 +207,8 @@ just the whole game.
    This is equivalent to
    :meth:`get_last_node`\ .\ :meth:`~Tree_node.new_child`
 
+
+.. rubric:: Convenience methods for root properties
 
 The following methods provide convenient access to some of the root node's
 |sgf| properties. The main difference between using these methods and using
