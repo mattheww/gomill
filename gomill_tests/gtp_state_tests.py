@@ -220,7 +220,7 @@ def test_undo(tc):
 
 def test_fixed_handicap(tc):
     fx = Gtp_state_fixture(tc)
-    fx.check_command('fixed_handicap', [3], "C3 G7 C7")
+    fx.check_command('fixed_handicap', ['3'], "C3 G7 C7")
     fx.check_command('showboard', [], dedent("""
     9  .  .  .  .  .  .  .  .  .
     8  .  .  .  .  .  .  .  .  .
@@ -258,7 +258,7 @@ def test_place_free_handicap(tc):
     # See gtp_state_test_support.Testing_gtp_state for description of the choice
     # of points.
     fx = Gtp_state_fixture(tc)
-    fx.check_command('place_free_handicap', [3], "C3 G7 C7")
+    fx.check_command('place_free_handicap', ['3'], "C3 G7 C7")
     fx.check_command('showboard', [], dedent("""
     9  .  .  .  .  .  .  .  .  .
     8  .  .  .  .  .  .  .  .  .
