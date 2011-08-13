@@ -1,9 +1,21 @@
 Changes
 =======
 
+Gomill 0.7 (2011-FIXME)
+-----------------------
+
 The ringmaster now applies handicap stone compensation when using its internal
 scorer. Set :setting:`internal_scorer_handicap_compensation` to ``"no"`` to
 return to the old behaviour.
+
+* Added a full implementation of :doc:`sgf`, replacing the previous minimal
+  support.
+
+* Added a :script:`split_sgf_collection.py` example script.
+
+* The :mod:`~gomill.common`, :mod:`~gomill.boards`,
+  :mod:`~gomill.ascii_boards`, and :mod:`~gomill.handicap_layout` modules are
+  now documented as stable.
 
 * Improved handling of long responses to the :gtp:`!version` |gtp| command.
 
@@ -14,16 +26,36 @@ return to the old behaviour.
 * Added the :data:`gomill.__version__` constant.
 
 
+Changes to (previously) undocumented parts of the library:
+
+* Renamed the :mod:`!gomill.gomill_common` module to :mod:`!gomill.common`.
+
+* Renamed the :mod:`!gomill.gomill_utils` module to :mod:`!gomill.utils`.
+
+* Renamed :attr:`!Board.board_coords` to :attr:`~.Board.board_points`.
+
+* Replaced the :func:`!ascii_boards.play_diagram` function with
+  :func:`~.ascii_boards.interpret_diagram`, making the *board* parameter
+  optional.
+
+* :func:`!gtp_engine.interpret_float` now rejects infinities and NaNs.
+
+* Changes to the :mod:`!gtp_states` module: tightened error handling, removed
+  the komi-mangling feature, renamed :attr:`History_move.coords` to
+  :attr:`History_move.move`.
+
+
 Gomill 0.6 (2011-02-13)
 -----------------------
 
 Playoff tournament :ref:`state files <competition state>` from Gomill 0.5 are
 incompatible with Gomill 0.6. Tuning event state files are compatible.
 
-* Added :doc:`All-play-all <allplayalls>` tournament type.
+* Added the :doc:`All-play-all <allplayalls>` tournament type.
 
 * Expanded and documented the :doc:`tournament_results`. Changed return type
-  of :meth:`~tournament_results.Tournament_results.get_matchup_results`.
+  of
+  :meth:`~.Tournament_results.get_matchup_results`.
 
 * Fixed reporting for matchups with the same player specified twice.
 
