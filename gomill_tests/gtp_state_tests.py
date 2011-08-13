@@ -49,21 +49,6 @@ class Gtp_state_fixture(test_framework.Fixture):
         gtp_engine_test_support.check_engine(
             self.tc, self.engine, *args, **kwargs)
 
-def test_simplest_state(tc):
-    def genmove(game_state, player):
-        result = gtp_states.Move_generator_result()
-        result.pass_move = True
-        return result
-
-    gtp_state = gtp_states.Gtp_state(
-        move_generator=genmove,
-        acceptable_sizes=(9, 13, 19))
-    engine = gtp_engine.Gtp_engine_protocol()
-    engine.add_protocol_commands()
-    engine.add_commands(gtp_state.get_handlers())
-
-    gtp_engine_test_support.check_engine(tc, engine, 'genmove', ['b'], "pass")
-
 def test_gtp_state(tc):
     fx = Gtp_state_fixture(tc)
 
@@ -122,6 +107,23 @@ def test_gtp_state(tc):
     fx.player.set_next_move_resign()
     fx.check_command('genmove', ['b'], "resign")
 
+
+def test_clear_board_and_boardsize(tc):
+    fx = Gtp_state_fixture(tc)
+    fx.check_command('play', ['W', 'A4'], "")
+    fx.check_command('boardsize', ['7'], "unacceptable size",
+                     expect_failure=True)
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  o  .  .  .  .  .  .  .  .
+    3  .  .  .  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
     fx.check_command('clear_board', [], "")
     fx.check_command('showboard', [], dedent("""
     9  .  .  .  .  .  .  .  .  .
@@ -134,8 +136,7 @@ def test_gtp_state(tc):
     2  .  .  .  .  .  .  .  .  .
     1  .  .  .  .  .  .  .  .  .
        A  B  C  D  E  F  G  H  J"""))
-    fx.check_command('boardsize', ['7'], "unacceptable size",
-                     expect_failure=True)
+    fx.check_command('play', ['W', 'A4'], "")
     fx.check_command('boardsize', ['11'], "")
     fx.check_command('showboard', [], dedent("""
     11  .  .  .  .  .  .  .  .  .  .  .
@@ -150,4 +151,9 @@ def test_gtp_state(tc):
      2  .  .  .  .  .  .  .  .  .  .  .
      1  .  .  .  .  .  .  .  .  .  .  .
         A  B  C  D  E  F  G  H  J  K  L"""))
+
+def test_undo(tc):
+    fx = Gtp_state_fixture(tc)
+    fx.player.set_next_move("A3", "preprogrammed move 0")
+    fx.check_command('genmove', ['b'], "A3")
 
