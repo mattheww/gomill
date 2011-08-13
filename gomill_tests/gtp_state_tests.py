@@ -27,12 +27,12 @@ class Gtp_state_fixture(test_framework.Fixture):
     def __init__(self, tc):
         self.tc = tc
         self.player = gtp_state_test_support.Player()
-        gtp_state = gtp_state_test_support.Testing_gtp_state(
+        self.gtp_state = gtp_state_test_support.Testing_gtp_state(
             move_generator=self.player.genmove,
             acceptable_sizes=(9, 11, 13, 19))
         self.engine = gtp_engine.Gtp_engine_protocol()
         self.engine.add_protocol_commands()
-        self.engine.add_commands(gtp_state.get_handlers())
+        self.engine.add_commands(self.gtp_state.get_handlers())
         self.tc.addTypeEqualityFunc(
             gtp_states.History_move, self.assertHistoryMoveEqual)
 
@@ -360,3 +360,82 @@ def test_set_free_handicap(tc):
     fx.check_command('set_free_handicap', ["C3", "E5", "C3"],
                      "engine error: C3 is occupied", expect_failure=True)
     fx.check_board_empty_9()
+
+
+def test_loadsgf(tc):
+    fx = Gtp_state_fixture(tc)
+    fx.gtp_state._register_file("invalid.sgf", "non-SGF data")
+    fx.gtp_state._register_file(
+        "test1.sgf",
+        "(;SZ[9];B[ee];W[eg];B[dg];W[dh];B[df];W[fh];B[];W[])")
+    fx.gtp_state._register_file(
+        "test2.sgf",
+        "(;SZ[9]AB[fe:ff]AW[gf:gg]PL[W];W[eh];B[ge])")
+    fx.check_command('loadsgf', ["unknown.sgf"],
+                     "cannot load file", expect_failure=True)
+    fx.check_command('loadsgf', ["invalid.sgf"],
+                     "cannot load file", expect_failure=True)
+    fx.check_command('loadsgf', ["test1.sgf"], "")
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  #  .  .  .  .
+    4  .  .  .  #  .  .  .  .  .
+    3  .  .  .  #  o  .  .  .  .
+    2  .  .  .  o  .  o  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('loadsgf', ["test1.sgf", "4"], "")
+    # position _before_ move 4
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  #  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  .  .  .  #  o  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('undo', [], "")
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  #  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  .  .  .  .  o  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('loadsgf', ["test2.sgf"], "")
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  #  #  .  .
+    4  .  .  .  .  .  #  o  .  .
+    3  .  .  .  .  .  .  o  .  .
+    2  .  .  .  .  o  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('undo', [], "")
+    fx.check_command('undo', [], "")
+    fx.check_command('undo', [], "cannot undo", expect_failure=True)
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  #  .  .  .
+    4  .  .  .  .  .  #  o  .  .
+    3  .  .  .  .  .  .  o  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+

@@ -51,7 +51,24 @@ class Player(object):
         return result
 
 class Testing_gtp_state(gtp_states.Gtp_state):
-    """Variant of Gtp_state suitable for use in tests."""
+    """Variant of Gtp_state suitable for use in tests.
+
+    This doesn't read from or write to the filesystem.
+
+    """
+    def __init__(self, *args, **kwargs):
+        super(Testing_gtp_state, self).__init__(*args, **kwargs)
+        self._file_contents = {}
+
+    def _register_file(self, pathname, contents):
+        self._file_contents[pathname] = contents
+
+    def _load_file(self, pathname):
+        try:
+            return self._file_contents[pathname]
+        except KeyError:
+            raise EnvironmentError("unknown file: %s" % pathname)
+
     def _choose_free_handicap_moves(self, number_of_stones):
         """Implementation of place_free_handicap.
 

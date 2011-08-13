@@ -1,5 +1,7 @@
 """Stateful GTP engine."""
 
+from __future__ import with_statement
+
 import math
 
 from gomill import __version__
@@ -437,6 +439,17 @@ class Gtp_state(object):
         except ValueError:
             raise GtpError("corrupt history")
 
+    def _load_file(self, pathname):
+        """Read the specified file and return its contents as a string.
+
+        Subclasses can override this to change how loadsgf interprets filenames.
+
+        May raise EnvironmentError.
+
+        """
+        with open(pathname) as f:
+            return f.read()
+
     def handle_loadsgf(self, args):
         try:
             pathname = args[0]
@@ -446,10 +459,10 @@ class Gtp_state(object):
             move_number = gtp_engine.interpret_int(args[1])
         else:
             move_number = None
+        # The GTP spec mandates the "cannot load file" error message, so we
+        # can't be more helpful.
         try:
-            f = open(pathname)
-            s = f.read()
-            f.close()
+            s = self._load_file(pathname)
         except EnvironmentError:
             raise GtpError("cannot load file")
         try:
