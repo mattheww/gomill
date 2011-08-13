@@ -70,7 +70,7 @@ def test_gtp_state(tc):
                      expect_failure=True)
 
     fx.player.set_next_move("A3", "preprogrammed move 0")
-    fx.check_command('genmove', ['b'], "A3")
+    fx.check_command('genmove', ['B'], "A3")
     game_state = fx.player.last_game_state
     # default board size is min(acceptable_sizes)
     tc.assertEqual(game_state.size, 9)
@@ -91,7 +91,7 @@ def test_gtp_state(tc):
     fx.check_command('play', ['W', 'A4'], "")
     fx.check_command('komi', ['5.5'], "")
     fx.player.set_next_move("C9")
-    fx.check_command('genmove', ['b'], "C9")
+    fx.check_command('genmove', ['B'], "C9")
     game_state = fx.player.last_game_state
     # gtp_states currently rounds komi to an integer.
     # FIXME: Get rid of this flooring behaviour
@@ -103,9 +103,9 @@ def test_gtp_state(tc):
     tc.assertEqual(game_state.move_history[1],
                    gtp_states.History_move('w', (3, 0)))
 
-    fx.check_command('genmove', ['b'], "pass")
+    fx.check_command('genmove', ['B'], "pass")
     fx.check_command('gomill-explain_last_move', [], "")
-    fx.check_command('genmove', ['w'], "pass")
+    fx.check_command('genmove', ['W'], "pass")
     fx.check_command('showboard', [], dedent("""
     9  .  .  #  .  .  .  .  .  .
     8  .  .  .  .  .  .  .  .  .
@@ -119,7 +119,7 @@ def test_gtp_state(tc):
        A  B  C  D  E  F  G  H  J"""))
 
     fx.player.set_next_move_resign()
-    fx.check_command('genmove', ['b'], "resign")
+    fx.check_command('genmove', ['B'], "resign")
 
 
 def test_clear_board_and_boardsize(tc):
@@ -156,11 +156,40 @@ def test_clear_board_and_boardsize(tc):
      1  .  .  .  .  .  .  .  .  .  .  .
         A  B  C  D  E  F  G  H  J  K  L"""))
 
+def test_play(tc):
+    fx = Gtp_state_fixture(tc)
+    fx.check_command('play', ['B', "E5"], "")
+    fx.check_command('play', ['w', "e4"], "")
+    fx.check_command('play', [], "invalid arguments", expect_failure=True)
+    fx.check_command('play', ['B'], "invalid arguments", expect_failure=True)
+    # additional arguments are ignored (following gnugo)
+    fx.check_command('play', ['B', "F4", "E5"], "")
+    fx.check_command('play', ['white', "f5"], "")
+    fx.check_command('play', ['W', "K3"], "vertex is off board: 'k3'",
+                     expect_failure=True)
+    fx.check_command('play', ['X', "A4"], "invalid colour: 'X'",
+                     expect_failure=True)
+    fx.check_command('play', ['BLACK', "e4"], "illegal move",
+                     expect_failure=True)
+    fx.check_command('play', ['B', "pass"], "")
+    fx.check_command('play', ['W', "PASS"], "")
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  #  o  .  .  .
+    4  .  .  .  .  o  #  .  .  .
+    3  .  .  .  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+
 
 def test_undo(tc):
     fx = Gtp_state_fixture(tc)
     fx.player.set_next_move("A3", "preprogrammed move A3")
-    fx.check_command('genmove', ['b'], "A3")
+    fx.check_command('genmove', ['B'], "A3")
     fx.check_command('gomill-explain_last_move', [], "preprogrammed move A3")
     fx.check_command('play', ['W', 'A4'], "")
     fx.check_command('showboard', [], dedent("""
@@ -187,7 +216,7 @@ def test_undo(tc):
     1  .  .  .  .  .  .  .  .  .
        A  B  C  D  E  F  G  H  J"""))
     fx.player.set_next_move("D4", "preprogrammed move D4")
-    fx.check_command('genmove', ['w'], "D4")
+    fx.check_command('genmove', ['W'], "D4")
     fx.check_command('showboard', [], dedent("""
     9  .  .  .  .  .  .  .  .  .
     8  .  .  .  .  .  .  .  .  .
@@ -232,7 +261,7 @@ def test_fixed_handicap(tc):
     2  .  .  .  .  .  .  .  .  .
     1  .  .  .  .  .  .  .  .  .
        A  B  C  D  E  F  G  H  J"""))
-    fx.check_command('genmove', ['b'], "pass")
+    fx.check_command('genmove', ['B'], "pass")
     tc.assertEqual(fx.player.last_game_state.handicap, 3)
     fx.check_command('boardsize', ['19'], "")
     fx.check_command('fixed_handicap', ['7'], "D4 Q16 D16 Q4 D10 Q10 K10")
@@ -270,7 +299,7 @@ def test_place_free_handicap(tc):
     2  .  .  .  .  .  .  .  .  .
     1  .  .  .  .  .  .  .  .  .
        A  B  C  D  E  F  G  H  J"""))
-    fx.check_command('genmove', ['b'], "pass")
+    fx.check_command('genmove', ['B'], "pass")
     tc.assertEqual(fx.player.last_game_state.handicap, 3)
     fx.check_command('boardsize', ['19'], "")
     fx.check_command('place_free_handicap', ['7'], "D4 Q16 D16 Q4 D10 Q10 K10")
@@ -337,7 +366,7 @@ def test_set_free_handicap(tc):
     2  .  .  .  .  .  .  .  .  .
     1  .  .  .  .  .  .  .  .  .
        A  B  C  D  E  F  G  H  J"""))
-    fx.check_command('genmove', ['b'], "pass")
+    fx.check_command('genmove', ['B'], "pass")
     tc.assertEqual(fx.player.last_game_state.handicap, 3)
     fx.check_command('boardsize', ['9'], "")
     fx.check_command('play', ['B', 'B2'], "")
@@ -443,9 +472,9 @@ def test_savesgf(tc):
     scrub_sgf = gomill_test_support.scrub_sgf
 
     fx = Gtp_state_fixture(tc)
-    fx.check_command("play", ['b', 'D4'], "")
+    fx.check_command("play", ['B', 'D4'], "")
     fx.player.set_next_move("C3", "preprogrammed move C3")
-    fx.check_command('genmove', ['w'], "C3")
+    fx.check_command('genmove', ['W'], "C3")
     fx.check_command('gomill-savesgf', ['out1.sgf'], "")
     tc.assertEqual(scrub_sgf(fx.gtp_state._load_file('out1.sgf')),
                    "(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[0]"
@@ -462,7 +491,7 @@ def test_savesgf(tc):
     fx.check_command("boardsize", ['19'], "")
     fx.check_command("fixed_handicap", ['3'], "D4 Q16 D16")
     fx.check_command("komi", ['5.5'], "")
-    fx.check_command("play", ['w', 'A2'], "")
+    fx.check_command("play", ['W', 'A2'], "")
     fx.check_command('gomill-savesgf', ['out3.sgf'], "")
     # FIXME: KM should really be 5.5
     tc.assertEqual(scrub_sgf(fx.gtp_state._load_file('out3.sgf')),
