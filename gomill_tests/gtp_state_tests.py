@@ -5,6 +5,7 @@ from textwrap import dedent
 from gomill import boards
 from gomill import gtp_engine
 from gomill import gtp_states
+from gomill.common import format_vertex
 
 from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
@@ -238,6 +239,8 @@ def test_fixed_handicap(tc):
     2  .  .  .  .  .  .  .  .  .
     1  .  .  .  .  .  .  .  .  .
        A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('genmove', ['b'], "pass")
+    tc.assertEqual(fx.player.last_game_state.handicap, 3)
     fx.check_command('boardsize', ['19'], "")
     fx.check_command('fixed_handicap', ['7'], "D4 Q16 D16 Q4 D10 Q10 K10")
     fx.check_command('fixed_handicap', ['7'], "board not empty",
@@ -257,3 +260,82 @@ def test_fixed_handicap(tc):
                      expect_failure=True)
     fx.check_command('fixed_handicap', [], "invalid arguments",
                      expect_failure=True)
+
+def test_set_free_handicap(tc):
+    fx = Gtp_state_fixture(tc)
+    fx.check_command('set_free_handicap', ["C3", "E5", "C7"], "")
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  #  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  #  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  .  .  #  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('genmove', ['b'], "pass")
+    tc.assertEqual(fx.player.last_game_state.handicap, 3)
+    fx.check_command('boardsize', ['9'], "")
+    fx.check_command('play', ['B', 'B2'], "")
+    fx.check_command('set_free_handicap', ["C3", "E5"], "board not empty",
+                     expect_failure=True)
+    fx.check_command('clear_board', [], "")
+    fx.check_command('set_free_handicap', ["C3"], "invalid arguments",
+                     expect_failure=True)
+    fx.check_command('set_free_handicap', [], "invalid arguments",
+                     expect_failure=True)
+    fx.check_command('set_free_handicap', ["C3", "asdasd"],
+                     "invalid vertex: 'asdasd'", expect_failure=True)
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  .  .  .  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('set_free_handicap', ["C3", "pass"],
+                     "'pass' not permitted", expect_failure=True)
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  .  .  .  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('set_free_handicap', ["C3", "E5", "C3"],
+                     "engine error: C3 is occupied", expect_failure=True)
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  .  .  .  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    all_points = [format_vertex((i, j)) for i in range(9) for j in range(9)]
+    fx.check_command('set_free_handicap', all_points,
+                     "invalid arguments", expect_failure=True)
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  .  .  .  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
