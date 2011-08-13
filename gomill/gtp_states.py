@@ -291,12 +291,19 @@ class Gtp_state(object):
             gtp_engine.report_bad_arguments()
         if not self.board.is_empty():
             raise GtpError("board not empty")
-        for vertex_s in args:
-            row, col = gtp_engine.interpret_vertex(vertex_s, self.board_size)
-            try:
-                self.board.play(row, col, 'b')
-            except ValueError:
-                raise GtpError("engine error: %s is occupied" % vertex_s)
+        try:
+            for vertex_s in args:
+                move = gtp_engine.interpret_vertex(vertex_s, self.board_size)
+                if move is None:
+                    raise GtpError("'pass' not permitted")
+                row, col = move
+                try:
+                    self.board.play(row, col, 'b')
+                except ValueError:
+                    raise GtpError("engine error: %s is occupied" % vertex_s)
+        except Exception:
+            self.reset()
+            raise
         self.set_history_base(self.board.copy())
         self.handicap = len(args)
         self.simple_ko_point = None
