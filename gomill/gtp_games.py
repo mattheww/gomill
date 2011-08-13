@@ -148,6 +148,7 @@ class Game(object):
       game_id               -- string or None
       result                -- Game_result (None before the game is complete)
       moves                 -- list of tuples (colour, move, comment)
+                               move is a pair (row, col), or None for a pass
       player_scores         -- map player code -> string or None
       engine_names          -- map player code -> string
       engine_descriptions   -- map player code -> string
