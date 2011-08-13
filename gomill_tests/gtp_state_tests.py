@@ -152,8 +152,75 @@ def test_clear_board_and_boardsize(tc):
      1  .  .  .  .  .  .  .  .  .  .  .
         A  B  C  D  E  F  G  H  J  K  L"""))
 
+
 def test_undo(tc):
     fx = Gtp_state_fixture(tc)
-    fx.player.set_next_move("A3", "preprogrammed move 0")
+    fx.player.set_next_move("A3", "preprogrammed move A3")
     fx.check_command('genmove', ['b'], "A3")
+    fx.check_command('gomill-explain_last_move', [], "preprogrammed move A3")
+    fx.check_command('play', ['W', 'A4'], "")
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  o  .  .  .  .  .  .  .  .
+    3  #  .  .  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('undo', [], "")
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  #  .  .  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.player.set_next_move("D4", "preprogrammed move D4")
+    fx.check_command('genmove', ['w'], "D4")
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  .  .  .  o  .  .  .  .  .
+    3  #  .  .  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('gomill-explain_last_move', [], "preprogrammed move D4")
+    fx.check_command('undo', [], "")
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  #  .  .  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('gomill-explain_last_move', [], "preprogrammed move A3")
+    fx.check_command('undo', [], "")
+    fx.check_command('showboard', [], dedent("""
+    9  .  .  .  .  .  .  .  .  .
+    8  .  .  .  .  .  .  .  .  .
+    7  .  .  .  .  .  .  .  .  .
+    6  .  .  .  .  .  .  .  .  .
+    5  .  .  .  .  .  .  .  .  .
+    4  .  .  .  .  .  .  .  .  .
+    3  .  .  .  .  .  .  .  .  .
+    2  .  .  .  .  .  .  .  .  .
+    1  .  .  .  .  .  .  .  .  .
+       A  B  C  D  E  F  G  H  J"""))
+    fx.check_command('gomill-explain_last_move', [], "")
+    fx.check_command('undo', [], "cannot undo", expect_failure=True)
 
