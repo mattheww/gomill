@@ -1,5 +1,7 @@
 """Tests for common.py."""
 
+import string
+
 from gomill_tests import gomill_test_support
 
 from gomill import common
@@ -15,6 +17,10 @@ def test_opponent_of(tc):
     tc.assertRaises(ValueError, oo, 'x')
     tc.assertRaises(ValueError, oo, None)
     tc.assertRaises(ValueError, oo, 'B')
+
+def test_column_letters(tc):
+    tc.assertEqual(common.column_letters,
+                   "".join(c for c in string.uppercase if c != 'I'))
 
 def test_format_vertex(tc):
     fv = common.format_vertex
