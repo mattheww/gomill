@@ -82,8 +82,9 @@ containing game records.
 The Python library
 ------------------
 
-Gomill is intended to be useful as a Python library, but as of Gomill
-|version| the API is not yet stable. See :doc:`library` for details.
+Gomill also provides a Python library for working with |gtp| and |sgf|, though
+as of Gomill |version| only part of the API is stable. See :doc:`library` for
+details.
 
 
 The example scripts
