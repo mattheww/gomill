@@ -18,6 +18,14 @@ def test_opponent_of(tc):
     tc.assertRaises(ValueError, oo, None)
     tc.assertRaises(ValueError, oo, 'B')
 
+def test_colour_name(tc):
+    cn = common.colour_name
+    tc.assertEqual(cn('b'), 'black')
+    tc.assertEqual(cn('w'), 'white')
+    tc.assertRaises(ValueError, cn, 'x')
+    tc.assertRaises(ValueError, cn, None)
+    tc.assertRaises(ValueError, cn, 'B')
+
 def test_column_letters(tc):
     tc.assertEqual(common.column_letters,
                    "".join(c for c in string.uppercase if c != 'I'))

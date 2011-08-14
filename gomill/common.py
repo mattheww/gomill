@@ -29,7 +29,10 @@ def colour_name(colour):
     colour -- 'b' or 'w'
 
     """
-    return {'b': 'black', 'w': 'white'}[colour]
+    try:
+        return {'b': 'black', 'w': 'white'}[colour]
+    except KeyError:
+        raise ValueError
 
 
 column_letters = "ABCDEFGHJKLMNOPQRSTUVWXYZ"
