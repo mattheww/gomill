@@ -702,13 +702,13 @@ in FF[4]:
 ======  ==========================  ===================
   Id     |sgf| type                  Meaning
 ======  ==========================  ===================
-``AB``  list of Point               Add Black
+``AB``  list of Stone               Add Black
 ``AE``  list of Point               Add Empty
 ``AN``  SimpleText                  Annotation
 ``AP``  SimpleText:SimpleText       Application
 ``AR``  list of Point:Point         Arrow
-``AW``  list of Point               Add White
-``B``   Point                       Black move
+``AW``  list of Stone               Add White
+``B``   Move                        Black move
 ``BL``  Real                        Black time left
 ``BM``  Double                      Bad move
 ``BR``  SimpleText                  Black rank
@@ -765,7 +765,7 @@ in FF[4]:
 ``US``  SimpleText                  User
 ``V``   Real                        Value
 ``VW``  elist of Point              View
-``W``   Point                       White move
+``W``   Move                        White move
 ``WL``  Real                        White time left
 ``WR``  SimpleText                  White rank
 ``WT``  SimpleText                  White team
