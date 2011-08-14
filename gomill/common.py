@@ -32,7 +32,7 @@ def colour_name(colour):
     return {'b': 'black', 'w': 'white'}[colour]
 
 
-column_letters = "ABCDEFGHJKLMNOPQRSTUVWXZ"
+column_letters = "ABCDEFGHJKLMNOPQRSTUVWXYZ"
 
 def format_vertex(move):
     """Return coordinates as a string like 'A1', or 'pass'.
