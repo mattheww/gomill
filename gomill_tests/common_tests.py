@@ -28,6 +28,11 @@ def test_format_vertex(tc):
     tc.assertEqual(fv((0, 0)), "A1")
     tc.assertEqual(fv((8, 8)), "J9")
     tc.assertEqual(fv((1, 5)), "F2")
+    tc.assertEqual(fv((24, 24)), "Z25")
+    tc.assertRaises(ValueError, fv, (-1, 2))
+    tc.assertRaises(ValueError, fv, (2, -1))
+    tc.assertRaises(ValueError, fv, (25, 1))
+    tc.assertRaises(ValueError, fv, (1, 25))
 
 def test_format_vertex_list(tc):
     fvl = common.format_vertex_list

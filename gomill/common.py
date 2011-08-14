@@ -45,6 +45,8 @@ def format_vertex(move):
     if move is None:
         return "pass"
     row, col = move
+    if not 0 <= row < 25 or not 0 <= col < 25:
+        raise ValueError
     return column_letters[col] + str(row+1)
 
 def format_vertex_list(moves):
