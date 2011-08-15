@@ -1,6 +1,22 @@
 Changes
 =======
 
+Gomill 0.7.1 (2011-08-15)
+-------------------------
+
+Bug-fix release.
+
+* Bug fix: made board sizes 24 and 25 work (column lettering, and therefore
+  |gtp| support, was incorrect for these sizes in all previous versions).
+
+* Tightened up input validation for :func:`.format_vertex` and
+  :func:`.colour_name`.
+
+* Distinguished Stone, Point, and Move in the :ref:`sgf_property_types`
+  table in |sgf| documentation.
+
+
+
 Gomill 0.7 (2011-08-13)
 -----------------------
 
