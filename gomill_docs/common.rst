@@ -7,7 +7,7 @@ The :mod:`~gomill.common` module
 The :mod:`!gomill.common` module provides Go-related utility functions, used
 throughout Gomill.
 
-It is desgned to be safe to use as ``from common import *``.
+It is designed to be safe to use as ``from common import *``.
 
 .. function:: opponent_of(colour)
 
