@@ -121,7 +121,7 @@ To create a game from existing |sgf| data, use the
 
 To retrieve the |sgf| data as a string, use the :meth:`!serialise` method:
 
-.. method:: Sgf_game.serialise()
+.. method:: Sgf_game.serialise([wrap])
 
    :rtype: string
 
@@ -132,6 +132,10 @@ To retrieve the |sgf| data as a string, use the :meth:`!serialise` method:
 
    See :ref:`transcoding <transcoding>` below for details of the behaviour if
    the ``CA`` property is changed from its initial value.
+
+   This makes some effort to keep the output line length to no more than 79
+   bytes. Pass ``None`` in the *wrap* parameter to disable this behaviour, or
+   pass an integer to specify a different limit.
 
 
 The complete game tree is represented using :class:`Tree_node` objects, which
