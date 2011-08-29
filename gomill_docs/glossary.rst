@@ -42,6 +42,11 @@ Glossary
     enforce any of them.
 
 
+  pondering
+    A feature implemented by some Go programs: thinking while it is their
+    opponent's turn to move.
+
+
   controller
     A program implementing the 'referee' side of the |gtp| protocol.
 

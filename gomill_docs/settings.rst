@@ -253,7 +253,7 @@ All arguments other than :setting:`command` are optional.
 
 .. tip:: For results to be meaningful, you should normally configure players
    to use a fixed amount of computing power, paying no attention to the amount
-   of real time that passes.
+   of real time that passes, and make sure :term:`pondering` is not turned on.
 
 The arguments are:
 
