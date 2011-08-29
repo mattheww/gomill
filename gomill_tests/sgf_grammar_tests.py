@@ -357,4 +357,6 @@ def test_serialise_game_tree(tc):
                   "W[ea])))\n")
     coarse_game = sgf_grammar.parse_sgf_game(serialised)
     tc.assertEqual(sgf_grammar.serialise_game_tree(coarse_game), serialised)
+    tc.assertEqual(sgf_grammar.serialise_game_tree(coarse_game, wrap=None),
+                   serialised.replace("\n", "")+"\n")
 

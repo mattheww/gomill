@@ -285,6 +285,17 @@ def test_serialise(tc):
     tc.assertEqual(map(str, sgf_game.get_main_sequence()),
                    map(str, sgf_game2.get_main_sequence()))
 
+def test_serialise_wrap(tc):
+    sgf_game = sgf.Sgf_game.from_string(SAMPLE_SGF_VAR)
+    serialised = sgf_game.serialise(wrap=None)
+    tc.assertEqual(serialised, dedent("""\
+    (;FF[4]AB[ai][bh][ee]AP[testsuite:0]AW[fd][gc]CA[utf-8]DT[2009-06-06]GM[1]KM[7.5]PB[Black engine]PL[B]RE[W+R]SZ[9]VW[];B[dg];C[comment
+    on two lines]W[ef];B[];C[Nonfinal comment]VW[aa:bb](;B[ia];W[ib];B[ic])(;B[ib];W[ic](;B[id])(;B[ie])))
+    """))
+    sgf_game2 = sgf.Sgf_game.from_string(serialised)
+    tc.assertEqual(map(str, sgf_game.get_main_sequence()),
+                   map(str, sgf_game2.get_main_sequence()))
+
 def test_encoding(tc):
     g1 = sgf.Sgf_game(19)
     tc.assertEqual(g1.get_charset(), "UTF-8")
