@@ -277,12 +277,16 @@ def block_format(pieces, width=79):
         lines.append(line)
     return "\n".join(lines)
 
-def serialise_game_tree(game_tree):
+def serialise_game_tree(game_tree, wrap=79):
     """Serialise an SGF game as a string.
 
     game_tree -- Coarse_game_tree
+    wrap      -- int (default 79), or None
 
     Returns an 8-bit string, ending with a newline.
+
+    If 'wrap' is not None, makes some effort to keep output lines no longer
+    than 'wrap'.
 
     """
     l = []
@@ -309,7 +313,10 @@ def serialise_game_tree(game_tree):
         to_serialise.append(None)
         to_serialise.extend(reversed(game_tree.children))
     l.append("\n")
-    return block_format(l)
+    if wrap is None:
+        return "".join(l)
+    else:
+        return block_format(l, wrap)
 
 
 def make_tree(game_tree, root, node_builder, node_adder):

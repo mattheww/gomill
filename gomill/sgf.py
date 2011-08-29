@@ -579,8 +579,10 @@ class Sgf_game(object):
         coarse_game = sgf_grammar.parse_sgf_game(s)
         return cls.from_coarse_game_tree(coarse_game, override_encoding)
 
-    def serialise(self):
+    def serialise(self, wrap=79):
         """Serialise the SGF data as a string.
+
+        wrap -- int (default 79), or None
 
         Returns an 8-bit string, in the encoding specified by the CA property
         in the root node (defaulting to "ISO-8859-1").
@@ -597,6 +599,9 @@ class Sgf_game(object):
         raised. Behaviour is unspecified if the target encoding isn't
         ASCII-compatible (eg, UTF-16).
 
+        If 'wrap' is not None, makes some effort to keep output lines no longer
+        than 'wrap'.
+
         """
         try:
             encoding = self.get_charset()
@@ -605,7 +610,7 @@ class Sgf_game(object):
                              self.root.get_raw_list("CA"))
         coarse_tree = sgf_grammar.make_coarse_game_tree(
             self.root, lambda node:node, Node.get_raw_property_map)
-        serialised = sgf_grammar.serialise_game_tree(coarse_tree)
+        serialised = sgf_grammar.serialise_game_tree(coarse_tree, wrap)
         if encoding == self.root.get_encoding():
             return serialised
         else:
