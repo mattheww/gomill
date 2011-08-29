@@ -53,6 +53,9 @@ def scrub_sgf(s):
 
     Replaces dates with '***', and 'gomill:<__version__>' with 'gomill:VER'.
 
+    Be careful: gomill version length can affect line wrapping. Either
+    serialise with wrap=None or remove newlines before comparing.
+
     """
     s = re.sub(r"(?m)(?<=^Date ).*$", "***", s)
     s = re.sub(r"(?<=DT\[)[-0-9]+(?=\])", "***", s)
