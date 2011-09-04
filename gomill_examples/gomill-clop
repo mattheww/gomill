@@ -129,10 +129,6 @@ class Clop_tuner(Competition):
     def initialise_from_control_file(self, config):
         Competition.initialise_from_control_file(self, config)
 
-        # FIXME: Could allow jigos?
-        if self.komi == int(self.komi):
-            raise ControlFileError("komi: must be fractional to prevent jigos")
-
         competitions.validate_handicap(
             self.handicap, self.handicap_style, self.board_size)
 
@@ -315,8 +311,7 @@ Script %(connection_pathname)s %(control_filename)s run-game
 
 Replications 1
 
-# FIXME: allow jigo? Use DrawElo 100 then?
-DrawElo 0
+DrawElo %(drawelo)s
 
 # FIXME
 H 3
@@ -333,15 +328,19 @@ def do_setup(ringmaster, arguments, options):
     control_filename = os.path.basename(ringmaster.control_pathname)
     clop_pathname = os.path.join(ringmaster.base_directory,
                                  "%s.clop" % ringmaster.competition_code)
+    competition = ringmaster.competition
     experiment_name = ringmaster.competition_code
 
     # FIXME
     parallel_jobs = 4
 
-    parameter_specs = "\n".join(
-        ringmaster.competition.get_clop_parameter_specs())
+    parameter_specs = "\n".join(competition.get_clop_parameter_specs())
     processor_specs = "\n".join(
         "Processor par%d" % i for i in xrange(parallel_jobs))
+    if competition.komi == int(competition.komi):
+        drawelo = "100"
+    else:
+        drawelo = "0"
 
     with open(clop_pathname, "w") as f:
         f.write(clop_template % locals())
