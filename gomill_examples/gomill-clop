@@ -61,14 +61,11 @@ class Parameter_spec(object):
     """Internal description of a parameter spec from the configuration file.
 
     Public attributes:
-      code       -- identifier
-      type       -- string
-      min        -- float
-      max        -- float
-      is_integer -- bool
+      code -- identifier
 
     """
     def format_for_clop(self):
+        """Return the parameter configuration string for the .clop file."""
         if self.is_integer:
             fmt =  "%s %s %d %d"
         else:
@@ -76,6 +73,11 @@ class Parameter_spec(object):
         return fmt % (self.type, self.code, self.min, self.max)
 
     def interpret_value(self, s):
+        """Convert CLOP command-line parameter to an engine parameter.
+
+        Returns an int or float.
+
+        """
         if self.is_integer:
             return int(s)
         else:
@@ -117,6 +119,11 @@ class Clop_tuner(Competition):
         for name, value in interpreted.iteritems():
             setattr(pspec, name, value)
         pspec.is_integer = ("Integer" in pspec.type)
+        if pspec.is_integer:
+            if pspec.min != int(pspec.min):
+                raise ControlFileError("'min': should be an integer")
+            if pspec.max != int(pspec.max):
+                raise ControlFileError("'max': should be an integer")
         return pspec
 
     def initialise_from_control_file(self, config):
@@ -168,7 +175,15 @@ class Clop_tuner(Competition):
         return [pspec.format_for_clop() for pspec in self.parameter_specs]
 
     def interpret_clop_parameters(self, clop_parameters):
-        """FIXME"""
+        """Convert the CLOP command-line parameters to engine parameters.
+
+        clop_parameters -- list of pairs of strings
+                           (parameter name, parameter value)
+
+        Returns a list of engine parameters, suitable for passing to
+        make_candidate().
+
+        """
         engine_parameters = []
         try:
             if len(clop_parameters) != len(self.parameter_specs):
@@ -209,15 +224,21 @@ class Clop_tuner(Competition):
                 (e, self.format_engine_parameters(engine_parameters)))
         return candidate
 
-    def get_game_for_parameters(self, clop_parameters):
+    def get_game_for_parameters(self, clop_seed, clop_parameters):
+        """Return the details of the next game to play.
 
+        clop_seed       -- second command-line parameter passed by clop
+        clop_parameters -- remaining command-line parameters passed by clop.
+
+        This is like Competition.get_game(), but it never returns
+        NoGameAvailable.
+
+        """
         engine_parameters = self.interpret_clop_parameters(clop_parameters)
 
-        # FIXME: can we use 'seed'?
-        game_number = 99
-        candidate = self.make_candidate("#%d" % game_number, engine_parameters)
+        candidate = self.make_candidate("#%s" % clop_seed, engine_parameters)
         job = game_jobs.Game_job()
-        job.game_id = str(game_number)
+        job.game_id = clop_seed
         if self.candidate_colour == 'b':
             job.player_b = candidate
             job.player_w = self.opponent
@@ -248,16 +269,17 @@ class Clop_ringmaster(Ringmaster):
         else:
             raise ValueError
 
-    def run_game_for_clop(self, parameters):
+    def run_game_for_clop(self, seed, parameters):
         """Act as a CLOP connection script.
 
+        seed       -- seed string passed by clop
         parameters -- list of pairs of strings (parameter name, parameter value)
 
         Returns the message to print.
 
         """
         try:
-            job = self.competition.get_game_for_parameters(parameters)
+            job = self.competition.get_game_for_parameters(seed, parameters)
             # FIXME
             #self._prepare_job(job)
             job_result = job.run()
@@ -277,6 +299,10 @@ class Clop_ringmaster(Ringmaster):
                                   result.sgf_result)
         return message
 
+
+
+class BadArguments(StandardError):
+    """Unacceptable command-line arguments."""
 
 clop_template = """\
 Name %(experiment_name)s
@@ -299,7 +325,10 @@ Correlations all
 """
 
 def do_setup(ringmaster, arguments, options):
-    """Create the .clop file, and link this script into place."""
+    """Create the .clop file."""
+    if arguments:
+        raise BadArguments("too many arguments")
+
     connection_pathname = os.path.abspath(__file__)
     control_filename = os.path.basename(ringmaster.control_pathname)
     clop_pathname = os.path.join(ringmaster.base_directory,
@@ -318,33 +347,26 @@ def do_setup(ringmaster, arguments, options):
         f.write(clop_template % locals())
 
 def do_run_game(ringmaster, arguments, options):
-    message = ringmaster.run_game_for_clop(arguments)
-    print message
-
-def reject_arguments(args):
-    if args:
-        raise ValueError("too many arguments")
-    return None
-
-def interpret_run_game_arguments(args):
+    """Act as a CLOP connection script."""
     try:
-        processor, seed = args[:2]
+        processor, seed = arguments[:2]
     except ValueError:
-        raise ValueError("not enough arguments")
-    parameter_args = args[2:]
-    result = []
+        raise BadArguments("not enough arguments")
+    parameter_args = arguments[2:]
+    parameters = []
     i = 0
     try:
         while i < len(parameter_args):
-            result.append((parameter_args[i], parameter_args[i+1]))
+            parameters.append((parameter_args[i], parameter_args[i+1]))
             i += 2
     except LookupError:
-        raise ValueError("odd number of arguments")
-    return result
+        raise BadArguments("odd number of arguments")
+    message = ringmaster.run_game_for_clop(seed, parameters)
+    print message
 
 _actions = {
-    "setup" : (do_setup, reject_arguments),
-    "run-game" : (do_run_game, interpret_run_game_arguments),
+    "setup" : do_setup,
+    "run-game" : do_run_game,
     }
 
 def main(argv):
@@ -359,13 +381,9 @@ def main(argv):
     command = args[1]
     command_args = args[2:]
     try:
-        action, argument_interpreter = _actions[command]
+        action = _actions[command]
     except KeyError:
         parser.error("no such command: %s" % command)
-    try:
-        interpreted_arguments = argument_interpreter(command_args)
-    except ValueError, e:
-        parser.error(str(e))
 
     # FIXME: I don't think it checks exit status, so probably want to print
     # 'Error:' to stdout in error cases. Best check just what it looks for.
@@ -374,8 +392,10 @@ def main(argv):
         if not os.path.exists(ctl_pathname):
             raise RingmasterError("control file %s not found" % ctl_pathname)
         ringmaster = Clop_ringmaster(ctl_pathname)
-        action(ringmaster, interpreted_arguments, options)
+        action(ringmaster, command_args, options)
         exit_status = 0
+    except BadArguments, e:
+        parser.error(e)
     except RingmasterError, e:
         print >>sys.stderr, "gomill-clop:", e
         exit_status = 1
