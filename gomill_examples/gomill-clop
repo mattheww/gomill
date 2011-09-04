@@ -1,0 +1,396 @@
+#!/usr/bin/env python
+"""Gomill integration for CLOP.
+
+Designed for use with CLOP 0.0.8, available from
+http://remi.coulom.free.fr/CLOP/
+
+"""
+
+# The 'connection script' interface is as follows:
+# - the command-line arguments are:
+#   - any arguments specified in the Script line
+#   - processor
+#   - seed
+#   - then pairs of arguments (parameter name, parameter value)
+# - the connection script prints a single line to stdout:
+#   'W' for candidate win, 'D' for draw, 'L' for loss
+# FIXME: check this bit
+# - on error, the connection script prints "Error:" with a description
+# - the connection script's exit status is ignored
+
+
+import os
+import sys
+from optparse import OptionParser
+
+from gomill import compact_tracebacks
+from gomill import competitions
+from gomill import game_jobs
+from gomill.competitions import (
+    Competition, CompetitionError, ControlFileError, Player_config)
+from gomill.job_manager import JobFailed
+from gomill.ringmasters import (
+    Ringmaster, RingmasterError, RingmasterInternalError)
+from gomill.settings import *
+from gomill.common import opponent_of
+
+
+PARAMETER_TYPES = [
+    "LinearParameter",
+    "IntegerParameter",
+    "GammaParameter",
+    "IntegerGammaParameter",
+    ]
+
+parameter_settings = [
+    Setting('code', interpret_identifier),
+    Setting('type', interpret_enum(*PARAMETER_TYPES)),
+    Setting('min', interpret_float),
+    Setting('max', interpret_float),
+    ]
+
+class Parameter_config(Quiet_config):
+    """Parameter (ie, dimension) description for use in control files."""
+    # positional or keyword
+    positional_arguments = ('code',)
+    # keyword-only
+    keyword_arguments = tuple(setting.name for setting in parameter_settings
+                              if setting.name != 'code')
+
+class Parameter_spec(object):
+    """Internal description of a parameter spec from the configuration file.
+
+    Public attributes:
+      code       -- identifier
+      type       -- string
+      min        -- float
+      max        -- float
+      is_integer -- bool
+
+    """
+    def format_for_clop(self):
+        if self.is_integer:
+            fmt =  "%s %s %d %d"
+        else:
+            fmt =  "%s %s %f %f"
+        return fmt % (self.type, self.code, self.min, self.max)
+
+    def interpret_value(self, s):
+        if self.is_integer:
+            return int(s)
+        else:
+            return float(s)
+
+class Clop_tuner(Competition):
+
+    def control_file_globals(self):
+        result = Competition.control_file_globals(self)
+        result.update({
+            'Parameter' : Parameter_config,
+            })
+        return result
+
+    global_settings = (Competition.global_settings +
+                       competitions.game_settings + [
+        Setting('number_of_games', allow_none(interpret_int), default=None),
+        Setting('candidate_colour', interpret_colour),
+        ])
+
+    special_settings = [
+        Setting('opponent', interpret_identifier),
+        Setting('parameters',
+                interpret_sequence_of_quiet_configs(Parameter_config)),
+        Setting('make_candidate', interpret_callable),
+        ]
+
+    def parameter_spec_from_config(self, parameter_config):
+        """Make a Parameter_spec from a Parameter_config.
+
+        Raises ControlFileError if there is an error in the configuration.
+
+        Returns a Parameter_spec with all attributes set.
+
+        """
+        arguments = parameter_config.resolve_arguments()
+        interpreted = load_settings(parameter_settings, arguments)
+        pspec = Parameter_spec()
+        for name, value in interpreted.iteritems():
+            setattr(pspec, name, value)
+        pspec.is_integer = ("Integer" in pspec.type)
+        return pspec
+
+    def initialise_from_control_file(self, config):
+        Competition.initialise_from_control_file(self, config)
+
+        # FIXME: Could allow jigos?
+        if self.komi == int(self.komi):
+            raise ControlFileError("komi: must be fractional to prevent jigos")
+
+        competitions.validate_handicap(
+            self.handicap, self.handicap_style, self.board_size)
+
+        try:
+            specials = load_settings(self.special_settings, config)
+        except ValueError, e:
+            raise ControlFileError(str(e))
+
+        try:
+            self.opponent = self.players[specials['opponent']]
+        except KeyError:
+            raise ControlFileError(
+                "opponent: unknown player %s" % specials['opponent'])
+
+        self.parameter_specs = []
+        if not specials['parameters']:
+            raise ControlFileError("parameters: empty list")
+        seen_codes = set()
+        for i, parameter_spec in enumerate(specials['parameters']):
+            try:
+                pspec = self.parameter_spec_from_config(parameter_spec)
+            except StandardError, e:
+                code = parameter_spec.get_key()
+                if code is None:
+                    code = i
+                raise ControlFileError("parameter %s: %s" % (code, e))
+            if pspec.code in seen_codes:
+                raise ControlFileError(
+                    "duplicate parameter code: %s" % pspec.code)
+            seen_codes.add(pspec.code)
+            self.parameter_specs.append(pspec)
+        self.candidate_maker_fn = specials['make_candidate']
+
+    def get_clop_parameter_specs(self):
+        """Describe the parameters in the format used in the .clop file.
+
+        Returns a list of strings.
+
+        """
+        return [pspec.format_for_clop() for pspec in self.parameter_specs]
+
+    def interpret_clop_parameters(self, clop_parameters):
+        """FIXME"""
+        engine_parameters = []
+        try:
+            if len(clop_parameters) != len(self.parameter_specs):
+                raise ValueError
+            for pspec, (name, value) in \
+                zip(self.parameter_specs, clop_parameters):
+                if name != pspec.code:
+                    raise ValueError
+                engine_parameters.append(pspec.interpret_value(value))
+            return engine_parameters
+        except ValueError:
+            raise CompetitionError(
+                "couldn't interpret parameters: %s" % repr(clop_parameters))
+
+    def make_candidate(self, player_code, engine_parameters):
+        """Make a player using the specified engine parameters.
+
+        Returns a game_jobs.Player.
+
+        """
+        try:
+            candidate_config = self.candidate_maker_fn(*engine_parameters)
+        except Exception:
+            raise CompetitionError(
+                "error from make_candidate()\n%s" %
+                compact_tracebacks.format_traceback(skip=1))
+        if not isinstance(candidate_config, Player_config):
+            raise CompetitionError(
+                "make_candidate() returned %r, not Player" %
+                candidate_config)
+        try:
+            candidate = self.game_jobs_player_from_config(
+                player_code, candidate_config)
+        except Exception, e:
+            raise CompetitionError(
+                "bad player spec from make_candidate():\n"
+                "%s\nparameters were: %s" %
+                (e, self.format_engine_parameters(engine_parameters)))
+        return candidate
+
+    def get_game_for_parameters(self, clop_parameters):
+
+        engine_parameters = self.interpret_clop_parameters(clop_parameters)
+
+        # FIXME: can we use 'seed'?
+        game_number = 99
+        candidate = self.make_candidate("#%d" % game_number, engine_parameters)
+        job = game_jobs.Game_job()
+        job.game_id = str(game_number)
+        if self.candidate_colour == 'b':
+            job.player_b = candidate
+            job.player_w = self.opponent
+        else:
+            job.player_b = self.opponent
+            job.player_w = candidate
+        job.board_size = self.board_size
+        job.komi = self.komi
+        job.move_limit = self.move_limit
+        job.handicap = self.handicap
+        job.handicap_is_free = (self.handicap_style == 'free')
+        job.use_internal_scorer = (self.scorer == 'internal')
+        job.internal_scorer_handicap_compensation = \
+            self.internal_scorer_handicap_compensation
+        job.sgf_event = self.competition_code
+        # FIXME
+        #job.sgf_note = ("Candidate parameters: %s" %
+        #                self.format_engine_parameters(engine_parameters))
+        return job
+
+
+
+class Clop_ringmaster(Ringmaster):
+    @staticmethod
+    def _get_competition_class(competition_type):
+        if competition_type == "clop_tuner":
+            return Clop_tuner
+        else:
+            raise ValueError
+
+    def run_game_for_clop(self, parameters):
+        """Act as a CLOP connection script.
+
+        parameters -- list of pairs of strings (parameter name, parameter value)
+
+        Returns the message to print.
+
+        """
+        try:
+            job = self.competition.get_game_for_parameters(parameters)
+            # FIXME
+            #self._prepare_job(job)
+            job_result = job.run()
+        except (CompetitionError, JobFailed), e:
+            raise RingmasterError(e)
+        # FIXME: should we do something with warnings and/or log_entries?
+        result = job_result.game_result
+        candidate_colour = self.competition.candidate_colour
+        if result.winning_colour == candidate_colour:
+            message = "W"
+        elif result.winning_colour == opponent_of(candidate_colour):
+            message = "L"
+        elif result.is_jigo:
+            message = "D"
+        else:
+            raise RingmasterError("unexpected game result: %s" %
+                                  result.sgf_result)
+        return message
+
+
+clop_template = """\
+Name %(experiment_name)s
+
+Script %(connection_pathname)s %(control_filename)s run-game
+
+%(parameter_specs)s
+
+%(processor_specs)s
+
+Replications 1
+
+# FIXME: allow jigo? Use DrawElo 100 then?
+DrawElo 0
+
+# FIXME
+H 3
+Correlations all
+
+"""
+
+def do_setup(ringmaster, arguments, options):
+    """Create the .clop file, and link this script into place."""
+    connection_pathname = os.path.abspath(__file__)
+    control_filename = os.path.basename(ringmaster.control_pathname)
+    clop_pathname = os.path.join(ringmaster.base_directory,
+                                 "%s.clop" % ringmaster.competition_code)
+    experiment_name = ringmaster.competition_code
+
+    # FIXME
+    parallel_jobs = 4
+
+    parameter_specs = "\n".join(
+        ringmaster.competition.get_clop_parameter_specs())
+    processor_specs = "\n".join(
+        "Processor par%d" % i for i in xrange(parallel_jobs))
+
+    with open(clop_pathname, "w") as f:
+        f.write(clop_template % locals())
+
+def do_run_game(ringmaster, arguments, options):
+    message = ringmaster.run_game_for_clop(arguments)
+    print message
+
+def reject_arguments(args):
+    if args:
+        raise ValueError("too many arguments")
+    return None
+
+def interpret_run_game_arguments(args):
+    try:
+        processor, seed = args[:2]
+    except ValueError:
+        raise ValueError("not enough arguments")
+    parameter_args = args[2:]
+    result = []
+    i = 0
+    try:
+        while i < len(parameter_args):
+            result.append((parameter_args[i], parameter_args[i+1]))
+            i += 2
+    except LookupError:
+        raise ValueError("odd number of arguments")
+    return result
+
+_actions = {
+    "setup" : (do_setup, reject_arguments),
+    "run-game" : (do_run_game, interpret_run_game_arguments),
+    }
+
+def main(argv):
+    usage = ("%prog <control file> <command> [CLOP arguments]\n\n"
+             "commands: setup, run-game")
+    parser = OptionParser(usage=usage)
+    (options, args) = parser.parse_args(argv)
+    if len(args) == 0:
+        parser.error("no control file specified")
+    if len(args) == 1:
+        parser.error("no command specified")
+    command = args[1]
+    command_args = args[2:]
+    try:
+        action, argument_interpreter = _actions[command]
+    except KeyError:
+        parser.error("no such command: %s" % command)
+    try:
+        interpreted_arguments = argument_interpreter(command_args)
+    except ValueError, e:
+        parser.error(str(e))
+
+    # FIXME: I don't think it checks exit status, so probably want to print
+    # 'Error:' to stdout in error cases. Best check just what it looks for.
+    ctl_pathname = args[0]
+    try:
+        if not os.path.exists(ctl_pathname):
+            raise RingmasterError("control file %s not found" % ctl_pathname)
+        ringmaster = Clop_ringmaster(ctl_pathname)
+        action(ringmaster, interpreted_arguments, options)
+        exit_status = 0
+    except RingmasterError, e:
+        print >>sys.stderr, "gomill-clop:", e
+        exit_status = 1
+    except KeyboardInterrupt:
+        exit_status = 3
+    except RingmasterInternalError, e:
+        print >>sys.stderr, "gomill-clop: internal error"
+        print >>sys.stderr, e
+        exit_status = 4
+    except:
+        print >>sys.stderr, "gomill-clop: internal error"
+        compact_tracebacks.log_traceback()
+        exit_status = 4
+    sys.exit(exit_status)
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
+
