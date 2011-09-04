@@ -98,6 +98,7 @@ class Clop_tuner(Competition):
         Setting('candidate_colour', interpret_colour),
         Setting('parallel', interpret_int, default=1),
         Setting('clop_H', interpret_float, default=3),
+        Setting('correlations', interpret_enum('all', 'none'), default='all'),
         ])
 
     special_settings = [
@@ -316,7 +317,7 @@ Replications 1
 DrawElo %(drawelo)s
 
 H %(clop_H)s
-Correlations all
+Correlations %(correlations)s
 
 """
 
@@ -340,6 +341,7 @@ def do_setup(ringmaster, arguments, options):
     else:
         drawelo = "0"
     clop_H = competition.clop_H
+    correlations = competition.correlations
 
     with open(clop_pathname, "w") as f:
         f.write(clop_template % locals())
