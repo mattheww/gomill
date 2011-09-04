@@ -97,6 +97,7 @@ class Clop_tuner(Competition):
         Setting('number_of_games', allow_none(interpret_int), default=None),
         Setting('candidate_colour', interpret_colour),
         Setting('parallel', interpret_int, default=1),
+        Setting('clop_H', interpret_float, default=3),
         ])
 
     special_settings = [
@@ -314,8 +315,7 @@ Replications 1
 
 DrawElo %(drawelo)s
 
-# FIXME
-H 3
+H %(clop_H)s
 Correlations all
 
 """
@@ -339,6 +339,7 @@ def do_setup(ringmaster, arguments, options):
         drawelo = "100"
     else:
         drawelo = "0"
+    clop_H = competition.clop_H
 
     with open(clop_pathname, "w") as f:
         f.write(clop_template % locals())
