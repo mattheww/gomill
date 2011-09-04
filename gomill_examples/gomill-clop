@@ -83,6 +83,9 @@ class Parameter_spec(object):
         else:
             return float(s)
 
+    def format_for_display(self, v):
+        return str(v)
+
 class Clop_tuner(Competition):
 
     def control_file_globals(self):
@@ -197,6 +200,11 @@ class Clop_tuner(Competition):
             raise CompetitionError(
                 "couldn't interpret parameters: %s" % repr(clop_parameters))
 
+    def format_engine_parameters(self, engine_parameters):
+        return "; ".join(
+            "%s %s" % (pspec.code, pspec.format_for_display(v))
+            for pspec, v in zip(self.parameter_specs, engine_parameters))
+
     def make_candidate(self, player_code, engine_parameters):
         """Make a player using the specified engine parameters.
 
@@ -253,9 +261,8 @@ class Clop_tuner(Competition):
         job.internal_scorer_handicap_compensation = \
             self.internal_scorer_handicap_compensation
         job.sgf_event = self.competition_code
-        # FIXME
-        #job.sgf_note = ("Candidate parameters: %s" %
-        #                self.format_engine_parameters(engine_parameters))
+        job.sgf_note = ("Candidate parameters: %s" %
+                        self.format_engine_parameters(engine_parameters))
         return job
 
 
@@ -268,6 +275,23 @@ class Clop_ringmaster(Ringmaster):
         else:
             raise ValueError
 
+    def ensure_output_directories(self):
+        if self.record_games:
+            try:
+                if not os.path.exists(self.sgf_dir_pathname):
+                    os.mkdir(self.sgf_dir_pathname)
+            except EnvironmentError:
+                raise RingmasterError("failed to create SGF directory:\n%s" % e)
+
+        if self.write_gtp_logs:
+            try:
+                if not os.path.exists(self.gtplog_dir_pathname):
+                    os.mkdir(self.gtplog_dir_pathname)
+            except EnvironmentError:
+                raise RingmasterError(
+                    "failed to create GTP log directory:\n%s" % e)
+
+
     def run_game_for_clop(self, seed, parameters):
         """Act as a CLOP connection script.
 
@@ -279,8 +303,8 @@ class Clop_ringmaster(Ringmaster):
         """
         try:
             job = self.competition.get_game_for_parameters(seed, parameters)
-            # FIXME
-            #self._prepare_job(job)
+            # FIXME: sort out stderr-to-log
+            self._prepare_job(job)
             job_result = job.run()
         except (CompetitionError, JobFailed), e:
             raise RingmasterError(e)
@@ -322,7 +346,7 @@ Correlations %(correlations)s
 """
 
 def do_setup(ringmaster, arguments, options):
-    """Create the .clop file."""
+    """Create the .clop file, and any needed directories."""
     if arguments:
         raise BadArguments("too many arguments")
 
@@ -345,6 +369,8 @@ def do_setup(ringmaster, arguments, options):
 
     with open(clop_pathname, "w") as f:
         f.write(clop_template % locals())
+
+    ringmaster.ensure_output_directories()
 
 def do_run_game(ringmaster, arguments, options):
     """Act as a CLOP connection script."""
