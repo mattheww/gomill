@@ -96,6 +96,7 @@ class Clop_tuner(Competition):
                        competitions.game_settings + [
         Setting('number_of_games', allow_none(interpret_int), default=None),
         Setting('candidate_colour', interpret_colour),
+        Setting('parallel', interpret_int, default=1),
         ])
 
     special_settings = [
@@ -331,12 +332,9 @@ def do_setup(ringmaster, arguments, options):
     competition = ringmaster.competition
     experiment_name = ringmaster.competition_code
 
-    # FIXME
-    parallel_jobs = 4
-
     parameter_specs = "\n".join(competition.get_clop_parameter_specs())
     processor_specs = "\n".join(
-        "Processor par%d" % i for i in xrange(parallel_jobs))
+        "Processor par%d" % i for i in xrange(competition.parallel))
     if competition.komi == int(competition.komi):
         drawelo = "100"
     else:
