@@ -270,6 +270,12 @@ class Clop_tuner(Competition):
 
 
 class Clop_ringmaster(Ringmaster):
+    def __init__(self, *args, **kwargs):
+        Ringmaster.__init__(self, *args, **kwargs)
+        # clop uses .log, so we need something different
+        self.log_pathname = os.path.join(
+            self.base_directory, self.competition_code) + ".elog"
+
     @staticmethod
     def _get_competition_class(competition_type):
         if competition_type == "clop_tuner":
@@ -305,7 +311,6 @@ class Clop_ringmaster(Ringmaster):
         """
         try:
             job = self.competition.get_game_for_parameters(seed, parameters)
-            # FIXME: sort out stderr-to-log
             self._prepare_job(job)
             job_result = job.run()
         except (CompetitionError, JobFailed), e:
