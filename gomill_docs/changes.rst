@@ -1,7 +1,12 @@
 Changes
 =======
 
+Gomill 0.7.2 (FIXME)
+--------------------
+
 * Added the *wrap* parameter to :meth:`.Sgf_game.serialise`.
+
+* Added the :script:`gomill-clop` example script.
 
 
 Gomill 0.7.1 (2011-08-15)

@@ -87,3 +87,18 @@ scripts.
   This demonstrates the :mod:`!gtp_proxy` module, and may be independently
   useful.
 
+
+.. script:: gomill-clop
+
+  An experimental script for using Gomill as a back end for Rémi Coulom's CLOP
+  optimisation system. It has been tested with ``CLOP-0.0.8``, which can be
+  downloaded from http://remi.coulom.free.fr/CLOP/ .
+
+  To use it, write a control file based on :file:`clop_example.ctl` in the
+  :file:`gomill_examples/` directory, and run ::
+
+    $ gomill-clop <control file> setup
+
+  That will create a :samp:`.clop` file in the same directory as the control
+  file, which you can then run using :samp:`clop-gui`.
+
