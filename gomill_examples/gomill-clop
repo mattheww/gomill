@@ -422,7 +422,10 @@ _actions = {
 def main(argv):
     usage = ("%prog <control file> <command> [connection script arguments]\n\n"
              "commands: setup, run-game")
-    parser = OptionParser(usage=usage)
+    description = (
+        "`setup` generates a .clop file for use with clop-gui or clop-console. "
+        "Then `run-game` is used (behind the scenes) as the connection script.")
+    parser = OptionParser(usage=usage, description=description)
     (options, args) = parser.parse_args(argv)
     if len(args) == 0:
         parser.error("no control file specified")
