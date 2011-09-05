@@ -299,6 +299,11 @@ class Clop_ringmaster(Ringmaster):
                 raise RingmasterError(
                     "failed to create GTP log directory:\n%s" % e)
 
+    def open_logfile(self):
+        try:
+            self.logfile = open(self.log_pathname, "a")
+        except EnvironmentError, e:
+            raise RingmasterError("failed to open log file:\n%s" % e)
 
     def run_game_for_clop(self, seed, parameters):
         """Act as a CLOP connection script.
@@ -309,14 +314,22 @@ class Clop_ringmaster(Ringmaster):
         Returns the message to print.
 
         """
+        self._initialise_presenter()
         try:
             job = self.competition.get_game_for_parameters(seed, parameters)
             self._prepare_job(job)
-            job_result = job.run()
+            start_msg = "starting game %s: %s (b) vs %s (w)" % (
+                job.game_id, job.player_b.code, job.player_w.code)
+            self.log(start_msg)
+            response = job.run()
+            self.log("response from game %s" % response.game_id)
+            for warning in response.warnings:
+                self.warn(warning)
+            for log_entry in response.log_entries:
+                self.log(log_entry)
         except (CompetitionError, JobFailed), e:
             raise RingmasterError(e)
-        # FIXME: should we do something with warnings and/or log_entries?
-        result = job_result.game_result
+        result = response.game_result
         candidate_colour = self.competition.candidate_colour
         if result.winning_colour == candidate_colour:
             message = "W"
@@ -397,6 +410,8 @@ def do_run_game(ringmaster, arguments, options):
             i += 2
     except LookupError:
         raise RingmasterError("parameter without value: %s" % parameter_args[i])
+    ringmaster.set_display_mode('quiet')
+    ringmaster.open_logfile()
     message = ringmaster.run_game_for_clop(seed, parameters)
     print message
 
