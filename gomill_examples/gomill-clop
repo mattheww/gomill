@@ -16,7 +16,7 @@ http://remi.coulom.free.fr/CLOP/
 #   'W' for candidate win, 'D' for draw, 'L' for loss
 #   any further output is ignored
 # - if the output doesn't start with 'W', 'D', or 'L', it's treated as an error,
-#   the complete stdout and stderr are reported, and the experiment is stopped.
+#   and the complete stdout and stderr are reported
 #   (by convention, print "Error:" with a description)
 # - the connection script's exit status is ignored
 
