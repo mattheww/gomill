@@ -103,6 +103,7 @@ class Clop_tuner(Competition):
         Setting('parallel', interpret_int, default=1),
         Setting('clop_H', interpret_float, default=3),
         Setting('correlations', interpret_enum('all', 'none'), default='all'),
+        Setting('stop_on_error', interpret_bool, default=True),
         ])
 
     special_settings = [
@@ -319,10 +320,13 @@ class Clop_ringmaster(Ringmaster):
         elif result.is_jigo:
             message = "D"
         else:
-            # FIXME: Better to treat this as a draw, to avoid stopping the
-            # experiment?
-            raise RingmasterError("unexpected game result: %s" %
-                                  result.sgf_result)
+            if self.competition.stop_on_error:
+                # Don't want the experiment to stop just because a single game
+                # failed (eg, went over the move limit), so treat it as a draw.
+                message = "D"
+            else:
+                raise RingmasterError("unexpected game result: %s" %
+                                      result.sgf_result)
         return message
 
 
@@ -341,7 +345,10 @@ Replications 1
 DrawElo %(drawelo)s
 
 H %(clop_H)s
+
 Correlations %(correlations)s
+
+StopOnError %(stop_on_error)s
 
 """
 
@@ -357,12 +364,13 @@ def do_setup(ringmaster, arguments, options):
     parameter_specs = "\n".join(competition.get_clop_parameter_specs())
     processor_specs = "\n".join(
         "Processor par%d" % i for i in xrange(competition.parallel))
-    if competition.komi == int(competition.komi):
+    if competition.komi == int(competition.komi) or competition.stop_on_error:
         drawelo = "100"
     else:
         drawelo = "0"
     clop_H = competition.clop_H
     correlations = competition.correlations
+    stop_on_error = "true" if competition.stop_on_error else "false"
 
     with open(clop_pathname, "w") as f:
         f.write(clop_template % locals())
