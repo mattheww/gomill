@@ -1,8 +1,8 @@
 Changes
 =======
 
-Gomill 0.7.2 (FIXME)
---------------------
+Gomill 0.7.2 (2011-09-05)
+-------------------------
 
 * Added the *wrap* parameter to :meth:`.Sgf_game.serialise`.
 
