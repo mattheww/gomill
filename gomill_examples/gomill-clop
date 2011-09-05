@@ -98,7 +98,6 @@ class Clop_tuner(Competition):
 
     global_settings = (Competition.global_settings +
                        competitions.game_settings + [
-        Setting('number_of_games', allow_none(interpret_int), default=None),
         Setting('candidate_colour', interpret_colour),
         Setting('parallel', interpret_int, default=1),
         Setting('clop_H', interpret_float, default=3),
