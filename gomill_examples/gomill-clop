@@ -12,12 +12,13 @@ http://remi.coulom.free.fr/CLOP/
 #   - processor
 #   - seed
 #   - then pairs of arguments (parameter name, parameter value)
-# - the connection script prints a single line to stdout:
+# - the connection script prints a single character to stdout:
 #   'W' for candidate win, 'D' for draw, 'L' for loss
-# FIXME: check this bit
-# - on error, the connection script prints "Error:" with a description
+#   any further output is ignored
+# - if the output doesn't start with 'W', 'D', or 'L', it's treated as an error,
+#   the complete stdout and stderr are reported, and the experiment is stopped.
+#   (by convention, print "Error:" with a description)
 # - the connection script's exit status is ignored
-
 
 import os
 import sys
@@ -318,14 +319,13 @@ class Clop_ringmaster(Ringmaster):
         elif result.is_jigo:
             message = "D"
         else:
+            # FIXME: Better to treat this as a draw, to avoid stopping the
+            # experiment?
             raise RingmasterError("unexpected game result: %s" %
                                   result.sgf_result)
         return message
 
 
-
-class BadArguments(StandardError):
-    """Unacceptable command-line arguments."""
 
 clop_template = """\
 Name %(experiment_name)s
@@ -347,9 +347,6 @@ Correlations %(correlations)s
 
 def do_setup(ringmaster, arguments, options):
     """Create the .clop file, and any needed directories."""
-    if arguments:
-        raise BadArguments("too many arguments")
-
     connection_pathname = os.path.abspath(__file__)
     control_filename = os.path.basename(ringmaster.control_pathname)
     clop_pathname = os.path.join(ringmaster.base_directory,
@@ -377,7 +374,7 @@ def do_run_game(ringmaster, arguments, options):
     try:
         processor, seed = arguments[:2]
     except ValueError:
-        raise BadArguments("not enough arguments")
+        raise RingmasterError("not enough connection script arguments")
     parameter_args = arguments[2:]
     parameters = []
     i = 0
@@ -386,17 +383,17 @@ def do_run_game(ringmaster, arguments, options):
             parameters.append((parameter_args[i], parameter_args[i+1]))
             i += 2
     except LookupError:
-        raise BadArguments("odd number of arguments")
+        raise RingmasterError("parameter without value: %s" % parameter_args[i])
     message = ringmaster.run_game_for_clop(seed, parameters)
     print message
 
 _actions = {
-    "setup" : do_setup,
-    "run-game" : do_run_game,
+    "setup" : (do_setup, False),
+    "run-game" : (do_run_game, True),
     }
 
 def main(argv):
-    usage = ("%prog <control file> <command> [CLOP arguments]\n\n"
+    usage = ("%prog <control file> <command> [connection script arguments]\n\n"
              "commands: setup, run-game")
     parser = OptionParser(usage=usage)
     (options, args) = parser.parse_args(argv)
@@ -407,12 +404,12 @@ def main(argv):
     command = args[1]
     command_args = args[2:]
     try:
-        action = _actions[command]
+        action, takes_arguments = _actions[command]
     except KeyError:
         parser.error("no such command: %s" % command)
+    if command_args and not takes_arguments:
+        parser.error("too many arguments for %s" % command)
 
-    # FIXME: I don't think it checks exit status, so probably want to print
-    # 'Error:' to stdout in error cases. Best check just what it looks for.
     ctl_pathname = args[0]
     try:
         if not os.path.exists(ctl_pathname):
@@ -420,8 +417,6 @@ def main(argv):
         ringmaster = Clop_ringmaster(ctl_pathname)
         action(ringmaster, command_args, options)
         exit_status = 0
-    except BadArguments, e:
-        parser.error(e)
     except RingmasterError, e:
         print >>sys.stderr, "gomill-clop:", e
         exit_status = 1
@@ -435,6 +430,9 @@ def main(argv):
         print >>sys.stderr, "gomill-clop: internal error"
         compact_tracebacks.log_traceback()
         exit_status = 4
+    if exit_status != 0 and command == 'run-game':
+        # Make sure the problem runner sees an error response
+        print "Error"
     sys.exit(exit_status)
 
 if __name__ == "__main__":
