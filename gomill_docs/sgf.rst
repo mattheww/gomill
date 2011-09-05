@@ -155,7 +155,7 @@ contains *game-info* properties. It sometimes also contains *setup* properties
 Changing the ``FF`` and ``GM`` properties is permitted, but Gomill will carry
 on using the FF[4] and GM[1] (Go) rules. Changing ``SZ`` is not permitted (but
 if the size is 19 you may remove the property). Changing ``CA`` is permitted
-(this controls the encoding used by :meth:`serialise`).
+(this controls the encoding used by :meth:`~Sgf_game.serialise`).
 
 
 .. rubric:: Convenience methods for tree access
