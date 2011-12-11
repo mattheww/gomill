@@ -357,6 +357,24 @@ def test_players_score_agree_margin_zero(tc):
 
 
 
+def test_resign(tc):
+    moves = [
+        ('b', 'C3'), ('w', 'D3'),
+        ('b', 'resign'),
+        ]
+    fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
+    fx.game.use_internal_scorer()
+    fx.game.ready()
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertEqual(fx.game.result.sgf_result, "W+R")
+    tc.assertEqual(fx.game.result.winning_colour, 'w')
+    tc.assertEqual(fx.game.result.winning_player, 'two')
+    tc.assertFalse(fx.game.result.is_forfeit)
+    tc.assertIs(fx.game.result.detail, None)
+    tc.assertEqual(fx.game.result.describe(), "two beat one W+R")
+    fx.check_moves(moves[:-1])
+
 def test_claim(tc):
     def handle_genmove_ex_b(args):
         tc.assertIn('claim', args)
