@@ -275,8 +275,10 @@ Game_result objects
    information comes from the tournament's :ref:`state file <competition
    state>`.
 
-   .. note:: If an |sgf| :ref:`game record <game records>` has been written
-      for the game, you can retrieve its location in the filesystem from a
+   .. note::
+
+      If an |sgf| :ref:`game record <game records>` has been written for the
+      game, you can retrieve its location in the filesystem from a
       :class:`!Ringmaster` object using
       :samp:`ringmaster.get_sgf_pathname({game_id})`.
 

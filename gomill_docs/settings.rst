@@ -297,6 +297,7 @@ The arguments are:
   directory.
 
   .. tip::
+
     If an engine writes debugging information to its working directory, use
     :setting:`cwd` to get it out of the way::
 

@@ -302,7 +302,9 @@ required):
   event, the tuner will behave as if each candidate has already won this many
   games. See :ref:`The tuning algorithm <the mcts tuning algorithm>`.
 
-  .. tip:: It's best to set :mc-setting:`initial_wins` so that
+  .. tip::
+
+     It's best to set :mc-setting:`initial_wins` so that
      :mc-setting:`initial_wins` / :mc-setting:`initial_visits` is close to the
      typical candidate's expected win rate.
 
