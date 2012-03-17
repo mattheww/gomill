@@ -621,6 +621,49 @@ def test_fixed_handicap_bad_engine(tc):
         "^bad response from fixed_handicap command to two: C3 G3 C7$",
         fx.game.set_handicap, 3, is_free=False)
 
+def test_free_handicap(tc):
+    fh_calls = []
+    def handle_place_free_handicap(args):
+        fh_calls.append("P " + str(args))
+        return "g6 c6 g4 c4"
+    def handle_set_free_handicap(args):
+        fh_calls.append("S " + str(args))
+        return ""
+    fx = Game_fixture(tc)
+    fx.engine_b.add_command('place_free_handicap', handle_place_free_handicap)
+    fx.engine_w.add_command('set_free_handicap', handle_set_free_handicap)
+    fx.game.ready()
+    fx.game.set_handicap(4, is_free=True)
+    tc.assertEqual(fh_calls, ["P ['4']", "S ['G6', 'C6', 'G4', 'C4']"])
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertEqual(fx.game.result.sgf_result, "B+F")
+    tc.assertEqual(fx.game.result.detail,
+                   "forfeit: two attempted move to occupied point g4")
+    fx.check_moves([
+        ('w', 'G1'), ('b', 'E1'),
+        ('w', 'G2'), ('b', 'E2'),
+        ('w', 'G3'), ('b', 'E3'),
+        ])
+    tc.maxDiff = None
+    tc.assertMultiLineEqual(fx.sgf_string(), """\
+(;FF[4]AB[cd][cf][gd][gf]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]HA[4]KM[0]RE[B+F]SZ[9];W[gi];B[ei];W[gh];B[eh];W[gg];B[eg]C[one beat two B+F (forfeit: two attempted move to occupied point g4)])
+""")
+
+def test_free_handicap_bad_engine(tc):
+    fh_calls = []
+    def handle_place_free_handicap(args):
+        fh_calls.append("P " + str(args))
+        return "g6 c6 g4 g6"
+    fx = Game_fixture(tc)
+    fx.engine_b.add_command('place_free_handicap', handle_place_free_handicap)
+    fx.game.ready()
+    tc.assertRaisesRegexp(
+        gtp_controller.BadGtpResponse,
+        "^invalid response from place_free_handicap command to one: "
+        "duplicate point$",
+        fx.game.set_handicap, 4, is_free=True)
+
 
 handicap_compensation_tests = [
     # test code, handicap_compensation, result
