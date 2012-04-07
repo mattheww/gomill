@@ -67,8 +67,9 @@ def main():
     finally:
         game.close_players()
     print game.result.describe()
-    if game.late_errors:
-        sys.exit("\n".join(game.late_errors))
+    late_error_messages = game.describe_late_errors()
+    if late_error_messages:
+        sys.exit(late_error_messages)
 
 if __name__ == "__main__":
     main()
