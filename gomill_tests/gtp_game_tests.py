@@ -2,6 +2,7 @@
 
 import cPickle as pickle
 
+from gomill import boards
 from gomill import gtp_controller
 from gomill import gtp_games
 from gomill import sgf
@@ -689,3 +690,17 @@ class Handicap_compensation_TestCase(
         fx.game.run()
         fx.game.close_players()
         self.assertEqual(fx.game.result.sgf_result, self.result)
+
+def test_move_callback(tc):
+    seen = []
+    def see(colour, move, board):
+        tc.assertIsInstance(board, boards.Board)
+        seen.append("%s %s" % (colour, format_vertex(move)))
+    fx = Game_fixture(tc)
+    fx.game.set_move_callback(see)
+    fx.game.ready()
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertEqual(",".join(seen),
+                   "b E1,w G1,b E2,w G2,b E3,w G3,b E4,w G4,b E5,w G5,b E6,"
+                   "w G6,b E7,w G7,b E8,w G8,b E9,w G9,b pass,w pass")
