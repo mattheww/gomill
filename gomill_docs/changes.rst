@@ -1,6 +1,11 @@
 Changes
 =======
 
+* Bug fix: internal scorer with
+  :setting:`internal_scorer_handicap_compensation` ``"short"`` was off by one in
+  a non-handicap game.
+
+
 Gomill 0.7.2 (2011-09-05)
 -------------------------
 

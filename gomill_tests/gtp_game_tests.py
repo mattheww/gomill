@@ -667,16 +667,19 @@ def test_free_handicap_bad_engine(tc):
 
 
 handicap_compensation_tests = [
-    # test code, handicap_compensation, result
-    ('no', 'no', "B+53"),
-    ('full', 'full', "B+50"),
-    ('short', 'short', "B+51"),
+    # test code, has_handicap, handicap_compensation, result
+    ('h-no', True, 'no', "B+53"),
+    ('h-full', True, 'full', "B+50"),
+    ('h-short', True, 'short', "B+51"),
+    ('n-no', False, 'no', "W+26"),
+    ('n-full', False, 'full', "W+26"),
+    ('n-short', False, 'short', "W+26"),
     ]
 
 class Handicap_compensation_TestCase(
         gomill_test_support.Gomill_ParameterisedTestCase):
     test_name = "test_handicap_compensation"
-    parameter_names = ('hc', 'result')
+    parameter_names = ('has_handicap', 'hc', 'result')
 
     def runTest(self):
         def handle_fixed_handicap(args):
@@ -686,7 +689,8 @@ class Handicap_compensation_TestCase(
         fx.engine_w.add_command('fixed_handicap', handle_fixed_handicap)
         fx.game.use_internal_scorer(handicap_compensation=self.hc)
         fx.game.ready()
-        fx.game.set_handicap(3, is_free=False)
+        if self.has_handicap:
+            fx.game.set_handicap(3, is_free=False)
         fx.game.run()
         fx.game.close_players()
         self.assertEqual(fx.game.result.sgf_result, self.result)

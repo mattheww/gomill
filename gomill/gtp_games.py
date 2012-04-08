@@ -599,10 +599,11 @@ class Game(object):
         is_disagreement = False
         if self.internal_scorer:
             score = self.board.area_score() - self.komi
-            if self.handicap_compensation == "full":
-                score -= self.handicap
-            elif self.handicap_compensation == "short":
-                score -= (self.handicap - 1)
+            if self.handicap:
+                if self.handicap_compensation == "full":
+                    score -= self.handicap
+                elif self.handicap_compensation == "short":
+                    score -= (self.handicap - 1)
             if score > 0:
                 winner = "b"
                 margin = score
