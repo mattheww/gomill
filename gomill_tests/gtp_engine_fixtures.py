@@ -96,8 +96,8 @@ class Test_player(object):
     passes. It pays no attention to its opponent's moves, and doesn't maintain a
     board position.
 
-    (This means that if two Test_players play each other, black will win by
-    boardsize*2 on the board).
+    (This means that if two Test_players play each other on 9x9, black will win
+    by 18 on the board; on 13x13, white will win by 26.)
 
     """
     def __init__(self):
