@@ -646,7 +646,6 @@ def test_free_handicap(tc):
         ('w', 'G2'), ('b', 'E2'),
         ('w', 'G3'), ('b', 'E3'),
         ])
-    tc.maxDiff = None
     tc.assertMultiLineEqual(fx.sgf_string(), """\
 (;FF[4]AB[cd][cf][gd][gf]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]HA[4]KM[0]RE[B+F]SZ[9];W[gi];B[ei];W[gh];B[eh];W[gg];B[eg]C[one beat two B+F (forfeit: two attempted move to occupied point g4)])
 """)
