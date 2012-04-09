@@ -1,6 +1,9 @@
 Changes
 =======
 
+* Documentation correction: failure responses from
+  :setting:`startup_gtp_commands` are not ignored.
+
 * Bug fix: internal scorer with
   :setting:`internal_scorer_handicap_compensation` ``"short"`` was off by one in
   a non-handicap game.

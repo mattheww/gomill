@@ -55,8 +55,9 @@ Engine errors
 ^^^^^^^^^^^^^
 
 If an engine returns a |gtp| failure response to any of the commands which set
-up the game (eg :gtp:`!boardsize` or :gtp:`!fixed_handicap`), the game is
-treated as :ref:`void <void games>`.
+up the game (eg :gtp:`!boardsize` or :gtp:`!fixed_handicap`, or
+:setting:`startup_gtp_commands`), the game is treated as :ref:`void <void
+games>`.
 
 If an engine fails to start, exits unexpectedly, or produces a |gtp| response
 which is ill-formed at the protocol level, the game is treated as :ref:`void

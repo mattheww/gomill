@@ -136,8 +136,8 @@ ringmaster doesn't know or care what rule variant the players are using; it's
 up to you to make sure they agree with each other.
 
 Any :setting:`startup_gtp_commands` configured for a player will be sent
-before the :gtp:`!boardsize` and :gtp:`!clear_board` commands. Failure responses
-from these commands are ignored.
+before the :gtp:`!boardsize` and :gtp:`!clear_board` commands. Non-failure
+responses from these commands are ignored.
 
 Each game normally continues until both players pass in succession, or one
 player resigns.
