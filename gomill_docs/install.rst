@@ -142,7 +142,8 @@ The documentation will be generated in :file:`build/sphinx/html`.
 
 Requirements:
 
-- Sphinx__ version 1.0 or later (at least 1.0.4 recommended)
+- Sphinx__ version 1.0 or later
+  (at least 1.0.4 recommended; tested with 1.0 and 1.1)
 - LaTeX__
 - dvipng__
 

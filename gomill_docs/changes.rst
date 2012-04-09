@@ -1,6 +1,9 @@
 Changes
 =======
 
+
+* Made the documentation (index page) build properly with Sphinx v1.1.
+
 * Documentation correction: failure responses from
   :setting:`startup_gtp_commands` are not ignored.
 
