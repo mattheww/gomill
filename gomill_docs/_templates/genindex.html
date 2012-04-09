@@ -14,14 +14,29 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td valign="top"><dl>
   {%- for entryname, (links, subitems) in entries %}
-    {{ indexentries(entryname, links) }}
-    {%- if subitems %}
-    <dd><dl>
-    {%- for subentryname, subentrylinks in subitems %}
-      {{ indexentries(subentryname, subentrylinks) }}
-    {%- endfor %}
+
+{%- if sphinx_v1x0 %}
+  <dt>{% if links %}<a href="{{ links[0] }}">{{ entryname|e }}</a>
+    {%- for link in links[1:] %}, <a href="{{ link }}">[{{ loop.index }}]</a>{% endfor %}
+    {%- else %}{{ entryname|e }}{% endif %}</dt>  {%- if subitems %}
+  <dd><dl>
+  {%- for subentryname, subentrylinks in subitems %}
+    <dt><a href="{{ subentrylinks[0] }}">{{ subentryname|e }}</a>
+    {%- for link in subentrylinks[1:] %}, <a href="{{ link }}">[{{ loop.index }}]</a>{% endfor -%}
+    </dt>  {%- endfor %}
   </dl></dd>
   {%- endif -%}
+{%- else %}
+  {{ indexentries(entryname, links) }}
+  {%- if subitems %}
+  <dd><dl>
+  {%- for subentryname, subentrylinks in subitems %}
+    {{ indexentries(subentryname, subentrylinks) }}
+  {%- endfor %}
+  </dl></dd>
+  {%- endif -%}
+{%- endif -%}
+
 {%- endfor %}
 </dl></td>
 </tr></table>

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import sphinx
+_sphinx_is_v1x0 = sphinx.__version__.startswith("1.0.")
+
 needs_sphinx = '1.0'
 extensions = ['sphinx.ext.todo', 'sphinx.ext.pngmath', 'sphinx.ext.intersphinx',
               'sphinx.ext.viewcode']
@@ -49,6 +52,10 @@ html_copy_source = False
 html_sidebars = {'**' : ['wholetoc.html', 'relations.html', 'searchbox.html']}
 html_style = "gomill.css"
 html_show_sourcelink = False
+
+html_context = {
+    'sphinx_v1x0' : _sphinx_is_v1x0,
+}
 
 pngmath_use_preview = True
 
@@ -113,12 +120,13 @@ def setup(app):
                           objname="Control file object")
 
 
-# Undo undesirable sphinx code that auto-adds 'xref' class to literals 'True',
-# 'False', and 'None'.
-from sphinx.writers import html as html_mod
-def visit_literal(self, node):
-    self.body.append(self.starttag(node, 'tt', '',
-                                   CLASS='docutils literal'))
-    self.protect_literal_text += 1
-html_mod.HTMLTranslator.visit_literal = visit_literal
+if _sphinx_is_v1x0:
+    # Undo undesirable sphinx code that auto-adds 'xref' class to literals
+    # 'True', 'False', and 'None' (this was removed in sphinx 1.1)
+    from sphinx.writers import html as html_mod
+    def visit_literal(self, node):
+        self.body.append(self.starttag(node, 'tt', '',
+                                       CLASS='docutils literal'))
+        self.protect_literal_text += 1
+    html_mod.HTMLTranslator.visit_literal = visit_literal
 
