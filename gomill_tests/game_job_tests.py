@@ -334,6 +334,50 @@ def test_game_job_handicap(tc):
     # area score 53, less 7.5 komi, less 3 handicap compensation
     tc.assertEqual(result.game_result.sgf_result, "B+42.5")
 
+def test_game_job_startup_gtp_commands(tc):
+    clog = []
+    def handle_dummy1(args):
+        clog.append(("dummy1", args))
+    def handle_dummy2(args):
+        clog.append(("dummy2", args))
+        return "ignored result"
+    def handle_clear_board(args):
+        clog.append(("clear_board", args))
+    def register_commands(channel):
+        channel.engine.add_command('dummy1', handle_dummy1)
+        channel.engine.add_command('dummy2', handle_dummy2)
+        channel.engine.add_command('clear_board', handle_clear_board)
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    fx.register_init_callback('register_commands', register_commands)
+    gj = Game_job_fixture(tc)
+    gj.job.player_w.cmd_args.append('init=register_commands')
+    gj.job.player_w.startup_gtp_commands = [('dummy1', []),
+                                            ('dummy2', ['arg'])]
+    result = gj.job.run()
+    tc.assertEqual(result.game_result.sgf_result, "B+10.5")
+    tc.assertEqual(clog,
+                   [('dummy1', []),
+                    ('dummy2', ['arg']),
+                    ('clear_board', [])])
+
+def test_game_job_startup_gtp_commands_error(tc):
+    def handle_failplease(args):
+        raise GtpError("startup command which fails")
+    def register_commands(channel):
+        channel.engine.add_command('failplease', handle_failplease)
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    fx.register_init_callback('register_commands', register_commands)
+    gj = Game_job_fixture(tc)
+    gj.job.player_w.cmd_args.append('init=register_commands')
+    gj.job.player_w.startup_gtp_commands = [('list_commands', []),
+                                            ('failplease', [])]
+    with tc.assertRaises(JobFailed) as ar:
+        gj.job.run()
+    tc.assertEqual(
+        str(ar.exception),
+        "aborting game due to error:\n"
+        "failure response from 'failplease' to player two:\n"
+        "startup command which fails")
 
 
 ### check_player
@@ -388,7 +432,7 @@ def test_check_player_startup_gtp_commands(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     ck = Player_check_fixture(tc)
     ck.player.startup_gtp_commands = [('list_commands', []),
-                                       ('nonexistent', ['command'])]
+                                      ('nonexistent', ['command'])]
     with tc.assertRaises(game_jobs.CheckFailed) as ar:
         game_jobs.check_player(ck.check)
     tc.assertEqual(str(ar.exception),
