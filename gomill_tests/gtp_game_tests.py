@@ -548,6 +548,15 @@ def test_make_sgf(tc):
 zzzz]W[tt])
 """)
 
+def test_make_sgf_scoring_details(tc):
+    fx = Game_fixture(tc)
+    fx.run_score_test("B+3", "B+4")
+    fx.game.close_players()
+    tc.assertMultiLineEqual(fx.sgf_string(), """\
+(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[0]RE[B+]SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+ (unknown margin)
+one final_score: B+3
+two final_score: B+4]W[tt])
+""")
 
 def test_game_id(tc):
     fx = Game_fixture(tc)
