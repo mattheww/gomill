@@ -364,7 +364,6 @@ def test_resign(tc):
         ('b', 'resign'),
         ]
     fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
-    fx.game.use_internal_scorer()
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -387,7 +386,6 @@ def test_claim(tc):
     fx = Game_fixture(tc)
     fx.engine_b.add_command('gomill-genmove_ex', handle_genmove_ex_b)
     fx.engine_w.add_command('gomill-genmove_ex', handle_genmove_ex_w)
-    fx.game.use_internal_scorer()
     fx.game.set_claim_allowed('b')
     fx.game.ready()
     fx.game.run()
@@ -411,7 +409,6 @@ def test_forfeit_occupied_point(tc):
         ('b', 'D4'), ('w', 'D4'), # occupied point
         ]
     fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
-    fx.game.use_internal_scorer()
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -435,7 +432,6 @@ def test_forfeit_simple_ko(tc):
         ('b', 'E5'), # ko violation
         ]
     fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
-    fx.game.use_internal_scorer()
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -453,7 +449,6 @@ def test_forfeit_illformed_move(tc):
         ('b', 'D6'), ('w', 'Z99'), # ill-formed move
         ]
     fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
-    fx.game.use_internal_scorer()
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -471,7 +466,6 @@ def test_forfeit_genmove_fails(tc):
         ('b', 'fail'), # GTP failure response
         ]
     fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
-    fx.game.use_internal_scorer()
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -492,7 +486,6 @@ def test_forfeit_rejected_as_illegal(tc):
     fx = Game_fixture(tc,
                       Programmed_player(moves, reject=('E4', 'illegal move')),
                       Programmed_player(moves))
-    fx.game.use_internal_scorer()
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -512,7 +505,6 @@ def test_forfeit_play_failed(tc):
     fx = Game_fixture(tc,
                       Programmed_player(moves, reject=('E4', 'crash')),
                       Programmed_player(moves))
-    fx.game.use_internal_scorer()
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
