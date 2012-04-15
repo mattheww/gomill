@@ -301,7 +301,7 @@ class Game_job(object):
             "Date %s" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
             ]
         if game.result is not None:
-            notes.append("Result %s" % game.result.describe(),)
+            notes.append("Result %s" % game.result.describe())
         elif result is not None:
             root.set('RE', result)
         if self.sgf_note is not None:
