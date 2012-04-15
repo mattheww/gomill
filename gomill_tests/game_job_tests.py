@@ -334,6 +334,24 @@ def test_game_job_handicap(tc):
     # area score 53, less 7.5 komi, less 3 handicap compensation
     tc.assertEqual(result.game_result.sgf_result, "B+42.5")
 
+def test_game_job_move_limit(tc):
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    gj = Game_job_fixture(tc)
+    gj.job.move_limit = 4
+    result = gj.job.run()
+    tc.assertEqual(result.game_result.sgf_result, "Void")
+    tc.assertEqual(result.game_result.detail, "hit move limit")
+    tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
+    (;FF[4]AP[gomill:VER]
+    C[Game id gameid
+    Date ***
+    Result one vs two Void (hit move limit)
+    Black one one
+    White two two]
+    CA[UTF-8]DT[***]GM[1]GN[gameid]KM[7.5]PB[one]PW[two]RE[Void]SZ[9];B[ei];
+    W[gi];B[eh];C[one vs two Void (hit move limit)]W[gh])
+    """))
+
 def test_game_job_startup_gtp_commands(tc):
     clog = []
     def handle_dummy1(args):

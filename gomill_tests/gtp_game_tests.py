@@ -23,8 +23,9 @@ def make_tests(suite):
 class Game_fixture(test_framework.Fixture):
     """Fixture managing a Gtp_game.
 
-    Instantiate with the player objects (defaults to a Test_player) and
-    optionally komi.
+    Instantiate with the player objects (defaults to a Test_player).
+
+    Additional keyword arguments are passed on to Game.
 
     attributes:
       game         -- Gtp_game
@@ -38,10 +39,10 @@ class Game_fixture(test_framework.Fixture):
       player_w     -- player object
 
     """
-    def __init__(self, tc, player_b=None, player_w=None,
-                 komi=0.0, board_size=9):
+    def __init__(self, tc, player_b=None, player_w=None, **kwargs):
         self.tc = tc
-        game = gtp_games.Game(board_size, komi=komi)
+        kwargs.setdefault('board_size', 9)
+        game = gtp_games.Game(**kwargs)
         game.set_player_code('b', 'one')
         game.set_player_code('w', 'two')
         if player_b is None:
@@ -516,6 +517,41 @@ def test_forfeit_play_failed(tc):
                    "forfeit: failure response from 'play w e4' to player one:\n"
                    "crash")
     fx.check_moves(moves[:-1])
+
+def test_move_limit(tc):
+    fx = Game_fixture(tc, move_limit=4)
+    fx.game.ready()
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertEqual(fx.game.result.sgf_result, "Void")
+    tc.assertIsNone(fx.game.result.winning_colour)
+    tc.assertIs(fx.game.result.is_jigo, False)
+    tc.assertIs(fx.game.result.is_forfeit, False)
+    tc.assertEqual(fx.game.result.detail, "hit move limit")
+    fx.check_moves([
+        ('b', 'E1'), ('w', 'G1'),
+        ('b', 'E2'), ('w', 'G2'),
+        ])
+
+def test_move_limit_exact(tc):
+    fx = Game_fixture(tc, move_limit=20)
+    fx.game.use_internal_scorer()
+    fx.game.ready()
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertEqual(fx.game.result.sgf_result, "B+18")
+    fx.check_moves([
+        ('b', 'E1'), ('w', 'G1'),
+        ('b', 'E2'), ('w', 'G2'),
+        ('b', 'E3'), ('w', 'G3'),
+        ('b', 'E4'), ('w', 'G4'),
+        ('b', 'E5'), ('w', 'G5'),
+        ('b', 'E6'), ('w', 'G6'),
+        ('b', 'E7'), ('w', 'G7'),
+        ('b', 'E8'), ('w', 'G8'),
+        ('b', 'E9'), ('w', 'G9'),
+        ('b', 'pass'), ('w', 'pass'),
+        ])
 
 def test_same_player_code(tc):
     game = gtp_games.Game(board_size=9, komi=0)
