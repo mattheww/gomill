@@ -379,6 +379,29 @@ def test_game_job_startup_gtp_commands_error(tc):
         "failure response from 'failplease' to player two:\n"
         "startup command which fails")
 
+def test_game_job_players_score(tc):
+    clog = []
+    def handle_final_score_b(args):
+        clog.append("final_score_b")
+        return "B+33"
+    def handle_final_score_w(args):
+        clog.append("final_score_w")
+    def register_final_score_b(channel):
+        channel.engine.add_command('final_score', handle_final_score_b)
+    def register_final_score_w(channel):
+        channel.engine.add_command('final_score', handle_final_score_w)
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    fx.register_init_callback('final_score_b', register_final_score_b)
+    fx.register_init_callback('final_score_w', register_final_score_w)
+    gj = Game_job_fixture(tc)
+    gj.job.use_internal_scorer=False
+    gj.job.player_b.cmd_args.append('init=final_score_b')
+    gj.job.player_w.cmd_args.append('init=final_score_w')
+    gj.job.player_w.is_reliable_scorer = False
+    result = gj.job.run()
+    tc.assertEqual(result.game_result.sgf_result, "B+33")
+    tc.assertEqual(clog, ["final_score_b"])
+
 
 ### check_player
 
