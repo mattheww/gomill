@@ -357,6 +357,26 @@ def test_players_score_agree_margin_zero(tc):
                    "one final_score: b+0\n"
                    "two final_score: B+0")
 
+def test_players_score_one_scores_illformed(tc):
+    fx = Game_fixture(tc)
+    fx.run_score_test(None, "B+X")
+    tc.assertEqual(fx.game.result.sgf_result, "B+")
+    tc.assertEqual(fx.game.result.detail, "unknown margin")
+    tc.assertEqual(fx.game.result.winning_colour, 'b')
+    tc.assertEqual(fx.game.describe_scoring(),
+                   "one beat two B+ (unknown margin)\n"
+                   "two final_score: B+X")
+
+def test_players_score_one_scores_negative(tc):
+    fx = Game_fixture(tc)
+    fx.run_score_test(None, "B+-3")
+    tc.assertEqual(fx.game.result.sgf_result, "B+")
+    tc.assertEqual(fx.game.result.detail, "unknown margin")
+    tc.assertEqual(fx.game.result.winning_colour, 'b')
+    tc.assertEqual(fx.game.describe_scoring(),
+                   "one beat two B+ (unknown margin)\n"
+                   "two final_score: B+-3")
+
 
 
 def test_resign(tc):
