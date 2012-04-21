@@ -152,9 +152,12 @@ class Programmed_player(object):
 
     Passes when it runs out of moves.
 
-    if 'vertex' is a tuple, it's interpreted as (row, col) and converted to a
+    If 'vertex' is a tuple, it's interpreted as (row, col) and converted to a
     gtp vertex. The special value 'fail' causes a GtpError. Otherwise it's
     returned literally.
+
+    Public attributes:
+      seen_played -- list of the vertices passed to 'play' commands
 
     If 'reject' is passed, the handler for 'play' raises a GtpError with the
     specified message if it is given the specified vertex.
@@ -162,6 +165,7 @@ class Programmed_player(object):
     """
     def __init__(self, moves, reject=None):
         self.moves = []
+        self.seen_played = []
         for colour, vertex in moves:
             if isinstance(vertex, tuple):
                 vertex = format_vertex(vertex)
@@ -182,6 +186,7 @@ class Programmed_player(object):
         pass
 
     def handle_play(self, args):
+        self.seen_played.append(args[1].upper())
         if self.reject is None:
             return
         vertex, msg = self.reject

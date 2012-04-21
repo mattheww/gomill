@@ -429,7 +429,9 @@ def test_forfeit_occupied_point(tc):
         ('b', 'C3'), ('w', 'D3'),
         ('b', 'D4'), ('w', 'D4'), # occupied point
         ]
-    fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
+    black_player = Programmed_player(moves)
+    white_player = Programmed_player(moves)
+    fx = Game_fixture(tc, black_player, white_player)
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -443,6 +445,7 @@ def test_forfeit_occupied_point(tc):
                    "one beat two B+F "
                    "(forfeit: two attempted move to occupied point d4)")
     fx.check_moves(moves[:-1])
+    tc.assertEqual(black_player.seen_played, ['D3'])
 
 def test_forfeit_simple_ko(tc):
     moves = [
@@ -452,7 +455,9 @@ def test_forfeit_simple_ko(tc):
         ('b', 'E5'), ('w', 'D5'),
         ('b', 'E5'), # ko violation
         ]
-    fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
+    black_player = Programmed_player(moves)
+    white_player = Programmed_player(moves)
+    fx = Game_fixture(tc, black_player, white_player)
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -463,6 +468,7 @@ def test_forfeit_simple_ko(tc):
     tc.assertEqual(fx.game.result.detail,
                    "forfeit: one attempted move to ko-forbidden point e5")
     fx.check_moves(moves[:-1])
+    tc.assertEqual(white_player.seen_played, ['C5', 'D6', 'D4', 'E5'])
 
 def test_forfeit_illformed_move(tc):
     moves = [
