@@ -143,7 +143,8 @@ class Programmed_player(object):
     """Player that follows a preset sequence of moves.
 
     Instantiate with
-      moves -- a sequence of pairs (colour, vertex)
+      moves  -- a sequence of pairs (colour, vertex)
+      reject -- pair (vertex, message) [optional]
 
     The sequence can have moves for both colours; genmove goes through the
     moves in order and ignores ones for the colour that wasn't requested (the
@@ -154,6 +155,9 @@ class Programmed_player(object):
     if 'vertex' is a tuple, it's interpreted as (row, col) and converted to a
     gtp vertex. The special value 'fail' causes a GtpError. Otherwise it's
     returned literally.
+
+    If 'reject' is passed, the handler for 'play' raises a GtpError with the
+    specified message if it is given the specified vertex.
 
     """
     def __init__(self, moves, reject=None):
