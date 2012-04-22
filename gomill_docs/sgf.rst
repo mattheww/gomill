@@ -806,11 +806,11 @@ encoding`, which is the encoding used internally to store the property values.
 The :meth:`Tree_node.get_raw` and :meth:`Tree_node.set_raw` methods use the
 raw property encoding.
 
-When an |sgf| game is loaded from a file, the raw property encoding is the
-original file encoding (unless overridden). Improperly encoded property values
-will not be detected until they are accessed (:meth:`~Tree_node.get` will
-raise :exc:`ValueError`; use :meth:`~Tree_node.get_raw` to retrieve the actual
-bytes).
+When an |sgf| game is loaded from a string, the raw property encoding is taken
+from the ``CA`` root property (unless overridden). Improperly encoded property
+values will not be detected until they are accessed (:meth:`~Tree_node.get`
+will raise :exc:`ValueError`; use :meth:`~Tree_node.get_raw` to retrieve the
+actual bytes).
 
 
 .. _transcoding:
