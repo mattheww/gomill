@@ -9,9 +9,13 @@ This module is encoding-agnostic: it works with 8-bit strings in an arbitrary
 
 
 In the documentation below, a _property map_ is a dict mapping a PropIdent to a
-nonempty list of raw property values. The keys should pass
-is_valid_property_identifier(), and all values should pass
-is_valid_property_value().
+nonempty list of raw property values.
+
+A raw property value is an 8-bit string containing a PropValue without its
+enclosing brackets, but with backslashes and line endings left untouched.
+
+So a property map's keys should pass is_valid_property_identifier(), and its
+values should pass is_valid_property_value().
 
 """
 
@@ -120,10 +124,6 @@ class Coarse_game_tree(object):
       children -- list of Coarse_game_trees
 
     The sequence represents the nodes before the variations.
-
-    A raw property value is an 8-bit string containing a PropValue without its
-    enclosing brackets, but with backslashes and line endings left untouched
-    (passing is_valid_property_value()).
 
     """
     def __init__(self):
