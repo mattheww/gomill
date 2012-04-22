@@ -478,6 +478,14 @@ def test_tree_mutation_from_coarse_game(tc):
                    "(;SZ[9](;N[n1])(;N[n2])(;N[n4]))\n")
     tc.assertRaises(ValueError, root.delete)
 
+def test_tree_new_child_with_unexpanded_root_and_index(tc):
+    sgf_game = sgf.Sgf_game.from_string("(;SZ[9](;N[n1];N[n3])(;N[n2]))")
+    root = sgf_game.get_root()
+    n4 = root.new_child(2)
+    n4.set("N", "n4")
+    tc.assertEqual(sgf_game.serialise(),
+                   "(;SZ[9](;N[n1];N[n3])(;N[n2])(;N[n4]))\n")
+
 def test_reparent(tc):
     g1 = sgf.Sgf_game.from_string("(;SZ[9](;N[n1];N[n3])(;N[n2]))")
     root = g1.get_root()

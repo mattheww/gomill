@@ -11,6 +11,10 @@ Changes
   :setting:`internal_scorer_handicap_compensation` ``"short"`` was off by one in
   a non-handicap game.
 
+* Bug fix: :meth:`.Tree_node.new_child` was failing if it was called with an
+  explicitly-specified index on the root node of an :class:`.Sgf_game` which
+  was loaded from a string and had not otherwise had its structure modified.
+
 
 Gomill 0.7.2 (2011-09-05)
 -------------------------

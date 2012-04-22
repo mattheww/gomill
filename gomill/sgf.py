@@ -471,9 +471,9 @@ class _Unexpanded_root_tree_node(_Root_tree_node):
         self._expand()
         return self.index(child)
 
-    def new_child(self):
+    def new_child(self, index=None):
         self._expand()
-        return self.new_child()
+        return self.new_child(index)
 
     def _main_sequence_iter(self):
         presenter = self._presenter
