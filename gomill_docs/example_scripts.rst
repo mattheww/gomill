@@ -81,7 +81,7 @@ scripts.
   Mogo with a |gtp| controller (eg `Quarry`_) which doesn't get on with Mogo's
   |gtp| implementation.
 
-  .. _`Mogo`: http://www.lri.fr/~gelly/MoGo_Download.htm
+  .. _`Mogo`: http://www.lri.fr/~teytaud/mogo.html
   .. _`Quarry`: http://home.gna.org/quarry/
 
   This demonstrates the :mod:`!gtp_proxy` module, and may be independently
