@@ -2,6 +2,11 @@ Changes
 =======
 
 
+Gomill 0.7.3 (2012-05-02)
+-------------------------
+
+Bug-fix release.
+
 * Made the documentation (index page) build properly with Sphinx v1.1.
 
 * Documentation correction: failure responses from

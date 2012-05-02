@@ -1,7 +1,7 @@
 Licence
 =======
 
-Gomill is copyright 2009-2011 Matthew Woodcraft
+Gomill is copyright 2009-2012 Matthew Woodcraft
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
