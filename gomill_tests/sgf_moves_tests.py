@@ -25,7 +25,7 @@ DIAGRAM1 = """\
 3  .  .  .  .  .  .  .  .  .
 2  .  #  .  .  .  .  .  .  .
 1  #  .  .  .  .  .  .  .  .
-   A  B  C  D  E  F  G  H  J\
+   A  B  C  D  E  F  G  H  J
 """
 
 DIAGRAM2 = """\
@@ -38,14 +38,14 @@ DIAGRAM2 = """\
 3  .  .  .  .  .  .  .  .  .
 2  .  .  #  .  .  .  .  .  .
 1  .  .  .  .  .  .  .  .  .
-   A  B  C  D  E  F  G  H  J\
+   A  B  C  D  E  F  G  H  J
 """
 
 
 def test_get_setup_and_moves(tc):
     g1 = sgf.Sgf_game.from_string(SAMPLE_SGF)
     board1, plays1 = sgf_moves.get_setup_and_moves(g1)
-    tc.assertDiagramEqual(ascii_boards.render_board(board1), DIAGRAM1)
+    tc.assertBoardEqual(board1, DIAGRAM1)
     tc.assertEqual(plays1,
                    [('b', (2, 3)), ('w', (3, 4)), ('b', None), ('w', None)])
 
@@ -57,7 +57,7 @@ def test_get_setup_and_moves(tc):
     node = g2.extend_main_sequence()
     node.set("W", (5, 7))
     board2, plays2 = sgf_moves.get_setup_and_moves(g2)
-    tc.assertDiagramEqual(ascii_boards.render_board(board2), DIAGRAM2)
+    tc.assertBoardEqual(board2, DIAGRAM2)
     tc.assertEqual(plays2,
                    [('b', (5, 6)), ('w', (5, 7))])
 
@@ -102,7 +102,7 @@ def test_get_setup_and_moves_board_provided(tc):
     g1 = sgf.Sgf_game.from_string(SAMPLE_SGF)
     board1, plays1 = sgf_moves.get_setup_and_moves(g1, b)
     tc.assertIs(board1, b)
-    tc.assertDiagramEqual(ascii_boards.render_board(board1), DIAGRAM1)
+    tc.assertBoardEqual(board1, DIAGRAM1)
     tc.assertEqual(plays1,
                    [('b', (2, 3)), ('w', (3, 4)), ('b', None), ('w', None)])
     tc.assertRaisesRegexp(ValueError, "board not empty",

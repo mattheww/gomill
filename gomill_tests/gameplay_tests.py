@@ -68,7 +68,7 @@ DIAGRAM1 = """\
 3  .  .  .  #  .  .  .  .  .
 2  .  o  .  .  .  .  .  .  .
 1  .  .  .  .  .  .  .  .  .
-   A  B  C  D  E  F  G  H  J\
+   A  B  C  D  E  F  G  H  J
 """
 
 def test_game_basic(tc):
@@ -101,7 +101,7 @@ def test_game_basic(tc):
     tc.assertEqual(game.move_count, 6)
     tc.assertEqual(game.pass_count, 2)
     fx.check_over('passed_out')
-    tc.assertDiagramEqual(ascii_boards.render_board(game.board), DIAGRAM1)
+    tc.assertBoardEqual(game.board, DIAGRAM1)
     tc.assertRaisesRegexp(gameplay.GameStateError, r"^game is already over$",
                           game.record_move, 'b', (3, 3))
     tc.assertRaisesRegexp(gameplay.GameStateError, r"^game is already over$",
@@ -210,7 +210,7 @@ DIAGRAM2 = """\
 3  .  .  .  o  .  .  .  .  .
 2  .  .  #  .  .  .  .  .  .
 1  .  .  .  .  .  .  .  .  .
-   A  B  C  D  E  F  G  H  J\
+   A  B  C  D  E  F  G  H  J
 """
 
 def test_game_set_initial_state(tc):
@@ -225,7 +225,7 @@ def test_game_set_initial_state(tc):
     game.record_move('w', (2, 3))
     fx.check_not_over()
     tc.assertEqual(game.move_count, 1)
-    tc.assertDiagramEqual(ascii_boards.render_board(game.board), DIAGRAM2)
+    tc.assertBoardEqual(game.board, DIAGRAM2)
     tc.assertRaisesRegexp(gameplay.GameStateError, r"^game has started$",
                           game.set_initial_state, 'b', [], [])
 
@@ -280,7 +280,7 @@ DIAGRAM_B_BY_9 = """\
 3  .  .  .  .  .  .  .  .  .
 2  .  .  .  .  .  .  .  .  .
 1  .  .  .  .  .  .  .  .  .
-   A  B  C  D  E  F  G  H  J\
+   A  B  C  D  E  F  G  H  J
 """
 
 def test_game_score_from_position(tc):
@@ -566,8 +566,8 @@ def test_game_runner(tc):
         ('b', None, None),
         ('w', None, None),
         ])
-    tc.assertDiagramEqual(
-        ascii_boards.render_board(fx.backend.board_scored),
+    tc.assertBoardEqual(
+        fx.backend.board_scored,
         dedent("""
         5  .  .  #  o  .
         4  .  .  #  o  .
@@ -604,8 +604,8 @@ def test_game_runner_move_callback(tc):
         "[callback w pass]",
         "score_game",
         ])
-    tc.assertDiagramEqual(
-        ascii_boards.render_board(fx.callback_boards[1]),
+    tc.assertBoardEqual(
+        fx.callback_boards[1],
         dedent("""
         5  .  .  .  .  .
         4  .  .  .  .  .
@@ -914,8 +914,8 @@ def test_game_runner_fixed_handicap(tc):
         "notify_fixed_handicap: 'w' 3 [(2, 2), (6, 6), (6, 2)]",
         "get_move <- w: move/C1",
         ])
-    tc.assertDiagramEqual(
-        ascii_boards.render_board(fx.backend.board_scored),
+    tc.assertBoardEqual(
+        fx.backend.board_scored,
         dedent("""
         9  .  .  .  .  .  .  .  .  .
         8  .  .  .  .  .  .  .  .  .
@@ -950,8 +950,8 @@ def test_game_runner_free_handicap(tc):
         "notify_free_handicap: [(3, 4), (1, 4), (1, 2)]",
         "get_move <- w: move/C1",
         ])
-    tc.assertDiagramEqual(
-        ascii_boards.render_board(fx.backend.board_scored),
+    tc.assertBoardEqual(
+        fx.backend.board_scored,
         dedent("""
         5  .  .  .  .  .
         4  .  .  .  .  #

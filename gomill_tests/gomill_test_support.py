@@ -35,6 +35,31 @@ def compare_boards(b1, b2):
         pass
     return False, msg
 
+def compare_boards_or_diagrams(b1, b2):
+    """Variant of compare_boards which allows diagrams too.
+
+    returns a pair (position_is_the_same, message)
+
+    Compares as boards if the diagram can be interpreted; otherwise renders the
+    board and compares as strings.
+
+    If given two diagrams, compares them as strings.
+
+    """
+    def coerce(board, diagram):
+        try:
+            return board, ascii_boards.interpret_diagram(diagram, board.side)
+        except ValueError:
+            return ascii_boards.render_board(board), diagram
+    if isinstance(b1, boards.Board) and isinstance(b2, basestring):
+        b1, b2 = coerce(b1, b2)
+    elif isinstance(b2, boards.Board) and isinstance(b1, basestring):
+        b2, b1 = coerce(b2, b1)
+    if isinstance(b1, boards.Board):
+        return compare_boards(b1, b2)
+    else:
+        return compare_diagrams(b1, b2)
+
 def compare_diagrams(d1, d2):
     """Compare two ascii board diagrams.
 
@@ -91,11 +116,25 @@ class Gomill_testcase_mixin(object):
                                 unittest2.util.safe_repr(msg))
 
     def assertBoardEqual(self, b1, b2, msg=None):
-        are_equal, desc = compare_boards(b1, b2)
+        """assertEqual for two boards.
+
+        Accepts diagrams too; see compare_boards_or_diagrams.
+
+        """
+        are_equal, desc = compare_boards_or_diagrams(b1, b2)
         if not are_equal:
             self.fail(self._format_message(msg, desc+"\n"))
 
     def assertDiagramEqual(self, d1, d2, msg=None):
+        """Variant of assertMultiLineEqual for board diagrams.
+
+        Checks that two strings are equal, with difference reporting
+        appropriate for board diagrams.
+
+        Use this to test exact diagram rendering (use assertBoardEqual to
+        check for equivalent positions, ).
+
+        """
         are_equal, desc = compare_diagrams(d1, d2)
         if not are_equal:
             self.fail(self._format_message(msg, desc+"\n"))

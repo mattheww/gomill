@@ -152,8 +152,7 @@ class Play_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
             colour = colour.lower()
             row, col = move_from_vertex(vertex, b.side)
             ko_point = b.play(row, col, colour)
-        self.assertDiagramEqual(ascii_boards.render_board(b),
-                                self.diagram.rstrip())
+        self.assertBoardEqual(b, self.diagram)
         if ko_point is None:
             ko_vertex = None
         else:
@@ -186,8 +185,7 @@ class Setup_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
         is_legal = b.apply_setup(_interpret(self.black_points),
                                  _interpret(self.white_points),
                                  _interpret(self.empty_points))
-        self.assertDiagramEqual(ascii_boards.render_board(b),
-                                self.diagram.rstrip())
+        self.assertBoardEqual(b, self.diagram)
         if self.is_legal:
             self.assertTrue(is_legal, "setup should be considered legal")
         else:
