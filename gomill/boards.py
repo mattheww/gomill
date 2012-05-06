@@ -1,7 +1,8 @@
 """Go board representation."""
 
-from gomill.common import *
+from itertools import chain
 
+from gomill.common import *
 
 class _Group(object):
     """Represent a solidly-connected group.
@@ -37,8 +38,6 @@ class Board(object):
     Public attributes:
       side         -- board size (eg 9)
       board_points -- list of coordinates of all points on the board
-
-    Behaviour is unspecified if methods are passed out-of-range coordinates.
 
     """
     def __init__(self, side):
@@ -136,11 +135,17 @@ class Board(object):
 
         Returns a colour, or None for an empty point.
 
+        Raises IndexError if the coordinates are out of range.
+
         """
+        if row < 0 or col < 0:
+            raise IndexError
         return self.board[row][col]
 
     def play(self, row, col, colour):
         """Play a move on the board.
+
+        Raises IndexError if the coordinates are out of range.
 
         Raises ValueError if the specified point isn't empty.
 
@@ -150,6 +155,8 @@ class Board(object):
         Returns the point forbidden by simple ko, or None
 
         """
+        if row < 0 or col < 0:
+            raise IndexError
         if self.board[row][col] is not None:
             raise ValueError
         self.board[row][col] = colour
@@ -189,7 +196,12 @@ class Board(object):
 
         Returns a boolean saying whether the position was legal as specified.
 
+        Raises IndexError if any coordinates are out of range.
+
         """
+        for (row, col) in chain(black_points, white_points, empty_points):
+            if row < 0 or col < 0 or row >= self.side or col >= self.side:
+                raise IndexError
         for (row, col) in black_points:
             self.board[row][col] = 'b'
         for (row, col) in white_points:

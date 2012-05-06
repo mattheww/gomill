@@ -39,20 +39,21 @@ The principal :class:`!Board` methods are :meth:`!get` and :meth:`!play`.
 Their *row* and *col* parameters should be ints representing coordinates in
 the :ref:`system <go_related_data_representation>` used for a *point*.
 
-The behaviour of :class:`!Board` methods is unspecified if they are passed
-out-of-range coordinates.
-
 .. method:: Board.get(row, col)
 
    :rtype: *colour* or ``None``
 
    Returns the contents of the specified point.
 
+   Raises :exc:`IndexError` if the coordinates are out of range.
+
 .. method:: Board.play(row, col, colour)
 
    :rtype: *move*
 
    Places a stone of the specified *colour* on the specified point.
+
+   Raises :exc:`IndexError` if the coordinates are out of range.
 
    Raises :exc:`ValueError` if the point isn't empty.
 
@@ -104,6 +105,8 @@ The other :class:`!Board` methods are:
    behaviour like |sgf| ``AB``/``AW``/``AE`` properties.
 
    Each parameter is an iterable of *points*.
+
+   Raises :exc:`IndexError` if any points are out of range.
 
    This method applies all the specified additions and removals, then removes
    any groups with no liberties (so the resulting position is always legal).

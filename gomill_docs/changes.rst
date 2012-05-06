@@ -5,6 +5,9 @@ Changes
 Gomill FIXME (FIXME)
 --------------------
 
+* :class:`.Board` methods now raise :exc:`IndexError` for out-of-range
+  coordinates (previously behaviour was explicitly unspecified).
+
 * Reworked the :mod:`~!gomill.gtp_games` implementation, splitting out
   the :mod:`~!gomill.gameplay` module. Visible behaviour changes:
 

@@ -87,6 +87,7 @@ def test_game_basic(tc):
     tc.assertEqual(game.pass_count, 0)
     tc.assertRaisesRegexp(gameplay.GameStateError, r"^w is next to play$",
                           game.record_move, 'b', (1, 1))
+    tc.assertRaises(IndexError, game.record_move, 'w', (-1, 1))
     fx.check_not_over()
     game.record_move('w', (1, 1))
     game.record_move('b', None)

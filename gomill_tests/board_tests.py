@@ -52,6 +52,18 @@ def test_basics(tc):
     tc.assertItemsEqual(b.list_occupied_points(),
                         [('b', (2, 3)), ('w', (3, 4))])
 
+def test_range_checks(tc):
+    b = boards.Board(9)
+    tc.assertRaises(IndexError, b.get, -1, 2)
+    tc.assertRaises(IndexError, b.get, 9, 2)
+    tc.assertRaises(IndexError, b.get, 2, -1)
+    tc.assertRaises(IndexError, b.get, 2, 9)
+    tc.assertRaises(IndexError, b.play, -1, 2, 'b')
+    tc.assertRaises(IndexError, b.play, 9, 2, 'b')
+    tc.assertRaises(IndexError, b.play, 2, -1, 'b')
+    tc.assertRaises(IndexError, b.play, 2, 9, 'b')
+    tc.assertEqual(b, boards.Board(9))
+
 
 _9x9_expected = """\
 9  .  .  .  .  .  .  .  .  .
@@ -137,6 +149,13 @@ def test_full_board_selfcapture(tc):
             b.play(row, col, 'b')
     tc.assertEqual(b, boards.Board(9))
     tc.assertIs(b.is_empty(), True)
+
+def test_apply_setup_range_checks(tc):
+    b = boards.Board(9)
+    tc.assertRaises(IndexError, b.apply_setup, [(1, 1), (9, 2)], [], [])
+    tc.assertRaises(IndexError, b.apply_setup, [], [(2, 2), (2, -3)], [])
+    tc.assertRaises(IndexError, b.apply_setup, [], [], [(3, 3), (-3, 2)])
+    tc.assertEqual(b, boards.Board(9))
 
 
 class Play_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
