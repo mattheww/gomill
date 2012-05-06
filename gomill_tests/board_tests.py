@@ -49,6 +49,9 @@ def test_basics(tc):
     with tc.assertRaises(ValueError):
         b.play(3, 4, 'w')
 
+    with tc.assertRaises(ValueError):
+        b.play(5, 2, None)
+
     tc.assertItemsEqual(b.list_occupied_points(),
                         [('b', (2, 3)), ('w', (3, 4))])
 

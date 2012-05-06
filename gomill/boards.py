@@ -157,6 +157,7 @@ class Board(object):
         """
         if row < 0 or col < 0:
             raise IndexError
+        opponent = opponent_of(colour)
         if self.board[row][col] is not None:
             raise ValueError
         self.board[row][col] = colour
@@ -170,7 +171,7 @@ class Board(object):
                     self._is_empty = True
             else:
                 to_capture = [group for group in surrounded
-                              if group.colour == opponent_of(colour)]
+                              if group.colour == opponent]
                 if len(to_capture) == 1 and len(to_capture[0].points) == 1:
                     self_capture = [group for group in surrounded
                                     if group.colour == colour]
