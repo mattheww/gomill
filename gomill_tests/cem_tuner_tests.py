@@ -189,8 +189,8 @@ def test_play(tc):
 
     tc.assertEqual(comp.wins, [0, 0, 0, 0])
 
-    result1 = Game_result({'b' : 'g0#0', 'w' : 'opp'}, 'b')
-    result1.sgf_result = "B+8.5"
+    result1 = Game_result.from_score('b', 8.5)
+    result1.set_players({'b' : 'g0#0', 'w' : 'opp'})
     response1 = Game_job_result()
     response1.game_id = job1.game_id
     response1.game_result = result1
@@ -213,8 +213,8 @@ def test_play(tc):
     comp2.set_status(status)
     tc.assertEqual(comp2.wins, [1, 0, 0, 0])
 
-    result2 = Game_result({'b' : 'g0#1', 'w' : 'opp'}, None)
-    result2.set_jigo()
+    result2 = Game_result.from_score(None, 0)
+    result2.set_players({'b' : 'g0#1', 'w' : 'opp'})
     response2 = Game_job_result()
     response2.game_id = job2.game_id
     response2.game_result = result2

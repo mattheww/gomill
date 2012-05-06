@@ -1,201 +1,56 @@
 """Run a game between two GTP engines."""
 
-from gomill import __version__
 from gomill.utils import *
 from gomill.common import *
+from gomill import gameplay
 from gomill import gtp_controller
-from gomill import handicap_layout
-from gomill import boards
-from gomill import sgf
 from gomill.gtp_controller import BadGtpResponse, GtpChannelError
 
-class Game_result(object):
-    """Description of a game result.
+class Game_controller(object):
+    """Manage a pair of GTP controllers representing game players.
 
-    Public attributes:
-      players             -- map colour -> player code
-      player_b            -- player code
-      player_w            -- player code
-      winning_player      -- player code or None
-      losing_player       -- player code or None
-      winning_colour      -- 'b', 'w', or None
-      losing_colour       -- 'b', 'w', or None
-      is_jigo             -- bool
-      is_forfeit          -- bool
-      sgf_result          -- string describing the game's result (for sgf RE)
-      detail              -- additional information (string or None)
-      game_id             -- string or None
-      cpu_times           -- map player code -> float or None or '?'.
+    This is suitable for playing multiple games.
 
-    Winning/losing colour and player are None for a jigo, unknown result, or
-    void game.
-
-    cpu_times are user time + system time. '?' means that gomill-cpu_time gave
-    an error.
-
-    Game_results are suitable for pickling.
-
-    """
-    def __init__(self, players, winning_colour):
-        self.players = players.copy()
-        self.player_b = players['b']
-        self.player_w = players['w']
-        self.winning_colour = winning_colour
-        self.winning_player = players.get(winning_colour)
-        self.is_jigo = False
-        self.is_forfeit = False
-        self.game_id = None
-        if winning_colour is None:
-            self.sgf_result = "?"
-        else:
-            self.sgf_result = "%s+" % winning_colour.upper()
-        self.detail = None
-        self.cpu_times = {self.player_b : None, self.player_w : None}
-
-    def __getstate__(self):
-        return (
-            self.player_b,
-            self.player_w,
-            self.winning_colour,
-            self.sgf_result,
-            self.detail,
-            self.is_forfeit,
-            self.game_id,
-            self.cpu_times,
-            )
-
-    def __setstate__(self, state):
-        (self.player_b,
-         self.player_w,
-         self.winning_colour,
-         self.sgf_result,
-         self.detail,
-         self.is_forfeit,
-         self.game_id,
-         self.cpu_times,
-         ) = state
-        self.players = {'b' : self.player_b, 'w' : self.player_w}
-        self.winning_player = self.players.get(self.winning_colour)
-        self.is_jigo = (self.sgf_result == "0")
-
-    def set_jigo(self):
-        self.sgf_result = "0"
-        self.is_jigo = True
-
-    @property
-    def losing_colour(self):
-        if self.winning_colour is None:
-            return None
-        return opponent_of(self.winning_colour)
-
-    @property
-    def losing_player(self):
-        if self.winning_colour is None:
-            return None
-        return self.players.get(opponent_of(self.winning_colour))
-
-    def describe(self):
-        """Return a short human-readable description of the result."""
-        if self.winning_colour is not None:
-            s = "%s beat %s " % (self.winning_player, self.losing_player)
-        else:
-            s = "%s vs %s " % (self.players['b'], self.players['w'])
-        if self.is_jigo:
-            s += "jigo"
-        else:
-            s += self.sgf_result
-        if self.detail is not None:
-            s += " (%s)" % self.detail
-        return s
-
-    def __repr__(self):
-        return "<Game_result: %s>" % self.describe()
-
-
-class Game(object):
-    """A single game between two GTP engines.
-
-    Instantiate with:
-      board_size -- int
-      komi       -- float (default 0.0)
-      move_limit -- int   (default 1000)
-
-    The 'commands' values are lists of strings, as for subprocess.Popen.
-
-    Normal use:
-
-      game = Game(...)
-      game.set_player_code('b', ...)
-      game.set_player_code('w', ...)
-      game.use_internal_scorer() or game.allow_scorer(...) [optional]
-      game.set_move_callback...() [optional]
-      game.set_player_subprocess('b', ...) or set_player_controller('b', ...)
-      game.set_player_subprocess('w', ...) or set_player_controller('w', ...)
-      game.request_engine_descriptions() [optional]
-      game.ready()
-      game.set_handicap(...) [optional]
-      game.run()
-      game.close_players()
-      game.make_sgf() or game.write_sgf(...) [optional]
-
-    then retrieve the Game_result and moves.
-
-    If neither use_internal_scorer() nor allow_scorer() is called, the game
-    won't be scored.
+    Order of operations:
+      gc = Game_controller()
+      gc.set_player_code('b', ...)
+      gc.set_player_code('w', ...)
+      gc.set_player_subprocess('b', ...) or set_player_controller('b', ...)
+      gc.set_player_subprocess('w', ...) or set_player_controller('w', ...)
+      gc.request_engine_descriptions() [optional]
+      Any combination of:
+        gc.send_command(...)
+        gc.maybe_send_command(...)
+        gc.known_command(...)
+        higher-level helpers
+      gc.close_players()
+      gc.describe_late_errors()
+      gc.get_resource_usage_cpu_times()
 
     Public attributes for reading:
-      players               -- map colour -> player code
-      game_id               -- string or None
-      result                -- Game_result (None before the game is complete)
-      moves                 -- list of tuples (colour, move, comment)
-                               move is a pair (row, col), or None for a pass
-      player_scores         -- map player code -> string or None
-      engine_names          -- map player code -> string
-      engine_descriptions   -- map player code -> string
+      players             -- map colour -> player code
+      engine_names        -- map player code -> string
+      engine_descriptions -- map player code -> string
 
-   player_scores values are the response to the final_score GTP command (if the
-   player was asked).
+    Methods which communicate with engines may raise BadGtpResponse if the
+    engine returns a failure response.
 
-   Methods which communicate with engines may raise BadGtpResponse if the
-   engine returns a failure response.
+    Methods which communicate with engines will normally raise GtpChannelError
+    if there is trouble communicating with the engine. But some (those which
+    might be used after the game result has been decided) are documented as
+    communicating 'cautiously'. These methods will set such errors aside;
+    retrieve them with describe_late_errors().
 
-   Methods which communicate with engines will normally raise GtpChannelError
-   if there is trouble communicating with the engine. But after the game result
-   has been decided, they will set these errors aside; retrieve them with
-   describe_late_errors().
+    """
 
-   This enforces a simple ko rule, but no superko rule. It accepts self-capture
-   moves.
-
-   """
-
-    def __init__(self, board_size, komi=0.0, move_limit=1000):
-        self.players = {'b' : 'b', 'w' : 'w'}
-        self.game_id = None
+    def __init__(self):
         self.controllers = {}
-        self.claim_allowed = {'b' : False, 'w' : False}
-        self.after_move_callback = None
-        self.board_size = board_size
-        self.komi = komi
-        self.move_limit = move_limit
-        self.allowed_scorers = []
-        self.internal_scorer = False
-        self.handicap_compensation = "no"
-        self.handicap = 0
-        self.first_player = "b"
+        self.players = {'b' : 'b', 'w' : 'w'}
+        self.late_errors = []
         self.engine_names = {}
         self.engine_descriptions = {}
-        self.moves = []
-        self.player_scores = {'b' : None, 'w' : None}
-        self.additional_sgf_props = []
-        self.late_errors = []
-        self.handicap_stones = None
-        self.result = None
-        self.board = boards.Board(board_size)
-        self.simple_ko_point = None
 
-
-    ## Configuration methods (callable before set_player_...)
+    ## Configuration API
 
     def set_player_code(self, colour, player_code):
         """Specify a player code.
@@ -215,76 +70,6 @@ class Game(object):
         if self.players[opponent_of(colour)] == s:
             raise ValueError("player codes must be distinct")
         self.players[colour] = s
-
-    def set_game_id(self, game_id):
-        """Specify a game id.
-
-        game_id -- string
-
-        The game id is reported in the game result, and used as a default game
-        name in the SGF file.
-
-        If you don't set it, it will have value None.
-
-        """
-        self.game_id = str(game_id)
-
-    def use_internal_scorer(self, handicap_compensation='no'):
-        """Set the scoring method to internal.
-
-        The internal scorer uses area score, assuming all stones alive.
-
-        handicap_compensation -- 'no' (default), 'short', or 'full'.
-
-        If handicap_compensation is 'full', one point is deducted from Black's
-        score for each handicap stone; if handicap_compensation is 'short', one
-        point is deducted from Black's score for each handicap stone except the
-        first. (The number of handicap stones is taken from the parameter to
-        set_handicap().)
-
-        """
-        self.internal_scorer = True
-        if handicap_compensation not in ('no', 'short', 'full'):
-            raise ValueError("bad handicap_compensation value: %s" %
-                             handicap_compensation)
-        self.handicap_compensation = handicap_compensation
-
-    def allow_scorer(self, colour):
-        """Allow the specified player to score the game.
-
-        If this is called for both colours, both are asked to score.
-
-        """
-        self.allowed_scorers.append(colour)
-
-    def set_claim_allowed(self, colour, b=True):
-        """Allow the specified player to claim a win.
-
-        This will have no effect if the engine doesn't implement
-        gomill-genmove_ex.
-
-        """
-        self.claim_allowed[colour] = bool(b)
-
-    def set_move_callback(self, fn):
-        """Specify a callback function to be called after every move.
-
-        This function is called after each move is played, including passes but
-        not resignations, and not moves which triggered a forfeit.
-
-        It is passed three parameters: colour, move, board
-          move is a pair (row, col), or None for a pass
-
-        Treat the board parameter as read-only.
-
-        Exceptions raised from the callback will be propagated unchanged out of
-        run().
-
-        """
-        self.after_move_callback = fn
-
-
-    ## Channel methods
 
     def set_player_controller(self, colour, controller,
                               check_protocol_version=True):
@@ -323,15 +108,19 @@ class Game(object):
         subprocess or checking the protocol version.
 
         """
+        player_code = self.players[colour]
         try:
             channel = gtp_controller.Subprocess_gtp_channel(command, **kwargs)
         except GtpChannelError, e:
             raise GtpChannelError(
                 "error starting subprocess for player %s:\n%s" %
-                (self.players[colour], e))
+                (player_code, e))
         controller = gtp_controller.Gtp_controller(
-            channel, "player %s" % self.players[colour])
+            channel, "player %s" % player_code)
         self.set_player_controller(colour, controller, check_protocol_version)
+
+
+    ## Generic GTP controller API
 
     def get_controller(self, colour):
         """Return the underlying Gtp_controller for the specified engine."""
@@ -347,9 +136,6 @@ class Game(object):
         Returns the response as a string.
 
         Raises BadGtpResponse if the engine returns a failure response.
-
-        You can use this at any time between set_player_...() and
-        close_players().
 
         """
         return self.controllers[colour].do_command(command, *arguments)
@@ -378,10 +164,7 @@ class Game(object):
     def close_players(self):
         """Close both controllers (if they're open).
 
-        Retrieves the late errors for describe_late_errors().
-
-        If cpu times are not already set in the game result, sets them from the
-        CPU usage of the engine subprocesses.
+        Communicates cautiously.
 
         """
         for colour in ("b", "w"):
@@ -390,10 +173,594 @@ class Game(object):
                 continue
             controller.safe_close()
             self.late_errors += controller.retrieve_error_messages()
-        self.update_cpu_times_from_channels()
+
+    def describe_late_errors(self):
+        """Retrieve the late error messages.
+
+        Returns a string, or None if there were no late errors.
+
+        This is only available after close_players() has been called.
+
+        The late errors are low-level errors which occurred while communicating
+        'cautiously' and so were set aside.
+
+        In particular, they include any errors from closing (including failure
+        responses from the final 'quit' command).
+
+        """
+        if not self.late_errors:
+            return None
+        return "\n".join(self.late_errors)
+
+    def get_resource_usage_cpu_times(self):
+        """Return the measured CPU times of the engines.
+
+        Returns a dict colour -> cpu_time
+
+        cpu_time is a float, or None if the information isn't available.
+
+        It's safe to call this even if one or both of the engines was never
+        successfully started.
+
+        """
+        result = {'b' : None, 'w' : None}
+        for colour in 'b', 'w':
+            try:
+                controller = self.controllers[colour]
+            except KeyError:
+                continue
+            ru = controller.channel.resource_usage
+            if ru is not None:
+                result[colour] = ru.ru_utime + ru.ru_stime
+        return result
 
 
-    ## High-level methods
+    ## Higher-level GTP helpers
+
+    def request_engine_descriptions(self):
+        """Obtain the engines' name, version, and description by GTP.
+
+        After you have called this, you can retrieve the results from the
+        engine_names and engine_descriptions attributes.
+
+        """
+        for colour in "b", "w":
+            player = self.players[colour]
+            controller = self.controllers[colour]
+            (self.engine_names[player],
+             self.engine_descriptions[player]) = \
+                 gtp_controller.describe_engine(controller, player)
+
+    def get_gtp_cpu_times(self):
+        """Ask the engines for the CPU time they've used.
+
+        This uses the gomill-cpu_time extension command.
+
+        Returns a dict colour -> cpu_time
+
+        cpu_time is:
+          - a float if the CPU time is available.
+          - None if the engine doesn't support gomill-cpu_time.
+          - "?" if the engine claims to support it, but gives an invalid
+            or error response.
+
+        (The reason for distinguishing the last case is to avoid using the
+        resource-usage cpu time for engines which claim to support
+        gomill-cpu_time but give an error.)
+
+        Communicates cautiously.
+
+        """
+        result = {'b' : None, 'w' : None}
+        for colour in 'b', 'w':
+            controller = self.controllers[colour]
+            if controller.safe_known_command('gomill-cpu_time'):
+                try:
+                    s = controller.safe_do_command('gomill-cpu_time')
+                    result[colour] = float(s)
+                except (BadGtpResponse, ValueError, TypeError):
+                    result[colour] = "?"
+        return result
+
+
+class Game_result(gameplay.Result):
+    """Description of a game result.
+
+    Public attributes in addition to gameplay.Result:
+      game_id        -- string or None
+      players        -- map colour -> player code
+      player_b       -- player code
+      player_w       -- player code
+      winning_player -- player code or None
+      losing_player  -- player code or None
+      cpu_times      -- map player code -> float or None or '?'
+
+    Call set_players() before using these.
+
+    Winning/losing player are None for a jigo, unknown result, or void game.
+
+    cpu_times are user time + system time. '?' means that gomill-cpu_time gave
+    an error.
+
+    Game_results are suitable for pickling.
+
+    """
+    def __init__(self):
+        gameplay.Result.__init__(self)
+        self.game_id = None
+
+    def set_players(self, players):
+        """Specify the player-code map.
+
+        players -- map colour -> player code
+
+        """
+        self.players = players.copy()
+        self.player_b = players['b']
+        self.player_w = players['w']
+        self.winning_player = self.players.get(self.winning_colour)
+        self.cpu_times = {self.player_b : None, self.player_w : None}
+        if self.is_forfeit:
+            self.detail = "forfeit by %s: %s" % (
+                self.players[self.losing_colour], self.detail)
+
+    @property
+    def losing_player(self):
+        if self.winning_colour is None:
+            return None
+        return self.players.get(opponent_of(self.winning_colour))
+
+    def __getstate__(self):
+        return (
+            self.player_b,
+            self.player_w,
+            self.winning_colour,
+            self.sgf_result,
+            self.detail,
+            self.is_forfeit,
+            self.game_id,
+            self.cpu_times,
+            )
+
+    def __setstate__(self, state):
+        (self.player_b,
+         self.player_w,
+         self.winning_colour,
+         self.sgf_result,
+         self.detail,
+         self.is_forfeit,
+         self.game_id,
+         self.cpu_times,
+         ) = state
+        self.players = {'b' : self.player_b, 'w' : self.player_w}
+        self.winning_player = self.players.get(self.winning_colour)
+        self.is_jigo = (self.sgf_result == "0")
+
+    def soft_update_cpu_times(self, cpu_times):
+        """Update the cpu_times dict.
+
+        cpu_times -- dict colour -> float or None or '?'
+
+        If a value is already set (not None), this method doesn't change it.
+
+        """
+        for colour in ('b', 'w'):
+            if self.cpu_times[self.players[colour]] is not None:
+                continue
+            self.cpu_times[self.players[colour]] = cpu_times[colour]
+
+    def describe(self):
+        """Return a short human-readable description of the result."""
+        if self.winning_colour is not None:
+            s = "%s beat %s " % (self.winning_player, self.losing_player)
+        else:
+            s = "%s vs %s " % (self.players['b'], self.players['w'])
+        if self.is_jigo:
+            s += "jigo"
+        else:
+            s += self.sgf_result
+        if self.detail is not None:
+            s += " (%s)" % self.detail
+        return s
+
+    def __repr__(self):
+        return "<Game_result: %s>" % self.describe()
+
+class Gtp_game_score(gameplay.Game_score):
+    """Description of the scoring of a passed-out game.
+
+    Public attributes in addition to gameplay.Game_score:
+      scorers_disgreed -- bool
+      player_scores    -- map colour -> string or None
+
+    scorers_disagreed True means the scorers disagreed about the winner (not
+    just the margin).
+
+    player_scores values are the response from the final_score GTP command (if
+    the player was asked).
+
+    """
+    def __init__(self, winner, margin):
+        gameplay.Game_score.__init__(self, winner, margin)
+        self.scorers_disagreed = False
+        self.player_scores = {'b' : None, 'w' : None}
+
+    def get_detail(self):
+        if self.scorers_disagreed:
+            return "players disagreed"
+        else:
+            return gameplay.Game_score.get_detail(self)
+
+def describe_scoring(result, game_score):
+    """Return a multiline string describing a game's scoring.
+
+    result     -- Game_result
+    game_score -- Gtp_game_score or None
+
+    (This is normally just result.describe(), but we add more information if
+     the scorers returned different results.)
+
+    """
+    def normalise_score(s):
+        s = s.upper()
+        if s.endswith(".0"):
+            s = s[:-2]
+        return s
+    l = [result.describe()]
+
+    if game_score is not None:
+        sgf_result = result.sgf_result
+        score_b = game_score.player_scores['b']
+        score_w = game_score.player_scores['w']
+        if ((score_b is not None and normalise_score(score_b) != sgf_result) or
+            (score_w is not None and normalise_score(score_w) != sgf_result)):
+            for score, code in ((score_b, result.player_b),
+                                (score_w, result.player_w)):
+                if score is not None:
+                    l.append("%s final_score: %s" % (code, score))
+    return "\n".join(l)
+
+
+class _Gtp_backend(gameplay.Backend):
+    """Concrete implementation of gameplay.Backend for GTP.
+
+    This is instantiated and configured by its 'owning' Game.
+
+    """
+
+    def __init__(self, game_controller):
+        # A new _Gtp_backend is created for each game.
+        # But this implementation is written to work correctly if it is used
+        # in multiple games, anyway.
+
+        self.gc = game_controller
+        self.claim_allowed = {'b' : False, 'w' : False}
+        self.allowed_scorers = []
+        self.internal_scorer = False
+        self.handicap_compensation = "no"
+
+        # We find out these from the Game_runner (from start_new_game and the
+        # handicap methods). We remember komi and handicap for the sake of the
+        # internal scorer.
+        self.board_size = None
+        self.komi = None
+        self.handicap = None
+
+    def start_new_game(self, board_size, komi):
+        """Reset the engines' GTP game state (board size, contents, komi)."""
+        self.board_size = board_size
+        self.komi = komi
+        self.handicap = None
+        for colour in "b", "w":
+            self.gc.send_command(colour, "boardsize", str(board_size))
+            self.gc.send_command(colour, "clear_board")
+            self.gc.send_command(colour, "komi", str(komi))
+
+    def get_free_handicap(self, handicap):
+        self.handicap = handicap
+        vertices = self.gc.send_command(
+            "b", "place_free_handicap", str(handicap))
+        try:
+            points = [move_from_vertex(vt, self.board_size)
+                      for vt in vertices.split(" ")]
+            if None in points:
+                raise ValueError("response included 'pass'")
+            if len(set(points)) < len(points):
+                raise ValueError("duplicate point")
+        except ValueError, e:
+            raise BadGtpResponse(
+                "invalid response from place_free_handicap command "
+                "to %s: %s" % (self.gc.players["b"], e))
+        return points
+
+    def notify_free_handicap(self, points):
+        vertices = [format_vertex(point) for point in points]
+        self.gc.send_command("w", "set_free_handicap", *vertices)
+
+    def notify_fixed_handicap(self, colour, handicap, points):
+        self.handicap = handicap
+        vertices = self.gc.send_command(colour, "fixed_handicap", str(handicap))
+        try:
+            seen_points = [move_from_vertex(vt, self.board_size)
+                           for vt in vertices.split(" ")]
+            if set(seen_points) != set(points):
+                raise ValueError
+        except ValueError:
+            raise BadGtpResponse(
+                "bad response from fixed_handicap command "
+                "to %s: %s" % (self.gc.players[colour], vertices))
+
+    def get_move(self, colour):
+        if (self.claim_allowed[colour] and
+            self.gc.known_command(colour, "gomill-genmove_ex")):
+            genmove_command = ["gomill-genmove_ex", colour, "claim"]
+            may_claim = True
+        else:
+            genmove_command = ["genmove", colour]
+            may_claim = False
+        try:
+            raw_move = self.gc.send_command(colour, *genmove_command)
+        except BadGtpResponse, e:
+            return 'forfeit', str(e)
+        move_s = raw_move.lower()
+        if move_s == "resign":
+            return 'resign', None
+        if may_claim and move_s == "claim":
+            return 'claim', None
+        try:
+            move = move_from_vertex(move_s, self.board_size)
+        except ValueError:
+            return 'forfeit', "attempted ill-formed move %s" % raw_move
+        return 'move', move
+
+    def get_last_move_comment(self, colour):
+        comment = self.gc.maybe_send_command(colour, "gomill-explain_last_move")
+        comment = sanitise_utf8(comment)
+        if comment == "":
+            comment = None
+        return comment
+
+    def notify_move(self, colour, move):
+        vertex = format_vertex(move)
+        try:
+            self.gc.send_command(colour, "play", opponent_of(colour), vertex)
+        except BadGtpResponse, e:
+            if e.gtp_error_message == "illegal move":
+                return 'reject', ("%s claims move %s is illegal"
+                                  % (self.gc.players[colour], vertex))
+            else:
+                return 'error', str(e)
+        return 'accept', None
+
+    def _score_game_gtp(self):
+        winners = []
+        margins = []
+        raw_scores = []
+        for colour in self.allowed_scorers:
+            final_score = self.gc.maybe_send_command(colour, "final_score")
+            if final_score is None:
+                continue
+            raw_scores.append((colour, final_score))
+            final_score = final_score.upper()
+            if final_score == "0":
+                winners.append(None)
+                margins.append(0)
+                continue
+            if final_score.startswith("B+"):
+                winners.append("b")
+            elif final_score.startswith("W+"):
+                winners.append("w")
+            else:
+                continue
+            try:
+                margin = float(final_score[2:])
+                if margin <= 0:
+                    margin = None
+            except ValueError:
+                margin = None
+            margins.append(margin)
+        scorers_disagreed = False
+        if len(set(winners)) == 1:
+            winner = winners[0]
+            if len(set(margins)) == 1:
+                margin = margins[0]
+            else:
+                margin = None
+        else:
+            if len(set(winners)) > 1:
+                scorers_disagreed = True
+            winner = None
+            margin = None
+        score = Gtp_game_score(winner, margin)
+        score.scorers_disagreed = scorers_disagreed
+        for colour, raw_score in raw_scores:
+            score.player_scores[colour] = raw_score
+        return score
+
+    def score_game(self, board):
+        if self.internal_scorer:
+            game_score = Gtp_game_score.from_position(
+                board, self.komi, self.handicap_compensation, self.handicap)
+        else:
+            game_score = self._score_game_gtp()
+        return game_score
+
+
+class Game(object):
+    """A single game between two GTP engines.
+
+    Instantiate with:
+      board_size -- int
+      komi       -- int or float (default 0)
+      move_limit -- int   (default 1000)
+
+    Normal use:
+
+      game = Game(...)
+      game.set_player_code('b', ...)
+      game.set_player_code('w', ...)
+      game.use_internal_scorer() or game.allow_scorer(...) [optional]
+      game.set_move_callback...() [optional]
+      game.set_player_subprocess('b', ...) or set_player_controller('b', ...)
+      game.set_player_subprocess('w', ...) or set_player_controller('w', ...)
+      game.request_engine_descriptions() [optional]
+      game.ready()
+      game.set_handicap(...) [optional]
+      game.run()
+      game.close_players()
+      game.make_sgf() or game.write_sgf(...) [optional]
+
+    then retrieve the Game_result and moves.
+
+    If neither use_internal_scorer() nor allow_scorer() is called, the game
+    won't be scored.
+
+    Public attributes for reading:
+      players               -- map colour -> player code
+      game_id               -- string or None
+      result                -- Game_result (None before the game is complete)
+      moves                 -- list of tuples (colour, move, comment)
+                               move is a pair (row, col), or None for a pass
+      engine_names          -- map player code -> string
+      engine_descriptions   -- map player code -> string
+
+    Methods which communicate with engines may raise BadGtpResponse if the
+    engine returns a failure response.
+
+    Methods which communicate with engines will normally raise GtpChannelError
+    if there is trouble communicating with the engine. But after the game result
+    has been decided, they will set these errors aside; retrieve them with
+    describe_late_errors().
+
+    This enforces a simple ko rule, but no superko rule. It accepts self-capture
+    moves.
+
+    """
+
+    def __init__(self, board_size, komi=0.0, move_limit=1000):
+        self.game_controller = Game_controller()
+        self.backend = _Gtp_backend(self.game_controller)
+        self.game_runner = gameplay.Game_runner(
+            self.backend, board_size, komi, move_limit)
+        self.game_runner.set_result_class(Game_result)
+        self.game_id = None
+        self.result = None
+
+    ## Configuration API
+
+    def set_game_id(self, game_id):
+        """Specify a game id.
+
+        game_id -- string
+
+        The game id is reported in the game result, and used as a default game
+        name in the SGF file.
+
+        If you don't set it, it will have value None.
+
+        """
+        self.game_id = str(game_id)
+
+    def use_internal_scorer(self, handicap_compensation='no'):
+        """Set the scoring method to internal.
+
+        handicap_compensation -- 'no' (default), 'short', or 'full'.
+
+        The internal scorer uses area score, assuming all stones alive.
+        See gameplay.score_game() for details.
+
+        """
+        self.backend.internal_scorer = True
+        if handicap_compensation not in ('no', 'short', 'full'):
+            raise ValueError("bad handicap_compensation value: %s" %
+                             handicap_compensation)
+        self.backend.handicap_compensation = handicap_compensation
+
+    def allow_scorer(self, colour):
+        """Allow the specified player to score the game.
+
+        If this is called for both colours, both are asked to score.
+
+        """
+        self.backend.allowed_scorers.append(colour)
+
+    def set_claim_allowed(self, colour, b=True):
+        """Allow the specified player to claim a win.
+
+        This will have no effect if the engine doesn't implement
+        gomill-genmove_ex.
+
+        """
+        self.backend.claim_allowed[colour] = bool(b)
+
+    def set_move_callback(self, fn):
+        self.game_runner.set_move_callback(fn)
+
+
+    ## Game-controller API
+
+    @property
+    def players(self):
+        return self.game_controller.players
+
+    @property
+    def engine_names(self):
+        return self.game_controller.engine_names
+
+    @property
+    def engine_descriptions(self):
+        return self.game_controller.engine_descriptions
+
+    def set_player_code(self, colour, player_code):
+        self.game_controller.set_player_code(colour, player_code)
+
+    def close_players(self):
+        """Close both controllers (if they're open).
+
+        Retrieves the late errors for describe_late_errors().
+
+        If cpu times are not already set in the game result, sets them from the
+        CPU usage of the engine subprocesses.
+
+        """
+        self.game_controller.close_players()
+        if self.result is not None:
+            self.result.soft_update_cpu_times(
+                self.game_controller.get_resource_usage_cpu_times())
+
+    def send_command(self, colour, command, *arguments):
+        """Send the specified GTP command to one of the players.
+
+        colour    -- player to talk to ('b' or 'w')
+        command   -- gtp command name (string)
+        arguments -- gtp arguments (strings)
+
+        Returns the response as a string.
+
+        Raises BadGtpResponse if the engine returns a failure response.
+
+        You can use this at any time between set_player_...() and
+        close_players().
+
+        """
+        return self.game_controller.send_command(colour, command, *arguments)
+
+    def describe_late_errors(self):
+        return self.game_controller.describe_late_errors()
+
+    def set_player_controller(self, colour, controller,
+                              check_protocol_version=True):
+        self.game_controller.set_player_controller(
+            colour, controller, check_protocol_version)
+
+    def set_player_subprocess(self, colour, command,
+                              check_protocol_version=True, **kwargs):
+        self.game_controller.set_player_subprocess(
+            colour, command, check_protocol_version, **kwargs)
+
+    def get_controller(self, colour):
+        """Return the Gtp_controller for the specified colour."""
+        return self.game_controller.get_controller(colour)
 
     def request_engine_descriptions(self):
         """Obtain the engines' name, version, and description by GTP.
@@ -406,366 +773,71 @@ class Game(object):
         names to appear in the SGF file).
 
         """
-        for colour in "b", "w":
-            controller = self.controllers[colour]
-            player = self.players[colour]
-            short_s, long_s = gtp_controller.describe_engine(controller, player)
-            self.engine_names[player] = short_s
-            self.engine_descriptions[player] = long_s
+        self.game_controller.request_engine_descriptions()
+
+
+    ## Game-running API
+
+    @property
+    def moves(self):
+        return self.game_runner.moves
 
     def ready(self):
-        """Reset the engines' GTP game state (board size, contents, komi)."""
-        for colour in "b", "w":
-            controller = self.controllers[colour]
-            controller.do_command("boardsize", str(self.board_size))
-            controller.do_command("clear_board")
-            controller.do_command("komi", str(self.komi))
+        """Initialise the engines' GTP game state (board size, contents, komi).
+
+        May propagate GtpChannelError or BadGtpResponse.
+
+        """
+        self.game_runner.prepare()
 
     def set_handicap(self, handicap, is_free):
-        """Initialise the board position for a handicap.
+        """Arrange for the game to be played at a handicap.
+
+        handicap -- int (number of stones)
+        is_free  -- bool
 
         Raises ValueError if the number of stones isn't valid (see GTP spec).
 
-        Raises BadGtpResponse if there's an invalid respone to
-        place_free_handicap or fixed_handicap.
+        Raises BadGtpResponse if there's an invalid or failure response to
+        place_free_handicap, set_free_handicap, or fixed_handicap.
+
+        May propagate GtpChannelError.
 
         """
-        if is_free:
-            max_points = handicap_layout.max_free_handicap_for_board_size(
-                self.board_size)
-            if not 2 <= handicap < max_points:
-                raise ValueError
-            vertices = self.send_command(
-                "b", "place_free_handicap", str(handicap))
-            try:
-                points = [move_from_vertex(vt, self.board_size)
-                          for vt in vertices.split(" ")]
-                if None in points:
-                    raise ValueError("response included 'pass'")
-                if len(set(points)) < len(points):
-                    raise ValueError("duplicate point")
-            except ValueError, e:
-                raise BadGtpResponse(
-                    "invalid response from place_free_handicap command "
-                    "to %s: %s" % (self.players["b"], e))
-            vertices = [format_vertex(point) for point in points]
-            self.send_command("w", "set_free_handicap", *vertices)
-        else:
-            # May propagate ValueError
-            points = handicap_layout.handicap_points(handicap, self.board_size)
-            for colour in "b", "w":
-                vertices = self.send_command(
-                    colour, "fixed_handicap", str(handicap))
-                try:
-                    seen_points = [move_from_vertex(vt, self.board_size)
-                                   for vt in vertices.split(" ")]
-                    if set(seen_points) != set(points):
-                        raise ValueError
-                except ValueError:
-                    raise BadGtpResponse(
-                        "bad response from fixed_handicap command "
-                        "to %s: %s" % (self.players[colour], vertices))
-        self.board.apply_setup(points, [], [])
-        self.handicap = handicap
-        self.additional_sgf_props.append(('HA', handicap))
-        self.handicap_stones = points
-        self.first_player = "w"
-
-    def _forfeit_to(self, winner, msg):
-        self.winner = winner
-        self.forfeited = True
-        self.forfeit_reason = msg
-
-    def _play_move(self, colour):
-        opponent = opponent_of(colour)
-        if (self.claim_allowed[colour] and
-            self.known_command(colour, "gomill-genmove_ex")):
-            genmove_command = ["gomill-genmove_ex", colour, "claim"]
-            may_claim = True
-        else:
-            genmove_command = ["genmove", colour]
-            may_claim = False
-        try:
-            move_s = self.send_command(colour, *genmove_command).lower()
-        except BadGtpResponse, e:
-            self._forfeit_to(opponent, str(e))
-            return
-        if move_s == "resign":
-            self.winner = opponent
-            self.seen_resignation = True
-            return
-        if may_claim and move_s == "claim":
-            self.winner = colour
-            self.seen_claim = True
-            return
-        try:
-            move = move_from_vertex(move_s, self.board_size)
-        except ValueError:
-            self._forfeit_to(opponent, "%s attempted ill-formed move %s" % (
-                self.players[colour], move_s))
-            return
-        comment = self.maybe_send_command(colour, "gomill-explain_last_move")
-        comment = sanitise_utf8(comment)
-        if comment == "":
-            comment = None
-        if move is not None:
-            self.pass_count = 0
-            if move == self.simple_ko_point:
-                self._forfeit_to(
-                    opponent, "%s attempted move to ko-forbidden point %s" % (
-                        self.players[colour], move_s))
-                return
-            row, col = move
-            try:
-                self.simple_ko_point = self.board.play(row, col, colour)
-            except ValueError:
-                self._forfeit_to(
-                    opponent, "%s attempted move to occupied point %s" % (
-                        self.players[colour], move_s))
-                return
-        else:
-            self.pass_count += 1
-            self.simple_ko_point = None
-        try:
-            self.send_command(opponent, "play", colour, move_s)
-        except BadGtpResponse, e:
-            if e.gtp_error_message == "illegal move":
-                # we assume the move really was illegal, so 'colour' should lose
-                self._forfeit_to(opponent, "%s claims move %s is illegal" % (
-                    self.players[opponent], move_s))
-            else:
-                self._forfeit_to(colour, str(e))
-            return
-        self.moves.append((colour, move, comment))
-        if self.after_move_callback:
-            self.after_move_callback(colour, move, self.board)
+        self.game_runner.set_handicap(handicap, is_free)
 
     def run(self):
         """Run a complete game between the two players.
 
-        Sets self.moves and self.result.
+        Sets the 'result' and 'moves' attributes.
 
-        Sets CPU times in the game result if available via GTP.
+        If a move is illegal, or the other player rejects it, it is not
+        included in 'moves' (result.detail indicates what the move was).
 
-        """
-        self.pass_count = 0
-        self.winner = None
-        self.margin = None
-        self.scorers_disagreed = False
-        self.seen_resignation = False
-        self.seen_claim = False
-        self.forfeited = False
-        self.hit_move_limit = False
-        self.forfeit_reason = None
-        self.passed_out = False
-        player = self.first_player
-        move_count = 0
-        while move_count < self.move_limit:
-            self._play_move(player)
-            if self.pass_count == 2:
-                self.passed_out = True
-                self.winner, self.margin, self.scorers_disagreed = \
-                    self._score_game()
-                break
-            if self.winner is not None:
-                break
-            player = opponent_of(player)
-            move_count += 1
-        else:
-            self.hit_move_limit = True
-        self.calculate_result()
-        self.calculate_cpu_times()
+        May propagate GtpChannelError or BadGtpResponse.
 
-    def fake_run(self, winner):
-        """Set state variables as if the game had been run (for testing).
+        Propagates any exceptions from any after-move callback.
 
-        You don't need to use set_player_{subprocess,controller} to call this.
-
-        winner -- 'b' or 'w'
+        If an exception is propagated, 'moves' will reflect the moves made so
+        far, and 'result' will not be set.
 
         """
-        self.winner = winner
-        self.seen_resignation = False
-        self.seen_claim = False
-        self.forfeited = False
-        self.hit_move_limit = False
-        self.forfeit_reason = None
-        self.passed_out = True
-        self.margin = True
-        self.scorers_disagreed = False
-        self.calculate_result()
-
-    def _score_game(self):
-        is_disagreement = False
-        if self.internal_scorer:
-            score = self.board.area_score() - self.komi
-            if self.handicap:
-                if self.handicap_compensation == "full":
-                    score -= self.handicap
-                elif self.handicap_compensation == "short":
-                    score -= (self.handicap - 1)
-            if score > 0:
-                winner = "b"
-                margin = score
-            elif score < 0:
-                winner = "w"
-                margin = -score
-            else:
-                winner = None
-                margin = 0
-        else:
-            winners = []
-            margins = []
-            for colour in self.allowed_scorers:
-                final_score = self.maybe_send_command(colour, "final_score")
-                if final_score is None:
-                    continue
-                self.player_scores[colour] = final_score
-                final_score = final_score.upper()
-                if final_score == "0":
-                    winners.append(None)
-                    margins.append(0)
-                    continue
-                if final_score.startswith("B+"):
-                    winners.append("b")
-                elif final_score.startswith("W+"):
-                    winners.append("w")
-                else:
-                    continue
-                try:
-                    margin = float(final_score[2:])
-                    if margin <= 0:
-                        margin = None
-                except ValueError:
-                    margin = None
-                margins.append(margin)
-            if len(set(winners)) == 1:
-                winner = winners[0]
-                if len(set(margins)) == 1:
-                    margin = margins[0]
-                else:
-                    margin = None
-            else:
-                if len(set(winners)) > 1:
-                    is_disagreement = True
-                winner = None
-                margin = None
-        return winner, margin, is_disagreement
-
-    def calculate_result(self):
-        """Set self.result.
-
-        You shouldn't normally call this directly.
-
-        """
-        result = Game_result(self.players, self.winner)
-        result.game_id = self.game_id
-        if self.hit_move_limit:
-            result.sgf_result = "Void"
-            result.detail = "hit move limit"
-        elif self.seen_resignation:
-            result.sgf_result += "R"
-        elif self.seen_claim:
-            # Leave SGF result in form 'B+'
-            result.detail = "claim"
-        elif self.forfeited:
-            result.sgf_result += "F"
-            result.is_forfeit = True
-            result.detail = "forfeit: %s" % self.forfeit_reason
-        else:
-            assert self.passed_out
-            if self.winner is None:
-                if self.margin == 0:
-                    result.set_jigo()
-                elif self.scorers_disagreed:
-                    result.detail = "players disagreed"
-                else:
-                    result.detail = "no score reported"
-            elif self.margin is not None:
-                result.sgf_result += format_float(self.margin)
-            else:
-                # Players returned something like 'B+?',
-                # or disagreed about the margin
-                # Leave SGF result in form 'B+'
-                result.detail = "unknown margin"
-        self.result = result
-
-    def calculate_cpu_times(self):
-        """Set CPU times in self.result.
-
-        You shouldn't normally call this directly.
-
-        """
-        # The ugliness with cpu_time '?' is to avoid using the cpu time reported
-        # by channel close() for engines which claim to support gomill-cpu_time
-        # but give an error.
-        for colour in ('b', 'w'):
-            cpu_time = None
-            controller = self.controllers[colour]
-            if controller.safe_known_command('gomill-cpu_time'):
-                try:
-                    s = controller.safe_do_command('gomill-cpu_time')
-                    cpu_time = float(s)
-                except (BadGtpResponse, ValueError, TypeError):
-                    cpu_time = "?"
-            self.result.cpu_times[self.players[colour]] = cpu_time
-
-    def update_cpu_times_from_channels(self):
-        """Set CPU times in self.result from the channel resource usage.
-
-        There's normally no need to call this directly: close_players() will do
-        it.
-
-        Has no effect if CPU times have already been set.
-
-        """
-        for colour in ('b', 'w'):
-            controller = self.controllers.get(colour)
-            if controller is None:
-                continue
-            ru = controller.channel.resource_usage
-            if (ru is not None and self.result is not None and
-                self.result.cpu_times[self.players[colour]] is None):
-                self.result.cpu_times[self.players[colour]] = \
-                    ru.ru_utime + ru.ru_stime
-
-    def describe_late_errors(self):
-        """Retrieve the late error messages.
-
-        Returns a string, or None if there were no late errors.
-
-        This is only available after close_players() has been called.
-
-        The late errors are low-level errors which occurred after the game
-        result was decided and so were set asied. In particular, they include
-        any errors from closing (including failure responses from the final
-        'quit' command)
-
-        """
-        if not self.late_errors:
-            return None
-        return "\n".join(self.late_errors)
+        self.game_runner.run()
+        self.result = self.game_runner.result
+        self.result.set_players(self.players)
+        self.result.game_id = self.game_id
+        self.result.soft_update_cpu_times(
+            self.game_controller.get_gtp_cpu_times())
 
     def describe_scoring(self):
-        """Return a multiline string describing the game's scoring."""
-        if self.result is None:
-            return ""
-        def normalise_score(s):
-            s = s.upper()
-            if s.endswith(".0"):
-                s = s[:-2]
-            return s
-        l = [self.result.describe()]
-        sgf_result = self.result.sgf_result
-        score_b = self.player_scores['b']
-        score_w = self.player_scores['w']
-        if ((score_b is not None and normalise_score(score_b) != sgf_result) or
-            (score_w is not None and normalise_score(score_w) != sgf_result)):
-            for colour, score in (('b', score_b), ('w', score_w)):
-                if score is not None:
-                    l.append("%s final_score: %s" %
-                             (self.players[colour], score))
-        return "\n".join(l)
+        """Return a multiline string describing the game's scoring.
+
+        This always includes the game result, and may have additional
+        information if the players disagreed or returned strange results.
+
+        """
+        return describe_scoring(self.result,
+                                self.game_runner.get_game_score())
 
     def make_sgf(self, game_end_message=None):
         """Return an SGF description of the game.
@@ -774,32 +846,25 @@ class Game(object):
 
         game_end_message -- optional string to put in the final comment.
 
-        If game_end_message is specified, it appears before the text describing
-        'late errors'.
+        This adds the following to the result of Game_runner.make_sgf:
+          PB PW  (if request_engine_descriptions() was called)
+          GN     (if the game_id is set)
+
+        It also adds the following to the last node's comment:
+          describe_scoring() output
+          any game_end_message
+          describe_late_errors() output
 
         """
-        sgf_game = sgf.Sgf_game(self.board_size)
+        sgf_game = self.game_runner.make_sgf()
         root = sgf_game.get_root()
-        root.set('KM', self.komi)
-        root.set('AP', ("gomill",  __version__))
-        for prop, value in self.additional_sgf_props:
-            root.set(prop, value)
-        sgf_game.set_date()
         if self.engine_names:
             root.set('PB', self.engine_names[self.players['b']])
             root.set('PW', self.engine_names[self.players['w']])
         if self.game_id:
             root.set('GN', self.game_id)
-        if self.handicap_stones:
-            root.set_setup_stones(black=self.handicap_stones, white=[])
-        for colour, move, comment in self.moves:
-            node = sgf_game.extend_main_sequence()
-            node.set_move(colour, move)
-            if comment is not None:
-                node.set("C", comment)
         last_node = sgf_game.get_last_node()
         if self.result is not None:
-            root.set('RE', self.result.sgf_result)
             last_node.add_comment_text(self.describe_scoring())
         if game_end_message is not None:
             last_node.add_comment_text(game_end_message)

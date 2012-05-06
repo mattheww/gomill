@@ -2,6 +2,21 @@ Changes
 =======
 
 
+Gomill FIXME (FIXME)
+--------------------
+
+* Reworked the :mod:`~!gomill.gtp_games` implementation, splitting out
+  the :mod:`~!gomill.gameplay` module. Visible behaviour changes:
+
+  * |gtp| :gtp:`!move` commands now send the vertex in upper case.
+
+  * Text descriptions of forfeits (eg in :attr:`.Game_result.detail`) have
+    changed slightly.
+
+* :mod:`~!gomill.gtp_games` now permits free-handicap games with the maximum
+  number of handicap stones permitted by |gtp| (the previous restriction was
+  one less).
+
 * Bug fix: :meth:`.Board.is_empty()` was wrong after a self-capture which
   leaves the board empty.
 
@@ -88,8 +103,8 @@ Changes to (previously) undocumented parts of the library:
 
 * :func:`!gtp_engine.interpret_float` now rejects infinities and NaNs.
 
-* Changes to the :mod:`!gtp_states` module: tightened error handling, removed
-  the komi-mangling feature, renamed :attr:`!History_move.coords` to
+* Changes to the :mod:`~!gomill.gtp_states` module: tightened error handling,
+  removed the komi-mangling feature, renamed :attr:`!History_move.coords` to
   :attr:`!History_move.move`.
 
 

@@ -170,23 +170,23 @@ def test_game(tc):
         ('komi', ['0.0']),
         ('genmove', ['b']),
         ('known_command', ['gomill-explain_last_move']),
-        ('play', ['w', 'g1']),
+        ('play', ['w', 'G1']),
         ('genmove', ['b']),
-        ('play', ['w', 'g2']),
+        ('play', ['w', 'G2']),
         ('genmove', ['b']),
-        ('play', ['w', 'g3']),
+        ('play', ['w', 'G3']),
         ('genmove', ['b']),
-        ('play', ['w', 'g4']),
+        ('play', ['w', 'G4']),
         ('genmove', ['b']),
-        ('play', ['w', 'g5']),
+        ('play', ['w', 'G5']),
         ('genmove', ['b']),
-        ('play', ['w', 'g6']),
+        ('play', ['w', 'G6']),
         ('genmove', ['b']),
-        ('play', ['w', 'g7']),
+        ('play', ['w', 'G7']),
         ('genmove', ['b']),
-        ('play', ['w', 'g8']),
+        ('play', ['w', 'G8']),
         ('genmove', ['b']),
-        ('play', ['w', 'g9']),
+        ('play', ['w', 'G9']),
         ('genmove', ['b']),
         ('play', ['w', 'pass']),
         ('known_command', ['gomill-cpu_time']),
@@ -197,24 +197,24 @@ def test_game(tc):
         ('boardsize', ['9']),
         ('clear_board', []),
         ('komi', ['0.0']),
-        ('play', ['b', 'e1']),
+        ('play', ['b', 'E1']),
         ('genmove', ['w']),
         ('known_command', ['gomill-explain_last_move']),
-        ('play', ['b', 'e2']),
+        ('play', ['b', 'E2']),
         ('genmove', ['w']),
-        ('play', ['b', 'e3']),
+        ('play', ['b', 'E3']),
         ('genmove', ['w']),
-        ('play', ['b', 'e4']),
+        ('play', ['b', 'E4']),
         ('genmove', ['w']),
-        ('play', ['b', 'e5']),
+        ('play', ['b', 'E5']),
         ('genmove', ['w']),
-        ('play', ['b', 'e6']),
+        ('play', ['b', 'E6']),
         ('genmove', ['w']),
-        ('play', ['b', 'e7']),
+        ('play', ['b', 'E7']),
         ('genmove', ['w']),
-        ('play', ['b', 'e8']),
+        ('play', ['b', 'E8']),
         ('genmove', ['w']),
-        ('play', ['b', 'e9']),
+        ('play', ['b', 'E9']),
         ('genmove', ['w']),
         ('play', ['b', 'pass']),
         ('genmove', ['w']),
@@ -498,10 +498,10 @@ def test_forfeit_occupied_point(tc):
     tc.assertEqual(fx.game.result.winning_player, 'one')
     tc.assertTrue(fx.game.result.is_forfeit)
     tc.assertEqual(fx.game.result.detail,
-                   "forfeit: two attempted move to occupied point d4")
+                   "forfeit by two: attempted move to occupied point D4")
     tc.assertEqual(fx.game.result.describe(),
                    "one beat two B+F "
-                   "(forfeit: two attempted move to occupied point d4)")
+                   "(forfeit by two: attempted move to occupied point D4)")
     fx.check_moves(moves[:-1])
     tc.assertEqual(black_player.seen_played, ['D3'])
 
@@ -524,7 +524,7 @@ def test_forfeit_simple_ko(tc):
     tc.assertEqual(fx.game.result.winning_player, 'two')
     tc.assertTrue(fx.game.result.is_forfeit)
     tc.assertEqual(fx.game.result.detail,
-                   "forfeit: one attempted move to ko-forbidden point e5")
+                   "forfeit by one: attempted move to ko-forbidden point E5")
     fx.check_moves(moves[:-1])
     tc.assertEqual(white_player.seen_played, ['C5', 'D6', 'D4', 'E5'])
 
@@ -542,7 +542,7 @@ def test_forfeit_illformed_move(tc):
     tc.assertEqual(fx.game.result.winning_player, 'one')
     tc.assertTrue(fx.game.result.is_forfeit)
     tc.assertEqual(fx.game.result.detail,
-                   "forfeit: two attempted ill-formed move z99")
+                   "forfeit by two: attempted ill-formed move Z99")
     fx.check_moves(moves[:-1])
 
 def test_forfeit_genmove_fails(tc):
@@ -558,9 +558,10 @@ def test_forfeit_genmove_fails(tc):
     tc.assertEqual(fx.game.result.winning_colour, 'w')
     tc.assertEqual(fx.game.result.winning_player, 'two')
     tc.assertTrue(fx.game.result.is_forfeit)
-    tc.assertEqual(fx.game.result.detail,
-                   "forfeit: failure response from 'genmove b' to player one:\n"
-                   "forced to fail")
+    tc.assertEqual(
+        fx.game.result.detail,
+        "forfeit by one: failure response from 'genmove b' to player one:\n"
+        "forced to fail")
     fx.check_moves(moves[:-1])
 
 def test_forfeit_rejected_as_illegal(tc):
@@ -579,7 +580,7 @@ def test_forfeit_rejected_as_illegal(tc):
     tc.assertEqual(fx.game.result.winning_player, 'one')
     tc.assertTrue(fx.game.result.is_forfeit)
     tc.assertEqual(fx.game.result.detail,
-                   "forfeit: one claims move e4 is illegal")
+                   "forfeit by two: one claims move E4 is illegal")
     fx.check_moves(moves[:-1])
 
 def test_forfeit_play_failed(tc):
@@ -597,9 +598,10 @@ def test_forfeit_play_failed(tc):
     tc.assertEqual(fx.game.result.winning_colour, 'w')
     tc.assertEqual(fx.game.result.winning_player, 'two')
     tc.assertTrue(fx.game.result.is_forfeit)
-    tc.assertEqual(fx.game.result.detail,
-                   "forfeit: failure response from 'play w e4' to player one:\n"
-                   "crash")
+    tc.assertEqual(
+        fx.game.result.detail,
+        "forfeit by one: failure response from 'play w E4' to player one:\n"
+        "crash")
     fx.check_moves(moves[:-1])
 
 def test_move_limit(tc):
@@ -713,7 +715,7 @@ def test_fixed_handicap(tc):
     fx.game.close_players()
     tc.assertEqual(fx.game.result.sgf_result, "B+F")
     tc.assertEqual(fx.game.result.detail,
-                   "forfeit: two attempted move to occupied point g7")
+                   "forfeit by two: attempted move to occupied point G7")
     fx.check_moves([
         ('w', 'G1'), ('b', 'E1'),
         ('w', 'G2'), ('b', 'E2'),
@@ -723,7 +725,7 @@ def test_fixed_handicap(tc):
         ('w', 'G6'), ('b', 'E6'),
         ])
     tc.assertMultiLineEqual(fx.sgf_string(), """\
-(;FF[4]AB[cc][cg][gc]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]HA[3]KM[0]RE[B+F]SZ[9];W[gi];B[ei];W[gh];B[eh];W[gg];B[eg];W[gf];B[ef];W[ge];B[ee];W[gd];B[ed]C[one beat two B+F (forfeit: two attempted move to occupied point g7)])
+(;FF[4]AB[cc][cg][gc]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]HA[3]KM[0]RE[B+F]SZ[9];W[gi];B[ei];W[gh];B[eh];W[gg];B[eg];W[gf];B[ef];W[ge];B[ee];W[gd];B[ed]C[one beat two B+F (forfeit by two: attempted move to occupied point G7)])
 """)
 
 def test_fixed_handicap_bad_engine(tc):
@@ -761,14 +763,14 @@ def test_free_handicap(tc):
     fx.game.close_players()
     tc.assertEqual(fx.game.result.sgf_result, "B+F")
     tc.assertEqual(fx.game.result.detail,
-                   "forfeit: two attempted move to occupied point g4")
+                   "forfeit by two: attempted move to occupied point G4")
     fx.check_moves([
         ('w', 'G1'), ('b', 'E1'),
         ('w', 'G2'), ('b', 'E2'),
         ('w', 'G3'), ('b', 'E3'),
         ])
     tc.assertMultiLineEqual(fx.sgf_string(), """\
-(;FF[4]AB[cd][cf][gd][gf]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]HA[4]KM[0]RE[B+F]SZ[9];W[gi];B[ei];W[gh];B[eh];W[gg];B[eg]C[one beat two B+F (forfeit: two attempted move to occupied point g4)])
+(;FF[4]AB[cd][cf][gd][gf]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]HA[4]KM[0]RE[B+F]SZ[9];W[gi];B[ei];W[gh];B[eh];W[gg];B[eg]C[one beat two B+F (forfeit by two: attempted move to occupied point G4)])
 """)
 
 def test_free_handicap_bad_engine(tc):

@@ -23,6 +23,7 @@ Generic support code
 :mod:`~gomill.boards`                     Go board representation.
 :mod:`~gomill.ascii_boards`               ASCII Go board diagrams.
 :mod:`~gomill.handicap_layout`            Standard layout of fixed handicap stones.
+:mod:`~!gomill.gameplay`
 ========================================= ========================================================================
 
 ========================================= ========================================================================

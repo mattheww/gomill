@@ -391,8 +391,8 @@ def test_play(tc):
     tc.assertEqual(job2.player_w.code, '#1')
     tc.assertItemsEqual(comp.outstanding_simulations.keys(), [0, 1])
 
-    result1 = Game_result({'b' : 'opp', 'w' : '#1'}, 'w')
-    result1.sgf_result = "W+8.5"
+    result1 = Game_result.from_score('w', 8.5)
+    result1.set_players({'b' : 'opp', 'w' : '#1'})
     response1 = Game_job_result()
     response1.game_id = job1.game_id
     response1.game_result = result1

@@ -17,20 +17,15 @@ def fake_response(job, winner):
     """
     players = {'b' : job.player_b.code, 'w' : job.player_w.code}
     if winner == 'unknown':
-        winner = None
-        is_unknown = True
+        result = gtp_games.Game_result.from_score(
+            None, None, "no score reported")
+    elif winner is None:
+        result = gtp_games.Game_result.from_score(None, 0)
     else:
-        is_unknown = False
-    result = gtp_games.Game_result(players, winner)
+        result = gtp_games.Game_result.from_score(winner, 1.5)
+    result.set_players(players)
     result.game_id = job.game_id
-    if winner is None:
-        if is_unknown:
-            result.sgf_result = "Void"
-            result.detail = "fake unknown result"
-        else:
-            result.set_jigo()
-    else:
-        result.sgf_result += "1.5"
+
     response = game_jobs.Game_job_result()
     response.game_id = job.game_id
     response.game_result = result

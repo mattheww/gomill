@@ -144,11 +144,11 @@ def test_game_job_forfeit(tc):
     tc.assertEqual(result.game_result.sgf_result, "B+F")
     tc.assertEqual(
         result.game_result.detail,
-        "forfeit: failure response from 'genmove w' to player two:\n"
+        "forfeit by two: failure response from 'genmove w' to player two:\n"
         "error")
     tc.assertEqual(
         result.warnings,
-        ["forfeit: failure response from 'genmove w' to player two:\n"
+        ["forfeit by two: failure response from 'genmove w' to player two:\n"
         "error"])
     tc.assertEqual(result.log_entries, [])
     tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
@@ -166,11 +166,11 @@ def test_game_job_forfeit_and_quit(tc):
     tc.assertEqual(result.game_result.sgf_result, "B+F")
     tc.assertEqual(
         result.game_result.detail,
-        "forfeit: failure response from 'genmove w' to player two:\n"
+        "forfeit by two: failure response from 'genmove w' to player two:\n"
         "I'm out of here")
     tc.assertEqual(
         result.warnings,
-        ["forfeit: failure response from 'genmove w' to player two:\n"
+        ["forfeit by two: failure response from 'genmove w' to player two:\n"
          "I'm out of here"])
     tc.assertEqual(
         result.log_entries,
