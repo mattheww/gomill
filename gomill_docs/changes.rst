@@ -2,6 +2,10 @@ Changes
 =======
 
 
+* Bug fix: :meth:`.Board.is_empty()` was wrong after a self-capture which
+  leaves the board empty.
+
+
 Gomill 0.7.3 (2012-05-02)
 -------------------------
 

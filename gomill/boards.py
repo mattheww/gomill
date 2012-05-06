@@ -153,11 +153,14 @@ class Board(object):
         if self.board[row][col] is not None:
             raise ValueError
         self.board[row][col] = colour
+        self._is_empty = False
         surrounded = self._find_surrounded_groups()
         simple_ko_point = None
         if surrounded:
             if len(surrounded) == 1:
                 to_capture = surrounded
+                if len(to_capture[0].points) == self.side*self.side:
+                    self._is_empty = True
             else:
                 to_capture = [group for group in surrounded
                               if group.colour == opponent_of(colour)]
@@ -169,7 +172,6 @@ class Board(object):
             for group in to_capture:
                 for r, c in group.points:
                     self.board[r][c] = None
-        self._is_empty = False
         return simple_ko_point
 
     def apply_setup(self, black_points, white_points, empty_points):

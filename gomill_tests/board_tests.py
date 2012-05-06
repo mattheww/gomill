@@ -128,6 +128,16 @@ def test_copy(tc):
     b1.play(2, 1, 'b')
     tc.assertEqual(b1, b2)
 
+def test_full_board_selfcapture(tc):
+    b = boards.Board(9)
+    tc.assertTrue(b.is_empty())
+    tc.assertItemsEqual(b.list_occupied_points(), [])
+    for row in range(9):
+        for col in range(9):
+            b.play(row, col, 'b')
+    tc.assertEqual(b, boards.Board(9))
+    tc.assertIs(b.is_empty(), True)
+
 
 class Play_test_TestCase(gomill_test_support.Gomill_ParameterisedTestCase):
     """Check final position reached by playing a sequence of moves."""
