@@ -368,7 +368,7 @@ class Game(object):
       engine_descriptions   -- map player code -> string
 
     Methods which communicate with engines may raise BadGtpResponse if the
-    engine returns a failure response.
+    engine returns a failure or uninterpretable response.
 
     Methods which communicate with engines will normally raise GtpChannelError
     if there is trouble communicating with the engine. But after the game result
@@ -455,6 +455,19 @@ class Game(object):
         return self.game_controller.engine_descriptions
 
     def set_player_code(self, colour, player_code):
+        """Specify a player code.
+
+        player_code -- short ascii string
+
+        The player codes are used to identify the players in game results, SGF
+        files, and the error messages.
+
+        Setting these is optional but strongly encouraged. If not explicitly
+        set, they will just be 'b' and 'w'.
+
+        Raises ValueError if both players are given the same code.
+
+        """
         self.game_controller.set_player_code(colour, player_code)
 
     def close_players(self):

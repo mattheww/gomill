@@ -469,13 +469,13 @@ class Gtp_controller(object):
 
     Public attributes:
       channel           -- the underlying Gtp_channel
-      name              -- the channel name (used in error messages)
+      name              -- short ascii string (used in error messages)
       channel_is_closed -- bool
       channel_is_bad    -- bool
 
-    It's ok to access the underlying channel directly (eg, to enable logging).
-
     Instantiate with channel and name.
+
+    It's ok to access the underlying channel directly (eg, to enable logging).
 
     """
     def __init__(self, channel, name):
@@ -826,8 +826,6 @@ def describe_engine(controller, default="unknown"):
 class Game_controller(object):
     """Manage a pair of GTP controllers representing game players.
 
-    This is suitable for playing multiple games.
-
     Order of operations:
       gc = Game_controller()
       gc.set_player_code('b', ...)
@@ -846,6 +844,7 @@ class Game_controller(object):
 
     Public attributes for reading:
       players             -- map colour -> player code
+    After request_engine_descriptions() has been called:
       engine_names        -- map player code -> string
       engine_descriptions -- map player code -> string
 
@@ -874,11 +873,10 @@ class Game_controller(object):
 
         player_code -- short ascii string
 
-        The player codes are used to identify the players in game results, sgf
-        files, and the error messages.
+        The player codes are used to name the players (in error messages, and
+        anywhere else the Game_controller's client wants).
 
-        Setting these is optional but strongly encouraged. If not explicitly
-        set, they will just be 'b' and 'w'.
+        If not explicitly set, they will just be 'b' and 'w'.
 
         Raises ValueError if both players are given the same code.
 
@@ -895,7 +893,7 @@ class Game_controller(object):
         controller             -- Gtp_controller
         check_protocol_version -- bool (default True)
 
-        By convention, the channel name should be 'player <player code>'.
+        By convention, the controller's name should be 'player <player code>'.
 
         If check_protocol_version is true, rejects an engine that declares a
         GTP protocol version <> 2.
@@ -915,8 +913,10 @@ class Game_controller(object):
         command                -- list of strings (as for subprocess.Popen)
         check_protocol_version -- bool (default True)
 
-        Additional keyword arguments are passed to the Subprocess_gtp_channel
-        constructor.
+        Any additional keyword arguments are passed to the
+        Subprocess_gtp_channel constructor.
+
+        Creates a Gtp_controller, named 'player <player code>'.
 
         If check_protocol_version is true, rejects an engine that declares a
         GTP protocol version <> 2.
@@ -939,7 +939,7 @@ class Game_controller(object):
     ## Generic GTP controller API
 
     def get_controller(self, colour):
-        """Return the underlying Gtp_controller for the specified engine."""
+        """Return the underlying Gtp_controller for the specified player."""
         return self.controllers[colour]
 
     def send_command(self, colour, command, *arguments):
@@ -947,7 +947,7 @@ class Game_controller(object):
 
         colour    -- player to talk to ('b' or 'w')
         command   -- gtp command name (string)
-        arguments -- gtp arguments (strings)
+        arguments -- gtp arguments (as for do_command)
 
         Returns the response as a string.
 
