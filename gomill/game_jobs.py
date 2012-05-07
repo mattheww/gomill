@@ -220,7 +220,8 @@ class Game_job(object):
         warnings = []
         log_entries = []
         try:
-            game = gtp_games.Game(self.board_size, self.komi, self.move_limit)
+            game = gtp_games.Gtp_game(
+                self.board_size, self.komi, self.move_limit)
             game.set_player_code('b', self.player_b.code)
             game.set_player_code('w', self.player_w.code)
             game.set_game_id(self.game_id)

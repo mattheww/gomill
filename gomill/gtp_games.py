@@ -167,7 +167,7 @@ def describe_scoring(result, game_score):
 class _Gtp_backend(gameplay.Backend):
     """Concrete implementation of gameplay.Backend for GTP.
 
-    This is instantiated and configured by its 'owning' Game.
+    This is instantiated and configured by its 'owning' Gtp_game.
 
     """
 
@@ -329,7 +329,7 @@ class _Gtp_backend(gameplay.Backend):
         return game_score
 
 
-class Game(object):
+class Gtp_game(object):
     """A single game between two GTP engines.
 
     Instantiate with:
@@ -339,7 +339,7 @@ class Game(object):
 
     Normal use:
 
-      game = Game(...)
+      game = Gtp_game(...)
       game.set_player_code('b', ...)
       game.set_player_code('w', ...)
       game.use_internal_scorer() or game.allow_scorer(...) [optional]

@@ -42,7 +42,7 @@ def main():
 
     black_command = shlex.split(options.black)
     white_command = shlex.split(options.white)
-    game = gtp_games.Game(
+    game = gtp_games.Gtp_game(
         board_size=options.size,
         komi=options.komi,
         move_limit=1000)

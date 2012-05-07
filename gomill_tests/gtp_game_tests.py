@@ -20,7 +20,7 @@ def make_tests(suite):
         suite.addTest(Handicap_compensation_TestCase(*t))
 
 
-class Game_fixture(test_framework.Fixture):
+class Gtp_game_fixture(test_framework.Fixture):
     """Fixture managing a Gtp_game.
 
     Instantiate with the player objects (defaults to a Test_player).
@@ -42,7 +42,7 @@ class Game_fixture(test_framework.Fixture):
     def __init__(self, tc, player_b=None, player_w=None, **kwargs):
         self.tc = tc
         kwargs.setdefault('board_size', 9)
-        game = gtp_games.Game(**kwargs)
+        game = gtp_games.Gtp_game(**kwargs)
         game.set_player_code('b', 'one')
         game.set_player_code('w', 'two')
         if player_b is None:
@@ -109,7 +109,7 @@ class Game_fixture(test_framework.Fixture):
 
 
 def test_game(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     tc.assertDictEqual(fx.game.players, {'b' : 'one', 'w' : 'two'})
     tc.assertIs(fx.game.get_controller('b'), fx.controller_b)
     tc.assertIs(fx.game.get_controller('w'), fx.controller_w)
@@ -223,7 +223,7 @@ def test_game(tc):
         ])
 
 def test_unscored_game(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     tc.assertDictEqual(fx.game.players, {'b' : 'one', 'w' : 'two'})
     tc.assertIs(fx.game.get_controller('b'), fx.controller_b)
     tc.assertIs(fx.game.get_controller('w'), fx.controller_w)
@@ -250,7 +250,7 @@ def test_unscored_game(tc):
     tc.assertIs(result2.is_jigo, False)
 
 def test_jigo(tc):
-    fx = Game_fixture(tc, komi=18.0)
+    fx = Gtp_game_fixture(tc, komi=18.0)
     fx.game.use_internal_scorer()
     fx.game.ready()
     tc.assertIsNone(fx.game.result)
@@ -277,7 +277,7 @@ def test_jigo(tc):
     tc.assertIs(result2.is_jigo, True)
 
 def test_players_score_agree(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test("b+3", "B+3.0")
     tc.assertEqual(fx.game.result.sgf_result, "B+3")
     tc.assertIsNone(fx.game.result.detail)
@@ -285,7 +285,7 @@ def test_players_score_agree(tc):
     tc.assertEqual(fx.game.describe_scoring(), "one beat two B+3")
 
 def test_players_score_agree_draw(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test("0", "0")
     tc.assertEqual(fx.game.result.sgf_result, "0")
     tc.assertIsNone(fx.game.result.detail)
@@ -293,7 +293,7 @@ def test_players_score_agree_draw(tc):
     tc.assertEqual(fx.game.describe_scoring(), "one vs two jigo")
 
 def test_players_score_disagree(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test("b+3.0", "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "?")
     tc.assertEqual(fx.game.result.detail, "players disagreed")
@@ -304,7 +304,7 @@ def test_players_score_disagree(tc):
                    "two final_score: W+4")
 
 def test_players_score_disagree_one_no_margin(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test("b+", "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "?")
     tc.assertEqual(fx.game.result.detail, "players disagreed")
@@ -314,7 +314,7 @@ def test_players_score_disagree_one_no_margin(tc):
                    "two final_score: W+4")
 
 def test_players_score_disagree_one_jigo(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test("0", "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "?")
     tc.assertEqual(fx.game.result.detail, "players disagreed")
@@ -326,7 +326,7 @@ def test_players_score_disagree_one_jigo(tc):
 
 def test_players_score_disagree_equal_margin(tc):
     # check equal margin in both directions doesn't confuse it
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test("b+4", "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "?")
     tc.assertEqual(fx.game.result.detail, "players disagreed")
@@ -337,7 +337,7 @@ def test_players_score_disagree_equal_margin(tc):
                    "two final_score: W+4")
 
 def test_players_score_one_unreliable(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test("b+3", "W+4", allowed_scorers="w")
     tc.assertEqual(fx.game.result.sgf_result, "W+4")
     tc.assertIsNone(fx.game.result.detail)
@@ -345,7 +345,7 @@ def test_players_score_one_unreliable(tc):
     tc.assertEqual(fx.game.describe_scoring(), "two beat one W+4")
 
 def test_players_score_one_cannot_score(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test(None, "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "W+4")
     tc.assertIsNone(fx.game.result.detail)
@@ -353,7 +353,7 @@ def test_players_score_one_cannot_score(tc):
     tc.assertEqual(fx.game.describe_scoring(), "two beat one W+4")
 
 def test_players_score_one_fails(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test(Exception, "W+4")
     tc.assertEqual(fx.game.result.sgf_result, "W+4")
     tc.assertIsNone(fx.game.result.detail)
@@ -361,7 +361,7 @@ def test_players_score_one_fails(tc):
     tc.assertEqual(fx.game.describe_scoring(), "two beat one W+4")
 
 def test_players_score_one_illformed(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test("black wins", "W+4.5")
     tc.assertEqual(fx.game.result.sgf_result, "W+4.5")
     tc.assertIsNone(fx.game.result.detail)
@@ -372,7 +372,7 @@ def test_players_score_one_illformed(tc):
                    "two final_score: W+4.5")
 
 def test_players_score_agree_except_margin(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test("b+3", "B+4.0")
     tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.detail, "unknown margin")
@@ -383,7 +383,7 @@ def test_players_score_agree_except_margin(tc):
                    "two final_score: B+4.0")
 
 def test_players_score_agree_one_no_margin(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test("b+3", "B+")
     tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.detail, "unknown margin")
@@ -394,7 +394,7 @@ def test_players_score_agree_one_no_margin(tc):
                    "two final_score: B+")
 
 def test_players_score_agree_one_illformed_margin(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test("b+3", "B+a")
     tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.detail, "unknown margin")
@@ -405,7 +405,7 @@ def test_players_score_agree_one_illformed_margin(tc):
                    "two final_score: B+a")
 
 def test_players_score_agree_margin_zero(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test("b+0", "B+0")
     tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.detail, "unknown margin")
@@ -416,7 +416,7 @@ def test_players_score_agree_margin_zero(tc):
                    "two final_score: B+0")
 
 def test_players_score_one_scores_illformed(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test(None, "B+X")
     tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.detail, "unknown margin")
@@ -426,7 +426,7 @@ def test_players_score_one_scores_illformed(tc):
                    "two final_score: B+X")
 
 def test_players_score_one_scores_negative(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test(None, "B+-3")
     tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.detail, "unknown margin")
@@ -442,7 +442,8 @@ def test_resign(tc):
         ('b', 'C3'), ('w', 'D3'),
         ('b', 'resign'),
         ]
-    fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
+    fx = Gtp_game_fixture(
+        tc, Programmed_player(moves), Programmed_player(moves))
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -462,7 +463,7 @@ def test_claim(tc):
         return "claim"
     def handle_genmove_ex_w(args):
         return "claim"
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.engine_b.add_command('gomill-genmove_ex', handle_genmove_ex_b)
     fx.engine_w.add_command('gomill-genmove_ex', handle_genmove_ex_w)
     fx.game.set_claim_allowed('b')
@@ -489,7 +490,7 @@ def test_forfeit_occupied_point(tc):
         ]
     black_player = Programmed_player(moves)
     white_player = Programmed_player(moves)
-    fx = Game_fixture(tc, black_player, white_player)
+    fx = Gtp_game_fixture(tc, black_player, white_player)
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -515,7 +516,7 @@ def test_forfeit_simple_ko(tc):
         ]
     black_player = Programmed_player(moves)
     white_player = Programmed_player(moves)
-    fx = Game_fixture(tc, black_player, white_player)
+    fx = Gtp_game_fixture(tc, black_player, white_player)
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -533,7 +534,8 @@ def test_forfeit_illformed_move(tc):
         ('b', 'C5'), ('w', 'F5'),
         ('b', 'D6'), ('w', 'Z99'), # ill-formed move
         ]
-    fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
+    fx = Gtp_game_fixture(
+        tc, Programmed_player(moves), Programmed_player(moves))
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -550,7 +552,8 @@ def test_forfeit_genmove_fails(tc):
         ('b', 'C5'), ('w', 'F5'),
         ('b', 'fail'), # GTP failure response
         ]
-    fx = Game_fixture(tc, Programmed_player(moves), Programmed_player(moves))
+    fx = Gtp_game_fixture(
+        tc, Programmed_player(moves), Programmed_player(moves))
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -569,9 +572,10 @@ def test_forfeit_rejected_as_illegal(tc):
         ('b', 'C5'), ('w', 'F5'),
         ('b', 'D6'), ('w', 'E4'), # will be rejected
         ]
-    fx = Game_fixture(tc,
-                      Programmed_player(moves, reject=('E4', 'illegal move')),
-                      Programmed_player(moves))
+    fx = Gtp_game_fixture(
+        tc,
+        Programmed_player(moves, reject=('E4', 'illegal move')),
+        Programmed_player(moves))
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -588,9 +592,10 @@ def test_forfeit_play_failed(tc):
         ('b', 'C5'), ('w', 'F5'),
         ('b', 'D6'), ('w', 'E4'), # will be rejected
         ]
-    fx = Game_fixture(tc,
-                      Programmed_player(moves, reject=('E4', 'crash')),
-                      Programmed_player(moves))
+    fx = Gtp_game_fixture(
+        tc,
+        Programmed_player(moves, reject=('E4', 'crash')),
+        Programmed_player(moves))
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -605,7 +610,7 @@ def test_forfeit_play_failed(tc):
     fx.check_moves(moves[:-1])
 
 def test_move_limit(tc):
-    fx = Game_fixture(tc, move_limit=4)
+    fx = Gtp_game_fixture(tc, move_limit=4)
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
@@ -620,7 +625,7 @@ def test_move_limit(tc):
         ])
 
 def test_move_limit_exact(tc):
-    fx = Game_fixture(tc, move_limit=20)
+    fx = Gtp_game_fixture(tc, move_limit=20)
     fx.game.use_internal_scorer()
     fx.game.ready()
     fx.game.run()
@@ -640,14 +645,14 @@ def test_move_limit_exact(tc):
         ])
 
 def test_same_player_code(tc):
-    game = gtp_games.Game(board_size=9, komi=0)
+    game = gtp_games.Gtp_game(board_size=9, komi=0)
     game.set_player_code('b', 'one')
     tc.assertRaisesRegexp(ValueError, "player codes must be distinct",
                           game.set_player_code, 'w', 'one')
 
 
 def test_make_sgf(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.game.use_internal_scorer()
     fx.game.ready()
     fx.game.run()
@@ -663,7 +668,7 @@ zzzz]W[tt])
 """)
 
 def test_make_sgf_scoring_details(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.run_score_test("B+3", "B+4")
     fx.game.close_players()
     tc.assertMultiLineEqual(fx.sgf_string(), """\
@@ -673,7 +678,7 @@ two final_score: B+4]W[tt])
 """)
 
 def test_game_id(tc):
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.game.use_internal_scorer()
     fx.game.set_game_id("gitest")
     fx.game.ready()
@@ -689,7 +694,7 @@ def test_explain_last_move(tc):
     def handle_explain_last_move(args):
         counter[0] += 1
         return "EX%d" % counter[0]
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.engine_b.add_command('gomill-explain_last_move',
                             handle_explain_last_move)
     fx.game.ready()
@@ -705,7 +710,7 @@ def test_fixed_handicap(tc):
     def handle_fixed_handicap(args):
         fh_calls.append(args[0])
         return "C3 G7 C7"
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.engine_b.add_command('fixed_handicap', handle_fixed_handicap)
     fx.engine_w.add_command('fixed_handicap', handle_fixed_handicap)
     fx.game.ready()
@@ -736,7 +741,7 @@ def test_fixed_handicap_bad_engine(tc):
     def handle_fixed_handicap_bad(args):
         fh_calls.append(args[0])
         return "C3 G3 C7" # Should be G7, not G3
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.engine_b.add_command('fixed_handicap', handle_fixed_handicap_good)
     fx.engine_w.add_command('fixed_handicap', handle_fixed_handicap_bad)
     fx.game.ready()
@@ -753,7 +758,7 @@ def test_free_handicap(tc):
     def handle_set_free_handicap(args):
         fh_calls.append("S " + str(args))
         return ""
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.engine_b.add_command('place_free_handicap', handle_place_free_handicap)
     fx.engine_w.add_command('set_free_handicap', handle_set_free_handicap)
     fx.game.ready()
@@ -778,7 +783,7 @@ def test_free_handicap_bad_engine(tc):
     def handle_place_free_handicap(args):
         fh_calls.append("P " + str(args))
         return "g6 c6 g4 g6"
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.engine_b.add_command('place_free_handicap', handle_place_free_handicap)
     fx.game.ready()
     tc.assertRaisesRegexp(
@@ -806,7 +811,7 @@ class Handicap_compensation_TestCase(
     def runTest(self):
         def handle_fixed_handicap(args):
             return "D4 K10 D10"
-        fx = Game_fixture(self, board_size=13)
+        fx = Gtp_game_fixture(self, board_size=13)
         fx.engine_b.add_command('fixed_handicap', handle_fixed_handicap)
         fx.engine_w.add_command('fixed_handicap', handle_fixed_handicap)
         fx.game.use_internal_scorer(handicap_compensation=self.hc)
@@ -822,7 +827,7 @@ def test_move_callback(tc):
     def see(colour, move, board):
         tc.assertIsInstance(board, boards.Board)
         seen.append("%s %s" % (colour, format_vertex(move)))
-    fx = Game_fixture(tc)
+    fx = Gtp_game_fixture(tc)
     fx.game.set_move_callback(see)
     fx.game.ready()
     fx.game.run()
