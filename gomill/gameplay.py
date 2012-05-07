@@ -34,7 +34,7 @@ class Game(object):
       move_limit       -- int or None
       move_count       -- int
 
-    Meaningful while the game is in progress:
+    Meaningful before the game is over:
       next_player      -- colour
       pass_count       -- int (number of consecutive passes just played)
 
@@ -78,6 +78,8 @@ class Game(object):
         """Set or clear the move limit.
 
         move_limit -- int or None
+
+        If this isn't called, the move limit is None.
 
         """
         self.move_limit = move_limit
