@@ -4,6 +4,7 @@ from textwrap import dedent
 
 from gomill.common import opponent_of, move_from_vertex, format_vertex
 from gomill import ascii_boards
+from gomill import boards
 from gomill import gameplay
 
 from gomill_tests import test_framework
@@ -16,9 +17,10 @@ def make_tests(suite):
 ### Game
 
 class Game_fixture(test_framework.Fixture):
-    def __init__(self, tc):
+    def __init__(self, tc, **kwargs):
         self.tc = tc
-        self.game = gameplay.Game(9)
+        kwargs.setdefault('board', boards.Board(9))
+        self.game = gameplay.Game(**kwargs)
 
     def check_not_over(self):
         self.tc.assertIs(self.game.is_over, False)
@@ -74,7 +76,8 @@ DIAGRAM1 = """\
 def test_game_basic(tc):
     fx = Game_fixture(tc)
     game = fx.game
-    tc.assertEqual(game.board_size, 9)
+    tc.assertEqual(game.board.side, 9)
+    tc.assertIs(game.board.is_empty(), True)
     tc.assertIsNone(game.move_limit)
     fx.check_not_over()
     tc.assertEqual(game.move_count, 0)
@@ -214,21 +217,21 @@ DIAGRAM2 = """\
    A  B  C  D  E  F  G  H  J
 """
 
-def test_game_set_initial_state(tc):
-    fx = Game_fixture(tc)
+def test_game_initial_board(tc):
+    board = boards.Board(9)
+    board.play(1, 2, 'b')
+    board.play(5, 3, 'b')
+    board.play(8, 8, 'b')
+    fx = Game_fixture(tc, board=board, first_player='w')
     game = fx.game
-    game.set_initial_state('w', [(1, 2), (5, 3), (8, 8)], [])
-    tc.assertRaisesRegexp(gameplay.GameStateError, r"^board is not empty$",
-                          game.set_initial_state, 'b', [], [])
     fx.check_not_over()
     tc.assertEqual(game.move_count, 0)
     tc.assertEqual(game.next_player, 'w')
     game.record_move('w', (2, 3))
     fx.check_not_over()
     tc.assertEqual(game.move_count, 1)
+    tc.assertIs(game.board, board)
     tc.assertBoardEqual(game.board, DIAGRAM2)
-    tc.assertRaisesRegexp(gameplay.GameStateError, r"^game has started$",
-                          game.set_initial_state, 'b', [], [])
 
 
 ### Scoring
@@ -354,15 +357,15 @@ def test_result_from_score_detail(tc):
     tc.assertEqual(result.detail, "detail")
 
 def test_result_from_unscored_game(tc):
-    game1 = gameplay.Game(19)
+    game1 = gameplay.Game(boards.Board(19))
     game1.record_resignation_by('w')
     result = gameplay.Result.from_unscored_game(game1)
     tc.assertEqual(result.sgf_result, "B+R")
-    game2 = gameplay.Game(19)
+    game2 = gameplay.Game(boards.Board(19))
     tc.assertRaisesRegexp(
         ValueError, "^game is not over$",
         gameplay.Result.from_unscored_game, game2)
-    game3 = gameplay.Game(19)
+    game3 = gameplay.Game(boards.Board(19))
     game3.record_move('b', None)
     game3.record_move('w', None)
     tc.assertRaisesRegexp(

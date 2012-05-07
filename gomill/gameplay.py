@@ -19,7 +19,9 @@ class GameStateError(StandardError):
 class Game(object):
     """Track the state of a single Go game.
 
-    Instantiate with the board size.
+    Instantiate with:
+       board        -- the Board to play on (doesn't have to be empty)
+       first_player -- colour (default 'b')
 
     This enforces a simple ko rule, but no superko rule.
     It accepts self-capture moves.
@@ -27,21 +29,16 @@ class Game(object):
 
 
     Public attributes (treat as read-only):
+      board            -- the Board
       is_over          -- bool
-
-    Configuration:
-      board_size       -- int
       move_limit       -- int or None
-
-    Useful while the game is in progress and after it is over:
-      board            -- boards.Board
       move_count       -- int
 
-    Useful while the game is in progress:
+    Meaningful while the game is in progress:
       next_player      -- colour
       pass_count       -- int (number of consecutive passes just played)
 
-    Useful when the game is over:
+    Meaningful when the game is over:
       passed_out       -- bool
       seen_resignation -- bool
       seen_claim       -- bool
@@ -58,13 +55,12 @@ class Game(object):
     illegal moves are not.
 
     """
-    def __init__(self, board_size):
-        self.board_size = board_size
+    def __init__(self, board, first_player="b"):
+        self.board = board
 
         self.move_limit = None
-        self.next_player = "b"
+        self.next_player = first_player
 
-        self.board = boards.Board(board_size)
         self.move_count = 0
         self.pass_count = 0
         self.simple_ko_point = None
@@ -85,26 +81,6 @@ class Game(object):
 
         """
         self.move_limit = move_limit
-
-    def set_initial_state(self, first_player, black_points, white_points):
-        """Specify the initial position and starting player.
-
-        first_player -- colour
-        black_points, white_points -- iterable of points (row, col)
-
-        See boards.apply_setup for details of setup handling. Illegal positions
-        are accepted as described there.
-
-        There's no need to call this if you want an empty board with
-        Black to start.
-
-        """
-        if self.move_count != 0:
-            raise GameStateError("game has started")
-        if not self.board.is_empty():
-            raise GameStateError("board is not empty")
-        self.board.apply_setup(black_points, white_points, [])
-        self.next_player = first_player
 
     def _set_over(self):
         self.is_over = True
@@ -629,6 +605,17 @@ class Game_runner(object):
         self.additional_sgf_props.append(('HA', handicap))
         self.handicap_stones = points
 
+    def _make_game(self):
+        board = boards.Board(self.board_size)
+        if self.handicap_stones:
+            board.apply_setup(self.handicap_stones, [], [])
+            first_player = 'w'
+        else:
+            first_player = 'b'
+        game = Game(board, first_player)
+        game.set_move_limit(self.move_limit)
+        return game
+
     def _do_move(self, game):
         colour = game.next_player
         opponent = opponent_of(colour)
@@ -695,10 +682,7 @@ class Game_runner(object):
         far, and 'result' will not be set.
 
         """
-        game = Game(self.board_size)
-        game.set_move_limit(self.move_limit)
-        if self.handicap_stones:
-            game.set_initial_state("w", self.handicap_stones, [])
+        game = self._make_game()
         while not game.is_over:
             self._do_move(game)
         self._set_result(game)
