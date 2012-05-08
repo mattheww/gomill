@@ -231,6 +231,22 @@ def test_game_job_late_errors(tc):
     tc.assertEqual(result.warnings, [])
     tc.assertEqual(result.log_entries,
                    ["error closing player two:\nforced failure for close"])
+    tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
+    (;FF[4]AP[gomill:VER]
+    C[Game id gameid
+    Date ***
+    Result one beat two B+10.5
+    Black one one
+    White two two]
+    CA[UTF-8]DT[***]GM[1]GN[gameid]KM[7.5]PB[one]PW[two]RE[B+10.5]SZ[9];
+    B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];
+    W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];
+    C[one beat two B+10.5
+
+    error closing player two:
+    forced failure for close]W[tt]
+    )
+    """))
 
 def test_game_job_late_error_from_void_game(tc):
     def fail_genmove_and_close(channel):
@@ -251,6 +267,21 @@ def test_game_job_late_error_from_void_game(tc):
         "error closing player two:\n"
         "forced failure for close")
     tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.void/gjtest.sgf')
+    tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
+    (;FF[4]AP[gomill:VER]
+    C[Game id gameid
+    Date ***
+    Black one one
+    White two two]CA[UTF-8]
+    DT[***]GM[1]GN[gameid]KM[7.5]PB[one]PW[two]RE[Void]SZ[9];B[ei]
+    C[aborting game due to error:
+    transport error sending 'genmove w' to player two:
+    forced failure for send_command_line
+
+    error closing player two:
+    forced failure for close]
+    )
+    """))
 
 def test_game_job_cwd_env(tc):
     fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
