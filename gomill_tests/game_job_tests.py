@@ -56,10 +56,10 @@ class Game_job_fixture(test_framework.Fixture):
     def __init__(self, tc):
         player_b = game_jobs.Player()
         player_b.code = 'one'
-        player_b.cmd_args = ['test', 'id=one']
+        player_b.cmd_args = ['testb', 'id=one']
         player_w = game_jobs.Player()
         player_w.code = 'two'
-        player_w.cmd_args = ['test', 'id=two']
+        player_w.cmd_args = ['testw', 'id=two']
         self.job = Test_game_job()
         self.job.game_id = 'gameid'
         self.job.player_b = player_b
@@ -76,7 +76,7 @@ def test_player_copy(tc):
     p1 = gj.job.player_b
     p2 = p1.copy("clone")
     tc.assertEqual(p2.code, "clone")
-    tc.assertEqual(p2.cmd_args, ['test', 'id=one'])
+    tc.assertEqual(p2.cmd_args, ['testb', 'id=one'])
     tc.assertIsNot(p1.cmd_args, p2.cmd_args)
 
 def test_game_job(tc):
@@ -108,6 +108,8 @@ def test_game_job(tc):
     Result one beat two B+10.5
     test sgf_note
     on two lines
+    one cpu time: 546.20s
+    two cpu time: 567.20s
     Black one one
     White two two]
     CA[UTF-8]DT[***]EV[game_job_tests]GM[1]GN[gjt 0_000]KM[7.5]PB[one]
@@ -236,6 +238,7 @@ def test_game_job_late_errors(tc):
     C[Game id gameid
     Date ***
     Result one beat two B+10.5
+    one cpu time: 546.20s
     Black one one
     White two two]
     CA[UTF-8]DT[***]GM[1]GN[gameid]KM[7.5]PB[one]PW[two]RE[B+10.5]SZ[9];
@@ -377,6 +380,8 @@ def test_game_job_move_limit(tc):
     C[Game id gameid
     Date ***
     Result one vs two Void (hit move limit)
+    one cpu time: 546.20s
+    two cpu time: 567.20s
     Black one one
     White two two]
     CA[UTF-8]DT[***]GM[1]GN[gameid]KM[7.5]PB[one]PW[two]RE[Void]SZ[9];B[ei];
@@ -461,13 +466,38 @@ def test_game_job_cpu_time(tc):
     gj = Game_job_fixture(tc)
     gj.job.player_b.cmd_args.append('init=register_commands')
     result = gj.job.run()
-    tc.assertEqual(result.game_result.cpu_times, {'one': 99.5, 'two': None})
+    tc.assertEqual(result.game_result.cpu_times, {'one': 99.5, 'two': 567.2})
     tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
     (;FF[4]AP[gomill:VER]
     C[Game id gameid
     Date ***
     Result one beat two B+10.5
     one cpu time: 99.50s
+    two cpu time: 567.20s
+    Black one one
+    White two two]
+    CA[UTF-8]DT[***]GM[1]GN[gameid]KM[7.5]PB[one]PW[two]RE[B+10.5]SZ[9];
+    B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];
+    W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+10.5]W[tt])
+    """))
+
+def test_game_job_cpu_time_fail(tc):
+    def handle_cpu_time_bad(args):
+        return "nonsense"
+    def register_commands(channel):
+        channel.engine.add_command('gomill-cpu_time', handle_cpu_time_bad)
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    fx.register_init_callback('register_commands', register_commands)
+    gj = Game_job_fixture(tc)
+    gj.job.player_b.cmd_args.append('init=register_commands')
+    result = gj.job.run()
+    tc.assertEqual(result.game_result.cpu_times, {'one': '?', 'two': 567.2})
+    tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
+    (;FF[4]AP[gomill:VER]
+    C[Game id gameid
+    Date ***
+    Result one beat two B+10.5
+    two cpu time: 567.20s
     Black one one
     White two two]
     CA[UTF-8]DT[***]GM[1]GN[gameid]KM[7.5]PB[one]PW[two]RE[B+10.5]SZ[9];

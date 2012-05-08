@@ -266,6 +266,10 @@ class State_reporter_fixture(test_framework.Fixture):
 
 ## Mock subprocess gtp channel
 
+class Mock_resource_usage(object):
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
 class Mock_subprocess_gtp_channel(
     gtp_controller_test_support.Testing_gtp_channel):
     """Mock substitute for Subprocess_gtp_channel.
@@ -299,6 +303,9 @@ class Mock_subprocess_gtp_channel(
         requested_stderr
         requested_cwd
         requested_env
+
+    After close(), provides mocked-up exit_status and resource_usage, like a
+    Subprocess_gtp_channel. The cpu time used is a function of command[0].
 
     """
     engine_registry = {}
@@ -346,6 +353,18 @@ class Mock_subprocess_gtp_channel(
         gtp_controller_test_support.Testing_gtp_channel.__init__(self, engine)
         if callback is not None:
             callback(self)
+
+    def close(self):
+        # Nothing looks at exit_status, but we might as well make it plausible.
+        try:
+            gtp_controller_test_support.Testing_gtp_channel.close(self)
+        except Exception:
+            self.exit_status = 1
+            raise
+        self.exit_status = 0
+        fake_time = sum(map(ord, self.requested_command[0]))
+        self.resource_usage = Mock_resource_usage(
+            ru_utime=fake_time, ru_stime=0.2)
 
 
 class Mock_subprocess_fixture(test_framework.Fixture):
