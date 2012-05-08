@@ -7,6 +7,7 @@ from gomill import gtp_controller
 from gomill import gtp_games
 from gomill import sgf
 from gomill.common import format_vertex
+from gomill.gtp_engine import GtpError, GtpFatalError
 
 from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
@@ -835,3 +836,34 @@ def test_move_callback(tc):
     tc.assertEqual(",".join(seen),
                    "b E1,w G1,b E2,w G2,b E3,w G3,b E4,w G4,b E5,w G5,b E6,"
                    "w G6,b E7,w G7,b E8,w G8,b E9,w G9,b pass,w pass")
+
+def test_gtp_cpu_time(tc):
+    def handle_cpu_time_good(args):
+        return "99.5"
+    def handle_cpu_time_bad(args):
+        return "nonsense"
+    fx = Gtp_game_fixture(tc)
+    fx.engine_b.add_command('gomill-cpu_time', handle_cpu_time_good)
+    fx.engine_w.add_command('gomill-cpu_time', handle_cpu_time_bad)
+    fx.game.ready()
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertDictEqual(fx.game.result.cpu_times, {'one' : 99.5, 'two' : '?'})
+    tc.assertIsNone(fx.game.describe_late_errors())
+
+def test_gtp_cpu_time_fail(tc):
+    def handle_cpu_time_soft(args):
+        raise GtpError("forced to fail soft")
+    def handle_cpu_time_hard(args):
+        raise GtpFatalError("forced to fail hard")
+    fx = Gtp_game_fixture(tc)
+    fx.engine_b.add_command('gomill-cpu_time', handle_cpu_time_soft)
+    fx.engine_w.add_command('gomill-cpu_time', handle_cpu_time_hard)
+    fx.game.ready()
+    fx.game.run()
+    fx.game.close_players()
+    tc.assertDictEqual(fx.game.result.cpu_times, {'one' : '?', 'two' : '?'})
+    tc.assertEqual(fx.game.describe_late_errors(),
+                   "error sending 'quit' to player two:\n"
+                   "engine has closed the command channel")
+
