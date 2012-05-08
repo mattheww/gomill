@@ -451,6 +451,30 @@ def test_game_job_players_score(tc):
     tc.assertEqual(result.game_result.sgf_result, "B+33")
     tc.assertEqual(clog, ["final_score_b"])
 
+def test_game_job_cpu_time(tc):
+    def handle_cpu_time(args):
+        return "99.5"
+    def register_commands(channel):
+        channel.engine.add_command('gomill-cpu_time', handle_cpu_time)
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    fx.register_init_callback('register_commands', register_commands)
+    gj = Game_job_fixture(tc)
+    gj.job.player_b.cmd_args.append('init=register_commands')
+    result = gj.job.run()
+    tc.assertEqual(result.game_result.cpu_times, {'one': 99.5, 'two': None})
+    tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
+    (;FF[4]AP[gomill:VER]
+    C[Game id gameid
+    Date ***
+    Result one beat two B+10.5
+    one cpu time: 99.50s
+    Black one one
+    White two two]
+    CA[UTF-8]DT[***]GM[1]GN[gameid]KM[7.5]PB[one]PW[two]RE[B+10.5]SZ[9];
+    B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];
+    W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+10.5]W[tt])
+    """))
+
 
 ### check_player
 
