@@ -1074,7 +1074,7 @@ class Game_controller(object):
                 try:
                     s = controller.safe_do_command('gomill-cpu_time')
                     result[colour] = float(s)
-                except (BadGtpResponse, ValueError, TypeError):
+                except (BadGtpResponse, ValueError):
                     result[colour] = "?"
         return result
 
