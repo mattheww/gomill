@@ -365,6 +365,7 @@ class Mock_subprocess_fixture(test_framework.Fixture):
 
     def _unpatch(self):
         Mock_subprocess_gtp_channel.engine_registry.clear()
+        Mock_subprocess_gtp_channel.callback_registry.clear()
         Mock_subprocess_gtp_channel.channels.clear()
         gtp_controller.Subprocess_gtp_channel = self._sgc
 
