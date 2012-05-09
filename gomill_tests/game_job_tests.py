@@ -100,20 +100,20 @@ class Game_job_fixture(gtp_engine_fixtures.Mock_subprocess_fixture):
 
 
 def test_player_copy(tc):
-    gj = Game_job_fixture(tc)
-    p1 = gj.job.player_b
+    fx = Game_job_fixture(tc)
+    p1 = fx.job.player_b
     p2 = p1.copy("clone")
     tc.assertEqual(p2.code, "clone")
     tc.assertEqual(p2.cmd_args, ['testb', 'id=one'])
     tc.assertIsNot(p1.cmd_args, p2.cmd_args)
 
 def test_game_job(tc):
-    gj = Game_job_fixture(tc)
-    gj.job.game_data = 'gamedata'
-    gj.job.sgf_game_name = "gjt 0_000"
-    gj.job.sgf_event = "game_job_tests"
-    gj.job.sgf_note = "test sgf_note\non two lines"
-    result = gj.job.run()
+    fx = Game_job_fixture(tc)
+    fx.job.game_data = 'gamedata'
+    fx.job.sgf_game_name = "gjt 0_000"
+    fx.job.sgf_event = "game_job_tests"
+    fx.job.sgf_note = "test sgf_note\non two lines"
+    result = fx.job.run()
     # Win by 18 on the board minus 7.5 komi
     tc.assertEqual(result.game_result.sgf_result, "B+10.5")
     tc.assertEqual(result.game_id, 'gameid')
@@ -121,13 +121,13 @@ def test_game_job(tc):
     tc.assertEqual(result.game_data, 'gamedata')
     tc.assertEqual(result.warnings, [])
     tc.assertEqual(result.log_entries, [])
-    channel = gj.get_channel('one')
+    channel = fx.get_channel('one')
     tc.assertIsNone(channel.requested_stderr)
     tc.assertIsNone(channel.requested_cwd)
     tc.assertIsNone(channel.requested_env)
-    tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
-    tc.assertIsNone(gj.job._mkdir_pathname)
-    tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
+    tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
+    tc.assertIsNone(fx.job._mkdir_pathname)
+    tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
     (;FF[4]AP[gomill:VER]
     C[Event: game_job_tests
     Game id gameid
@@ -146,25 +146,25 @@ def test_game_job(tc):
     """))
 
 def test_duplicate_player_codes(tc):
-    gj = Game_job_fixture(tc)
-    gj.job.player_w.code = "one"
+    fx = Game_job_fixture(tc)
+    fx.job.player_w.code = "one"
     tc.assertRaisesRegexp(
         JobFailed, "error creating game: player codes must be distinct",
-        gj.job.run)
+        fx.job.run)
 
 def test_game_job_no_sgf(tc):
-    gj = Game_job_fixture(tc)
-    gj.job.sgf_dirname = None
-    result = gj.job.run()
+    fx = Game_job_fixture(tc)
+    fx.job.sgf_dirname = None
+    result = fx.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+10.5")
-    tc.assertIsNone(gj.job._sgf_pathname_written)
+    tc.assertIsNone(fx.job._sgf_pathname_written)
 
 def test_game_job_forfeit(tc):
     def handle_genmove(args):
         raise GtpError("error")
-    gj = Game_job_fixture(tc)
-    gj.add_handler('w', 'genmove', handle_genmove)
-    result = gj.job.run()
+    fx = Game_job_fixture(tc)
+    fx.add_handler('w', 'genmove', handle_genmove)
+    result = fx.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+F")
     tc.assertEqual(
         result.game_result.detail,
@@ -175,14 +175,14 @@ def test_game_job_forfeit(tc):
         ["forfeit by two: failure response from 'genmove w' to player two:\n"
         "error"])
     tc.assertEqual(result.log_entries, [])
-    tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
+    tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
 
 def test_game_job_forfeit_and_quit(tc):
     def handle_genmove(args):
         raise GtpFatalError("I'm out of here")
-    gj = Game_job_fixture(tc)
-    gj.add_handler('w', 'genmove', handle_genmove)
-    result = gj.job.run()
+    fx = Game_job_fixture(tc)
+    fx.add_handler('w', 'genmove', handle_genmove)
+    result = fx.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+F")
     tc.assertEqual(
         result.game_result.detail,
@@ -196,34 +196,34 @@ def test_game_job_forfeit_and_quit(tc):
         result.log_entries,
         ["error sending 'known_command gomill-cpu_time' to player two:\n"
          "engine has closed the command channel"])
-    tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
+    tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
 
 def test_game_job_exec_failure(tc):
-    gj = Game_job_fixture(tc)
-    gj.job.player_w.cmd_args.append('fail=startup')
+    fx = Game_job_fixture(tc)
+    fx.job.player_w.cmd_args.append('fail=startup')
     with tc.assertRaises(JobFailed) as ar:
-        gj.job.run()
+        fx.job.run()
     tc.assertEqual(str(ar.exception),
                    "aborting game due to error:\n"
                    "error starting subprocess for player two:\n"
                    "exec forced to fail")
     # No void sgf file unless at least one move was played
-    tc.assertIsNone(gj.job._sgf_pathname_written)
+    tc.assertIsNone(fx.job._sgf_pathname_written)
 
 def test_game_job_channel_error(tc):
     def fail_first_genmove(channel):
         channel.fail_command = 'genmove'
-    gj = Game_job_fixture(tc)
-    gj.init_player('w', fail_first_genmove)
+    fx = Game_job_fixture(tc)
+    fx.init_player('w', fail_first_genmove)
     with tc.assertRaises(JobFailed) as ar:
-        gj.job.run()
+        fx.job.run()
     tc.assertEqual(str(ar.exception),
                    "aborting game due to error:\n"
                    "transport error sending 'genmove w' to player two:\n"
                    "forced failure for send_command_line")
-    tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.void/gjtest.sgf')
-    tc.assertEqual(gj.job._mkdir_pathname, '/sgf/test.void')
-    tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
+    tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.void/gjtest.sgf')
+    tc.assertEqual(fx.job._mkdir_pathname, '/sgf/test.void')
+    tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
     (;FF[4]AP[gomill:VER]
     C[Game id gameid
     Date ***
@@ -239,14 +239,14 @@ def test_game_job_channel_error(tc):
 def test_game_job_late_errors(tc):
     def fail_close(channel):
         channel.fail_close = True
-    gj = Game_job_fixture(tc)
-    gj.init_player('w', fail_close)
-    result = gj.job.run()
+    fx = Game_job_fixture(tc)
+    fx.init_player('w', fail_close)
+    result = fx.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+10.5")
     tc.assertEqual(result.warnings, [])
     tc.assertEqual(result.log_entries,
                    ["error closing player two:\nforced failure for close"])
-    tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
+    tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
     (;FF[4]AP[gomill:VER]
     C[Game id gameid
     Date ***
@@ -268,10 +268,10 @@ def test_game_job_late_error_from_void_game(tc):
     def fail_genmove_and_close(channel):
         channel.fail_command = 'genmove'
         channel.fail_close = True
-    gj = Game_job_fixture(tc)
-    gj.init_player('w', fail_genmove_and_close)
+    fx = Game_job_fixture(tc)
+    fx.init_player('w', fail_genmove_and_close)
     with tc.assertRaises(JobFailed) as ar:
-        gj.job.run()
+        fx.job.run()
     tc.assertMultiLineEqual(
         str(ar.exception),
         "aborting game due to error:\n"
@@ -280,8 +280,8 @@ def test_game_job_late_error_from_void_game(tc):
         "also:\n"
         "error closing player two:\n"
         "forced failure for close")
-    tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.void/gjtest.sgf')
-    tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
+    tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.void/gjtest.sgf')
+    tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
     (;FF[4]AP[gomill:VER]
     C[Game id gameid
     Date ***
@@ -298,81 +298,81 @@ def test_game_job_late_error_from_void_game(tc):
     """))
 
 def test_game_job_cwd_env(tc):
-    gj = Game_job_fixture(tc)
-    gj.job.player_b.cwd = "/nonexistent_directory"
-    gj.job.player_b.environ = {'GOMILL_TEST' : 'gomill'}
-    result = gj.job.run()
-    channel = gj.get_channel('one')
+    fx = Game_job_fixture(tc)
+    fx.job.player_b.cwd = "/nonexistent_directory"
+    fx.job.player_b.environ = {'GOMILL_TEST' : 'gomill'}
+    result = fx.job.run()
+    channel = fx.get_channel('one')
     tc.assertIsNone(channel.requested_stderr)
     tc.assertEqual(channel.requested_cwd, "/nonexistent_directory")
     tc.assertEqual(channel.requested_env['GOMILL_TEST'], 'gomill')
     # Check environment was merged, not replaced
     tc.assertIn('PATH', channel.requested_env)
-    tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
+    tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
 
 def test_game_job_stderr_discarded(tc):
-    gj = Game_job_fixture(tc)
-    gj.job.player_b.discard_stderr = True
-    result = gj.job.run()
-    channel = gj.get_channel('one')
+    fx = Game_job_fixture(tc)
+    fx.job.player_b.discard_stderr = True
+    result = fx.job.run()
+    channel = fx.get_channel('one')
     tc.assertIsInstance(channel.requested_stderr, file)
     tc.assertEqual(channel.requested_stderr.name, os.devnull)
 
 def test_game_job_stderr_set(tc):
-    gj = Game_job_fixture(tc)
-    gj.job.stderr_pathname = "/dev/full"
-    result = gj.job.run()
-    channel = gj.get_channel('one')
+    fx = Game_job_fixture(tc)
+    fx.job.stderr_pathname = "/dev/full"
+    result = fx.job.run()
+    channel = fx.get_channel('one')
     tc.assertIsInstance(channel.requested_stderr, file)
     tc.assertEqual(channel.requested_stderr.name, "/dev/full")
 
 def test_game_job_stderr_set_and_discarded(tc):
-    gj = Game_job_fixture(tc)
-    gj.job.player_b.discard_stderr = True
-    result = gj.job.run()
-    channel = gj.get_channel('one')
+    fx = Game_job_fixture(tc)
+    fx.job.player_b.discard_stderr = True
+    result = fx.job.run()
+    channel = fx.get_channel('one')
     tc.assertIsInstance(channel.requested_stderr, file)
     tc.assertEqual(channel.requested_stderr.name, os.devnull)
 
 def test_game_job_gtp_aliases(tc):
-    gj = Game_job_fixture(tc)
-    gj.job.player_w.gtp_aliases = {'genmove': 'fail'}
-    result = gj.job.run()
+    fx = Game_job_fixture(tc)
+    fx.job.player_w.gtp_aliases = {'genmove': 'fail'}
+    result = fx.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+F")
 
 def test_game_job_claim(tc):
     def handle_genmove_ex(args):
         tc.assertIn('claim', args)
         return "claim"
-    gj = Game_job_fixture(tc)
-    gj.add_handler('b', 'gomill-genmove_ex', handle_genmove_ex)
-    gj.add_handler('w', 'gomill-genmove_ex', handle_genmove_ex)
-    gj.job.player_w.allow_claim = True
-    result = gj.job.run()
+    fx = Game_job_fixture(tc)
+    fx.add_handler('b', 'gomill-genmove_ex', handle_genmove_ex)
+    fx.add_handler('w', 'gomill-genmove_ex', handle_genmove_ex)
+    fx.job.player_w.allow_claim = True
+    result = fx.job.run()
     tc.assertEqual(result.game_result.sgf_result, "W+")
-    tc.assertEqual(gj.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
+    tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
 
 def test_game_job_handicap(tc):
     def handle_fixed_handicap(args):
         return "D4 K10 D10"
-    gj = Game_job_fixture(tc)
-    gj.add_handler('b', 'fixed_handicap', handle_fixed_handicap)
-    gj.add_handler('w', 'fixed_handicap', handle_fixed_handicap)
-    gj.job.board_size = 13
-    gj.job.handicap = 3
-    gj.job.handicap_is_free = False
-    gj.job.internal_scorer_handicap_compensation = 'full'
-    result = gj.job.run()
+    fx = Game_job_fixture(tc)
+    fx.add_handler('b', 'fixed_handicap', handle_fixed_handicap)
+    fx.add_handler('w', 'fixed_handicap', handle_fixed_handicap)
+    fx.job.board_size = 13
+    fx.job.handicap = 3
+    fx.job.handicap_is_free = False
+    fx.job.internal_scorer_handicap_compensation = 'full'
+    result = fx.job.run()
     # area score 53, less 7.5 komi, less 3 handicap compensation
     tc.assertEqual(result.game_result.sgf_result, "B+42.5")
 
 def test_game_job_move_limit(tc):
-    gj = Game_job_fixture(tc)
-    gj.job.move_limit = 4
-    result = gj.job.run()
+    fx = Game_job_fixture(tc)
+    fx.job.move_limit = 4
+    result = fx.job.run()
     tc.assertEqual(result.game_result.sgf_result, "Void")
     tc.assertEqual(result.game_result.detail, "hit move limit")
-    tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
+    tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
     (;FF[4]AP[gomill:VER]
     C[Game id gameid
     Date ***
@@ -394,13 +394,13 @@ def test_game_job_startup_gtp_commands(tc):
         return "ignored result"
     def handle_clear_board(args):
         clog.append(("clear_board", args))
-    gj = Game_job_fixture(tc)
-    gj.add_handler('w', 'dummy1', handle_dummy1)
-    gj.add_handler('w', 'dummy2', handle_dummy2)
-    gj.add_handler('w', 'clear_board', handle_clear_board)
-    gj.job.player_w.startup_gtp_commands = [('dummy1', []),
+    fx = Game_job_fixture(tc)
+    fx.add_handler('w', 'dummy1', handle_dummy1)
+    fx.add_handler('w', 'dummy2', handle_dummy2)
+    fx.add_handler('w', 'clear_board', handle_clear_board)
+    fx.job.player_w.startup_gtp_commands = [('dummy1', []),
                                             ('dummy2', ['arg'])]
-    result = gj.job.run()
+    result = fx.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+10.5")
     tc.assertEqual(clog,
                    [('dummy1', []),
@@ -410,12 +410,12 @@ def test_game_job_startup_gtp_commands(tc):
 def test_game_job_startup_gtp_commands_error(tc):
     def handle_failplease(args):
         raise GtpError("startup command which fails")
-    gj = Game_job_fixture(tc)
-    gj.add_handler('w', 'failplease', handle_failplease)
-    gj.job.player_w.startup_gtp_commands = [('list_commands', []),
+    fx = Game_job_fixture(tc)
+    fx.add_handler('w', 'failplease', handle_failplease)
+    fx.job.player_w.startup_gtp_commands = [('list_commands', []),
                                             ('failplease', [])]
     with tc.assertRaises(JobFailed) as ar:
-        gj.job.run()
+        fx.job.run()
     tc.assertEqual(
         str(ar.exception),
         "aborting game due to error:\n"
@@ -429,23 +429,23 @@ def test_game_job_players_score(tc):
         return "B+33"
     def handle_final_score_w(args):
         clog.append("final_score_w")
-    gj = Game_job_fixture(tc)
-    gj.add_handler('b', 'final_score', handle_final_score_b)
-    gj.add_handler('w', 'final_score', handle_final_score_w)
-    gj.job.use_internal_scorer = False
-    gj.job.player_w.is_reliable_scorer = False
-    result = gj.job.run()
+    fx = Game_job_fixture(tc)
+    fx.add_handler('b', 'final_score', handle_final_score_b)
+    fx.add_handler('w', 'final_score', handle_final_score_w)
+    fx.job.use_internal_scorer = False
+    fx.job.player_w.is_reliable_scorer = False
+    result = fx.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+33")
     tc.assertEqual(clog, ["final_score_b"])
 
 def test_game_job_cpu_time(tc):
     def handle_cpu_time(args):
         return "99.5"
-    gj = Game_job_fixture(tc)
-    gj.add_handler('b', 'gomill-cpu_time', handle_cpu_time)
-    result = gj.job.run()
+    fx = Game_job_fixture(tc)
+    fx.add_handler('b', 'gomill-cpu_time', handle_cpu_time)
+    result = fx.job.run()
     tc.assertEqual(result.game_result.cpu_times, {'one': 99.5, 'two': 567.2})
-    tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
+    tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
     (;FF[4]AP[gomill:VER]
     C[Game id gameid
     Date ***
@@ -462,11 +462,11 @@ def test_game_job_cpu_time(tc):
 def test_game_job_cpu_time_fail(tc):
     def handle_cpu_time_bad(args):
         return "nonsense"
-    gj = Game_job_fixture(tc)
-    gj.add_handler('b', 'gomill-cpu_time', handle_cpu_time_bad)
-    result = gj.job.run()
+    fx = Game_job_fixture(tc)
+    fx.add_handler('b', 'gomill-cpu_time', handle_cpu_time_bad)
+    result = fx.job.run()
     tc.assertEqual(result.game_result.cpu_times, {'one': '?', 'two': 567.2})
-    tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
+    tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
     (;FF[4]AP[gomill:VER]
     C[Game id gameid
     Date ***
@@ -503,70 +503,70 @@ class Player_check_fixture(gtp_engine_fixtures.Mock_subprocess_fixture):
         self.check.komi = 7.0
 
 def test_check_player(tc):
-    ck = Player_check_fixture(tc)
-    tc.assertEqual(game_jobs.check_player(ck.check), [])
-    channel = ck.get_channel('test')
+    fx = Player_check_fixture(tc)
+    tc.assertEqual(game_jobs.check_player(fx.check), [])
+    channel = fx.get_channel('test')
     tc.assertIsNone(channel.requested_stderr)
     tc.assertIsNone(channel.requested_cwd)
     tc.assertIsNone(channel.requested_env)
 
 def test_check_player_discard_stderr(tc):
-    ck = Player_check_fixture(tc)
-    tc.assertEqual(game_jobs.check_player(ck.check, discard_stderr=True), [])
-    channel = ck.get_channel('test')
+    fx = Player_check_fixture(tc)
+    tc.assertEqual(game_jobs.check_player(fx.check, discard_stderr=True), [])
+    channel = fx.get_channel('test')
     tc.assertIsInstance(channel.requested_stderr, file)
     tc.assertEqual(channel.requested_stderr.name, os.devnull)
 
 def test_check_player_boardsize_fails(tc):
     engine = gtp_engine_fixtures.get_test_engine()
-    ck = Player_check_fixture(tc)
-    ck.register_engine('no_boardsize', engine)
-    ck.player.cmd_args.append('engine=no_boardsize')
+    fx = Player_check_fixture(tc)
+    fx.register_engine('no_boardsize', engine)
+    fx.player.cmd_args.append('engine=no_boardsize')
     with tc.assertRaises(game_jobs.CheckFailed) as ar:
-        game_jobs.check_player(ck.check)
+        game_jobs.check_player(fx.check)
     tc.assertEqual(str(ar.exception),
                    "failure response from 'boardsize 9' to test:\n"
                    "unknown command")
 
 def test_check_player_startup_gtp_commands(tc):
-    ck = Player_check_fixture(tc)
-    ck.player.startup_gtp_commands = [('list_commands', []),
+    fx = Player_check_fixture(tc)
+    fx.player.startup_gtp_commands = [('list_commands', []),
                                       ('nonexistent', ['command'])]
     with tc.assertRaises(game_jobs.CheckFailed) as ar:
-        game_jobs.check_player(ck.check)
+        game_jobs.check_player(fx.check)
     tc.assertEqual(str(ar.exception),
                    "failure response from 'nonexistent command' to test:\n"
                    "unknown command")
 
 def test_check_player_nonexistent_cwd(tc):
-    ck = Player_check_fixture(tc)
-    ck.player.cwd = "/nonexistent/directory"
+    fx = Player_check_fixture(tc)
+    fx.player.cwd = "/nonexistent/directory"
     with tc.assertRaises(game_jobs.CheckFailed) as ar:
-        game_jobs.check_player(ck.check)
+        game_jobs.check_player(fx.check)
     tc.assertEqual(str(ar.exception),
                    "bad working directory: /nonexistent/directory")
 
 def test_check_player_cwd(tc):
-    ck = Player_check_fixture(tc)
-    ck.player.cwd = "/"
-    tc.assertEqual(game_jobs.check_player(ck.check), [])
-    channel = ck.get_channel('test')
+    fx = Player_check_fixture(tc)
+    fx.player.cwd = "/"
+    tc.assertEqual(game_jobs.check_player(fx.check), [])
+    channel = fx.get_channel('test')
     tc.assertEqual(channel.requested_cwd, "/")
 
 def test_check_player_env(tc):
-    ck = Player_check_fixture(tc)
-    ck.player.environ = {'GOMILL_TEST' : 'gomill'}
-    tc.assertEqual(game_jobs.check_player(ck.check), [])
-    channel = ck.get_channel('test')
+    fx = Player_check_fixture(tc)
+    fx.player.environ = {'GOMILL_TEST' : 'gomill'}
+    tc.assertEqual(game_jobs.check_player(fx.check), [])
+    channel = fx.get_channel('test')
     tc.assertEqual(channel.requested_env['GOMILL_TEST'], 'gomill')
     # Check environment was merged, not replaced
     tc.assertIn('PATH', channel.requested_env)
 
 def test_check_player_exec_failure(tc):
-    ck = Player_check_fixture(tc)
-    ck.player.cmd_args.append('fail=startup')
+    fx = Player_check_fixture(tc)
+    fx.player.cmd_args.append('fail=startup')
     with tc.assertRaises(game_jobs.CheckFailed) as ar:
-        game_jobs.check_player(ck.check)
+        game_jobs.check_player(fx.check)
     tc.assertEqual(str(ar.exception),
                    "error starting subprocess for test:\n"
                    "exec forced to fail")
@@ -574,11 +574,11 @@ def test_check_player_exec_failure(tc):
 def test_check_player_channel_error(tc):
     def fail_first_command(channel):
         channel.fail_next_command = True
-    ck = Player_check_fixture(tc)
-    ck.register_init_callback('fail_first_command', fail_first_command)
-    ck.player.cmd_args.append('init=fail_first_command')
+    fx = Player_check_fixture(tc)
+    fx.register_init_callback('fail_first_command', fail_first_command)
+    fx.player.cmd_args.append('init=fail_first_command')
     with tc.assertRaises(game_jobs.CheckFailed) as ar:
-        game_jobs.check_player(ck.check)
+        game_jobs.check_player(fx.check)
     tc.assertEqual(str(ar.exception),
                    "transport error sending first command (protocol_version) "
                    "to test:\n"
@@ -587,9 +587,9 @@ def test_check_player_channel_error(tc):
 def test_check_player_channel_error_on_close(tc):
     def fail_close(channel):
         channel.fail_close = True
-    ck = Player_check_fixture(tc)
-    ck.register_init_callback('fail_close', fail_close)
-    ck.player.cmd_args.append('init=fail_close')
-    tc.assertEqual(game_jobs.check_player(ck.check),
+    fx = Player_check_fixture(tc)
+    fx.register_init_callback('fail_close', fail_close)
+    fx.player.cmd_args.append('init=fail_close')
+    tc.assertEqual(game_jobs.check_player(fx.check),
                    ["error closing test:\nforced failure for close"])
 
