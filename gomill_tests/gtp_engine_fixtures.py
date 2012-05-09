@@ -319,7 +319,7 @@ class Mock_subprocess_gtp_channel(
         self.requested_env = env
         self.id = None
         engine = None
-        callback = None
+        callbacks = []
         for arg in command[1:]:
             key, eq, value = arg.partition("=")
             if not eq:
@@ -337,7 +337,7 @@ class Mock_subprocess_gtp_channel(
                         % value)
             elif key == 'init':
                 try:
-                    callback = self.callback_registry[value]
+                    callbacks.append(self.callback_registry[value])
                 except KeyError:
                     raise SupporterError(
                         "Mock_subprocess_gtp_channel: unregistered init '%s'"
@@ -351,7 +351,7 @@ class Mock_subprocess_gtp_channel(
         if engine is None:
             engine = get_test_player_engine()
         gtp_controller_test_support.Testing_gtp_channel.__init__(self, engine)
-        if callback is not None:
+        for callback in callbacks:
             callback(self)
 
     def close(self):

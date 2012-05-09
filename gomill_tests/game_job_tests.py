@@ -57,14 +57,12 @@ class Game_job_fixture(gtp_engine_fixtures.Mock_subprocess_fixture):
     """
     def __init__(self, tc):
         gtp_engine_fixtures.Mock_subprocess_fixture.__init__(self, tc)
-        self.register_init_callback('init_b', lambda channel:None)
-        self.register_init_callback('init_w', lambda channel:None)
         player_b = game_jobs.Player()
         player_b.code = 'one'
-        player_b.cmd_args = ['testb', 'id=one', 'init=init_b']
+        player_b.cmd_args = ['testb', 'id=one']
         player_w = game_jobs.Player()
         player_w.code = 'two'
-        player_w.cmd_args = ['testw', 'id=two', 'init=init_w']
+        player_w.cmd_args = ['testw', 'id=two']
         self.job = Test_game_job()
         self.job.game_id = 'gameid'
         self.job.player_b = player_b
@@ -75,13 +73,38 @@ class Game_job_fixture(gtp_engine_fixtures.Mock_subprocess_fixture):
         self.job.sgf_dirname = "/sgf/test.games"
         self.job.void_sgf_dirname = "/sgf/test.void"
         self.job.sgf_filename = "gjtest.sgf"
+        self._ctr = 0
+        self._players = {'b' : player_b, 'w' : player_w}
+
+    def init_player(self, colour, fn):
+        """Set up an initialisation function for a player.
+
+        fn -- function taking a Mock_subprocess_gtp_channel parameter
+
+        """
+        init_code = str(self._ctr)
+        self._ctr += 1
+        self._players[colour].cmd_args.append("init=%s" % init_code)
+        self.register_init_callback(init_code, fn)
+
+    def add_handler(self, colour, command, handler):
+        """Add a GTP handler to a player.
+
+        command -- GTP command name
+        handler -- normal Gtp_engine_protocol handler function
+
+        """
+        def register_handler(channel):
+            channel.engine.add_command(command, handler)
+        self.init_player(colour, register_handler)
+
 
 def test_player_copy(tc):
     gj = Game_job_fixture(tc)
     p1 = gj.job.player_b
     p2 = p1.copy("clone")
     tc.assertEqual(p2.code, "clone")
-    tc.assertEqual(p2.cmd_args, ['testb', 'id=one', 'init=init_b'])
+    tc.assertEqual(p2.cmd_args, ['testb', 'id=one'])
     tc.assertIsNot(p1.cmd_args, p2.cmd_args)
 
 def test_game_job(tc):
@@ -139,10 +162,8 @@ def test_game_job_no_sgf(tc):
 def test_game_job_forfeit(tc):
     def handle_genmove(args):
         raise GtpError("error")
-    def reject_genmove(channel):
-        channel.engine.add_command('genmove', handle_genmove)
     gj = Game_job_fixture(tc)
-    gj.register_init_callback('init_w', reject_genmove)
+    gj.add_handler('w', 'genmove', handle_genmove)
     result = gj.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+F")
     tc.assertEqual(
@@ -159,10 +180,8 @@ def test_game_job_forfeit(tc):
 def test_game_job_forfeit_and_quit(tc):
     def handle_genmove(args):
         raise GtpFatalError("I'm out of here")
-    def reject_genmove(channel):
-        channel.engine.add_command('genmove', handle_genmove)
     gj = Game_job_fixture(tc)
-    gj.register_init_callback('init_w', reject_genmove)
+    gj.add_handler('w', 'genmove', handle_genmove)
     result = gj.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+F")
     tc.assertEqual(
@@ -195,7 +214,7 @@ def test_game_job_channel_error(tc):
     def fail_first_genmove(channel):
         channel.fail_command = 'genmove'
     gj = Game_job_fixture(tc)
-    gj.register_init_callback('init_w', fail_first_genmove)
+    gj.init_player('w', fail_first_genmove)
     with tc.assertRaises(JobFailed) as ar:
         gj.job.run()
     tc.assertEqual(str(ar.exception),
@@ -221,7 +240,7 @@ def test_game_job_late_errors(tc):
     def fail_close(channel):
         channel.fail_close = True
     gj = Game_job_fixture(tc)
-    gj.register_init_callback('init_w', fail_close)
+    gj.init_player('w', fail_close)
     result = gj.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+10.5")
     tc.assertEqual(result.warnings, [])
@@ -250,7 +269,7 @@ def test_game_job_late_error_from_void_game(tc):
         channel.fail_command = 'genmove'
         channel.fail_close = True
     gj = Game_job_fixture(tc)
-    gj.register_init_callback('init_w', fail_genmove_and_close)
+    gj.init_player('w', fail_genmove_and_close)
     with tc.assertRaises(JobFailed) as ar:
         gj.job.run()
     tc.assertMultiLineEqual(
@@ -325,11 +344,9 @@ def test_game_job_claim(tc):
     def handle_genmove_ex(args):
         tc.assertIn('claim', args)
         return "claim"
-    def register_genmove_ex(channel):
-        channel.engine.add_command('gomill-genmove_ex', handle_genmove_ex)
     gj = Game_job_fixture(tc)
-    gj.register_init_callback('init_b', register_genmove_ex)
-    gj.register_init_callback('init_w', register_genmove_ex)
+    gj.add_handler('b', 'gomill-genmove_ex', handle_genmove_ex)
+    gj.add_handler('w', 'gomill-genmove_ex', handle_genmove_ex)
     gj.job.player_w.allow_claim = True
     result = gj.job.run()
     tc.assertEqual(result.game_result.sgf_result, "W+")
@@ -338,11 +355,9 @@ def test_game_job_claim(tc):
 def test_game_job_handicap(tc):
     def handle_fixed_handicap(args):
         return "D4 K10 D10"
-    def register_fixed_handicap(channel):
-        channel.engine.add_command('fixed_handicap', handle_fixed_handicap)
     gj = Game_job_fixture(tc)
-    gj.register_init_callback('init_b', register_fixed_handicap)
-    gj.register_init_callback('init_w', register_fixed_handicap)
+    gj.add_handler('b', 'fixed_handicap', handle_fixed_handicap)
+    gj.add_handler('w', 'fixed_handicap', handle_fixed_handicap)
     gj.job.board_size = 13
     gj.job.handicap = 3
     gj.job.handicap_is_free = False
@@ -379,12 +394,10 @@ def test_game_job_startup_gtp_commands(tc):
         return "ignored result"
     def handle_clear_board(args):
         clog.append(("clear_board", args))
-    def register_commands(channel):
-        channel.engine.add_command('dummy1', handle_dummy1)
-        channel.engine.add_command('dummy2', handle_dummy2)
-        channel.engine.add_command('clear_board', handle_clear_board)
     gj = Game_job_fixture(tc)
-    gj.register_init_callback('init_w', register_commands)
+    gj.add_handler('w', 'dummy1', handle_dummy1)
+    gj.add_handler('w', 'dummy2', handle_dummy2)
+    gj.add_handler('w', 'clear_board', handle_clear_board)
     gj.job.player_w.startup_gtp_commands = [('dummy1', []),
                                             ('dummy2', ['arg'])]
     result = gj.job.run()
@@ -397,10 +410,8 @@ def test_game_job_startup_gtp_commands(tc):
 def test_game_job_startup_gtp_commands_error(tc):
     def handle_failplease(args):
         raise GtpError("startup command which fails")
-    def register_commands(channel):
-        channel.engine.add_command('failplease', handle_failplease)
     gj = Game_job_fixture(tc)
-    gj.register_init_callback('init_w', register_commands)
+    gj.add_handler('w', 'failplease', handle_failplease)
     gj.job.player_w.startup_gtp_commands = [('list_commands', []),
                                             ('failplease', [])]
     with tc.assertRaises(JobFailed) as ar:
@@ -418,14 +429,10 @@ def test_game_job_players_score(tc):
         return "B+33"
     def handle_final_score_w(args):
         clog.append("final_score_w")
-    def register_final_score_b(channel):
-        channel.engine.add_command('final_score', handle_final_score_b)
-    def register_final_score_w(channel):
-        channel.engine.add_command('final_score', handle_final_score_w)
     gj = Game_job_fixture(tc)
-    gj.register_init_callback('init_w', register_final_score_w)
-    gj.register_init_callback('init_b', register_final_score_b)
-    gj.job.use_internal_scorer=False
+    gj.add_handler('b', 'final_score', handle_final_score_b)
+    gj.add_handler('w', 'final_score', handle_final_score_w)
+    gj.job.use_internal_scorer = False
     gj.job.player_w.is_reliable_scorer = False
     result = gj.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+33")
@@ -434,10 +441,8 @@ def test_game_job_players_score(tc):
 def test_game_job_cpu_time(tc):
     def handle_cpu_time(args):
         return "99.5"
-    def register_commands(channel):
-        channel.engine.add_command('gomill-cpu_time', handle_cpu_time)
     gj = Game_job_fixture(tc)
-    gj.register_init_callback('init_b', register_commands)
+    gj.add_handler('b', 'gomill-cpu_time', handle_cpu_time)
     result = gj.job.run()
     tc.assertEqual(result.game_result.cpu_times, {'one': 99.5, 'two': 567.2})
     tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
@@ -457,10 +462,8 @@ def test_game_job_cpu_time(tc):
 def test_game_job_cpu_time_fail(tc):
     def handle_cpu_time_bad(args):
         return "nonsense"
-    def register_commands(channel):
-        channel.engine.add_command('gomill-cpu_time', handle_cpu_time_bad)
     gj = Game_job_fixture(tc)
-    gj.register_init_callback('init_b', register_commands)
+    gj.add_handler('b', 'gomill-cpu_time', handle_cpu_time_bad)
     result = gj.job.run()
     tc.assertEqual(result.game_result.cpu_times, {'one': '?', 'two': 567.2})
     tc.assertMultiLineEqual(gj.job._get_sgf_written(), dedent("""\
