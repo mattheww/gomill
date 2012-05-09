@@ -482,8 +482,10 @@ def test_game_job_cpu_time_fail(tc):
 
 ### check_player
 
-class Player_check_fixture(test_framework.Fixture):
+class Player_check_fixture(gtp_engine_fixtures.Mock_subprocess_fixture):
     """Fixture setting up a Player_check.
+
+    Acts as a Mock_subprocess_fixture.
 
     attributes:
       player -- game_jobs.Player
@@ -491,6 +493,7 @@ class Player_check_fixture(test_framework.Fixture):
 
     """
     def __init__(self, tc):
+        gtp_engine_fixtures.Mock_subprocess_fixture.__init__(self, tc)
         self.player = game_jobs.Player()
         self.player.code = 'test'
         self.player.cmd_args = ['test', 'id=test']
@@ -500,27 +503,24 @@ class Player_check_fixture(test_framework.Fixture):
         self.check.komi = 7.0
 
 def test_check_player(tc):
-    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     ck = Player_check_fixture(tc)
     tc.assertEqual(game_jobs.check_player(ck.check), [])
-    channel = fx.get_channel('test')
+    channel = ck.get_channel('test')
     tc.assertIsNone(channel.requested_stderr)
     tc.assertIsNone(channel.requested_cwd)
     tc.assertIsNone(channel.requested_env)
 
 def test_check_player_discard_stderr(tc):
-    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     ck = Player_check_fixture(tc)
     tc.assertEqual(game_jobs.check_player(ck.check, discard_stderr=True), [])
-    channel = fx.get_channel('test')
+    channel = ck.get_channel('test')
     tc.assertIsInstance(channel.requested_stderr, file)
     tc.assertEqual(channel.requested_stderr.name, os.devnull)
 
 def test_check_player_boardsize_fails(tc):
-    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     engine = gtp_engine_fixtures.get_test_engine()
-    fx.register_engine('no_boardsize', engine)
     ck = Player_check_fixture(tc)
+    ck.register_engine('no_boardsize', engine)
     ck.player.cmd_args.append('engine=no_boardsize')
     with tc.assertRaises(game_jobs.CheckFailed) as ar:
         game_jobs.check_player(ck.check)
@@ -529,7 +529,6 @@ def test_check_player_boardsize_fails(tc):
                    "unknown command")
 
 def test_check_player_startup_gtp_commands(tc):
-    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     ck = Player_check_fixture(tc)
     ck.player.startup_gtp_commands = [('list_commands', []),
                                       ('nonexistent', ['command'])]
@@ -540,7 +539,6 @@ def test_check_player_startup_gtp_commands(tc):
                    "unknown command")
 
 def test_check_player_nonexistent_cwd(tc):
-    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     ck = Player_check_fixture(tc)
     ck.player.cwd = "/nonexistent/directory"
     with tc.assertRaises(game_jobs.CheckFailed) as ar:
@@ -549,25 +547,22 @@ def test_check_player_nonexistent_cwd(tc):
                    "bad working directory: /nonexistent/directory")
 
 def test_check_player_cwd(tc):
-    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     ck = Player_check_fixture(tc)
     ck.player.cwd = "/"
     tc.assertEqual(game_jobs.check_player(ck.check), [])
-    channel = fx.get_channel('test')
+    channel = ck.get_channel('test')
     tc.assertEqual(channel.requested_cwd, "/")
 
 def test_check_player_env(tc):
-    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     ck = Player_check_fixture(tc)
     ck.player.environ = {'GOMILL_TEST' : 'gomill'}
     tc.assertEqual(game_jobs.check_player(ck.check), [])
-    channel = fx.get_channel('test')
+    channel = ck.get_channel('test')
     tc.assertEqual(channel.requested_env['GOMILL_TEST'], 'gomill')
     # Check environment was merged, not replaced
     tc.assertIn('PATH', channel.requested_env)
 
 def test_check_player_exec_failure(tc):
-    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     ck = Player_check_fixture(tc)
     ck.player.cmd_args.append('fail=startup')
     with tc.assertRaises(game_jobs.CheckFailed) as ar:
@@ -579,9 +574,8 @@ def test_check_player_exec_failure(tc):
 def test_check_player_channel_error(tc):
     def fail_first_command(channel):
         channel.fail_next_command = True
-    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
-    fx.register_init_callback('fail_first_command', fail_first_command)
     ck = Player_check_fixture(tc)
+    ck.register_init_callback('fail_first_command', fail_first_command)
     ck.player.cmd_args.append('init=fail_first_command')
     with tc.assertRaises(game_jobs.CheckFailed) as ar:
         game_jobs.check_player(ck.check)
@@ -593,9 +587,8 @@ def test_check_player_channel_error(tc):
 def test_check_player_channel_error_on_close(tc):
     def fail_close(channel):
         channel.fail_close = True
-    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
-    fx.register_init_callback('fail_close', fail_close)
     ck = Player_check_fixture(tc)
+    ck.register_init_callback('fail_close', fail_close)
     ck.player.cmd_args.append('init=fail_close')
     tc.assertEqual(game_jobs.check_player(ck.check),
                    ["error closing test:\nforced failure for close"])
