@@ -1,6 +1,7 @@
 """Tests for gtp_games.py"""
 
 import cPickle as pickle
+from textwrap import dedent
 
 from gomill import boards
 from gomill import gtp_controller
@@ -107,6 +108,22 @@ class Gtp_game_fixture(test_framework.Fixture):
     def sgf_string(self):
         return gomill_test_support.scrub_sgf(
             self.game.make_sgf().serialise(wrap=None))
+
+    def sgf_root(self):
+        return self.game.make_sgf().get_root()
+
+    def sgf_last_comment(self):
+        return self.game.make_sgf().get_last_node().get("C")
+
+    def sgf_moves_and_comments(self):
+        def fmt(node):
+            try:
+                s = node.get("C")
+            except KeyError:
+                s = "--"
+            colour, move = node.get_move()
+            return "%s %s: %s" % (colour, format_vertex(move), s)
+        return map(fmt, self.game.make_sgf().get_main_sequence())
 
 
 def test_game(tc):
@@ -672,11 +689,11 @@ def test_make_sgf_scoring_details(tc):
     fx = Gtp_game_fixture(tc)
     fx.run_score_test("B+3", "B+4")
     fx.game.close_players()
-    tc.assertMultiLineEqual(fx.sgf_string(), """\
-(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[0]RE[B+]SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+ (unknown margin)
-one final_score: B+3
-two final_score: B+4]W[tt])
-""")
+    tc.assertEqual(fx.sgf_root().get("RE"), "B+")
+    tc.assertMultiLineEqual(fx.sgf_last_comment(), dedent("""\
+    one beat two B+ (unknown margin)
+    one final_score: B+3
+    two final_score: B+4"""))
 
 def test_game_id(tc):
     fx = Gtp_game_fixture(tc)
@@ -686,9 +703,7 @@ def test_game_id(tc):
     fx.game.run()
     fx.game.close_players()
     tc.assertEqual(fx.game.result.game_id, "gitest")
-    tc.assertMultiLineEqual(fx.sgf_string(), """\
-(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]GN[gitest]KM[0]RE[B+18]SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+18]W[tt])
-""")
+    tc.assertEqual(fx.sgf_root().get("GN"), "gitest")
 
 def test_explain_last_move(tc):
     counter = [0]
@@ -701,9 +716,29 @@ def test_explain_last_move(tc):
     fx.game.ready()
     fx.game.run()
     fx.game.close_players()
-    tc.assertMultiLineEqual(fx.sgf_string(), """\
-(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[0]RE[?]SZ[9];B[ei]C[EX1];W[gi];B[eh]C[EX2];W[gh];B[eg]C[EX3];W[gg];B[ef]C[EX4];W[gf];B[ee]C[EX5];W[ge];B[ed]C[EX6];W[gd];B[ec]C[EX7];W[gc];B[eb]C[EX8];W[gb];B[ea]C[EX9];W[ga];B[tt]C[EX10];C[one vs two ? (no score reported)]W[tt])
-""")
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        "None pass: --",
+        "b E1: EX1",
+        "w G1: --",
+        "b E2: EX2",
+        "w G2: --",
+        "b E3: EX3",
+        "w G3: --",
+        "b E4: EX4",
+        "w G4: --",
+        "b E5: EX5",
+        "w G5: --",
+        "b E6: EX6",
+        "w G6: --",
+        "b E7: EX7",
+        "w G7: --",
+        "b E8: EX8",
+        "w G8: --",
+        "b E9: EX9",
+        "w G9: --",
+        "b pass: EX10",
+        "w pass: one vs two ? (no score reported)",
+        ])
 
 
 def test_fixed_handicap(tc):
@@ -730,9 +765,11 @@ def test_fixed_handicap(tc):
         ('w', 'G5'), ('b', 'E5'),
         ('w', 'G6'), ('b', 'E6'),
         ])
-    tc.assertMultiLineEqual(fx.sgf_string(), """\
-(;FF[4]AB[cc][cg][gc]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]HA[3]KM[0]RE[B+F]SZ[9];W[gi];B[ei];W[gh];B[eh];W[gg];B[eg];W[gf];B[ef];W[ge];B[ee];W[gd];B[ed]C[one beat two B+F (forfeit by two: attempted move to occupied point G7)])
-""")
+    root = fx.sgf_root()
+    tc.assertEqual(root.get("HA"), 3)
+    tc.assertItemsEqual(map(format_vertex, root.get("AB")), ["C3", "G7", "C7"])
+    tc.assertFalse(root.has_property("AW"))
+    tc.assertFalse(root.has_property("AE"))
 
 def test_fixed_handicap_bad_engine(tc):
     fh_calls = []
@@ -775,9 +812,12 @@ def test_free_handicap(tc):
         ('w', 'G2'), ('b', 'E2'),
         ('w', 'G3'), ('b', 'E3'),
         ])
-    tc.assertMultiLineEqual(fx.sgf_string(), """\
-(;FF[4]AB[cd][cf][gd][gf]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]HA[4]KM[0]RE[B+F]SZ[9];W[gi];B[ei];W[gh];B[eh];W[gg];B[eg]C[one beat two B+F (forfeit by two: attempted move to occupied point G4)])
-""")
+    root = fx.sgf_root()
+    tc.assertEqual(root.get("HA"), 4)
+    tc.assertItemsEqual(map(format_vertex, root.get("AB")),
+                        ['G6', 'C6', 'G4', 'C4'])
+    tc.assertFalse(root.has_property("AW"))
+    tc.assertFalse(root.has_property("AE"))
 
 def test_free_handicap_bad_engine(tc):
     fh_calls = []
