@@ -648,11 +648,6 @@ def test_move_limit_exact(tc):
         ('b', 'pass'), ('w', 'pass'),
         ])
 
-def test_same_player_code(tc):
-    tc.assertRaisesRegexp(ValueError, "player codes must be distinct",
-                          gtp_controller.Game_controller, 'one', 'one')
-
-
 def test_make_sgf(tc):
     fx = Gtp_game_fixture(tc)
     fx.game.use_internal_scorer()

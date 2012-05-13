@@ -696,3 +696,167 @@ def test_subprocess_channel_with_controller(tc):
     rusage = channel.resource_usage
     tc.assertTrue(hasattr(rusage, 'ru_utime'))
 
+
+### Game_controller
+
+def test_game_controller(tc):
+    channel1 = gtp_engine_fixtures.get_test_channel()
+    controller1 = Gtp_controller(channel1, 'player one')
+    channel2 = gtp_engine_fixtures.get_test_channel()
+    controller2 = Gtp_controller(channel2, 'player two')
+    channel1.engine.add_command('b_only', lambda args:"yes")
+
+    gc = gtp_controller.Game_controller('one', 'two')
+    gc.set_player_controller('b', controller1)
+    gc.set_player_controller('w', controller2)
+
+    tc.assertEqual(gc.engine_names, {'b' : "one", 'w' : "two"})
+    tc.assertEqual(gc.engine_descriptions, {'b' : "one", 'w' : "two"})
+
+    tc.assertEqual(gc.players, {'b' : 'one', 'w' : 'two'})
+    tc.assertIs(gc.get_controller('b'), controller1)
+    tc.assertIs(gc.get_controller('w'), controller2)
+    tc.assertRaises(KeyError, gc.get_controller, 'x')
+
+    tc.assertIs(gc.known_command('b', 'b_only'), True)
+    tc.assertIs(gc.known_command('w', 'b_only'), False)
+
+    tc.assertEqual(gc.send_command('b', 'test'), "test response")
+    tc.assertEqual(gc.send_command('w', 'test', 'abc', 'def'),
+                   "args: abc def")
+
+    tc.assertEqual(gc.send_command('b', 'b_only'), "yes")
+    with tc.assertRaises(BadGtpResponse) as ar:
+        gc.send_command('w', 'b_only')
+    tc.assertEqual(ar.exception.gtp_error_message, "unknown command")
+    tc.assertEqual(ar.exception.gtp_command, "b_only")
+
+    with tc.assertRaises(BadGtpResponse) as ar:
+        gc.send_command('b', 'error')
+    tc.assertEqual(ar.exception.gtp_error_message, "normal error")
+    tc.assertEqual(ar.exception.gtp_command, "error")
+
+    tc.assertEqual(gc.maybe_send_command('b', 'b_only'), "yes")
+    tc.assertIsNone(gc.maybe_send_command('w', 'b_only'))
+    tc.assertIsNone(gc.maybe_send_command('b', 'error'))
+
+    tc.assertIsNone(gc.describe_late_errors())
+    tc.assertIs(controller1.channel_is_closed, False)
+    tc.assertIs(controller2.channel_is_closed, False)
+    gc.close_players()
+    tc.assertIs(controller1.channel_is_closed, True)
+    tc.assertIs(controller2.channel_is_closed, True)
+    tc.assertIsNone(gc.describe_late_errors())
+
+    tc.assertEqual(gc.get_resource_usage_cpu_times(), {'b' : None, 'w' : None})
+
+    tc.assertEqual(channel1.engine.commands_handled, [
+        ('protocol_version', []),
+        ('name', []),
+        ('version', []),
+        ('known_command', ['gomill-describe_engine']),
+        ('known_command', ['b_only']),
+        ('test', []),
+        ('b_only', []),
+        ('error', []),
+        ('b_only', []),
+        ('known_command', ['error']),
+        ('error', []),
+        ('quit', []),
+        ])
+    tc.assertEqual(channel2.engine.commands_handled, [
+        ('protocol_version', []),
+        ('name', []),
+        ('version', []),
+        ('known_command', ['gomill-describe_engine']),
+        ('known_command', ['b_only']),
+        ('test', ['abc', 'def']),
+        ('b_only', []),
+        ('quit', []),
+        ])
+
+def test_game_controller_same_player_code(tc):
+    tc.assertRaisesRegexp(ValueError, "^player codes must be distinct$",
+                          gtp_controller.Game_controller, 'one', 'one')
+
+def test_game_controller_partial_close(tc):
+    # checking close() works even if one or both players didn't start
+
+    channel = gtp_engine_fixtures.get_test_channel()
+    controller = Gtp_controller(channel, 'player one')
+
+    gc1 = gtp_controller.Game_controller('one', 'two')
+    gc1.close_players()
+    tc.assertIsNone(gc1.describe_late_errors())
+
+    gc2 = gtp_controller.Game_controller('one', 'two')
+    gc2.set_player_controller('w', controller)
+    gc2.close_players()
+    tc.assertIsNone(gc2.describe_late_errors())
+    tc.assertIs(controller.channel_is_closed, True)
+
+def test_game_controller_engine_descriptions(tc):
+    channel1 = gtp_engine_fixtures.get_test_channel()
+    controller1 = Gtp_controller(channel1, 'player one')
+    channel2 = gtp_engine_fixtures.get_test_channel()
+    controller2 = Gtp_controller(channel2, 'player two')
+    channel1.engine.add_command('name', lambda args:"some-name")
+    channel1.engine.add_command('gomill-describe_engine',
+                                lambda args:"foo\nbar")
+    gc = gtp_controller.Game_controller('one', 'two')
+
+    # This isn't documented behaviour, but we provide it for 'safety'
+    tc.assertEqual(gc.engine_names, {'b' : "", 'w' : ""})
+    tc.assertEqual(gc.engine_descriptions, {'b' : "", 'w' : ""})
+
+    gc.set_player_controller('b', controller1)
+    gc.set_player_controller('w', controller2)
+
+    tc.assertEqual(gc.engine_names, {'b' : "some-name", 'w' : "two"})
+    tc.assertEqual(gc.engine_descriptions, {'b' : "foo\nbar", 'w' : "two"})
+
+def test_game_controller_get_gtp_cpu_times(tc):
+    def controller1():
+        channel = gtp_engine_fixtures.get_test_channel()
+        return Gtp_controller(channel, 'notimplemented')
+    def controller2():
+        channel = gtp_engine_fixtures.get_test_channel()
+        channel.engine.add_command('gomill-cpu_time', lambda args:"3.525")
+        return Gtp_controller(channel, 'good')
+    def controller3():
+        channel = gtp_engine_fixtures.get_test_channel()
+        channel.engine.add_command('gomill-cpu_time', lambda args:"invalid")
+        return Gtp_controller(channel, 'bad')
+    def controller4():
+        channel = gtp_engine_fixtures.get_test_channel()
+        channel.engine.force_error('gomill-cpu_time')
+        return Gtp_controller(channel, 'error')
+    def controller5():
+        channel = gtp_engine_fixtures.get_test_channel()
+        channel.engine.force_fatal_error('gomill-cpu_time')
+        return Gtp_controller(channel, 'fatalerror')
+
+    gc1 = gtp_controller.Game_controller('x', 'y')
+    gc1.set_player_controller('b', controller1())
+    gc1.set_player_controller('w', controller2())
+    tc.assertEqual(gc1.get_gtp_cpu_times(), ({'w': 3.525}, set([])))
+
+    gc2 = gtp_controller.Game_controller('x', 'y')
+    gc2.set_player_controller('b', controller3())
+    gc2.set_player_controller('w', controller2())
+    tc.assertEqual(gc2.get_gtp_cpu_times(), ({'w': 3.525}, set(['b'])))
+
+    gc3 = gtp_controller.Game_controller('x', 'y')
+    gc3.set_player_controller('b', controller3())
+    gc3.set_player_controller('w', controller4())
+    tc.assertEqual(gc3.get_gtp_cpu_times(), ({}, set(['b', 'w'])))
+
+    gc4 = gtp_controller.Game_controller('x', 'y')
+    gc4.set_player_controller('b', controller2())
+    gc4.set_player_controller('w', controller5())
+    tc.assertEqual(gc4.get_gtp_cpu_times(), ({'b' : 3.525}, set(['w'])))
+    gc4.close_players()
+    tc.assertEqual(gc4.describe_late_errors(),
+                   "error sending 'quit' to fatalerror:\n"
+                   "engine has closed the command channel")
+
