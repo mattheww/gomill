@@ -826,13 +826,17 @@ def describe_engine(controller, default="unknown"):
 class Game_controller(object):
     """Manage a pair of GTP controllers representing game players.
 
+    Instantiate with the player codes for black and white.
+
+    The player codes are short ascii strings, used to name the players in error
+    messages and anywhere else the Game_controller's client wants. The two
+    codes must be different (otherwise ValueError is raised).
+
+
     Order of operations:
-      gc = Game_controller()
-      gc.set_player_code('b', ...)
-      gc.set_player_code('w', ...)
+      gc = Game_controller(...)
       gc.set_player_subprocess('b', ...) or set_player_controller('b', ...)
       gc.set_player_subprocess('w', ...) or set_player_controller('w', ...)
-      gc.request_engine_descriptions() [optional]
       Any combination of:
         gc.send_command(...)
         gc.maybe_send_command(...)
@@ -844,12 +848,11 @@ class Game_controller(object):
 
     Public attributes for reading:
       players             -- map colour -> player code
-    After request_engine_descriptions() has been called:
-      engine_names        -- map player code -> string
-      engine_descriptions -- map player code -> string
+      engine_names        -- map colour -> single-line utf-8 string
+      engine_descriptions -- map colour -> multi-line utf-8 string
 
-    Methods which communicate with engines may raise BadGtpResponse if the
-    engine returns a failure response.
+    The engine_names and engine_descriptions are the short and long results
+    from describe_engine().
 
     Methods which communicate with engines will normally raise GtpChannelError
     if there is trouble communicating with the engine. But some (those which
@@ -859,32 +862,16 @@ class Game_controller(object):
 
     """
 
-    def __init__(self):
+    def __init__(self, player_b_code, player_w_code):
+        if player_b_code == player_w_code:
+            raise ValueError("player codes must be distinct")
+        self.players = {'b' : player_b_code, 'w' : player_w_code}
         self.controllers = {}
-        self.players = {'b' : 'b', 'w' : 'w'}
         self.late_errors = []
-        self.engine_names = {}
-        self.engine_descriptions = {}
+        self.engine_names = {'b' : "", 'w' : ""}
+        self.engine_descriptions = {'b' : "", 'w' : ""}
 
     ## Configuration API
-
-    def set_player_code(self, colour, player_code):
-        """Specify a player code.
-
-        player_code -- short ascii string
-
-        The player codes are used to name the players (in error messages, and
-        anywhere else the Game_controller's client wants).
-
-        If not explicitly set, they will just be 'b' and 'w'.
-
-        Raises ValueError if both players are given the same code.
-
-        """
-        s = str(player_code)
-        if self.players[opponent_of(colour)] == s:
-            raise ValueError("player codes must be distinct")
-        self.players[colour] = s
 
     def set_player_controller(self, colour, controller,
                               check_protocol_version=True):
@@ -898,13 +885,20 @@ class Game_controller(object):
         If check_protocol_version is true, rejects an engine that declares a
         GTP protocol version <> 2.
 
-        Propagates GtpChannelError if there's an error checking the protocol
-        version.
+        Sets the engine_names and engine_descriptions entries for the player,
+        using GTP commands (see describe_engine()).
+
+        Propagates GtpChannelError if there's a low-level error checking the
+        protocol version or from the engine-description commands.
 
         """
         self.controllers[colour] = controller
         if check_protocol_version:
             controller.check_protocol_version()
+        player_code = self.players[colour]
+        (self.engine_names[colour],
+         self.engine_descriptions[colour]) = \
+             describe_engine(controller, player_code)
 
     def set_player_subprocess(self, colour, command,
                               check_protocol_version=True, **kwargs):
@@ -921,8 +915,12 @@ class Game_controller(object):
         If check_protocol_version is true, rejects an engine that declares a
         GTP protocol version <> 2.
 
-        Propagates GtpChannelError if there's an error creating the
-        subprocess or checking the protocol version.
+        Sets the engine_names and engine_descriptions entries for the player,
+        using GTP commands (see describe_engine()).
+
+        Propagates GtpChannelError if there's a low-level error creating the
+        subprocess, checking the protocol version, or from the
+        engine-description commands.
 
         """
         player_code = self.players[colour]
@@ -1033,41 +1031,26 @@ class Game_controller(object):
 
     ## Higher-level GTP helpers
 
-    def request_engine_descriptions(self):
-        """Obtain the engines' name, version, and description by GTP.
-
-        After you have called this, you can retrieve the results from the
-        engine_names and engine_descriptions attributes.
-
-        """
-        for colour in "b", "w":
-            player = self.players[colour]
-            controller = self.controllers[colour]
-            (self.engine_names[player],
-             self.engine_descriptions[player]) = \
-                 describe_engine(controller, player)
-
     def get_gtp_cpu_times(self):
         """Ask the engines for the CPU time they've used.
 
-        This uses the gomill-cpu_time extension command.
-
-        Returns a dict colour -> cpu_time
-
-        cpu_time is:
-          - a float if the CPU time is available.
-          - None if the engine doesn't support gomill-cpu_time.
-          - "?" if the engine claims to support it, but gives an invalid
-            or error response.
-
-        (The reason for distinguishing the last case is to avoid using the
-        resource-usage cpu time for engines which claim to support
-        gomill-cpu_time but give an error.)
+        This uses the gomill-cpu_time extension command, when available.
 
         Communicates cautiously.
 
+        Returns a pair (cpu_times, errors)
+          cpu_times -- (partial) dict colour -> float (representing seconds)
+          errors    -- set of colours
+
+        If an engine doesn't claim to support gomill-cpu_time, it won't appear
+        in either 'cpu_times' or 'errors'.
+
+        If an engine claims to support it, but gives an invalid or error
+        response, it will appear in 'errors'.
+
         """
-        result = {'b' : None, 'w' : None}
+        result = {}
+        errors = set()
         for colour in 'b', 'w':
             controller = self.controllers[colour]
             if controller.safe_known_command('gomill-cpu_time'):
@@ -1075,7 +1058,7 @@ class Game_controller(object):
                     s = controller.safe_do_command('gomill-cpu_time')
                     result[colour] = float(s)
                 except (BadGtpResponse, ValueError):
-                    result[colour] = "?"
-        return result
+                    errors.add(colour)
+        return result, errors
 
 

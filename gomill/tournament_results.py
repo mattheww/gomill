@@ -205,9 +205,9 @@ class Matchup_stats(object):
         player_1 = self.player_1
         player_2 = self.player_2
         times_1 = [r.cpu_times[player_1] for r in self._results]
-        known_times_1 = [t for t in times_1 if t is not None and t != '?']
+        known_times_1 = [t for t in times_1 if t is not None]
         times_2 = [r.cpu_times[player_2] for r in self._results]
-        known_times_2 = [t for t in times_2 if t is not None and t != '?']
+        known_times_2 = [t for t in times_2 if t is not None]
         if known_times_1:
             self.average_time_1 = sum(known_times_1) / len(known_times_1)
         else:

@@ -5,16 +5,22 @@ Changes
 Gomill FIXME (FIXME)
 --------------------
 
-* :class:`.Board` methods now raise :exc:`IndexError` for out-of-range
-  coordinates (previously behaviour was explicitly unspecified).
-
-* Reworked the :mod:`~!gomill.gtp_games` implementation, splitting out
-  the :mod:`~!gomill.gameplay` module. Visible behaviour changes:
+* Reworked the :mod:`~!gomill.gtp_games` interface and implementation,
+  splitting out the :mod:`~!gomill.gameplay` module and
+  :class:`!gtp_controllers.Game_controller`. Visible behaviour changes:
 
   * |gtp| :gtp:`!move` commands now send the vertex in upper case.
 
   * Text descriptions of forfeits (eg in :attr:`.Game_result.detail`) have
     changed slightly.
+
+  Updated the :script:`twogtp` example script to show the new programming
+  interface. :script:`twogtp` now supports playing multiple games.
+
+* Documented :attr:`.Game_result.cpu_times`.
+
+* :class:`.Board` methods now raise :exc:`IndexError` for out-of-range
+  coordinates (previously behaviour was explicitly unspecified).
 
 * :mod:`~!gomill.gtp_games` now permits free-handicap games with the maximum
   number of handicap stones permitted by |gtp| (the previous restriction was

@@ -35,7 +35,8 @@ scripts.
 
   A 'traditional' twogtp implementation.
 
-  This demonstrates the :mod:`!gtp_games` module.
+  This demonstrates :class:`!gtp_controllers.Game_controller` and the
+  :mod:`!gtp_games` module.
 
 
 .. script:: find_forfeits.py

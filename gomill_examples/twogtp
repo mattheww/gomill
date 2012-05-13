@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 """'Traditional' twogtp implementation.
 
-This runs a single game between two local GTP engines and reports the result.
+This runs one or more games between two local GTP engines and reports the
+results.
 
-This demonstrates the gtp_games module.
+This demonstrates gtp_controllers.Game_controller and the gtp_games module.
 
 """
 
@@ -12,6 +13,7 @@ import sys
 from optparse import OptionParser, SUPPRESS_HELP
 
 from gomill import ascii_boards
+from gomill import gtp_controller
 from gomill import gtp_games
 from gomill.gtp_controller import GtpChannelError, BadGtpResponse
 from gomill.common import format_vertex
@@ -31,6 +33,7 @@ def main():
     parser.add_option("--white", help=SUPPRESS_HELP)
     parser.add_option("--komi", type="float", default=7.5)
     parser.add_option("--size", type="int", default=19)
+    parser.add_option("--games", type="int", default=1, metavar="COUNT")
     parser.add_option("--verbose", type="choice", choices=('0','1','2'),
                       default=0, metavar="0|1|2")
 
@@ -42,32 +45,51 @@ def main():
 
     black_command = shlex.split(options.black)
     white_command = shlex.split(options.white)
-    game = gtp_games.Gtp_game(
-        board_size=options.size,
-        komi=options.komi,
-        move_limit=1000)
-    if black_command[0] != white_command[0]:
-        game.set_player_code('b', black_command[0])
-        game.set_player_code('w', white_command[0])
-    if options.verbose == '1':
-        game.set_move_callback(print_move)
-    elif options.verbose == '2':
-        game.set_move_callback(print_board)
+    b_code = black_command[0]
+    w_code = white_command[0]
+    if b_code == w_code:
+        b_code += '-b'
+        w_code += '-w'
 
-    game.allow_scorer('b')
-    game.allow_scorer('w')
-
+    game_controller = gtp_controller.Game_controller(b_code, w_code)
     try:
-        game.set_player_subprocess('b', black_command)
-        game.set_player_subprocess('w', white_command)
-        game.ready()
-        game.run()
-    except (GtpChannelError, BadGtpResponse), e:
-        sys.exit("aborting game due to error:\n%s\n" % e)
-    finally:
-        game.close_players()
-    print game.result.describe()
-    late_error_messages = game.describe_late_errors()
+        game_controller.set_player_subprocess('b', black_command)
+        game_controller.set_player_subprocess('w', white_command)
+    except GtpChannelError, e:
+        game_controller.close_players()
+        sys.exit("error creating players:\n%s\n" % e)
+
+    if options.verbose == '1':
+        print 'Black: %s' % game_controller.engine_names['b']
+        print 'White: %s' % game_controller.engine_names['w']
+    elif options.verbose == '2':
+        print 'Black:\n%s\n' % game_controller.engine_descriptions['b']
+        print 'White:\n%s\n' % game_controller.engine_descriptions['w']
+
+    for game_number in xrange(options.games):
+        game = gtp_games.Gtp_game(
+            game_controller,
+            board_size=options.size,
+            komi=options.komi,
+            move_limit=1000)
+
+        if options.verbose == '1':
+            game.set_move_callback(print_move)
+        elif options.verbose == '2':
+            game.set_move_callback(print_board)
+        game.allow_scorer('b')
+        game.allow_scorer('w')
+
+        try:
+            game.ready()
+            game.run()
+        except (GtpChannelError, BadGtpResponse), e:
+            game_controller.close_players()
+            sys.exit("aborting run due to error:\n%s\n" % e)
+        print game.result.describe()
+
+    game_controller.close_players()
+    late_error_messages = game_controller.describe_late_errors()
     if late_error_messages:
         sys.exit(late_error_messages)
 

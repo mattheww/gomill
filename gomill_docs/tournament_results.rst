@@ -355,17 +355,14 @@ Game_result objects
       This is present (not ``None``) for those game results which are not wins
       on points, jigos, or wins by resignation.
 
-   .. (leaving cpu_times undocumented, as I don't want to say it's stable)
+   .. attribute:: cpu_times
 
-      .. attribute:: cpu_times
+      Map :ref:`player code <player codes>` → *time*.
 
-         Map :ref:`player code <player codes>` → *time*.
+      The *time* value is a float representing a number of seconds, or
+      ``None`` if time information is not available.
 
-         The time is a float representing a number of seconds, or ``None`` if
-         time is not available, or ``'?'`` if :gtp:`gomill-cpu_time` is
-         implemented but returned a failure response.
-
-         See :ref:`cpu time` for more details.
+      See :ref:`cpu time` for more details.
 
 
    Game_results support the following method:

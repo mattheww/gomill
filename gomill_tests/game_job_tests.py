@@ -465,7 +465,7 @@ def test_game_job_cpu_time_fail(tc):
     fx = Game_job_fixture(tc)
     fx.add_handler('b', 'gomill-cpu_time', handle_cpu_time_bad)
     result = fx.job.run()
-    tc.assertEqual(result.game_result.cpu_times, {'one': '?', 'two': 567.2})
+    tc.assertEqual(result.game_result.cpu_times, {'one': None, 'two': 567.2})
     tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
     (;FF[4]AP[gomill:VER]
     C[Game id gameid

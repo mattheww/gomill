@@ -511,7 +511,7 @@ class Game_runner(object):
       backend    -- the Backend
       board_size -- int
       komi       -- int or float (default 0)
-      move_limit -- int   (default None)
+      move_limit -- int or None  (default None)
 
     Order of operations:
       runner = Game_runner(...)
@@ -526,6 +526,13 @@ class Game_runner(object):
       result -- Result, or None
       moves  -- list of tuples (colour, move, comment)
                 move is a pair (row, col), or None for a pass
+
+    Game_runner enforces a simple ko rule, but no superko rule. It accepts
+    self-capture moves. Two consecutive passes end the game and trigger
+    scoring.
+
+    If move_limit is not None, the game ends (with result 'Void') when that
+    number of moves (including passes) has been played.
 
     """
 

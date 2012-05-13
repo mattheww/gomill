@@ -127,21 +127,21 @@ class Game_job(object):
       stderr_pathname     -- pathname to send players' stderr to
 
     The game_id will be returned in the job result, so you can tell which game
-    you're getting the result for. It also appears in a comment in the SGF file.
+    you're getting the result for. It also appears in the SGF file as a comment
+    and the GN property.
 
     game_data is returned in the job result. It's provided as a convenient way
     to pass a small amount of information from get_job() to process_response().
 
     If use_internal_scorer is False, the Players' is_reliable_scorer attributes
-    are used to decide which player is asked to score the game (if both are
-    marked as reliable, black will be tried before white).
+    are used to determine who scores the game (see errors.rst).
 
     If sgf_dirname and sgf_filename are set, an SGF file will be written after
     the game is over.
 
     If void_sgf_dirname and sgf_filename are set, an SGF file will be written
-    for void games (games which were aborted due to unhandled errors). The
-    leaf directory will be created if necessary.
+    for any void games (games which were aborted due to unhandled errors) which
+    have at least one move. The leaf directory will be created if necessary.
 
     If gtp_log_pathname is set, all GTP messages to and from both players will
     be logged (this doesn't append; any existing file will be overwritten).
@@ -193,7 +193,8 @@ class Game_job(object):
                 except EnvironmentError:
                     pass
 
-    def _start_player(self, game, colour, player, gtp_log_file):
+    def _start_player(self, game_controller, game,
+                      colour, player, gtp_log_file):
         if player.discard_stderr:
             stderr_pathname = os.devnull
         else:
@@ -203,37 +204,34 @@ class Game_job(object):
             self._files_to_close.append(stderr)
         else:
             stderr = None
+        if not self.use_internal_scorer and player.is_reliable_scorer:
+            game.allow_scorer(colour)
         if player.allow_claim:
             game.set_claim_allowed(colour)
-        game.set_player_subprocess(
+        game_controller.set_player_subprocess(
             colour, player.cmd_args,
             env=player.make_environ(), cwd=player.cwd, stderr=stderr)
-        controller = game.get_controller(colour)
+        controller = game_controller.get_controller(colour)
         controller.set_gtp_aliases(player.gtp_aliases)
         if gtp_log_file is not None:
             controller.channel.enable_logging(
                 gtp_log_file, prefix="%s: " % colour)
         for command, arguments in player.startup_gtp_commands:
-            game.send_command(colour, command, *arguments)
+            game_controller.send_command(colour, command, *arguments)
 
     def _run(self):
         warnings = []
         log_entries = []
         try:
+            game_controller = gtp_controller.Game_controller(
+                self.player_b.code, self.player_w.code)
             game = gtp_games.Gtp_game(
-                self.board_size, self.komi, self.move_limit)
-            game.set_player_code('b', self.player_b.code)
-            game.set_player_code('w', self.player_w.code)
+                game_controller, self.board_size, self.komi, self.move_limit)
             game.set_game_id(self.game_id)
         except ValueError, e:
             raise job_manager.JobFailed("error creating game: %s" % e)
         if self.use_internal_scorer:
             game.use_internal_scorer(self.internal_scorer_handicap_compensation)
-        else:
-            if self.player_b.is_reliable_scorer:
-                game.allow_scorer('b')
-            if self.player_w.is_reliable_scorer:
-                game.allow_scorer('w')
 
         if self.gtp_log_pathname is not None:
             gtp_log_file = open(self.gtp_log_pathname, "w")
@@ -242,9 +240,10 @@ class Game_job(object):
             gtp_log_file = None
 
         try:
-            self._start_player(game, 'b', self.player_b, gtp_log_file)
-            self._start_player(game, 'w', self.player_w, gtp_log_file)
-            game.request_engine_descriptions()
+            self._start_player(game_controller, game,
+                               'b', self.player_b, gtp_log_file)
+            self._start_player(game_controller, game,
+                               'w', self.player_w, gtp_log_file)
             game.ready()
             if self.handicap:
                 try:
@@ -253,44 +252,63 @@ class Game_job(object):
                     raise BadGtpResponse("invalid handicap")
             game.run()
         except (GtpChannelError, BadGtpResponse), e:
-            game.close_players()
+            game_controller.close_players()
             msg = "aborting game due to error:\n%s" % e
-            self._record_void_game(game, msg)
-            late_error_messages = game.describe_late_errors()
+            self._record_void_game(game_controller, game, msg)
+            late_error_messages = game_controller.describe_late_errors()
             if late_error_messages is not None:
                 msg += "\nalso:\n" + late_error_messages
             raise job_manager.JobFailed(msg)
         if game.result.is_forfeit:
             warnings.append(game.result.detail)
-        game.close_players()
-        late_error_messages = game.describe_late_errors()
+        game_controller.close_players()
+        ru_cpu_times = game_controller.get_resource_usage_cpu_times()
+        for colour in game.cpu_time_errors:
+            del ru_cpu_times[colour]
+        game.result.soft_update_cpu_times(ru_cpu_times)
+        late_error_messages = game_controller.describe_late_errors()
         if late_error_messages:
             log_entries.append(late_error_messages)
-        self._record_game(game)
+        self._record_game(game_controller, game)
         response = Game_job_result()
         response.game_id = self.game_id
         response.game_result = game.result
         response.warnings = warnings
         response.log_entries = log_entries
-        response.engine_names = game.engine_names
-        response.engine_descriptions = game.engine_descriptions
+        response.engine_names = {
+            self.player_b.code: game_controller.engine_names['b'],
+            self.player_w.code: game_controller.engine_names['w']}
+        response.engine_descriptions = {
+            self.player_b.code: game_controller.engine_descriptions['b'],
+            self.player_w.code: game_controller.engine_descriptions['w']}
         response.game_data = self.game_data
         return response
 
-    def _write_sgf(self, pathname, sgf_string):
-        f = open(pathname, "w")
-        f.write(sgf_string)
-        f.close()
+    def _make_sgf(self, game_controller, game, game_end_message=None):
+        """Return an Sgf_game with annotations.
 
-    def _mkdir(self, pathname):
-        os.mkdir(pathname)
+        This adds the following to the result of Gtp_game.make_sgf:
 
-    def _write_game_record(self, pathname, game,
-                           game_end_message=None, result=None):
-        b_player = game.players['b']
-        w_player = game.players['w']
+        GN -- sgf_game_name
+        EV -- sgf_event
+
+        Root node comment:
+          game id
+          date and time
+          result description
+          sgf_note
+          cpu times
+          engine description
+
+        Adds to the last node's comment:
+          any game_end_message
+          describe_late_errors() output
+
+        """
+        b_player = self.player_b.code
+        w_player = self.player_w.code
         notes = []
-        sgf_game = game.make_sgf(game_end_message)
+        sgf_game = game.make_sgf()
         root = sgf_game.get_root()
         if self.sgf_game_name is not None:
             root.set('GN', self.sgf_game_name)
@@ -303,40 +321,61 @@ class Game_job(object):
             ]
         if game.result is not None:
             notes.append("Result %s" % game.result.describe())
-        elif result is not None:
-            root.set('RE', result)
         if self.sgf_note is not None:
             notes.append(self.sgf_note)
         if game.result is not None:
             for player in [b_player, w_player]:
                 cpu_time = game.result.cpu_times[player]
-                if cpu_time is not None and cpu_time != "?":
+                if cpu_time is not None:
                     notes.append("%s cpu time: %ss" %
                                  (player, "%.2f" % cpu_time))
         notes += [
-            "Black %s %s" % (b_player, game.engine_descriptions[b_player]),
-            "White %s %s" % (w_player, game.engine_descriptions[w_player]),
+            "Black %s %s" % (b_player, game_controller.engine_descriptions['b']),
+            "White %s %s" % (w_player, game_controller.engine_descriptions['w']),
             ]
         root.set('C', "\n".join(notes))
-        self._write_sgf(pathname, sgf_game.serialise())
+        last_node = sgf_game.get_last_node()
+        if game_end_message is not None:
+            last_node.add_comment_text(game_end_message)
+        late_error_messages = game_controller.describe_late_errors()
+        if late_error_messages is not None:
+            last_node.add_comment_text(late_error_messages)
+        return sgf_game
 
-    def _record_game(self, game):
+    def _record_game(self, game_controller, game):
         """Record the game in the standard sgf directory."""
         if self.sgf_dirname is None or self.sgf_filename is None:
             return
         pathname = os.path.join(self.sgf_dirname, self.sgf_filename)
-        self._write_game_record(pathname, game)
+        sgf_game = self._make_sgf(game_controller, game)
+        self._write_sgf(pathname, sgf_game.serialise())
 
-    def _record_void_game(self, game, game_end_message):
-        """Record the game in the void sgf directory if it had any moves."""
-        if not game.moves:
+    def _record_void_game(self, game_controller, game, game_end_message):
+        """Record the game in the void sgf directory if it had any moves.
+
+        Sets sgf RE to 'Void'.
+
+        """
+        if not game.get_moves():
             return
         if self.void_sgf_dirname is None or self.sgf_filename is None:
             return
         if not os.path.exists(self.void_sgf_dirname):
             self._mkdir(self.void_sgf_dirname)
         pathname = os.path.join(self.void_sgf_dirname, self.sgf_filename)
-        self._write_game_record(pathname, game, game_end_message, result='Void')
+        sgf_game = self._make_sgf(game_controller, game, game_end_message)
+        sgf_game.get_root().set('RE', 'Void')
+        self._write_sgf(pathname, sgf_game.serialise())
+
+    def _write_sgf(self, pathname, sgf_string):
+        # For overriding in the testsuite
+        f = open(pathname, "w")
+        f.write(sgf_string)
+        f.close()
+
+    def _mkdir(self, pathname):
+        # For overriding in the testsuite
+        os.mkdir(pathname)
 
 
 class CheckFailed(StandardError):

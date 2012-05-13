@@ -1,4 +1,4 @@
-"""Run a game between two GTP engines."""
+"""Run games between two GTP engines."""
 
 from gomill.utils import *
 from gomill.common import *
@@ -16,14 +16,13 @@ class Game_result(gameplay.Result):
       player_w       -- player code
       winning_player -- player code or None
       losing_player  -- player code or None
-      cpu_times      -- map player code -> float or None or '?'
+      cpu_times      -- map player code -> float (representing seconds) or None
 
     Call set_players() before using these.
 
     Winning/losing player are None for a jigo, unknown result, or void game.
 
-    cpu_times are user time + system time. '?' means that gomill-cpu_time gave
-    an error.
+    cpu_times are user time + system time.
 
     Game_results are suitable for pickling.
 
@@ -73,8 +72,13 @@ class Game_result(gameplay.Result):
          self.detail,
          self.is_forfeit,
          self.game_id,
-         self.cpu_times,
+         cpu_times,
          ) = state
+        # In gomill 0.7 and earlier, cpu_time could be '?'; treat this as None
+        for colour, cpu_time in cpu_times.items():
+            if cpu_time == '?':
+                cpu_times[colour] = None
+        self.cpu_times = cpu_times
         self.players = {'b' : self.player_b, 'w' : self.player_w}
         self.winning_player = self.players.get(self.winning_colour)
         self.is_jigo = (self.sgf_result == "0")
@@ -82,15 +86,15 @@ class Game_result(gameplay.Result):
     def soft_update_cpu_times(self, cpu_times):
         """Update the cpu_times dict.
 
-        cpu_times -- dict colour -> float or None or '?'
+        cpu_times -- (partial) dict colour -> float or None
 
         If a value is already set (not None), this method doesn't change it.
 
         """
-        for colour in ('b', 'w'):
+        for colour, cpu_time in cpu_times.iteritems():
             if self.cpu_times[self.players[colour]] is not None:
                 continue
-            self.cpu_times[self.players[colour]] = cpu_times[colour]
+            self.cpu_times[self.players[colour]] = cpu_time
 
     def describe(self):
         """Return a short human-readable description of the result."""
@@ -330,64 +334,61 @@ class _Gtp_backend(gameplay.Backend):
 
 
 class Gtp_game(object):
-    """A single game between two GTP engines.
+    """Manage a single game between two GTP engines.
 
     Instantiate with:
-      board_size -- int
-      komi       -- int or float (default 0)
-      move_limit -- int   (default 1000)
+      game_controller -- gtp_controller.Game_controller
+      board_size      -- int
+      komi            -- int or float (default 0)
+      move_limit      -- int or None  (default None)
 
     Normal use:
-
       game = Gtp_game(...)
-      game.set_player_code('b', ...)
-      game.set_player_code('w', ...)
-      game.use_internal_scorer() or game.allow_scorer(...) [optional]
-      game.set_move_callback...() [optional]
-      game.set_player_subprocess('b', ...) or set_player_controller('b', ...)
-      game.set_player_subprocess('w', ...) or set_player_controller('w', ...)
-      game.request_engine_descriptions() [optional]
+      Any combination of:
+        game.set_game_id(...)
+        game.use_internal_scorer() or game.allow_scorer(...)
+        game.set_claim_allowed(...)
+        game.set_move_callback(...)
       game.ready()
       game.set_handicap(...) [optional]
       game.run()
-      game.close_players()
-      game.make_sgf() or game.write_sgf(...) [optional]
+      Any combination of:
+        game.get_moves()
+        game.describe_scoring()
+        game.make_sgf()
 
-    then retrieve the Game_result and moves.
+    then retrieve the Game_result.
 
     If neither use_internal_scorer() nor allow_scorer() is called, the game
     won't be scored.
 
+    The game controller's player codes are used to identify the players in game
+    results, SGF files, and the error messages.
+
+
     Public attributes for reading:
-      players               -- map colour -> player code
-      game_id               -- string or None
-      result                -- Game_result (None before the game is complete)
-      moves                 -- list of tuples (colour, move, comment)
-                               move is a pair (row, col), or None for a pass
-      engine_names          -- map player code -> string
-      engine_descriptions   -- map player code -> string
+      game_id         -- string or None
+      result          -- Game_result (None before the game is complete)
+      cpu_time_errors -- set of colours (None before the game is complete)
 
-    Methods which communicate with engines may raise BadGtpResponse if the
-    engine returns a failure or uninterpretable response.
+    cpu_time_errors indicates engines which claim to support CPU time reporting
+    but reported an error. (This is provided to allow higher levels to use
+    resource-usage cpu time for other engines, without doing so if
+    gomill-cpu_time gives an error.)
 
-    Methods which communicate with engines will normally raise GtpChannelError
-    if there is trouble communicating with the engine. But after the game result
-    has been decided, they will set these errors aside; retrieve them with
-    describe_late_errors().
-
-    This enforces a simple ko rule, but no superko rule. It accepts self-capture
-    moves.
+    See Game_runner for the Go rules that are used, and details of move_limit.
 
     """
 
-    def __init__(self, board_size, komi=0.0, move_limit=1000):
-        self.game_controller = gtp_controller.Game_controller()
+    def __init__(self, game_controller, board_size, komi=0.0, move_limit=None):
+        self.game_controller = game_controller
         self.backend = _Gtp_backend(self.game_controller)
         self.game_runner = gameplay.Game_runner(
             self.backend, board_size, komi, move_limit)
         self.game_runner.set_result_class(Game_result)
         self.game_id = None
         self.result = None
+        self.cpu_time_errors = None
 
     ## Configuration API
 
@@ -440,108 +441,16 @@ class Gtp_game(object):
         self.game_runner.set_move_callback(fn)
 
 
-    ## Game-controller API
-
-    @property
-    def players(self):
-        return self.game_controller.players
-
-    @property
-    def engine_names(self):
-        return self.game_controller.engine_names
-
-    @property
-    def engine_descriptions(self):
-        return self.game_controller.engine_descriptions
-
-    def set_player_code(self, colour, player_code):
-        """Specify a player code.
-
-        player_code -- short ascii string
-
-        The player codes are used to identify the players in game results, SGF
-        files, and the error messages.
-
-        Setting these is optional but strongly encouraged. If not explicitly
-        set, they will just be 'b' and 'w'.
-
-        Raises ValueError if both players are given the same code.
-
-        """
-        self.game_controller.set_player_code(colour, player_code)
-
-    def close_players(self):
-        """Close both controllers (if they're open).
-
-        Retrieves the late errors for describe_late_errors().
-
-        If cpu times are not already set in the game result, sets them from the
-        CPU usage of the engine subprocesses.
-
-        """
-        self.game_controller.close_players()
-        if self.result is not None:
-            self.result.soft_update_cpu_times(
-                self.game_controller.get_resource_usage_cpu_times())
-
-    def send_command(self, colour, command, *arguments):
-        """Send the specified GTP command to one of the players.
-
-        colour    -- player to talk to ('b' or 'w')
-        command   -- gtp command name (string)
-        arguments -- gtp arguments (strings)
-
-        Returns the response as a string.
-
-        Raises BadGtpResponse if the engine returns a failure response.
-
-        You can use this at any time between set_player_...() and
-        close_players().
-
-        """
-        return self.game_controller.send_command(colour, command, *arguments)
-
-    def describe_late_errors(self):
-        return self.game_controller.describe_late_errors()
-
-    def set_player_controller(self, colour, controller,
-                              check_protocol_version=True):
-        self.game_controller.set_player_controller(
-            colour, controller, check_protocol_version)
-
-    def set_player_subprocess(self, colour, command,
-                              check_protocol_version=True, **kwargs):
-        self.game_controller.set_player_subprocess(
-            colour, command, check_protocol_version, **kwargs)
-
-    def get_controller(self, colour):
-        """Return the Gtp_controller for the specified colour."""
-        return self.game_controller.get_controller(colour)
-
-    def request_engine_descriptions(self):
-        """Obtain the engines' name, version, and description by GTP.
-
-        After you have called this, you can retrieve the results from the
-        engine_names and engine_descriptions attributes.
-
-        If this has been called, other methods will use the engine name and/or
-        description when appropriate (ie, call this if you want proper engine
-        names to appear in the SGF file).
-
-        """
-        self.game_controller.request_engine_descriptions()
-
-
     ## Game-running API
-
-    @property
-    def moves(self):
-        return self.game_runner.moves
 
     def ready(self):
         """Initialise the engines' GTP game state (board size, contents, komi).
 
-        May propagate GtpChannelError or BadGtpResponse.
+        Propagates BadGtpResponse if an engine returns a failure response to
+        any of the initialisation commands.
+
+        Propagates GtpChannelError if there is trouble communicating with an
+        engine.
 
         """
         self.game_runner.prepare()
@@ -554,10 +463,11 @@ class Gtp_game(object):
 
         Raises ValueError if the number of stones isn't valid (see GTP spec).
 
-        Raises BadGtpResponse if there's an invalid or failure response to
-        place_free_handicap, set_free_handicap, or fixed_handicap.
+        Propagates BadGtpResponse if an engine returns an invalid or failure
+        response to place_free_handicap, set_free_handicap, or fixed_handicap.
 
-        May propagate GtpChannelError.
+        Propagates GtpChannelError if there is trouble communicating with an
+        engine.
 
         """
         self.game_runner.set_handicap(handicap, is_free)
@@ -565,74 +475,76 @@ class Gtp_game(object):
     def run(self):
         """Run a complete game between the two players.
 
-        Sets the 'result' and 'moves' attributes.
+        Sets the 'result' and 'cpu_time_errors' attributes.
 
-        If a move is illegal, or the other player rejects it, it is not
-        included in 'moves' (result.detail indicates what the move was).
+        Won't propagate BadGtpResponse (if engine returns an invalid or failure
+        response, the game will be forfeited).
 
-        May propagate GtpChannelError or BadGtpResponse.
+        Propagates GtpChannelError if there is trouble communicating with an
+        engine before the result has been determined. Afterwards, sets errors
+        aside; retrieve them with game_controller.describe_late_errors().
 
         Propagates any exceptions from any after-move callback.
 
-        If an exception is propagated, 'moves' will reflect the moves made so
-        far, and 'result' will not be set.
+        If an exception is propagated, 'result' will not be set, but
+        get_moves() will reflect the moves which were completed.
 
         """
         self.game_runner.run()
         self.result = self.game_runner.result
-        self.result.set_players(self.players)
+        self.result.set_players(self.game_controller.players)
         self.result.game_id = self.game_id
-        self.result.soft_update_cpu_times(
-            self.game_controller.get_gtp_cpu_times())
+        cpu_times, self.cpu_time_errors = \
+            self.game_controller.get_gtp_cpu_times()
+        self.result.soft_update_cpu_times(cpu_times)
+
+    def get_moves(self):
+        """Retrieve a list of the moves played.
+
+        Returns a list of tuples (colour, move, comment)
+          move is a pair (row, col), or None for a pass
+
+        Returns an empty list if run() has not been called.
+
+        If the game ended due to an illegal move (or a move rejected by the
+        other player), that move is not included (result.detail indicates what
+        it was).
+
+        """
+        return self.game_runner.moves
 
     def describe_scoring(self):
         """Return a multiline string describing the game's scoring.
 
-        This always includes the game result, and may have additional
-        information if the players disagreed or returned strange results.
+        This always includes the game result and detail, and may have
+        additional information if the players disagreed or returned strange
+        results.
 
         """
         return describe_scoring(self.result,
                                 self.game_runner.get_game_score())
 
-    def make_sgf(self, game_end_message=None):
+    def make_sgf(self):
         """Return an SGF description of the game.
 
         Returns an Sgf_game object.
 
-        game_end_message -- optional string to put in the final comment.
-
         This adds the following to the result of Game_runner.make_sgf:
-          PB PW  (if request_engine_descriptions() was called)
+          PB PW
           GN     (if the game_id is set)
 
         It also adds the following to the last node's comment:
           describe_scoring() output
-          any game_end_message
-          describe_late_errors() output
 
         """
         sgf_game = self.game_runner.make_sgf()
         root = sgf_game.get_root()
-        if self.engine_names:
-            root.set('PB', self.engine_names[self.players['b']])
-            root.set('PW', self.engine_names[self.players['w']])
+        root.set('PB', self.game_controller.engine_names['b'])
+        root.set('PW', self.game_controller.engine_names['w'])
         if self.game_id:
             root.set('GN', self.game_id)
         last_node = sgf_game.get_last_node()
         if self.result is not None:
             last_node.add_comment_text(self.describe_scoring())
-        if game_end_message is not None:
-            last_node.add_comment_text(game_end_message)
-        late_error_messages = self.describe_late_errors()
-        if late_error_messages is not None:
-            last_node.add_comment_text(late_error_messages)
         return sgf_game
-
-    def write_sgf(self, pathname, game_end_message=None):
-        """Write an SGF description of the game to the specified pathname."""
-        sgf_game = self.make_sgf(game_end_message)
-        f = open(pathname, "w")
-        f.write(sgf_game.serialise())
-        f.close()
 
