@@ -305,7 +305,8 @@ class Mock_subprocess_gtp_channel(
         requested_env
 
     After close(), provides mocked-up exit_status and resource_usage, like a
-    Subprocess_gtp_channel. The cpu time used is a function of command[0].
+    Subprocess_gtp_channel. The cpu time used is a function of command[0]
+    ('testb' gives user/system 546/0.2; 'testw' gives 567/0.2).
 
     """
     engine_registry = {}

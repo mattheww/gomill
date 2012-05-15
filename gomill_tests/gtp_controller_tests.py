@@ -708,7 +708,7 @@ def test_game_controller(tc):
 
     gc = gtp_controller.Game_controller('one', 'two')
     gc.set_player_controller('b', controller1)
-    gc.set_player_controller('w', controller2)
+    gc.set_player_controller('w', controller2, check_protocol_version=False)
 
     tc.assertEqual(gc.engine_names, {'b' : "one", 'w' : "two"})
     tc.assertEqual(gc.engine_descriptions, {'b' : "one", 'w' : "two"})
@@ -765,7 +765,6 @@ def test_game_controller(tc):
         ('quit', []),
         ])
     tc.assertEqual(channel2.engine.commands_handled, [
-        ('protocol_version', []),
         ('name', []),
         ('version', []),
         ('known_command', ['gomill-describe_engine']),
@@ -860,3 +859,26 @@ def test_game_controller_get_gtp_cpu_times(tc):
                    "error sending 'quit' to fatalerror:\n"
                    "engine has closed the command channel")
 
+def test_game_controller_set_player_subprocess(tc):
+    msf = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    gc = gtp_controller.Game_controller('one', 'two')
+    gc.set_player_subprocess('b', ['testb', 'id=one'],
+                             check_protocol_version=False)
+    gc.set_player_subprocess('w', ['testw', 'id=two'], env={'a':'b'})
+
+    tc.assertEqual(gc.get_controller('b').name, "player one")
+    tc.assertEqual(gc.get_controller('w').name, "player two")
+
+    tc.assertEqual(gc.engine_names, {'b' : "one", 'w' : "two"})
+    tc.assertEqual(gc.engine_descriptions, {'b' : "one", 'w' : "two"})
+
+    channel1 = msf.get_channel('one')
+    channel2 = msf.get_channel('two')
+    tc.assertEqual(channel1.engine.commands_handled[0][0], 'name')
+    tc.assertIsNone(channel1.requested_env)
+    tc.assertEqual(channel2.engine.commands_handled[0][0], 'protocol_version')
+    tc.assertEqual(channel2.requested_env, {'a': 'b'})
+
+    gc.close_players()
+    tc.assertEqual(gc.get_resource_usage_cpu_times(),
+                   {'b': 546.2, 'w': 567.2})
