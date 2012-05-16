@@ -892,6 +892,16 @@ def test_game_controller_get_gtp_cpu_times(tc):
                    "error sending 'quit' to fatalerror:\n"
                    "engine has closed the command channel")
 
+    gc5 = gtp_controller.Game_controller('x', 'y')
+    gc5.set_player_controller('b', controller1())
+    gc5.set_player_controller('w', controller2())
+    gc5.get_controller('w').channel.fail_command = 'gomill-cpu_time'
+    tc.assertEqual(gc5.get_gtp_cpu_times(), ({}, set(['w'])))
+    gc5.close_players()
+    tc.assertEqual(gc5.describe_late_errors(),
+                   "transport error sending 'gomill-cpu_time' to good:\n"
+                   "forced failure for send_command_line")
+
 def test_game_controller_set_player_subprocess(tc):
     msf = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     gc = gtp_controller.Game_controller('one', 'two')
