@@ -847,6 +847,12 @@ def test_game_controller_channel_errors(tc):
         "transport error sending 'known_command test' to player two:\n"
         "forced failure for send_command_line")
 
+    channel1.fail_close = True
+    gc.close_players()
+    tc.assertEqual(gc.describe_late_errors(),
+                   "error closing player one:\n"
+                   "forced failure for close")
+
 def test_game_controller_get_gtp_cpu_times(tc):
     def controller1():
         channel = gtp_engine_fixtures.get_test_channel()
