@@ -8,7 +8,6 @@ from gomill import gtp_controller
 from gomill import gtp_games
 from gomill import sgf
 from gomill.common import format_vertex
-from gomill.gtp_engine import GtpError, GtpFatalError
 
 from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
@@ -858,13 +857,9 @@ def test_gtp_cpu_time(tc):
     tc.assertIsNone(fx.game_controller.describe_late_errors())
 
 def test_gtp_cpu_time_fail(tc):
-    def handle_cpu_time_soft(args):
-        raise GtpError("forced to fail soft")
-    def handle_cpu_time_hard(args):
-        raise GtpFatalError("forced to fail hard")
     fx = Gtp_game_fixture(tc)
-    fx.engine_b.add_command('gomill-cpu_time', handle_cpu_time_soft)
-    fx.engine_w.add_command('gomill-cpu_time', handle_cpu_time_hard)
+    fx.engine_b.force_error('gomill-cpu_time')
+    fx.engine_w.force_fatal_error('gomill-cpu_time')
     fx.game.ready()
     fx.game.run()
     fx.game_controller.close_players()

@@ -7,7 +7,6 @@ from textwrap import dedent
 
 from gomill import gtp_controller
 from gomill import game_jobs
-from gomill.gtp_engine import GtpError, GtpFatalError
 from gomill.job_manager import JobFailed
 
 from gomill_tests import test_framework
@@ -98,6 +97,26 @@ class Game_job_fixture(gtp_engine_fixtures.Mock_subprocess_fixture):
             channel.engine.add_command(command, handler)
         self.init_player(colour, register_handler)
 
+    def force_error(self, colour, command):
+        """Force the specified GTP command to report failure.
+
+        command -- GTP command name
+
+        """
+        def register(channel):
+            channel.engine.force_error(command)
+        self.init_player(colour, register)
+
+    def force_fatal_error(self, colour, command):
+        """Force the specified GTP command to report failure and exit.
+
+        command -- GTP command name
+
+        """
+        def register(channel):
+            channel.engine.force_fatal_error(command)
+        self.init_player(colour, register)
+
 
 def test_player_copy(tc):
     fx = Game_job_fixture(tc)
@@ -160,38 +179,34 @@ def test_game_job_no_sgf(tc):
     tc.assertIsNone(fx.job._sgf_pathname_written)
 
 def test_game_job_forfeit(tc):
-    def handle_genmove(args):
-        raise GtpError("error")
     fx = Game_job_fixture(tc)
-    fx.add_handler('w', 'genmove', handle_genmove)
+    fx.force_error('w', 'genmove')
     result = fx.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+F")
     tc.assertEqual(
         result.game_result.detail,
         "forfeit by two: failure response from 'genmove w' to player two:\n"
-        "error")
+        "handler forced to fail")
     tc.assertEqual(
         result.warnings,
         ["forfeit by two: failure response from 'genmove w' to player two:\n"
-        "error"])
+        "handler forced to fail"])
     tc.assertEqual(result.log_entries, [])
     tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
 
 def test_game_job_forfeit_and_quit(tc):
-    def handle_genmove(args):
-        raise GtpFatalError("I'm out of here")
     fx = Game_job_fixture(tc)
-    fx.add_handler('w', 'genmove', handle_genmove)
+    fx.force_fatal_error('w', 'genmove')
     result = fx.job.run()
     tc.assertEqual(result.game_result.sgf_result, "B+F")
     tc.assertEqual(
         result.game_result.detail,
         "forfeit by two: failure response from 'genmove w' to player two:\n"
-        "I'm out of here")
+        "handler forced to fail and exit")
     tc.assertEqual(
         result.warnings,
         ["forfeit by two: failure response from 'genmove w' to player two:\n"
-         "I'm out of here"])
+         "handler forced to fail and exit"])
     tc.assertEqual(
         result.log_entries,
         ["error sending 'known_command gomill-cpu_time' to player two:\n"
@@ -408,10 +423,8 @@ def test_game_job_startup_gtp_commands(tc):
                     ('clear_board', [])])
 
 def test_game_job_startup_gtp_commands_error(tc):
-    def handle_failplease(args):
-        raise GtpError("startup command which fails")
     fx = Game_job_fixture(tc)
-    fx.add_handler('w', 'failplease', handle_failplease)
+    fx.force_error('w', 'failplease')
     fx.job.player_w.startup_gtp_commands = [('list_commands', []),
                                             ('failplease', [])]
     with tc.assertRaises(JobFailed) as ar:
@@ -420,7 +433,7 @@ def test_game_job_startup_gtp_commands_error(tc):
         str(ar.exception),
         "aborting game due to error:\n"
         "failure response from 'failplease' to player two:\n"
-        "startup command which fails")
+        "handler forced to fail")
 
 def test_game_job_players_score(tc):
     clog = []
