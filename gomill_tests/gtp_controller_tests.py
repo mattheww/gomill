@@ -814,6 +814,39 @@ def test_game_controller_engine_descriptions(tc):
     tc.assertEqual(gc.engine_names, {'b' : "some-name", 'w' : "two"})
     tc.assertEqual(gc.engine_descriptions, {'b' : "foo\nbar", 'w' : "two"})
 
+def test_game_controller_channel_errors(tc):
+    channel1 = gtp_engine_fixtures.get_test_channel()
+    controller1 = Gtp_controller(channel1, 'player one')
+    channel2 = gtp_engine_fixtures.get_test_channel()
+    controller2 = Gtp_controller(channel2, 'player two')
+    gc = gtp_controller.Game_controller('one', 'two')
+    gc.set_player_controller('b', controller1)
+    gc.set_player_controller('w', controller2)
+
+    channel1.fail_command = "test"
+    with tc.assertRaises(GtpTransportError) as ar:
+        gc.send_command('b', 'test')
+    tc.assertEqual(
+        str(ar.exception),
+        "transport error sending 'test' to player one:\n"
+        "forced failure for send_command_line")
+
+    channel2.fail_command = "list_commands"
+    with tc.assertRaises(GtpTransportError) as ar:
+        gc.maybe_send_command('w', 'list_commands')
+    tc.assertEqual(
+        str(ar.exception),
+        "transport error sending 'list_commands' to player two:\n"
+        "forced failure for send_command_line")
+
+    channel2.fail_command = "known_command"
+    with tc.assertRaises(GtpTransportError) as ar:
+        gc.known_command('w', 'test')
+    tc.assertEqual(
+        str(ar.exception),
+        "transport error sending 'known_command test' to player two:\n"
+        "forced failure for send_command_line")
+
 def test_game_controller_get_gtp_cpu_times(tc):
     def controller1():
         channel = gtp_engine_fixtures.get_test_channel()

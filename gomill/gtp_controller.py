@@ -854,11 +854,11 @@ class Game_controller(object):
     The engine_names and engine_descriptions are the short and long results
     from describe_engine().
 
-    Methods which communicate with engines will normally raise GtpChannelError
-    if there is trouble communicating with the engine. But some (those which
-    might be used after the game result has been decided) are documented as
-    communicating 'cautiously'. These methods will set such errors aside;
-    retrieve them with describe_late_errors().
+    Methods which communicate with engines will normally propagate
+    GtpChannelError if there is trouble communicating with the engine. But some
+    (those which might be used after the game result has been decided) are
+    documented as communicating 'cautiously'. These methods will set such
+    errors aside; retrieve them with describe_late_errors().
 
     """
 
