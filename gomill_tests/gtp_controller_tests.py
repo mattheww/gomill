@@ -815,6 +815,17 @@ def test_game_controller_engine_descriptions(tc):
     tc.assertEqual(gc.engine_names, {'b' : "some-name", 'w' : "two"})
     tc.assertEqual(gc.engine_descriptions, {'b' : "foo\nbar", 'w' : "two"})
 
+def test_game_controller_protocol_version(tc):
+    channel1 = gtp_engine_fixtures.get_test_channel()
+    controller1 = Gtp_controller(channel1, 'player one')
+    channel1.engine.add_command('protocol_version', lambda args:"3")
+    gc = gtp_controller.Game_controller('one', 'two')
+    with tc.assertRaises(BadGtpResponse) as ar:
+        gc.set_player_controller('b', controller1)
+    tc.assertEqual(str(ar.exception),
+                   "player one reports GTP protocol version 3")
+    tc.assertIs(gc.get_controller('b'), controller1)
+
 def test_game_controller_channel_errors(tc):
     channel1 = gtp_engine_fixtures.get_test_channel()
     controller1 = Gtp_controller(channel1, 'player one')

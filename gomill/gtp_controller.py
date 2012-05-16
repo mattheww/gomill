@@ -883,7 +883,7 @@ class Game_controller(object):
         By convention, the controller's name should be 'player <player code>'.
 
         If check_protocol_version is true, rejects an engine that declares a
-        GTP protocol version <> 2.
+        GTP protocol version <> 2 (raises BadGtpResponse).
 
         Sets the engine_names and engine_descriptions entries for the player,
         using GTP commands (see describe_engine()).
@@ -913,7 +913,7 @@ class Game_controller(object):
         Creates a Gtp_controller, named 'player <player code>'.
 
         If check_protocol_version is true, rejects an engine that declares a
-        GTP protocol version <> 2.
+        GTP protocol version <> 2 (raises BadGtpResponse).
 
         Sets the engine_names and engine_descriptions entries for the player,
         using GTP commands (see describe_engine()).
