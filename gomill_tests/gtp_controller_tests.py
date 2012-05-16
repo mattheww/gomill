@@ -953,4 +953,5 @@ def test_game_controller_set_player_subprocess_error(tc):
         str(ar.exception),
         "error starting subprocess for player one:\nexec forced to fail")
     tc.assertRaises(KeyError, gc.get_controller, 'b')
+    tc.assertEqual(gc.get_resource_usage_cpu_times(), {'b' : None, 'w' : None})
 
