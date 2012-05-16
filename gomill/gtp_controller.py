@@ -937,7 +937,11 @@ class Game_controller(object):
     ## Generic GTP controller API
 
     def get_controller(self, colour):
-        """Return the underlying Gtp_controller for the specified player."""
+        """Return the underlying Gtp_controller for the specified player.
+
+        Raises KeyError if the player has not been set.
+
+        """
         return self.controllers[colour]
 
     def send_command(self, colour, command, *arguments):

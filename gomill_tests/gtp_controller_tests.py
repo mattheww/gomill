@@ -707,6 +707,7 @@ def test_game_controller(tc):
     channel1.engine.add_command('b_only', lambda args:"yes")
 
     gc = gtp_controller.Game_controller('one', 'two')
+    tc.assertRaises(KeyError, gc.get_controller, 'b')
     gc.set_player_controller('b', controller1)
     gc.set_player_controller('w', controller2, check_protocol_version=False)
 
@@ -931,3 +932,14 @@ def test_game_controller_set_player_subprocess(tc):
     gc.close_players()
     tc.assertEqual(gc.get_resource_usage_cpu_times(),
                    {'b': 546.2, 'w': 567.2})
+
+def test_game_controller_set_player_subprocess_error(tc):
+    msf = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    gc = gtp_controller.Game_controller('one', 'two')
+    with tc.assertRaises(GtpChannelError) as ar:
+        gc.set_player_subprocess('b', ['testb', 'fail=startup'])
+    tc.assertEqual(
+        str(ar.exception),
+        "error starting subprocess for player one:\nexec forced to fail")
+    tc.assertRaises(KeyError, gc.get_controller, 'b')
+
