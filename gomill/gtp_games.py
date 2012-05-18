@@ -175,36 +175,31 @@ class _Gtp_backend(gameplay.Backend):
 
     """
 
-    def __init__(self, game_controller):
+    def __init__(self, game_controller, board_size, komi):
         # A new _Gtp_backend is created for each game.
         # But this implementation is written to work correctly if it is used
         # in multiple games, anyway.
 
         self.gc = game_controller
+        self.board_size = board_size
+        self.komi = komi
         self.claim_allowed = {'b' : False, 'w' : False}
         self.allowed_scorers = []
         self.internal_scorer = False
         self.handicap_compensation = "no"
-
-        # We find out these from the Game_runner (from start_new_game and the
-        # handicap methods). We remember komi and handicap for the sake of the
-        # internal scorer.
-        self.board_size = None
-        self.komi = None
         self.handicap = None
 
     def start_new_game(self, board_size, komi):
         """Reset the engines' GTP game state (board size, contents, komi)."""
-        self.board_size = board_size
-        self.komi = komi
-        self.handicap = None
+        assert board_size == self.board_size
+        assert komi == self.komi
         for colour in "b", "w":
             self.gc.send_command(colour, "boardsize", str(board_size))
             self.gc.send_command(colour, "clear_board")
             self.gc.send_command(colour, "komi", str(komi))
 
     def get_free_handicap(self, handicap):
-        self.handicap = handicap
+        assert handicap == self.handicap
         vertices = self.gc.send_command(
             "b", "place_free_handicap", str(handicap))
         try:
@@ -225,7 +220,7 @@ class _Gtp_backend(gameplay.Backend):
         self.gc.send_command("w", "set_free_handicap", *vertices)
 
     def notify_fixed_handicap(self, colour, handicap, points):
-        self.handicap = handicap
+        assert handicap == self.handicap
         vertices = self.gc.send_command(colour, "fixed_handicap", str(handicap))
         try:
             seen_points = [move_from_vertex(vt, self.board_size)
@@ -382,7 +377,7 @@ class Gtp_game(object):
 
     def __init__(self, game_controller, board_size, komi=0.0, move_limit=None):
         self.game_controller = game_controller
-        self.backend = _Gtp_backend(self.game_controller)
+        self.backend = _Gtp_backend(self.game_controller, board_size, komi)
         self.game_runner = gameplay.Game_runner(
             self.backend, board_size, komi, move_limit)
         self.game_runner.set_result_class(Game_result)
@@ -470,6 +465,7 @@ class Gtp_game(object):
         engine.
 
         """
+        self.backend.handicap = handicap
         self.game_runner.set_handicap(handicap, is_free)
 
     def run(self):
