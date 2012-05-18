@@ -433,6 +433,11 @@ class Gtp_game(object):
         self.backend.claim_allowed[colour] = bool(b)
 
     def set_move_callback(self, fn):
+        """Specify a callback function to be called after every move.
+
+        See gameplay.Game_runner.set_move_callback().
+
+        """
         self.game_runner.set_move_callback(fn)
 
 
