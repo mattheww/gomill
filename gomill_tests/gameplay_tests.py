@@ -1146,3 +1146,28 @@ def test_game_runner_result_setting(tc):
     game = gr2.result[1]
     tc.assertIs(game.seen_resignation, True)
     tc.assertEqual(game.move_count, 1)
+
+def test_game_runner_state_checks(tc):
+    backend1 = Testing_backend(size=9, moves=[('b', 'C1'), ('w', 'D1')])
+    gr1 = gameplay.Game_runner(backend1, board_size=9)
+    tc.assertRaises(gameplay.GameRunnerStateError, gr1.set_handicap, 3, False)
+    tc.assertRaises(gameplay.GameRunnerStateError, gr1.run)
+    gr1.prepare()
+    tc.assertRaises(gameplay.GameRunnerStateError, gr1.prepare)
+    gr1.run()
+    tc.assertRaises(gameplay.GameRunnerStateError, gr1.prepare)
+    tc.assertRaises(gameplay.GameRunnerStateError, gr1.set_handicap, 3, False)
+    tc.assertRaises(gameplay.GameRunnerStateError, gr1.run)
+    tc.assertFalse(gr1.make_sgf().get_root().has_property("HA"))
+
+    backend2 = Testing_backend(size=9, moves=[('b', 'C1'), ('w', 'D1')])
+    gr2 = gameplay.Game_runner(backend2, board_size=9)
+    gr2.prepare()
+    gr2.set_handicap(3, False)
+    tc.assertRaises(gameplay.GameRunnerStateError, gr1.prepare)
+    tc.assertRaises(gameplay.GameRunnerStateError, gr1.set_handicap, 9, False)
+    gr2.run()
+    tc.assertRaises(gameplay.GameRunnerStateError, gr2.prepare)
+    tc.assertRaises(gameplay.GameRunnerStateError, gr2.set_handicap, 3, False)
+    tc.assertRaises(gameplay.GameRunnerStateError, gr1.run)
+    tc.assertEqual(gr2.make_sgf().get_root().get("HA"), 3)

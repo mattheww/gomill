@@ -504,6 +504,9 @@ class Backend(object):
         return None
 
 
+class GameRunnerStateError(StandardError):
+    """Error from Game_runner: wrong state for requested action."""
+
 class Game_runner(object):
     """Run a single Go game, with the players controlled by a Backend.
 
@@ -548,6 +551,7 @@ class Game_runner(object):
         self.moves = []
         self.game_score = None
         self.result = None
+        self._state = 0
 
     def set_move_callback(self, fn):
         """Specify a callback function to be called after every move.
@@ -587,7 +591,10 @@ class Game_runner(object):
         Propagates any exceptions from the backend start_new_game() method.
 
         """
+        if self._state != 0:
+            raise GameRunnerStateError
         self.backend.start_new_game(self.board_size, self.komi)
+        self._state = 1
 
     def set_handicap(self, handicap, is_free):
         """Arrange for the game to be played at a handicap.
@@ -603,16 +610,20 @@ class Game_runner(object):
           notify_fixed_handicap()
 
         """
+        if self._state != 1:
+            raise GameRunnerStateError
         if is_free:
             max_points = handicap_layout.max_free_handicap_for_board_size(
                 self.board_size)
             if not 2 <= handicap <= max_points:
                 raise ValueError
+            self._state = 2
             points = self.backend.get_free_handicap(handicap)
             self.backend.notify_free_handicap(points)
         else:
             # May propagate ValueError
             points = handicap_layout.handicap_points(handicap, self.board_size)
+            self._state = 2
             for colour in "b", "w":
                 self.backend.notify_fixed_handicap(colour, handicap, points)
         self.additional_sgf_props.append(('HA', handicap))
@@ -695,7 +706,10 @@ class Game_runner(object):
         far, and 'result' will not be set.
 
         """
+        if self._state not in (1, 2):
+            raise GameRunnerStateError
         game = self._make_game()
+        self._state = 3
         while not game.is_over:
             self._do_move(game)
         self._set_result(game)
