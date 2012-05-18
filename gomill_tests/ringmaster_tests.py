@@ -182,7 +182,7 @@ def test_get_job(tc):
     tc.assertEqual(job.board_size, 9)
     tc.assertEqual(job.komi, 7.5)
     tc.assertEqual(job.move_limit, 400)
-    tc.assertEqual(job.handicap, None)
+    tc.assertIsNone(job.handicap)
     tc.assertIs(job.handicap_is_free, False)
     tc.assertIs(job.use_internal_scorer, True)
     tc.assertEqual(job.sgf_game_name, 'test 0_000')
