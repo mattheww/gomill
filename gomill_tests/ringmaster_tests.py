@@ -35,6 +35,16 @@ class Ringmaster_fixture(test_framework.Fixture):
             control_file_contents + "\n".join(extra_lines))
         self.ringmaster.set_display_mode('test')
         self.msf = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+        self.msf.register_init_callback('p1', lambda x:None)
+        self.msf.register_init_callback('p2', lambda x:None)
+
+    def init_player(self, player_code, fn):
+        """Register an initialisation function for the specified player.
+
+        Assumes the player was given command-line argument 'init=<player_code'>
+
+        """
+        self.msf.register_init_callback(player_code, fn)
 
     def messages(self, channel):
         """Return messages sent to the specified channel."""
@@ -83,8 +93,8 @@ competition_type = 'playoff'
 description = 'gomill_tests playoff.'
 
 players = {
-    'p1'  : Player('testb'),
-    'p2'  : Player('testw'),
+    'p1'  : Player('testb init=p1'),
+    'p2'  : Player('testw init=p2'),
     }
 
 move_limit = 400
@@ -108,8 +118,8 @@ competition_type = 'allplayall'
 description = 'gomill_tests allplayall_ctl.'
 
 players = {
-    'p1'  : Player('testb'),
-    'p2'  : Player('testw'),
+    'p1'  : Player('testb init=p1'),
+    'p2'  : Player('testw init=p2'),
     }
 
 move_limit = 400
@@ -131,7 +141,7 @@ competition_type = 'mc_tuner'
 description = 'gomill_tests mc_tuner.'
 
 players = {
-    'p1'  : Player('testb'),
+    'p1'  : Player('testb init=p1'),
     }
 
 record_games = False
@@ -158,7 +168,7 @@ def make_candidate(foo):
 
 def test_get_job(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p2'] = Player('testw sing song')",
+        "players['p2'] = Player('testw')",
         ])
     job = fx.get_job()
     tc.assertEqual(job.game_id, "0_000")
@@ -177,8 +187,8 @@ def test_get_job(tc):
     tc.assertIsNone(job.void_sgf_dirname)
     tc.assertEqual(job.player_b.code, 'p1')
     tc.assertEqual(job.player_w.code, 'p2')
-    tc.assertEqual(job.player_b.cmd_args, ['testb'])
-    tc.assertEqual(job.player_w.cmd_args, ['testw', 'sing', 'song'])
+    tc.assertEqual(job.player_b.cmd_args, ['testb', 'init=p1'])
+    tc.assertEqual(job.player_w.cmd_args, ['testw'])
     tc.assertDictEqual(job.player_b.gtp_aliases, {})
     tc.assertListEqual(job.player_b.startup_gtp_commands, [])
     tc.assertEqual(job.stderr_pathname, "/nonexistent/ctl/test.log")
@@ -215,7 +225,7 @@ def test_settings(tc):
 
 def test_stderr_settings(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p2'] = Player('testb', discard_stderr=True)",
+        "players['p2'] = Player('testb init=p2', discard_stderr=True)",
         ])
     job = fx.get_job()
     tc.assertEqual(job.stderr_pathname, "/nonexistent/ctl/test.log")
@@ -224,7 +234,7 @@ def test_stderr_settings(tc):
 
 def test_stderr_settings_nolog(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p2'] = Player('testb', discard_stderr=True)",
+        "players['p2'] = Player('testb init=p2', discard_stderr=True)",
         "stderr_to_log = False",
         ])
     job = fx.get_job()
@@ -280,8 +290,8 @@ def test_check_players(tc):
 
 def test_run(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p1'] = Player('testb', discard_stderr=True)",
-        "players['p2'] = Player('testw', discard_stderr=True)",
+        "players['p1'] = Player('testb init=p1', discard_stderr=True)",
+        "players['p2'] = Player('testw init=p1', discard_stderr=True)",
         ])
     fx.initialise_clean()
     fx.ringmaster.run(max_games=3)
@@ -518,3 +528,22 @@ def test_status(tc):
         RingmasterError,
         "incompatible status file",
         fx.ringmaster.load_status)
+
+def test_no_cpu_time(tc):
+    fx = Ringmaster_fixture(tc, playoff_ctl, [
+        "players['p1'] = Player('testb init=p1', discard_stderr=True)",
+        "players['p2'] = Player('testw init=p2', discard_stderr=True)",
+        ])
+    def register(channel):
+        channel.engine.force_error('gomill-cpu_time')
+    fx.init_player('p1', register)
+    fx.init_player('p2', register)
+    fx.initialise_clean()
+    fx.ringmaster.run(max_games=3)
+    tc.assertListEqual(
+        fx.messages('screen_report'),
+        ["p1 v p2 (3/400 games)\n"
+         "board size: 9   komi: 7.5\n"
+         "     wins\n"
+         "p1      3 100.00%   (black)\n"
+         "p2      0   0.00%   (white)"])
