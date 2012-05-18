@@ -81,7 +81,7 @@ def main():
         game.allow_scorer('w')
 
         try:
-            game.ready()
+            game.prepare()
             game.run()
         except (GtpChannelError, BadGtpResponse), e:
             game_controller.close_players()

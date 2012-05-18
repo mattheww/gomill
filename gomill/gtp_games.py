@@ -344,7 +344,7 @@ class Gtp_game(object):
         game.use_internal_scorer() or game.allow_scorer(...)
         game.set_claim_allowed(...)
         game.set_move_callback(...)
-      game.ready()
+      game.prepare()
       game.set_handicap(...) [optional]
       game.run()
       Any combination of:
@@ -443,7 +443,7 @@ class Gtp_game(object):
 
     ## Game-running API
 
-    def ready(self):
+    def prepare(self):
         """Initialise the engines' GTP game state (board size, contents, komi).
 
         Propagates BadGtpResponse if an engine returns a failure response to

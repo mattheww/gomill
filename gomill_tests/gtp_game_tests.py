@@ -101,7 +101,7 @@ class Gtp_game_fixture(object):
             self.engine_w.add_command('final_score', handle_final_score_w)
         for colour in allowed_scorers:
             self.game.allow_scorer(colour)
-        self.game.ready()
+        self.game.prepare()
         self.game.run()
 
     def sgf_string(self):
@@ -130,7 +130,7 @@ def test_game(tc):
     tc.assertIs(fx.game_controller.get_controller('b'), fx.controller_b)
     tc.assertIs(fx.game_controller.get_controller('w'), fx.controller_w)
     fx.game.use_internal_scorer()
-    fx.game.ready()
+    fx.game.prepare()
     tc.assertIsNone(fx.game.game_id)
     tc.assertIsNone(fx.game.result)
     fx.game.run()
@@ -245,7 +245,7 @@ def test_unscored_game(tc):
     tc.assertIs(fx.game_controller.get_controller('b'), fx.controller_b)
     tc.assertIs(fx.game_controller.get_controller('w'), fx.controller_w)
     fx.game.allow_scorer('b') # it can't score
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     tc.assertDictEqual(fx.game.result.players, {'b' : 'one', 'w' : 'two'})
     tc.assertIsNone(fx.game.result.winning_colour)
@@ -267,7 +267,7 @@ def test_unscored_game(tc):
 def test_jigo(tc):
     fx = Gtp_game_fixture(tc, komi=18.0)
     fx.game.use_internal_scorer()
-    fx.game.ready()
+    fx.game.prepare()
     tc.assertIsNone(fx.game.result)
     fx.game.run()
     tc.assertDictEqual(fx.game.result.players, {'b' : 'one', 'w' : 'two'})
@@ -457,7 +457,7 @@ def test_resign(tc):
         ]
     fx = Gtp_game_fixture(
         tc, Programmed_player(moves), Programmed_player(moves))
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     tc.assertEqual(fx.game.result.sgf_result, "W+R")
     tc.assertEqual(fx.game.result.winning_colour, 'w')
@@ -479,7 +479,7 @@ def test_claim(tc):
     fx.engine_b.add_command('gomill-genmove_ex', handle_genmove_ex_b)
     fx.engine_w.add_command('gomill-genmove_ex', handle_genmove_ex_w)
     fx.game.set_claim_allowed('b')
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     tc.assertEqual(fx.game.result.sgf_result, "B+")
     tc.assertEqual(fx.game.result.detail, "claim")
@@ -502,7 +502,7 @@ def test_forfeit_occupied_point(tc):
     black_player = Programmed_player(moves)
     white_player = Programmed_player(moves)
     fx = Gtp_game_fixture(tc, black_player, white_player)
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     tc.assertEqual(fx.game.result.sgf_result, "B+F")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
@@ -527,7 +527,7 @@ def test_forfeit_simple_ko(tc):
     black_player = Programmed_player(moves)
     white_player = Programmed_player(moves)
     fx = Gtp_game_fixture(tc, black_player, white_player)
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     tc.assertEqual(fx.game.result.sgf_result, "W+F")
     tc.assertEqual(fx.game.result.winning_colour, 'w')
@@ -545,7 +545,7 @@ def test_forfeit_illformed_move(tc):
         ]
     fx = Gtp_game_fixture(
         tc, Programmed_player(moves), Programmed_player(moves))
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     tc.assertEqual(fx.game.result.sgf_result, "B+F")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
@@ -562,7 +562,7 @@ def test_forfeit_genmove_fails(tc):
         ]
     fx = Gtp_game_fixture(
         tc, Programmed_player(moves), Programmed_player(moves))
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     tc.assertEqual(fx.game.result.sgf_result, "W+F")
     tc.assertEqual(fx.game.result.winning_colour, 'w')
@@ -583,7 +583,7 @@ def test_forfeit_rejected_as_illegal(tc):
         tc,
         Programmed_player(moves, reject=('E4', 'illegal move')),
         Programmed_player(moves))
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     tc.assertEqual(fx.game.result.sgf_result, "B+F")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
@@ -602,7 +602,7 @@ def test_forfeit_play_failed(tc):
         tc,
         Programmed_player(moves, reject=('E4', 'crash')),
         Programmed_player(moves))
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     tc.assertEqual(fx.game.result.sgf_result, "W+F")
     tc.assertEqual(fx.game.result.winning_colour, 'w')
@@ -616,7 +616,7 @@ def test_forfeit_play_failed(tc):
 
 def test_move_limit(tc):
     fx = Gtp_game_fixture(tc, move_limit=4)
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     tc.assertEqual(fx.game.result.sgf_result, "Void")
     tc.assertIsNone(fx.game.result.winning_colour)
@@ -631,7 +631,7 @@ def test_move_limit(tc):
 def test_move_limit_exact(tc):
     fx = Gtp_game_fixture(tc, move_limit=20)
     fx.game.use_internal_scorer()
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     tc.assertEqual(fx.game.result.sgf_result, "B+18")
     fx.check_moves([
@@ -650,7 +650,7 @@ def test_move_limit_exact(tc):
 def test_make_sgf(tc):
     fx = Gtp_game_fixture(tc)
     fx.game.use_internal_scorer()
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     tc.assertMultiLineEqual(fx.sgf_string(), """\
 (;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[0]PB[one]PW[two]RE[B+18]SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+18]W[tt])
@@ -669,7 +669,7 @@ def test_game_id(tc):
     fx = Gtp_game_fixture(tc)
     fx.game.use_internal_scorer()
     fx.game.set_game_id("gitest")
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     tc.assertEqual(fx.game.result.game_id, "gitest")
     tc.assertEqual(fx.sgf_root().get("GN"), "gitest")
@@ -682,7 +682,7 @@ def test_explain_last_move(tc):
     fx = Gtp_game_fixture(tc)
     fx.engine_b.add_command('gomill-explain_last_move',
                             handle_explain_last_move)
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     tc.assertEqual(fx.sgf_moves_and_comments(), [
         "None pass: --",
@@ -717,7 +717,7 @@ def test_fixed_handicap(tc):
     fx = Gtp_game_fixture(tc)
     fx.engine_b.add_command('fixed_handicap', handle_fixed_handicap)
     fx.engine_w.add_command('fixed_handicap', handle_fixed_handicap)
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.set_handicap(3, is_free=False)
     tc.assertEqual(fh_calls, ["3", "3"])
     fx.game.run()
@@ -749,7 +749,7 @@ def test_fixed_handicap_bad_engine(tc):
     fx = Gtp_game_fixture(tc)
     fx.engine_b.add_command('fixed_handicap', handle_fixed_handicap_good)
     fx.engine_w.add_command('fixed_handicap', handle_fixed_handicap_bad)
-    fx.game.ready()
+    fx.game.prepare()
     tc.assertRaisesRegexp(
         gtp_controller.BadGtpResponse,
         "^bad response from fixed_handicap command to two: C3 G3 C7$",
@@ -766,7 +766,7 @@ def test_free_handicap(tc):
     fx = Gtp_game_fixture(tc)
     fx.engine_b.add_command('place_free_handicap', handle_place_free_handicap)
     fx.engine_w.add_command('set_free_handicap', handle_set_free_handicap)
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.set_handicap(4, is_free=True)
     tc.assertEqual(fh_calls, ["P ['4']", "S ['G6', 'C6', 'G4', 'C4']"])
     fx.game.run()
@@ -792,7 +792,7 @@ def test_free_handicap_bad_engine(tc):
         return "g6 c6 g4 g6"
     fx = Gtp_game_fixture(tc)
     fx.engine_b.add_command('place_free_handicap', handle_place_free_handicap)
-    fx.game.ready()
+    fx.game.prepare()
     tc.assertRaisesRegexp(
         gtp_controller.BadGtpResponse,
         "^invalid response from place_free_handicap command to one: "
@@ -822,7 +822,7 @@ class Handicap_compensation_TestCase(
         fx.engine_b.add_command('fixed_handicap', handle_fixed_handicap)
         fx.engine_w.add_command('fixed_handicap', handle_fixed_handicap)
         fx.game.use_internal_scorer(handicap_compensation=self.hc)
-        fx.game.ready()
+        fx.game.prepare()
         if self.has_handicap:
             fx.game.set_handicap(3, is_free=False)
         fx.game.run()
@@ -835,7 +835,7 @@ def test_move_callback(tc):
         seen.append("%s %s" % (colour, format_vertex(move)))
     fx = Gtp_game_fixture(tc)
     fx.game.set_move_callback(see)
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     tc.assertEqual(",".join(seen),
                    "b E1,w G1,b E2,w G2,b E3,w G3,b E4,w G4,b E5,w G5,b E6,"
@@ -849,7 +849,7 @@ def test_gtp_cpu_time(tc):
     fx = Gtp_game_fixture(tc)
     fx.engine_b.add_command('gomill-cpu_time', handle_cpu_time_good)
     fx.engine_w.add_command('gomill-cpu_time', handle_cpu_time_bad)
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     fx.game_controller.close_players()
     tc.assertDictEqual(fx.game.result.cpu_times, {'one' : 99.5, 'two' : None})
@@ -860,7 +860,7 @@ def test_gtp_cpu_time_fail(tc):
     fx = Gtp_game_fixture(tc)
     fx.engine_b.force_error('gomill-cpu_time')
     fx.engine_w.force_fatal_error('gomill-cpu_time')
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     fx.game_controller.close_players()
     tc.assertDictEqual(fx.game.result.cpu_times, {'one' : None, 'two' : None})
@@ -871,7 +871,7 @@ def test_gtp_cpu_time_fail(tc):
 
 def test_game_result_cpu_time_pickle_compatibility(tc):
     fx = Gtp_game_fixture(tc)
-    fx.game.ready()
+    fx.game.prepare()
     fx.game.run()
     result = fx.game.result
     result.cpu_times = {'one' : 33.5, 'two' : '?'}

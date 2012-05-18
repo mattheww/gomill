@@ -244,7 +244,7 @@ class Game_job(object):
                                'b', self.player_b, gtp_log_file)
             self._start_player(game_controller, game,
                                'w', self.player_w, gtp_log_file)
-            game.ready()
+            game.prepare()
             if self.handicap:
                 try:
                     game.set_handicap(self.handicap, self.handicap_is_free)
