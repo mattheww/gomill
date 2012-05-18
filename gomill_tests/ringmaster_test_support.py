@@ -37,8 +37,8 @@ class Testing_ringmaster(ringmasters.Ringmaster):
 
     This doesn't read from or write to the filesystem.
 
-    (If you're testing run(), make sure record_games is False, and
-    discard_stderr is True for each player.)
+    (If you're testing run(), make sure record_games is False, and either
+    stderr_to_log is False, or else discard_stderr is True for each player.)
 
     (Currently, write_status is made to do nothing, so it's not usefully
     testable.)

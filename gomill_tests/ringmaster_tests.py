@@ -92,6 +92,8 @@ competition_type = 'playoff'
 
 description = 'gomill_tests playoff.'
 
+stderr_to_log = False
+
 players = {
     'p1'  : Player('testb init=p1'),
     'p2'  : Player('testw init=p2'),
@@ -117,6 +119,8 @@ competition_type = 'allplayall'
 
 description = 'gomill_tests allplayall_ctl.'
 
+stderr_to_log = False
+
 players = {
     'p1'  : Player('testb init=p1'),
     'p2'  : Player('testw init=p2'),
@@ -139,6 +143,8 @@ mcts_ctl = """
 competition_type = 'mc_tuner'
 
 description = 'gomill_tests mc_tuner.'
+
+stderr_to_log = False
 
 players = {
     'p1'  : Player('testb init=p1'),
@@ -191,7 +197,7 @@ def test_get_job(tc):
     tc.assertEqual(job.player_w.cmd_args, ['testw'])
     tc.assertDictEqual(job.player_b.gtp_aliases, {})
     tc.assertListEqual(job.player_b.startup_gtp_commands, [])
-    tc.assertEqual(job.stderr_pathname, "/nonexistent/ctl/test.log")
+    tc.assertIsNone(job.stderr_pathname)
     tc.assertIsNone(job.player_b.cwd)
     tc.assertIsNone(job.player_b.environ)
     tc.assertEqual(fx.ringmaster.games_in_progress, {'0_000': job})
@@ -205,7 +211,7 @@ def test_settings(tc):
         "handicap = 9",
         "handicap_style = 'free'",
         "record_games = True",
-        "scorer = 'players'"
+        "scorer = 'players'",
         ])
     fx.ringmaster.enable_gtp_logging()
     job = fx.get_job()
@@ -213,7 +219,7 @@ def test_settings(tc):
     tc.assertEqual(job.handicap, 9)
     tc.assertIs(job.handicap_is_free, True)
     tc.assertIs(job.use_internal_scorer, False)
-    tc.assertEqual(job.stderr_pathname, "/nonexistent/ctl/test.log")
+    tc.assertIsNone(job.stderr_pathname)
     tc.assertEqual(job.gtp_log_pathname,
                    '/nonexistent/ctl/test.gtplogs/0_000.log')
     tc.assertEqual(job.sgf_filename, '0_000.sgf')
@@ -225,7 +231,8 @@ def test_settings(tc):
 
 def test_stderr_settings(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p2'] = Player('testb init=p2', discard_stderr=True)",
+        "players['p2'] = Player('testb', discard_stderr=True)",
+        "stderr_to_log = True",
         ])
     job = fx.get_job()
     tc.assertEqual(job.stderr_pathname, "/nonexistent/ctl/test.log")
@@ -234,8 +241,7 @@ def test_stderr_settings(tc):
 
 def test_stderr_settings_nolog(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p2'] = Player('testb init=p2', discard_stderr=True)",
-        "stderr_to_log = False",
+        "players['p2'] = Player('testb', discard_stderr=True)",
         ])
     job = fx.get_job()
     tc.assertIs(job.stderr_pathname, None)
@@ -289,10 +295,7 @@ def test_check_players(tc):
     tc.assertTrue(fx.ringmaster.check_players(discard_stderr=True))
 
 def test_run(tc):
-    fx = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p1'] = Player('testb init=p1', discard_stderr=True)",
-        "players['p2'] = Player('testw init=p1', discard_stderr=True)",
-        ])
+    fx = Ringmaster_fixture(tc, playoff_ctl)
     fx.initialise_clean()
     fx.ringmaster.run(max_games=3)
     tc.assertListEqual(
@@ -324,10 +327,7 @@ def test_run(tc):
         "  0_002 p1 beat p2 B+10.5\n")
 
 def test_run_allplayall(tc):
-    fx = Ringmaster_fixture(tc, allplayall_ctl, [
-        "players['p1'] = Player('testb', discard_stderr=True)",
-        "players['p2'] = Player('testw', discard_stderr=True)",
-        ])
+    fx = Ringmaster_fixture(tc, allplayall_ctl)
     fx.initialise_clean()
     fx.ringmaster.run(max_games=3)
     tc.assertListEqual(
@@ -367,8 +367,7 @@ def test_check_players_fail(tc):
 
 def test_run_fail(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p1'] = Player('testb', discard_stderr=True)",
-        "players['p2'] = Player('test fail=startup', discard_stderr=True)",
+        "players['p2'] = Player('test fail=startup')",
         ])
     fx.initialise_clean()
     fx.ringmaster.run()
@@ -394,8 +393,8 @@ def test_run_fail(tc):
 
 def test_run_with_late_errors(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p1'] = Player('testb', discard_stderr=True)",
-        "players['p2'] = Player('test init=fail_close', discard_stderr=True)",
+        "players['p1'] = Player('testb')",
+        "players['p2'] = Player('test init=fail_close')",
         ])
     def fail_close(channel):
         channel.fail_close = True
@@ -422,10 +421,7 @@ def test_run_with_late_errors(tc):
         "  0_001 p1 beat p2 B+10.5\n")
 
 def test_status_roundtrip(tc):
-    fx1 = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p1'] = Player('testb', discard_stderr=True)",
-        "players['p2'] = Player('testw', discard_stderr=True)",
-        ])
+    fx1 = Ringmaster_fixture(tc, playoff_ctl)
     fx1.initialise_clean()
     fx1.ringmaster.run(max_games=2)
     tc.assertListEqual(
@@ -433,10 +429,7 @@ def test_status_roundtrip(tc):
         [])
     state = fx1.get_written_state()
 
-    fx2 = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p1'] = Player('testb', discard_stderr=True)",
-        "players['p2'] = Player('testw', discard_stderr=True)",
-        ])
+    fx2 = Ringmaster_fixture(tc, playoff_ctl)
     fx2.initialise_with_state(state)
     fx2.ringmaster.run(max_games=1)
     tc.assertListEqual(
@@ -452,10 +445,7 @@ def test_status_roundtrip(tc):
 
 def test_status(tc):
     # Construct suitable competition status
-    fx1 = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p1'] = Player('testb', discard_stderr=True)",
-        "players['p2'] = Player('testw', discard_stderr=True)",
-        ])
+    fx1 = Ringmaster_fixture(tc, playoff_ctl)
     sfv = fx1.ringmaster.status_format_version
     fx1.initialise_clean()
     fx1.ringmaster.run(max_games=2)
@@ -469,10 +459,7 @@ def test_status(tc):
         'comp'            : competition_status,
         }
 
-    fx = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p1'] = Player('testb', discard_stderr=True)",
-        "players['p2'] = Player('testw', discard_stderr=True)",
-        ])
+    fx = Ringmaster_fixture(tc, playoff_ctl)
     fx.initialise_with_state((sfv, status.copy()))
     fx.ringmaster.run(max_games=1)
     tc.assertListEqual(
@@ -530,10 +517,7 @@ def test_status(tc):
         fx.ringmaster.load_status)
 
 def test_no_cpu_time(tc):
-    fx = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p1'] = Player('testb init=p1', discard_stderr=True)",
-        "players['p2'] = Player('testw init=p2', discard_stderr=True)",
-        ])
+    fx = Ringmaster_fixture(tc, playoff_ctl)
     def register(channel):
         channel.engine.force_error('gomill-cpu_time')
     fx.init_player('p1', register)
