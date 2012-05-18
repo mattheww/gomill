@@ -246,7 +246,7 @@ def get_test_player_channel():
 
 ## State reporter subprocess
 
-class State_reporter_fixture(test_framework.Fixture):
+class State_reporter_fixture(object):
     """Fixture for use with suprocess_state_reporter.py
 
     Attributes:
@@ -368,7 +368,7 @@ class Mock_subprocess_gtp_channel(
             ru_utime=fake_time, ru_stime=0.2)
 
 
-class Mock_subprocess_fixture(test_framework.Fixture):
+class Mock_subprocess_fixture(object):
     """Fixture for using Mock_subprocess_gtp_channel.
 
     While this fixture is active, attempts to instantiate a

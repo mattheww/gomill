@@ -33,7 +33,7 @@ def check_short_report(tc, comp,
     tc.assertMultiLineEqual(competition_test_support.get_short_report(comp),
                             expected)
 
-class Allplayall_fixture(test_framework.Fixture):
+class Allplayall_fixture(object):
     """Fixture setting up a Allplayall.
 
     attributes:

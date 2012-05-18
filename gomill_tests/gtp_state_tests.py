@@ -16,7 +16,7 @@ def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
-class Gtp_state_fixture(test_framework.Fixture):
+class Gtp_state_fixture(object):
     """Fixture for managing a Gtp_state.
 
     The move generator comes from gtp_state_test_support.Player

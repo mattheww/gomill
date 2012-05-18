@@ -38,7 +38,7 @@ expected_fake_players = dedent("""\
     """)
 
 
-class Playoff_fixture(test_framework.Fixture):
+class Playoff_fixture(object):
     """Fixture setting up a Playoff.
 
     attributes:

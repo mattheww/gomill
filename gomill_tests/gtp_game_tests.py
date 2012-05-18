@@ -21,7 +21,7 @@ def make_tests(suite):
         suite.addTest(Handicap_compensation_TestCase(*t))
 
 
-class Gtp_game_fixture(test_framework.Fixture):
+class Gtp_game_fixture(object):
     """Fixture managing a Gtp_game.
 
     Instantiate with the player objects (defaults to a Test_player).

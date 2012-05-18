@@ -146,13 +146,3 @@ def make_simple_tests(source, prefix="test_", testcase_class=SimpleTestCase):
     functions.sort(key=_function_sort_key)
     return [testcase_class(fn) for fn in functions]
 
-
-class Fixture(object):
-    """A testing fixture.
-
-    Instantiate fixture objects with a TestCase parameter.
-
-    The fixture arranges for any necessary cleanup to be performed by calling
-    TestCase.addCleanUp.
-
-    """

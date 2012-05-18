@@ -20,7 +20,7 @@ def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
 
-class Proxy_fixture(test_framework.Fixture):
+class Proxy_fixture(object):
     """Fixture managing a Gtp_proxy with the test engine as its back-end.
 
     attributes:

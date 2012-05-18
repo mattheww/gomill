@@ -16,7 +16,7 @@ def make_tests(suite):
 
 ### Game
 
-class Game_fixture(test_framework.Fixture):
+class Game_fixture(object):
     def __init__(self, tc, **kwargs):
         self.tc = tc
         kwargs.setdefault('board', boards.Board(9))

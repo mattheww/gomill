@@ -15,7 +15,7 @@ from gomill.ringmasters import RingmasterError
 def make_tests(suite):
     suite.addTests(gomill_test_support.make_simple_tests(globals()))
 
-class Ringmaster_fixture(test_framework.Fixture):
+class Ringmaster_fixture(object):
     """Fixture setting up a Ringmaster with mock suprocesses.
 
     Instantiate with testcase, the text to be used as the contents of the
