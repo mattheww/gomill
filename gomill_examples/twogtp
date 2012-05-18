@@ -18,10 +18,10 @@ from gomill import gtp_games
 from gomill.gtp_controller import GtpChannelError, BadGtpResponse
 from gomill.common import format_vertex
 
-def print_move(colour, move, board):
+def print_move(colour, move, board, **kwargs):
     print colour.upper(), format_vertex(move)
 
-def print_board(colour, move, board):
+def print_board(colour, move, board, **kwargs):
     print colour.upper(), format_vertex(move)
     print ascii_boards.render_board(board)
     print

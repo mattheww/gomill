@@ -557,8 +557,12 @@ class Game_runner(object):
         It is not called after moves which triggered a forfeit. It isn't called
         for resignations or claims.
 
-        It is passed three parameters: colour, move, board
-          move is a pair (row, col), or None for a pass
+        It must accept arbitrary keyword arguments.
+
+        At least the following keyword arguments will be passed:
+          colour -- 'b' or 'w'
+          move   -- pair (row, col), or None for a pass
+          board  -- boards.Board
 
         Treat the board parameter as read-only.
 
@@ -662,7 +666,7 @@ class Game_runner(object):
         self.moves.append((colour, move, comment))
 
         if self.after_move_callback:
-            self.after_move_callback(colour, move, game.board)
+            self.after_move_callback(colour=colour, move=move, board=game.board)
 
     def _set_result(self, game):
         if game.passed_out:
