@@ -98,8 +98,9 @@ traceback_line_re = re.compile(
 class Gomill_testcase_mixin(object):
     """TestCase mixin adding support for gomill-specific types.
 
-    This adds:
+    Board/diagram features:
      assertBoardEqual
+     assertDiagramEqual
      assertEqual and assertNotEqual for Boards
 
     """
