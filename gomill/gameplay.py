@@ -537,6 +537,9 @@ class Game_runner(object):
     If move_limit is not None, the game ends (with result 'Void') when that
     number of moves (including passes) has been played.
 
+    If a player rejects its opponent's move as illegal, we assume it is correct
+    and the opponent forfeits the game.
+
     """
 
     def __init__(self, backend, board_size, komi=0, move_limit=None):
