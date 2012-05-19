@@ -35,6 +35,11 @@ def test_attributes(tc):
          (4, 0), (4, 1), (4, 2), (4, 3), (4, 4)])
 
 def test_basics(tc):
+    tc.assertRaises(ValueError, boards.Board, 1)
+    tc.assertRaises(ValueError, boards.Board, 0)
+    tc.assertRaises(ValueError, boards.Board, -1)
+    tc.assertRaises((TypeError, ValueError), boards.Board, (19, 19))
+
     b = boards.Board(9)
 
     tc.assertTrue(b.is_empty())
