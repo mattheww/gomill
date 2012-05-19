@@ -7,6 +7,7 @@ from gomill import gtp_controller
 from gomill import gtp_games
 from gomill import job_manager
 from gomill import sgf
+from gomill import utils
 from gomill.gtp_controller import BadGtpResponse, GtpChannelError
 
 class Player(object):
@@ -360,8 +361,7 @@ class Game_job(object):
             return
         if self.void_sgf_dirname is None or self.sgf_filename is None:
             return
-        if not os.path.exists(self.void_sgf_dirname):
-            self._mkdir(self.void_sgf_dirname)
+        self._ensure_dir(self.void_sgf_dirname)
         pathname = os.path.join(self.void_sgf_dirname, self.sgf_filename)
         sgf_game = self._make_sgf(game_controller, game, game_end_message)
         sgf_game.get_root().set('RE', 'Void')
@@ -373,9 +373,9 @@ class Game_job(object):
         f.write(sgf_string)
         f.close()
 
-    def _mkdir(self, pathname):
+    def _ensure_dir(self, pathname):
         # For overriding in the testsuite
-        os.mkdir(pathname)
+        utils.ensure_dir(pathname)
 
 
 class CheckFailed(StandardError):

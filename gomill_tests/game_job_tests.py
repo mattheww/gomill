@@ -38,7 +38,7 @@ class Test_game_job(game_jobs.Game_job):
         self._sgf_pathname_written = pathname
         self._sgf_written = sgf_string
 
-    def _mkdir(self, pathname):
+    def _ensure_dir(self, pathname):
         self._mkdir_pathname = pathname
 
     def _get_sgf_written(self):

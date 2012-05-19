@@ -7,6 +7,8 @@ This is for generic utilities; see common for Go-specific utility functions.
 """
 
 from __future__ import division
+import errno
+import os
 
 __all__ = ["format_float", "format_percent", "sanitise_utf8", "isinf", "isnan"]
 
@@ -64,6 +66,14 @@ def sanitise_utf8(s):
                 .encode("utf-8"))
     else:
         return s
+
+def ensure_dir(pathname):
+    """Create a directory, unless it already exists."""
+    try:
+        os.mkdir(pathname)
+    except EnvironmentError, e:
+        if e.errno != errno.EEXIST:
+            raise
 
 try:
     from math import isinf, isnan
