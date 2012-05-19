@@ -156,8 +156,8 @@ def test_game_job(tc):
     on two lines
     one cpu time: 546.20s
     two cpu time: 567.20s
-    Black one one
-    White two two]
+    Black one
+    White two]
     CA[UTF-8]DT[***]EV[game_job_tests]GM[1]GN[gjt 0_000]KM[7.5]PB[one]
     PW[two]RE[B+10.5]SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];
     W[ge];B[ed];W[gd];B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];
@@ -242,8 +242,8 @@ def test_game_job_channel_error(tc):
     (;FF[4]AP[gomill:VER]
     C[Game id gameid
     Date ***
-    Black one one
-    White two two]CA[UTF-8]
+    Black one
+    White two]CA[UTF-8]
     DT[***]GM[1]GN[gameid]KM[7.5]PB[one]PW[two]RE[Void]SZ[9];B[ei]
     C[aborting game due to error:
     transport error sending 'genmove w' to player two:
@@ -267,8 +267,8 @@ def test_game_job_late_errors(tc):
     Date ***
     Result one beat two B+10.5
     one cpu time: 546.20s
-    Black one one
-    White two two]
+    Black one
+    White two]
     CA[UTF-8]DT[***]GM[1]GN[gameid]KM[7.5]PB[one]PW[two]RE[B+10.5]SZ[9];
     B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];
     W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];
@@ -300,8 +300,8 @@ def test_game_job_late_error_from_void_game(tc):
     (;FF[4]AP[gomill:VER]
     C[Game id gameid
     Date ***
-    Black one one
-    White two two]CA[UTF-8]
+    Black one
+    White two]CA[UTF-8]
     DT[***]GM[1]GN[gameid]KM[7.5]PB[one]PW[two]RE[Void]SZ[9];B[ei]
     C[aborting game due to error:
     transport error sending 'genmove w' to player two:
@@ -394,8 +394,8 @@ def test_game_job_move_limit(tc):
     Result one vs two Void (hit move limit)
     one cpu time: 546.20s
     two cpu time: 567.20s
-    Black one one
-    White two two]
+    Black one
+    White two]
     CA[UTF-8]DT[***]GM[1]GN[gameid]KM[7.5]PB[one]PW[two]RE[Void]SZ[9];B[ei];
     W[gi];B[eh];C[one vs two Void (hit move limit)]W[gh])
     """))
@@ -465,8 +465,8 @@ def test_game_job_cpu_time(tc):
     Result one beat two B+10.5
     one cpu time: 99.50s
     two cpu time: 567.20s
-    Black one one
-    White two two]
+    Black one
+    White two]
     CA[UTF-8]DT[***]GM[1]GN[gameid]KM[7.5]PB[one]PW[two]RE[B+10.5]SZ[9];
     B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];
     W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+10.5]W[tt])
@@ -485,11 +485,31 @@ def test_game_job_cpu_time_fail(tc):
     Date ***
     Result one beat two B+10.5
     two cpu time: 567.20s
-    Black one one
-    White two two]
+    Black one
+    White two]
     CA[UTF-8]DT[***]GM[1]GN[gameid]KM[7.5]PB[one]PW[two]RE[B+10.5]SZ[9];
     B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];
     W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+10.5]W[tt])
+    """))
+
+def test_game_job_player_descriptions(tc):
+    fx = Game_job_fixture(tc)
+    fx.add_handler('b', 'name', lambda args: "blackname")
+    fx.add_handler('w', 'gomill-describe_engine', lambda args: "foo\nbar")
+    result = fx.job.run()
+    tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
+    (;FF[4]AP[gomill:VER]
+    C[Game id gameid
+    Date ***
+    Result one beat two B+10.5
+    one cpu time: 546.20s
+    two cpu time: 567.20s
+    Black one blackname
+    White two foo
+    bar]
+    CA[UTF-8]DT[***]GM[1]GN[gameid]KM[7.5]PB[blackname]PW[two]RE[B+10.5]
+    SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];
+    B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+10.5]W[tt])
     """))
 
 

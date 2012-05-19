@@ -330,10 +330,13 @@ class Game_job(object):
                 if cpu_time is not None:
                     notes.append("%s cpu time: %ss" %
                                  (player, "%.2f" % cpu_time))
-        notes += [
-            "Black %s %s" % (b_player, game_controller.engine_descriptions['b'].get_long_description(b_player)),
-            "White %s %s" % (w_player, game_controller.engine_descriptions['w'].get_long_description(w_player)),
-            ]
+
+        for colour, note in (('b', "Black %s" % b_player),
+                             ('w', "White %s" % w_player)):
+            ed = game_controller.engine_descriptions[colour]
+            if ed.description is not None or ed.name is not None:
+                note += " " + ed.get_long_description()
+            notes.append(note)
         root.set('C', "\n".join(notes))
         last_node = sgf_game.get_last_node()
         if game_end_message is not None:
