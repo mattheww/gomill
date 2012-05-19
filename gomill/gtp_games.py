@@ -551,8 +551,12 @@ class Gtp_game(object):
         """
         sgf_game = self.game_runner.make_sgf()
         root = sgf_game.get_root()
-        root.set('PB', self.game_controller.engine_descriptions['b'].get_short_description(self.game_controller.players['b']))
-        root.set('PW', self.game_controller.engine_descriptions['w'].get_short_description(self.game_controller.players['w']))
+        for colour, prop in (('b', 'PB'), ('w', 'PW')):
+            ed = self.game_controller.engine_descriptions[colour]
+            if ed.name:
+                root.set(prop, ed.get_short_description())
+            else:
+                root.set(prop, self.game_controller.players[colour])
         if self.game_id:
             root.set('GN', self.game_id)
         last_node = sgf_game.get_last_node()

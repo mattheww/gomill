@@ -26,7 +26,7 @@ class Gtp_game_fixture(object):
 
     Instantiate with the player objects (defaults to a Test_player).
 
-    Additional keyword arguments are passed on to Game.
+    Additional keyword arguments are passed on to Gtp_game.
 
     attributes:
       game         -- Gtp_game
@@ -712,12 +712,18 @@ def test_move_limit_exact(tc):
         ])
 
 def test_make_sgf(tc):
-    fx = Gtp_game_fixture(tc)
+    class Named_player(gtp_engine_fixtures.Test_player):
+        def get_handlers(self):
+            handlers = {'name' : lambda args: "blackplayer",
+                        'version' : lambda args: "0.9"}
+            handlers.update(gtp_engine_fixtures.Test_player.get_handlers(self))
+            return handlers
+    fx = Gtp_game_fixture(tc, player_b=Named_player())
     fx.game.use_internal_scorer()
     fx.game.prepare()
     fx.game.run()
     tc.assertMultiLineEqual(fx.sgf_string(), """\
-(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[0]PB[one]PW[two]RE[B+18]SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+18]W[tt])
+(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[0]PB[blackplayer:0.9]PW[two]RE[B+18]SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+18]W[tt])
 """)
 
 def test_make_sgf_scoring_details(tc):
