@@ -164,7 +164,7 @@ def test_game_job(tc):
     C[one beat two B+10.5]W[tt])
     """))
 
-def test_duplicate_player_codes(tc):
+def test_game_job_duplicate_player_codes(tc):
     fx = Game_job_fixture(tc)
     fx.job.player_w.code = "one"
     tc.assertRaisesRegexp(
