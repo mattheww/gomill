@@ -9,6 +9,10 @@ Changes
 * Bug fix: :meth:`.Board.is_empty()` was wrong after a self-capture which
   leaves the board empty.
 
+* Documentation correction: the example in :ref:`using_the_api_in_scripts`
+  showed :meth:`!Ringmaster.tournament_results` rather than
+  :meth:`!Ringmaster.get_tournament_results`.
+
 
 Gomill 0.7.3 (2012-05-02)
 -------------------------

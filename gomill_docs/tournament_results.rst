@@ -393,7 +393,7 @@ follows::
   from gomill import ringmasters
   ringmaster = ringmasters.Ringmaster(control_file_pathname)
   ringmaster.load_status()
-  tournament_results = ringmaster.tournament_results()
+  tournament_results = ringmaster.get_tournament_results()
 
 All of these calls report problems by raising the :exc:`!RingmasterError`
 exception defined in the :mod:`!ringmasters` module.
