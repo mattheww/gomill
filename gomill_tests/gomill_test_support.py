@@ -45,6 +45,10 @@ def compare_boards_or_diagrams(b1, b2):
 
     If given two diagrams, compares them as strings.
 
+    Note that board comparision is more lenient than string comparison, to
+    whatever extent interpret_diagram() is lenient (in particular it accepts
+    trailing whitespace).
+
     """
     def coerce(board, diagram):
         try:
