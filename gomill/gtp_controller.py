@@ -844,27 +844,33 @@ class Engine_description(object):
                 pass
         return cls(gtp_name, gtp_version, gtp_gde)
 
-    def get_short_description(self, default="unknown"):
-        """Return a one-line description of the engine."""
-        name = self.name or default
-        if self.clean_version is None:
-            return name
-        if len(self.clean_version) <= 32:
-            return name + ":" + self.clean_version
-        return name
+    def get_short_description(self):
+        """Return a one-line description of the engine.
 
-    def get_long_description(self, default="unknown"):
+        Returns None if name is None.
+
+        """
+        if self.name is None:
+            return None
+        if self.clean_version is None or len(self.clean_version) > 32:
+            return self.name
+        return self.name + ":" + self.clean_version
+
+    def get_long_description(self):
         """Return the fullest available description.
 
         This may have multiple lines.
 
+        Returns None if both name and description are None.
+
         """
         if self.description is not None:
             return self.description
-        name = self.name or default
+        if self.name is None:
+            return None
         if self.clean_version is None:
-            return name
-        return name + ":" + self.clean_version
+            return self.name
+        return self.name + ":" + self.clean_version
 
 
 class Game_controller(object):

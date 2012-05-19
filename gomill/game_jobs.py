@@ -276,12 +276,14 @@ class Game_job(object):
         response.game_result = game.result
         response.warnings = warnings
         response.log_entries = log_entries
-        response.engine_names = {
-            self.player_b.code: game_controller.engine_descriptions['b'].get_short_description(self.player_b.code),
-            self.player_w.code: game_controller.engine_descriptions['w'].get_short_description(self.player_w.code)}
-        response.engine_descriptions = {
-            self.player_b.code: game_controller.engine_descriptions['b'].get_long_description(self.player_b.code),
-            self.player_w.code: game_controller.engine_descriptions['w'].get_long_description(self.player_w.code)}
+
+        response.engine_names = {}
+        response.engine_descriptions = {}
+        for colour, player_code in (('b', self.player_b.code),
+                                    ('w', self.player_w.code)):
+            ed = game_controller.engine_descriptions[colour]
+            response.engine_names[player_code] = ed.get_short_description() or player_code
+            response.engine_descriptions[player_code] = ed.get_long_description() or player_code
         response.game_data = self.game_data
         return response
 

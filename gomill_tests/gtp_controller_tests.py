@@ -609,16 +609,16 @@ def test_fix_version(tc):
 
 def test_describe_engine(tc):
     # FIXME: should test Engine_description directly
-    def describe_engine(controller, default="unknown"):
+    def describe_engine(controller):
         ed = gtp_controller.Engine_description.from_controller(controller)
-        return (ed.get_short_description(default),
-                ed.get_long_description(default))
+        return (ed.get_short_description(),
+                ed.get_long_description())
 
     channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
     short_s, long_s = describe_engine(controller)
-    tc.assertEqual(short_s, "unknown")
-    tc.assertEqual(long_s, "unknown")
+    tc.assertIsNone(short_s)
+    tc.assertIsNone(long_s)
 
     channel = gtp_engine_fixtures.get_test_channel()
     channel.engine.add_command('name', lambda args:"test engine")
