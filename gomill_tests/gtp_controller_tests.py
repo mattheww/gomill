@@ -595,7 +595,7 @@ def test_gtp_aliases_safe(tc):
 
 
 def test_fix_version(tc):
-    fv = gtp_controller._fix_version
+    fv = gtp_controller.Engine_description._fix_version
     tc.assertEqual(fv("foo", "bar"), "bar")
     tc.assertEqual(fv("foo", "FOO bar"), "bar")
     tc.assertEqual(fv("foo", "asd " * 16), "asd " * 16)

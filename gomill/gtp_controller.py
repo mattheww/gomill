@@ -761,66 +761,116 @@ class Gtp_controller(object):
         self.gtp_aliases = aliases
 
 
-def _fix_version(name, version):
-    """Clean up version strings."""
-    version = sanitise_utf8(version)
-    if version.lower().startswith(name.lower()):
-        version = version[len(name):].lstrip()
-    # Some engines unfortunately include usage instructions in the version
-    # string (apparently for the sake of kgsGTP); try to clean this up.
-    if len(version) > 64:
-        # MoGo
-        a, b, c = version.partition(". Please read http:")
-        if b:
-            return a
-        # Pachi
-        a, b, c = version.partition(": I'm playing")
-        if b:
-            return a
-        # Other
-        return version.split()[0]
-    return version
+class Engine_description(object):
+    """Data from GTP engine-description commands.
 
-def describe_engine(controller, default="unknown"):
-    """Retrieve a description of a controller's engine via GTP.
+    Public attributes:
+      raw_name      -- result of GTP 'name' (raw bytes)
+      raw_version   -- result of GTP 'version' (raw bytes)
+      name          -- result of GTP 'name' (utf-8)
+      version       -- result of GTP 'version' (utf-8)
+      clean_version -- version with verbosity removed (utf-8)
+      description   -- result of GTP 'gomill-describe_engine' (utf-8)
 
-    default -- text to use for the description if all GTP commands fail.
+    If a GTP command fails or is not implemented, the corresponding attributes
+    have value None.
 
-    This uses the 'name', 'version', and 'gomill-describe_engine' commands.
+    The non-raw attributes are never empty strings; None is substituted.
 
-    Returns a pair of utf-8 strings (short, long):
-      short -- single-line form (engine name, and version if it's not too long)
-      long  -- multi-line form (engine name, version, description)
-
-    Attempts to clean up over-long version strings.
-
-    May propagate GtpChannelError.
+    Some engines unfortunately include usage instructions in the version string
+    (apparently for the sake of kgsGTP); we attempt to remove this and put the
+    result in clean_version.
 
     """
-    try:
-        name = sanitise_utf8(controller.do_command("name"))
-    except BadGtpResponse:
-        name = default
-    try:
-        version = _fix_version(name, controller.do_command("version"))
-        if version:
-            if len(version) <= 32:
-                short_s = name + ":" + version
-            else:
-                short_s = name
-            long_s = name + ":" + version
+    def __init__(self, raw_name, raw_version, raw_description):
+        self.raw_name = raw_name
+        if raw_name:
+            self.name = sanitise_utf8(raw_name)
         else:
-            long_s = short_s = name
-    except BadGtpResponse:
-        long_s = short_s = name
+            self.name = None
 
-    if controller.known_command("gomill-describe_engine"):
+        self.raw_version = raw_version
+        if raw_version:
+            self.version = sanitise_utf8(raw_version)
+            self.clean_version = self._fix_version(self.name, self.version)
+        else:
+            self.version = None
+            self.clean_version = None
+
+        if raw_description:
+            self.description = sanitise_utf8(raw_description)
+        else:
+            self.description = None
+
+    @staticmethod
+    def _fix_version(name, version):
+        if name is not None and version.lower().startswith(name.lower()):
+            version = version[len(name):].lstrip()
+        # Some engines unfortunately include usage instructions in the version
+        # string (apparently for the sake of kgsGTP); try to clean this up.
+        if len(version) > 64:
+            # MoGo
+            a, b, c = version.partition(". Please read http:")
+            if b:
+                return a
+            # Pachi
+            a, b, c = version.partition(": I'm playing")
+            if b:
+                return a
+            # Other
+            return version.split()[0]
+        return version
+
+    @classmethod
+    def from_controller(cls, controller):
+        """Return a new Engine_description, querying a controller.
+
+        May propagate GtpChannelError.
+
+        """
         try:
-            long_s = sanitise_utf8(
-                controller.do_command("gomill-describe_engine"))
+            gtp_name = controller.do_command("name")
         except BadGtpResponse:
-            pass
-    return short_s, long_s
+            gtp_name = None
+        try:
+            gtp_version = controller.do_command("version")
+        except BadGtpResponse:
+            gtp_version = None
+        gtp_gde = None
+        if controller.known_command("gomill-describe_engine"):
+            try:
+                gtp_gde = controller.do_command("gomill-describe_engine")
+            except BadGtpResponse:
+                pass
+        return cls(gtp_name, gtp_version, gtp_gde)
+
+    def get_short_description(self, default="unknown"):
+        """Return a one-line description of the engine."""
+        name = self.name or default
+        if self.clean_version is None:
+            return name
+        if len(self.clean_version) <= 32:
+            return name + ":" + self.clean_version
+        return name
+
+    def get_long_description(self, default="unknown"):
+        """Return the fullest available description.
+
+        This may have multiple lines.
+
+        """
+        if self.description is not None:
+            return self.description
+        name = self.name or default
+        if self.clean_version is None:
+            return name
+        return name + ":" + self.clean_version
+
+def describe_engine(controller, default="unknown"):
+    """Implementation of old describe_engine() over Engine_description."""
+    ed = Engine_description.from_controller(controller)
+    return (ed.get_short_description(default),
+            ed.get_long_description(default))
 
 
 class Game_controller(object):
