@@ -133,6 +133,7 @@ def test_game(tc):
     fx.game.prepare()
     tc.assertIsNone(fx.game.game_id)
     tc.assertIsNone(fx.game.result)
+    tc.assertIsNone(fx.game.get_game_score())
     fx.game.run()
     tc.assertDictEqual(fx.game.result.players, {'b' : 'one', 'w' : 'two'})
     tc.assertEqual(fx.game.result.player_b, 'one')
@@ -149,11 +150,18 @@ def test_game(tc):
     tc.assertEqual(fx.game.result.describe(), "one beat two B+18")
     result2 = pickle.loads(pickle.dumps(fx.game.result))
     tc.assertEqual(result2.describe(), "one beat two B+18")
-    tc.assertEqual(fx.game.describe_scoring(), "one beat two B+18")
     tc.assertEqual(result2.player_b, 'one')
     tc.assertEqual(result2.player_w, 'two')
     tc.assertIs(result2.is_jigo, False)
     tc.assertDictEqual(fx.game.result.cpu_times, {'one' : None, 'two' : None})
+    game_score = fx.game.get_game_score()
+    tc.assertIsInstance(game_score, gtp_games.Gtp_game_score)
+    tc.assertEqual(game_score.winner, 'b')
+    tc.assertEqual(game_score.margin, 18)
+    tc.assertIs(game_score.scorers_disagreed, False)
+    tc.assertEqual(game_score.player_scores, {'b' : None, 'w' : None})
+    tc.assertIsNone(game_score.get_detail())
+    tc.assertEqual(fx.game.describe_scoring(), "one beat two B+18")
     tc.assertListEqual(fx.game.get_moves(), [
         ('b', (0, 4), None), ('w', (0, 6), None),
         ('b', (1, 4), None), ('w', (1, 6), None),
@@ -263,6 +271,12 @@ def test_unscored_game(tc):
     result2 = pickle.loads(pickle.dumps(fx.game.result))
     tc.assertEqual(result2.describe(), "one vs two ? (no score reported)")
     tc.assertIs(result2.is_jigo, False)
+    game_score = fx.game.get_game_score()
+    tc.assertIsNone(game_score.winner)
+    tc.assertIsNone(game_score.margin)
+    tc.assertIs(game_score.scorers_disagreed, False)
+    tc.assertEqual(game_score.player_scores, {'b' : None, 'w' : None})
+    tc.assertEqual(game_score.get_detail(), "no score reported")
 
 def test_jigo(tc):
     fx = Gtp_game_fixture(tc, komi=18.0)
@@ -288,6 +302,12 @@ def test_jigo(tc):
     tc.assertEqual(result2.player_b, 'one')
     tc.assertEqual(result2.player_w, 'two')
     tc.assertIs(result2.is_jigo, True)
+    game_score = fx.game.get_game_score()
+    tc.assertIsNone(game_score.winner)
+    tc.assertEqual(game_score.margin, 0)
+    tc.assertIs(game_score.scorers_disagreed, False)
+    tc.assertEqual(game_score.player_scores, {'b' : None, 'w' : None})
+    tc.assertIsNone(game_score.get_detail())
 
 def test_players_score_agree(tc):
     fx = Gtp_game_fixture(tc)
@@ -304,6 +324,12 @@ def test_players_score_agree_draw(tc):
     tc.assertIsNone(fx.game.result.detail)
     tc.assertIsNone(fx.game.result.winning_colour)
     tc.assertEqual(fx.game.describe_scoring(), "one vs two jigo")
+    game_score = fx.game.get_game_score()
+    tc.assertIsNone(game_score.winner)
+    tc.assertEqual(game_score.margin, 0)
+    tc.assertIs(game_score.scorers_disagreed, False)
+    tc.assertEqual(game_score.player_scores, {'b' : '0', 'w' : '0'})
+    tc.assertIsNone(game_score.get_detail())
 
 def test_players_score_disagree(tc):
     fx = Gtp_game_fixture(tc)
@@ -315,6 +341,12 @@ def test_players_score_disagree(tc):
                    "one vs two ? (players disagreed)\n"
                    "one final_score: b+3.0\n"
                    "two final_score: W+4")
+    game_score = fx.game.get_game_score()
+    tc.assertIsNone(game_score.winner)
+    tc.assertIsNone(game_score.margin)
+    tc.assertIs(game_score.scorers_disagreed, True)
+    tc.assertEqual(game_score.player_scores, {'b' : 'b+3.0', 'w' : "W+4"})
+    tc.assertEqual(game_score.get_detail(), "players disagreed")
 
 def test_players_score_disagree_one_no_margin(tc):
     fx = Gtp_game_fixture(tc)
@@ -356,6 +388,12 @@ def test_players_score_one_unreliable(tc):
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.winning_colour, 'w')
     tc.assertEqual(fx.game.describe_scoring(), "two beat one W+4")
+    game_score = fx.game.get_game_score()
+    tc.assertEqual(game_score.winner, 'w')
+    tc.assertEqual(game_score.margin, 4)
+    tc.assertIs(game_score.scorers_disagreed, False)
+    tc.assertEqual(game_score.player_scores, {'b' : None, 'w' : "W+4"})
+    tc.assertIsNone(game_score.get_detail())
 
 def test_players_score_one_cannot_score(tc):
     fx = Gtp_game_fixture(tc)
@@ -364,6 +402,12 @@ def test_players_score_one_cannot_score(tc):
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.winning_colour, 'w')
     tc.assertEqual(fx.game.describe_scoring(), "two beat one W+4")
+    game_score = fx.game.get_game_score()
+    tc.assertEqual(game_score.winner, 'w')
+    tc.assertEqual(game_score.margin, 4)
+    tc.assertIs(game_score.scorers_disagreed, False)
+    tc.assertEqual(game_score.player_scores, {'b' : None, 'w' : "W+4"})
+    tc.assertIsNone(game_score.get_detail())
 
 def test_players_score_one_fails(tc):
     fx = Gtp_game_fixture(tc)
@@ -372,17 +416,29 @@ def test_players_score_one_fails(tc):
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.winning_colour, 'w')
     tc.assertEqual(fx.game.describe_scoring(), "two beat one W+4")
+    game_score = fx.game.get_game_score()
+    tc.assertEqual(game_score.winner, 'w')
+    tc.assertEqual(game_score.margin, 4)
+    tc.assertIs(game_score.scorers_disagreed, False)
+    tc.assertEqual(game_score.player_scores, {'b' : None, 'w' : "W+4"})
+    tc.assertIsNone(game_score.get_detail())
 
 def test_players_score_one_illformed(tc):
     fx = Gtp_game_fixture(tc)
-    fx.run_score_test("black wins", "W+4.5")
+    fx.run_score_test("black win", "W+4.5")
     tc.assertEqual(fx.game.result.sgf_result, "W+4.5")
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.winning_colour, 'w')
     tc.assertEqual(fx.game.describe_scoring(),
                    "two beat one W+4.5\n"
-                   "one final_score: black wins\n"
+                   "one final_score: black win\n"
                    "two final_score: W+4.5")
+    game_score = fx.game.get_game_score()
+    tc.assertEqual(game_score.winner, 'w')
+    tc.assertEqual(game_score.margin, 4.5)
+    tc.assertIs(game_score.scorers_disagreed, False)
+    tc.assertEqual(game_score.player_scores, {'b' : "black win", 'w' : "W+4.5"})
+    tc.assertIsNone(game_score.get_detail())
 
 def test_players_score_agree_except_margin(tc):
     fx = Gtp_game_fixture(tc)
@@ -394,6 +450,12 @@ def test_players_score_agree_except_margin(tc):
                    "one beat two B+ (unknown margin)\n"
                    "one final_score: b+3\n"
                    "two final_score: B+4.0")
+    game_score = fx.game.get_game_score()
+    tc.assertEqual(game_score.winner, 'b')
+    tc.assertIsNone(game_score.margin)
+    tc.assertIs(game_score.scorers_disagreed, False)
+    tc.assertEqual(game_score.player_scores, {'b' : "b+3", 'w' : "B+4.0"})
+    tc.assertEqual(game_score.get_detail(), "unknown margin")
 
 def test_players_score_agree_one_no_margin(tc):
     fx = Gtp_game_fixture(tc)
@@ -466,6 +528,7 @@ def test_resign(tc):
     tc.assertIs(fx.game.result.detail, None)
     tc.assertEqual(fx.game.result.describe(), "two beat one W+R")
     fx.check_moves(moves[:-1])
+    tc.assertIsNone(fx.game.get_game_score())
 
 def test_claim(tc):
     def handle_genmove_ex_b(args):
@@ -627,6 +690,7 @@ def test_move_limit(tc):
         ('b', 'E1'), ('w', 'G1'),
         ('b', 'E2'), ('w', 'G2'),
         ])
+    tc.assertIsNone(fx.game.get_game_score())
 
 def test_move_limit_exact(tc):
     fx = Gtp_game_fixture(tc, move_limit=20)

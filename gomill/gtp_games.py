@@ -516,6 +516,16 @@ class Gtp_game(object):
         """
         return self.game_runner.moves
 
+    def get_game_score(self):
+        """Retrieve scoring details from a passed-out game.
+
+        Returns a Gtp_game_score.
+
+        Returns None if the game was not passed out.
+
+        """
+        return self.game_runner.get_game_score()
+
     def describe_scoring(self):
         """Return a multiline string describing the game's scoring.
 
@@ -524,8 +534,7 @@ class Gtp_game(object):
         results.
 
         """
-        return describe_scoring(self.result,
-                                self.game_runner.get_game_score())
+        return describe_scoring(self.result, self.get_game_score())
 
     def make_sgf(self):
         """Return an SGF description of the game.
