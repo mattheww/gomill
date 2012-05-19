@@ -420,6 +420,8 @@ class Gtp_game(object):
 
         If this is called for both colours, both are asked to score.
 
+        See 'details of scoring' in errors.rst for more information.
+
         """
         self.backend.allowed_scorers.append(colour)
 
