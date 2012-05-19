@@ -33,9 +33,11 @@ scripts.
 
 .. script:: twogtp
 
-  A 'traditional' twogtp implementation.
+  Run games between two |gtp| engines.
 
-  This demonstrates :class:`!gtp_controllers.Game_controller` and the
+  This shows how to implement a 'traditional' twogtp using gomill.
+
+  It demonstrates :class:`!gtp_controllers.Game_controller` and the
   :mod:`!gtp_games` module.
 
 
