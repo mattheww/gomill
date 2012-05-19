@@ -277,11 +277,11 @@ class Game_job(object):
         response.warnings = warnings
         response.log_entries = log_entries
         response.engine_names = {
-            self.player_b.code: game_controller.engine_names['b'],
-            self.player_w.code: game_controller.engine_names['w']}
+            self.player_b.code: game_controller.engine_descriptions['b'].get_short_description(self.player_b.code),
+            self.player_w.code: game_controller.engine_descriptions['w'].get_short_description(self.player_w.code)}
         response.engine_descriptions = {
-            self.player_b.code: game_controller.engine_descriptions['b'],
-            self.player_w.code: game_controller.engine_descriptions['w']}
+            self.player_b.code: game_controller.engine_descriptions['b'].get_long_description(self.player_b.code),
+            self.player_w.code: game_controller.engine_descriptions['w'].get_long_description(self.player_w.code)}
         response.game_data = self.game_data
         return response
 
@@ -331,8 +331,8 @@ class Game_job(object):
                     notes.append("%s cpu time: %ss" %
                                  (player, "%.2f" % cpu_time))
         notes += [
-            "Black %s %s" % (b_player, game_controller.engine_descriptions['b']),
-            "White %s %s" % (w_player, game_controller.engine_descriptions['w']),
+            "Black %s %s" % (b_player, game_controller.engine_descriptions['b'].get_long_description(b_player)),
+            "White %s %s" % (w_player, game_controller.engine_descriptions['w'].get_long_description(w_player)),
             ]
         root.set('C', "\n".join(notes))
         last_node = sgf_game.get_last_node()

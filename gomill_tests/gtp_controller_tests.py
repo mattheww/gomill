@@ -608,16 +608,22 @@ def test_fix_version(tc):
         "8.99 (Hakugen-devel)")
 
 def test_describe_engine(tc):
+    # FIXME: should test Engine_description directly
+    def describe_engine(controller, default="unknown"):
+        ed = gtp_controller.Engine_description.from_controller(controller)
+        return (ed.get_short_description(default),
+                ed.get_long_description(default))
+
     channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
-    short_s, long_s = gtp_controller.describe_engine(controller)
+    short_s, long_s = describe_engine(controller)
     tc.assertEqual(short_s, "unknown")
     tc.assertEqual(long_s, "unknown")
 
     channel = gtp_engine_fixtures.get_test_channel()
     channel.engine.add_command('name', lambda args:"test engine")
     controller = Gtp_controller(channel, 'player test')
-    short_s, long_s = gtp_controller.describe_engine(controller)
+    short_s, long_s = describe_engine(controller)
     tc.assertEqual(short_s, "test engine")
     tc.assertEqual(long_s, "test engine")
 
@@ -625,7 +631,7 @@ def test_describe_engine(tc):
     channel.engine.add_command('name', lambda args:"test engine")
     channel.engine.add_command('version', lambda args:"1.2.3")
     controller = Gtp_controller(channel, 'player test')
-    short_s, long_s = gtp_controller.describe_engine(controller)
+    short_s, long_s = describe_engine(controller)
     tc.assertEqual(short_s, "test engine:1.2.3")
     tc.assertEqual(long_s, "test engine:1.2.3")
 
@@ -636,7 +642,7 @@ def test_describe_engine(tc):
         'gomill-describe_engine',
         lambda args:"test engine (v1.2.3):\n  pl\xc3\xa1yer \xa3")
     controller = Gtp_controller(channel, 'player test')
-    short_s, long_s = gtp_controller.describe_engine(controller)
+    short_s, long_s = describe_engine(controller)
     tc.assertEqual(short_s, "test engine:1.2.3")
     tc.assertEqual(long_s, "test engine (v1.2.3):\n  pl\xc3\xa1yer ?")
 
@@ -644,7 +650,7 @@ def test_describe_engine(tc):
     channel.engine.add_command('name', lambda args:"test engine")
     channel.engine.add_command('version', lambda args:"test engine v1.2.3")
     controller = Gtp_controller(channel, 'player test')
-    short_s, long_s = gtp_controller.describe_engine(controller)
+    short_s, long_s = describe_engine(controller)
     tc.assertEqual(short_s, "test engine:v1.2.3")
     tc.assertEqual(long_s, "test engine:v1.2.3")
 
@@ -711,8 +717,8 @@ def test_game_controller(tc):
     gc.set_player_controller('b', controller1)
     gc.set_player_controller('w', controller2, check_protocol_version=False)
 
-    tc.assertEqual(gc.engine_names, {'b' : "one", 'w' : "two"})
-    tc.assertEqual(gc.engine_descriptions, {'b' : "one", 'w' : "two"})
+    tc.assertIsNone(gc.engine_descriptions['b'].name)
+    tc.assertIsNone(gc.engine_descriptions['w'].name)
 
     tc.assertEqual(gc.players, {'b' : 'one', 'w' : 'two'})
     tc.assertIs(gc.get_controller('b'), controller1)
@@ -805,15 +811,15 @@ def test_game_controller_engine_descriptions(tc):
                                 lambda args:"foo\nbar")
     gc = gtp_controller.Game_controller('one', 'two')
 
-    # This isn't documented behaviour, but we provide it for 'safety'
-    tc.assertEqual(gc.engine_names, {'b' : "", 'w' : ""})
-    tc.assertEqual(gc.engine_descriptions, {'b' : "", 'w' : ""})
+    # This isn't documented behaviour
+    tc.assertEqual(gc.engine_descriptions, {'b' : None, 'w' : None})
 
     gc.set_player_controller('b', controller1)
     gc.set_player_controller('w', controller2)
 
-    tc.assertEqual(gc.engine_names, {'b' : "some-name", 'w' : "two"})
-    tc.assertEqual(gc.engine_descriptions, {'b' : "foo\nbar", 'w' : "two"})
+    # FIXME: need to test thoroughly
+    tc.assertEqual(gc.engine_descriptions['b'].name, "some-name")
+    tc.assertIsNone(gc.engine_descriptions['w'].name)
 
 def test_game_controller_protocol_version(tc):
     channel1 = gtp_engine_fixtures.get_test_channel()
@@ -930,8 +936,7 @@ def test_game_controller_set_player_subprocess(tc):
     tc.assertEqual(gc.get_controller('b').name, "player one")
     tc.assertEqual(gc.get_controller('w').name, "player two")
 
-    tc.assertEqual(gc.engine_names, {'b' : "one", 'w' : "two"})
-    tc.assertEqual(gc.engine_descriptions, {'b' : "one", 'w' : "two"})
+    # FIXME: Check the engine_descriptions were loaded
 
     channel1 = msf.get_channel('one')
     channel2 = msf.get_channel('two')

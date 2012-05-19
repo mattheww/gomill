@@ -866,12 +866,6 @@ class Engine_description(object):
             return name
         return name + ":" + self.clean_version
 
-def describe_engine(controller, default="unknown"):
-    """Implementation of old describe_engine() over Engine_description."""
-    ed = Engine_description.from_controller(controller)
-    return (ed.get_short_description(default),
-            ed.get_long_description(default))
-
 
 class Game_controller(object):
     """Manage a pair of GTP controllers representing game players.
@@ -898,11 +892,7 @@ class Game_controller(object):
 
     Public attributes for reading:
       players             -- map colour -> player code
-      engine_names        -- map colour -> single-line utf-8 string
-      engine_descriptions -- map colour -> multi-line utf-8 string
-
-    The engine_names and engine_descriptions are the short and long results
-    from describe_engine().
+      engine_descriptions -- map colour -> Engine_description
 
     Methods which communicate with engines will normally propagate
     GtpChannelError if there is trouble communicating with the engine. But some
@@ -918,8 +908,7 @@ class Game_controller(object):
         self.players = {'b' : player_b_code, 'w' : player_w_code}
         self.controllers = {}
         self.late_errors = []
-        self.engine_names = {'b' : "", 'w' : ""}
-        self.engine_descriptions = {'b' : "", 'w' : ""}
+        self.engine_descriptions = {'b' : None, 'w' : None}
 
     ## Configuration API
 
@@ -935,8 +924,8 @@ class Game_controller(object):
         If check_protocol_version is true, rejects an engine that declares a
         GTP protocol version <> 2 (raises BadGtpResponse).
 
-        Sets the engine_names and engine_descriptions entries for the player,
-        using GTP commands (see describe_engine()).
+        Sets the engine_descriptions entry for the player, using GTP commands
+        (see Engine_description).
 
         Propagates GtpChannelError if there's a low-level error checking the
         protocol version or from the engine-description commands.
@@ -946,9 +935,8 @@ class Game_controller(object):
         if check_protocol_version:
             controller.check_protocol_version()
         player_code = self.players[colour]
-        (self.engine_names[colour],
-         self.engine_descriptions[colour]) = \
-             describe_engine(controller, player_code)
+        self.engine_descriptions[colour] = \
+            Engine_description.from_controller(controller)
 
     def set_player_subprocess(self, colour, command,
                               check_protocol_version=True, **kwargs):
@@ -965,8 +953,8 @@ class Game_controller(object):
         If check_protocol_version is true, rejects an engine that declares a
         GTP protocol version <> 2 (raises BadGtpResponse).
 
-        Sets the engine_names and engine_descriptions entries for the player,
-        using GTP commands (see describe_engine()).
+        Sets the engine_descriptions entry for the player, using GTP commands
+        (see Engine_description).
 
         Propagates GtpChannelError if there's a low-level error creating the
         subprocess, checking the protocol version, or from the
