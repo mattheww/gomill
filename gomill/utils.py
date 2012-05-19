@@ -13,6 +13,8 @@ __all__ = ["format_float", "format_percent", "sanitise_utf8", "isinf", "isnan"]
 def format_float(f):
     """Format a Python float in a friendly way.
 
+    f -- float or int
+
     This is intended for values like komi or win counts, which will be either
     integers or half-integers.
 
