@@ -336,8 +336,9 @@ class Game_job(object):
         for colour, note in (('b', "Black %s" % b_player),
                              ('w', "White %s" % w_player)):
             ed = game_controller.engine_descriptions[colour]
-            if ed.description is not None or ed.name is not None:
-                note += " " + ed.get_long_description()
+            longdesc = ed.get_long_description()
+            if longdesc:
+                note += " " + longdesc
             notes.append(note)
         root.set('C', "\n".join(notes))
         last_node = sgf_game.get_last_node()
