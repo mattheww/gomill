@@ -19,6 +19,9 @@ Gomill FIXME (FIXME)
 
 * Documented :attr:`.Game_result.cpu_times`.
 
+* :func:`~.ascii_boards.interpret_diagram` now ignores leading whitespace (it
+  already ignored trailing whitespace).
+
 * :class:`.Board` methods now raise :exc:`IndexError` for out-of-range
   coordinates (previously behaviour was explicitly unspecified).
 

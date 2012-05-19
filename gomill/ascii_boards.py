@@ -54,6 +54,10 @@ def interpret_diagram(diagram, size, board=None):
     If the optional 'board' parameter is provided, it must be an empty board of
     the right size; the same object will be returned.
 
+    Ignores leading and trailing whitespace.
+
+    An ill-formed diagram may give ValueError or a 'best guess'.
+
     """
     if board is None:
         board = boards.Board(size)
@@ -62,7 +66,7 @@ def interpret_diagram(diagram, size, board=None):
             raise ValueError("wrong board size, must be %d" % size)
         if not board.is_empty():
             raise ValueError("board not empty")
-    lines = diagram.split("\n")
+    lines = diagram.strip().split("\n")
     colours = {'#' : 'b', 'o' : 'w', '.' : None}
     if size > 9:
         extra_offset = 1

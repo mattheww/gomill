@@ -130,6 +130,9 @@ def test_interpret_diagram(tc):
     b6 = ascii_boards.interpret_diagram(_13x13_expected, 13)
     tc.assertDiagramEqual(ascii_boards.render_board(b6), _13x13_expected)
 
+    padded = "\n\n" + _9x9_expected + "\n\n"
+    tc.assertEqual(b1, ascii_boards.interpret_diagram(padded, 9))
+
 def test_copy(tc):
     b1 = boards.Board(9)
     b1.play(2, 3, 'b')

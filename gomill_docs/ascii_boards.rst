@@ -42,10 +42,12 @@ interpreting ASCII diagrams of Go board positions.
 
    Returns the position given in an ASCII diagram.
 
-   *diagram* must be a string in the format returned by :func:`render_board`,
-   representing a position with the specified size.
+   *diagram* should be a string in the format returned by
+   :func:`render_board`, representing a position with the specified size.
+   Leading and trailing whitespace is ignored.
 
-   Raises :exc:`ValueError` if it can't interpret the diagram.
+   If the diagram is not in the right form, this function may raise
+   :exc:`ValueError` or may return a 'best guess'.
 
    If the optional *board* parameter is provided, it must be an empty
    :class:`.Board` of the right size; the same object will be returned (this
