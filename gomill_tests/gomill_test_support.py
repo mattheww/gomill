@@ -135,9 +135,6 @@ class Gomill_testcase_mixin(object):
         Checks that two strings are equal, with difference reporting
         appropriate for board diagrams.
 
-        Use this to test exact diagram rendering (use assertBoardEqual to
-        check for equivalent positions, ).
-
         """
         are_equal, desc = compare_diagrams(d1, d2)
         if not are_equal:
