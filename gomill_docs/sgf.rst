@@ -652,7 +652,7 @@ For Text and SimpleText values, :meth:`~Tree_node.get` and
 :meth:`~Tree_node.set` take care of escaping. You can store arbitrary strings
 in a Text value and retrieve them unchanged, with the following exceptions:
 
-* all linebreaks are are normalised to ``\n``
+* all linebreaks are normalised to ``\n``
 
 * whitespace other than line breaks is converted to a single space
 
