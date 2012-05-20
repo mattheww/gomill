@@ -17,6 +17,9 @@ Gomill FIXME (FIXME)
   Updated the :script:`twogtp` example script to show the new programming
   interface. :script:`twogtp` now supports playing multiple games.
 
+* Improved player descriptions in |sgf| files and competition reports when the
+  |gtp| :gtp:`!name` command isn't implemented.
+
 * Documented :attr:`.Game_result.cpu_times`.
 
 * :func:`~.ascii_boards.interpret_diagram` now ignores leading whitespace (it
