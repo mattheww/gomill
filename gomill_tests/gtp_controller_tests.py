@@ -717,8 +717,12 @@ def test_game_controller(tc):
     gc.set_player_controller('b', controller1)
     gc.set_player_controller('w', controller2, check_protocol_version=False)
 
-    tc.assertIsNone(gc.engine_descriptions['b'].name)
-    tc.assertIsNone(gc.engine_descriptions['w'].name)
+    tc.assertIsNone(gc.engine_descriptions['b'].raw_name)
+    tc.assertIsNone(gc.engine_descriptions['b'].raw_version)
+    tc.assertIsNone(gc.engine_descriptions['b'].description)
+    tc.assertIsNone(gc.engine_descriptions['w'].raw_name)
+    tc.assertIsNone(gc.engine_descriptions['w'].raw_version)
+    tc.assertIsNone(gc.engine_descriptions['w'].description)
 
     tc.assertEqual(gc.players, {'b' : 'one', 'w' : 'two'})
     tc.assertIs(gc.get_controller('b'), controller1)
@@ -807,8 +811,10 @@ def test_game_controller_engine_descriptions(tc):
     channel2 = gtp_engine_fixtures.get_test_channel()
     controller2 = Gtp_controller(channel2, 'player two')
     channel1.engine.add_command('name', lambda args:"some-name")
+    channel1.engine.add_command('version', lambda args:"v123")
     channel1.engine.add_command('gomill-describe_engine',
                                 lambda args:"foo\nbar")
+    channel2.engine.force_error('gomill-describe_engine')
     gc = gtp_controller.Game_controller('one', 'two')
 
     # This isn't documented behaviour
@@ -817,9 +823,12 @@ def test_game_controller_engine_descriptions(tc):
     gc.set_player_controller('b', controller1)
     gc.set_player_controller('w', controller2)
 
-    # FIXME: need to test thoroughly
-    tc.assertEqual(gc.engine_descriptions['b'].name, "some-name")
-    tc.assertIsNone(gc.engine_descriptions['w'].name)
+    tc.assertEqual(gc.engine_descriptions['b'].raw_name, "some-name")
+    tc.assertEqual(gc.engine_descriptions['b'].raw_version, "v123")
+    tc.assertEqual(gc.engine_descriptions['b'].description, "foo\nbar")
+    tc.assertIsNone(gc.engine_descriptions['w'].raw_name)
+    tc.assertIsNone(gc.engine_descriptions['w'].raw_version)
+    tc.assertIsNone(gc.engine_descriptions['w'].description)
 
 def test_game_controller_protocol_version(tc):
     channel1 = gtp_engine_fixtures.get_test_channel()
@@ -928,15 +937,19 @@ def test_game_controller_get_gtp_cpu_times(tc):
 
 def test_game_controller_set_player_subprocess(tc):
     msf = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    engine = gtp_engine_fixtures.get_test_engine()
+    engine.add_command("name", lambda args:'blackplayer')
+    msf.register_engine('named', engine)
     gc = gtp_controller.Game_controller('one', 'two')
-    gc.set_player_subprocess('b', ['testb', 'id=one'],
+    gc.set_player_subprocess('b', ['testb', 'id=one', 'engine=named'],
                              check_protocol_version=False)
     gc.set_player_subprocess('w', ['testw', 'id=two'], env={'a':'b'})
 
     tc.assertEqual(gc.get_controller('b').name, "player one")
     tc.assertEqual(gc.get_controller('w').name, "player two")
 
-    # FIXME: Check the engine_descriptions were loaded
+    tc.assertEqual(gc.engine_descriptions['b'].raw_name, "blackplayer")
+    tc.assertIsNone(gc.engine_descriptions['w'].raw_name)
 
     channel1 = msf.get_channel('one')
     channel2 = msf.get_channel('two')
