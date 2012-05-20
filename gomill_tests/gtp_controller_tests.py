@@ -607,52 +607,100 @@ def test_fix_version(tc):
         fv("Pachi UCT Engine", "8.99 (Hakugen-devel): I'm playing UCT. When I'm losing, I will resign, if I think I win, I play until you pass. Anyone can send me 'winrate' in private chat to get my assessment of the position."),
         "8.99 (Hakugen-devel)")
 
-def test_describe_engine(tc):
-    # FIXME: should test Engine_description directly
-    def describe_engine(controller):
-        ed = gtp_controller.Engine_description.from_controller(controller)
-        return (ed.get_short_description(),
-                ed.get_long_description())
+def test_engine_description(tc):
+    ed = gtp_controller.Engine_description(None, None, None)
+    tc.assertIsNone(ed.raw_name)
+    tc.assertIsNone(ed.raw_version)
+    tc.assertIsNone(ed.name)
+    tc.assertIsNone(ed.version)
+    tc.assertIsNone(ed.clean_version)
+    tc.assertIsNone(ed.description)
+    tc.assertIsNone(ed.get_short_description())
+    tc.assertIsNone(ed.get_long_description())
 
+    ed = gtp_controller.Engine_description("", "", "")
+    tc.assertEqual(ed.raw_name, "")
+    tc.assertEqual(ed.raw_version, "")
+    tc.assertIsNone(ed.name)
+    tc.assertIsNone(ed.version)
+    tc.assertIsNone(ed.clean_version)
+    tc.assertIsNone(ed.description)
+    tc.assertIsNone(ed.get_short_description())
+    tc.assertIsNone(ed.get_long_description())
+
+    ed = gtp_controller.Engine_description("name", "version", "description")
+    tc.assertEqual(ed.raw_name, "name")
+    tc.assertEqual(ed.raw_version, "version")
+    tc.assertEqual(ed.name, "name")
+    tc.assertEqual(ed.version, "version")
+    tc.assertEqual(ed.clean_version, "version")
+    tc.assertEqual(ed.description, "description")
+    tc.assertEqual(ed.get_short_description(), "name:version")
+    tc.assertEqual(ed.get_long_description(), "description")
+
+    bad = u"\N{POUND SIGN}".encode("latin1")
+    ed = gtp_controller.Engine_description(
+        "name"+bad, "version"+bad, "description"+bad)
+    tc.assertEqual(ed.raw_name, "name"+bad)
+    tc.assertEqual(ed.raw_version, "version"+bad)
+    tc.assertEqual(ed.name, "name?")
+    tc.assertEqual(ed.version, "version?")
+    tc.assertEqual(ed.clean_version, "version?")
+    tc.assertEqual(ed.description, "description?")
+
+    # check version cleaning happens
+    ed = gtp_controller.Engine_description("name", "name version", None)
+    tc.assertEqual(ed.raw_version, "name version")
+    tc.assertEqual(ed.version, "name version")
+    tc.assertEqual(ed.clean_version, "version")
+    tc.assertEqual(ed.get_short_description(), "name:version")
+
+    ed = gtp_controller.Engine_description("name", "version", None)
+    tc.assertEqual(ed.get_short_description(), "name:version")
+    tc.assertEqual(ed.get_long_description(), "name:version")
+
+    ed = gtp_controller.Engine_description(
+        "name", "ratherlongversionover32characters", None)
+    tc.assertEqual(ed.get_short_description(), "name")
+    tc.assertEqual(ed.get_long_description(),
+                   "name:ratherlongversionover32characters")
+
+def test_engine_description_from_channel(tc):
     channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')
-    short_s, long_s = describe_engine(controller)
-    tc.assertIsNone(short_s)
-    tc.assertIsNone(long_s)
-
-    channel = gtp_engine_fixtures.get_test_channel()
-    channel.engine.add_command('name', lambda args:"test engine")
-    controller = Gtp_controller(channel, 'player test')
-    short_s, long_s = describe_engine(controller)
-    tc.assertEqual(short_s, "test engine")
-    tc.assertEqual(long_s, "test engine")
+    ed = gtp_controller.Engine_description.from_controller(controller)
+    tc.assertIsNone(ed.raw_name)
+    tc.assertIsNone(ed.raw_version)
+    tc.assertIsNone(ed.description)
 
     channel = gtp_engine_fixtures.get_test_channel()
     channel.engine.add_command('name', lambda args:"test engine")
     channel.engine.add_command('version', lambda args:"1.2.3")
     controller = Gtp_controller(channel, 'player test')
-    short_s, long_s = describe_engine(controller)
-    tc.assertEqual(short_s, "test engine:1.2.3")
-    tc.assertEqual(long_s, "test engine:1.2.3")
+    ed = gtp_controller.Engine_description.from_controller(controller)
+    tc.assertEqual(ed.raw_name, "test engine")
+    tc.assertEqual(ed.raw_version, "1.2.3")
+    tc.assertIsNone(ed.description)
 
     channel = gtp_engine_fixtures.get_test_channel()
     channel.engine.add_command('name', lambda args:"test engine")
     channel.engine.add_command('version', lambda args:"1.2.3")
-    channel.engine.add_command(
-        'gomill-describe_engine',
-        lambda args:"test engine (v1.2.3):\n  pl\xc3\xa1yer \xa3")
+    channel.engine.add_command('gomill-describe_engine', lambda args:"foo\nbar")
     controller = Gtp_controller(channel, 'player test')
-    short_s, long_s = describe_engine(controller)
-    tc.assertEqual(short_s, "test engine:1.2.3")
-    tc.assertEqual(long_s, "test engine (v1.2.3):\n  pl\xc3\xa1yer ?")
+    ed = gtp_controller.Engine_description.from_controller(controller)
+    tc.assertEqual(ed.raw_name, "test engine")
+    tc.assertEqual(ed.raw_version, "1.2.3")
+    tc.assertEqual(ed.description, "foo\nbar")
 
     channel = gtp_engine_fixtures.get_test_channel()
-    channel.engine.add_command('name', lambda args:"test engine")
-    channel.engine.add_command('version', lambda args:"test engine v1.2.3")
+    channel.engine.force_error('name')
+    channel.engine.force_error('version')
+    channel.engine.force_error('gomill-describe_engine')
     controller = Gtp_controller(channel, 'player test')
-    short_s, long_s = describe_engine(controller)
-    tc.assertEqual(short_s, "test engine:v1.2.3")
-    tc.assertEqual(long_s, "test engine:v1.2.3")
+    ed = gtp_controller.Engine_description.from_controller(controller)
+    tc.assertIsNone(ed.raw_name)
+    tc.assertIsNone(ed.raw_version)
+    tc.assertIsNone(ed.description)
 
 
 ### Subprocess-specific
