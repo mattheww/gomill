@@ -9,7 +9,8 @@ The extensions used by the ringmaster are as follows:
 
 .. gtp:: gomill-explain_last_move
 
-  Arguments: none
+  :Arguments: none
+  :Output: ``string*&``
 
   Return a string containing the engine's comments about the last move it
   generated.
@@ -31,7 +32,8 @@ The extensions used by the ringmaster are as follows:
 
 .. gtp:: gomill-describe_engine
 
-  Arguments: none
+  :Arguments: none
+  :Output: ``string*&``
 
   Return a string with a description of the engine's configuration. This
   should repeat the information from the :gtp:`!name` and :gtp:`!version`
@@ -49,7 +51,8 @@ The extensions used by the ringmaster are as follows:
 
 .. gtp:: gomill-cpu_time
 
-  Arguments: none
+  :Arguments: none
+  :Output: ``float``
 
   Return a float (represented in decimal) giving the amount of CPU time the
   engine has used to generate all moves made so far (in seconds).
@@ -64,7 +67,8 @@ The extensions used by the ringmaster are as follows:
 
 .. gtp:: gomill-genmove_ex
 
-  Arguments: colour, list of keywords
+  :Arguments: colour, list of keywords
+  :Output: ``vertex`` or ``string``
 
   This is a variant of the standard :gtp:`!genmove` command. Each keyword
   indicates a permitted (or desired) variation of behaviour. For example::
@@ -91,7 +95,8 @@ There is also an extension which is not used by the ringmaster:
 
 .. gtp:: gomill-savesgf
 
-  Arguments: filename, list of |sgf| properties
+  :Arguments: filename, list of |sgf| properties
+  :Output: none
 
   Write an |sgf| game record of the current game.
 

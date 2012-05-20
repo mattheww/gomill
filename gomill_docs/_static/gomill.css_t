@@ -8,8 +8,7 @@ dl.setting dd > p:first-child,
 dl.pl-setting dd > p:first-child,
 dl.aa-setting dd > p:first-child,
 dl.mc-setting dd > p:first-child,
-dl.ce-setting dd > p:first-child,
-dl.gtp dd > p:first-child {
+dl.ce-setting dd > p:first-child {
   font-style: italic;
 }
 
