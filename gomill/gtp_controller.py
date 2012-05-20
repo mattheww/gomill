@@ -859,7 +859,7 @@ class Engine_description(object):
         return self.name + ":" + self.clean_version
 
     def get_long_description(self):
-        """Return the fullest available description.
+        """Return the fullest available description of the engine.
 
         This may have multiple lines.
 
