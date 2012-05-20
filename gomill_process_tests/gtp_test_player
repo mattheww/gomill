@@ -1,0 +1,157 @@
+#!/usr/bin/env python
+"""GTP engine intended for testing GTP controllers.
+
+This provides an example of a GTP engine using the gtp_states module.
+
+It supports the following GTP extension commands:
+  gomill-force_error [error_type]
+  gomill-delayed_error <move_number> [error_type]
+
+gomill-force_error immediately causes an error. error_type can be any of the
+following:
+  error    -- return a GTP error response (this is the default)
+  exit     -- return a GTP error response and end the GTP session
+  internal -- propagate a Python exception to the GTP engine code
+  kill     -- abruptly terminate the engine process
+  protocol -- send an ill-formed GTP response
+
+gomill-delayed_error causes a later genmove command to produce an error. This
+will happen the first time genmove is called for the move 'move_number' or
+later, counting from the start of the game.
+
+[[This is a variant of gtp_test_player from gomill_examples, from before I
+removed gtp_states from it, with added command-line stuff which I think is
+unenlightening in the example.]]
+
+"""
+
+import os
+import random
+import sys
+import time
+from optparse import OptionParser
+
+from gomill import gtp_engine
+from gomill import gtp_states
+from gomill.gtp_engine import GtpError, GtpFatalError, GtpQuit
+
+
+def fail_handler(args):
+    raise GtpError("forced to fail from command line")
+
+class Test_player(object):
+    """GTP test player used with gtp_state."""
+    def __init__(self):
+        self.delayed_error_move = None
+        self.delayed_error_args = None
+        self.seen_quit = False
+
+    def genmove(self, game_state, player):
+        """Move generator function.
+
+        game_state -- gtp_states.Game_state
+        player     -- 'b' or 'w'
+
+        This honours gomill-delayed_error, and otherwise chooses a random empty
+        point (which may be an illegal move).
+
+        """
+        if (self.delayed_error_move and
+            len(game_state.move_history) >= self.delayed_error_move-1):
+            self.delayed_error_move = None
+            self.handle_force_error(self.delayed_error_args)
+
+        board = game_state.board
+        empties = []
+        for row, col in board.board_points:
+            if board.get(row, col) is None:
+                empties.append((row, col))
+        result = gtp_states.Move_generator_result()
+        result.move = random.choice(empties)
+        return result
+
+    def handle_force_error(self, args):
+        """Handler for the gomill-force_error command."""
+        try:
+            arg = args[0]
+        except IndexError:
+            arg = "error"
+        if arg == "error":
+            raise GtpError("forced GTP error")
+        if arg == "exit":
+            self.seen_quit = True
+            raise GtpFatalError("forced GTP error; exiting")
+        if arg == "internal":
+            3 / 0
+        if arg == "kill":
+            os.kill(os.getpid(), 15)
+        if arg == "protocol":
+            self.seen_quit = True
+            sys.stdout.write("!! forced ill-formed GTP response\n")
+            sys.stdout.flush()
+            return
+        raise GtpError("unknown force_error argument")
+
+    def handle_delayed_error(self, args):
+        """Handler for the gomill-delayed_error command."""
+        try:
+            move_number = gtp_engine.interpret_int(args[0])
+        except IndexError:
+            gtp_engine.report_bad_arguments()
+        self.delayed_error_move = move_number
+        self.delayed_error_args = args[1:]
+
+    def handle_quit(self, args):
+        self.seen_quit = True
+        raise GtpQuit
+
+    def handle_name(self, args):
+        return "GTP test player"
+
+    def handle_version(self, args):
+        return ""
+
+    def get_handlers(self):
+        return {
+            'name'                 : self.handle_name,
+            'version'              : self.handle_version,
+            'gomill-force_error'   : self.handle_force_error,
+            'gomill-delayed_error' : self.handle_delayed_error,
+            'quit'                 : self.handle_quit,
+            }
+
+
+def make_engine(test_player):
+    """Return a Gtp_engine_protocol which runs the specified Test_player."""
+    gtp_state = gtp_states.Gtp_state(
+        move_generator=test_player.genmove,
+        acceptable_sizes=(9, 13, 19))
+    engine = gtp_engine.Gtp_engine_protocol()
+    engine.add_protocol_commands()
+    engine.add_commands(gtp_state.get_handlers())
+    engine.add_commands(test_player.get_handlers())
+    return engine
+
+def main():
+    parser = OptionParser()
+    parser.add_option("--fail-command", metavar="COMMAND",
+                      help="force a specified gtp command to fail")
+    (options, args) = parser.parse_args()
+    if args:
+        parser.error("too many arguments")
+
+    #time.sleep(1)
+    try:
+        test_player = Test_player()
+        engine = make_engine(test_player)
+        if options.fail_command:
+            engine.add_command(options.fail_command, fail_handler)
+        gtp_engine.run_interactive_gtp_session(engine)
+    except (KeyboardInterrupt, gtp_engine.ControllerDisconnected):
+        sys.exit(1)
+    if not test_player.seen_quit:
+        sys.stderr.write("gtp_test_player terminated without quit command\n")
+        #time.sleep(5)
+
+if __name__ == "__main__":
+    main()
