@@ -847,7 +847,9 @@ class Engine_description(object):
         return cls(gtp_name, gtp_version, gtp_gde)
 
     def get_short_description(self):
-        """Return a one-line description of the engine.
+        """Return short description of the engine.
+
+        This is typically a single line.
 
         Returns None if name is None.
 
