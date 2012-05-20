@@ -140,6 +140,8 @@ def test_game_job(tc):
     tc.assertEqual(result.game_data, 'gamedata')
     tc.assertEqual(result.warnings, [])
     tc.assertEqual(result.log_entries, [])
+    tc.assertIsNone(result.engine_descriptions['b'].get_short_description())
+    tc.assertIsNone(result.engine_descriptions['w'].get_short_description())
     channel = fx.get_channel('one')
     tc.assertIsNone(channel.requested_stderr)
     tc.assertIsNone(channel.requested_cwd)
@@ -497,6 +499,8 @@ def test_game_job_player_descriptions(tc):
     fx.add_handler('b', 'name', lambda args: "blackname")
     fx.add_handler('w', 'gomill-describe_engine', lambda args: "foo\nbar")
     result = fx.job.run()
+    tc.assertEqual(result.engine_descriptions['b'].name, "blackname")
+    tc.assertEqual(result.engine_descriptions['w'].description, "foo\nbar")
     tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
     (;FF[4]AP[gomill:VER]
     C[Game id gameid
