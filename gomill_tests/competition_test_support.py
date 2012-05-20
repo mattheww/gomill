@@ -5,6 +5,7 @@ from cStringIO import StringIO
 
 from gomill import game_jobs
 from gomill import gtp_games
+from gomill.gtp_controller import Engine_description
 
 def fake_response(job, winner):
     """Produce a response for the specified job.
@@ -29,13 +30,12 @@ def fake_response(job, winner):
     response = game_jobs.Game_job_result()
     response.game_id = job.game_id
     response.game_result = result
-    response.engine_names = {
-        job.player_b.code : '%s engine:v1.2.3' % job.player_b.code,
-        job.player_w.code : '%s engine' % job.player_w.code,
-        }
     response.engine_descriptions = {
-        job.player_b.code : '%s engine:v1.2.3' % job.player_b.code,
-        job.player_w.code : '%s engine\ntestdescription' % job.player_w.code,
+        job.player_b.code : Engine_description(
+            "%s engine" % job.player_b.code, "v1.2.3", None),
+        job.player_w.code : Engine_description(
+            "%s engine" % job.player_w.code, None,
+            '%s engine\ntestdescription' % job.player_w.code),
         }
     response.game_data = job.game_data
     response.warnings = []

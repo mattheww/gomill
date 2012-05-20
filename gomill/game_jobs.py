@@ -87,8 +87,7 @@ class Game_job_result(object):
       game_result           -- gtp_games.Game_result
       warnings              -- list of strings
       log_entries           -- list of strings
-      engine_names          -- map player code -> string
-      engine_descriptions   -- map player code -> string
+      engine_descriptions   -- map player code -> Engine_description
 
     Game_job_results are suitable for pickling.
 
@@ -277,13 +276,10 @@ class Game_job(object):
         response.warnings = warnings
         response.log_entries = log_entries
 
-        response.engine_names = {}
-        response.engine_descriptions = {}
-        for colour, player_code in (('b', self.player_b.code),
-                                    ('w', self.player_w.code)):
-            ed = game_controller.engine_descriptions[colour]
-            response.engine_names[player_code] = ed.get_short_description() or player_code
-            response.engine_descriptions[player_code] = ed.get_long_description() or player_code
+        response.engine_descriptions = {
+            'b' : game_controller.engine_descriptions['b'],
+            'w' : game_controller.engine_descriptions['w'],
+            }
         response.game_data = self.game_data
         return response
 

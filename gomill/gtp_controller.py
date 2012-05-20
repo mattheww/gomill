@@ -781,6 +781,8 @@ class Engine_description(object):
     (apparently for the sake of kgsGTP); we attempt to remove this and put the
     result in clean_version.
 
+    Engine_descriptions are suitable for pickling.
+
     """
     def __init__(self, raw_name, raw_version, raw_description):
         self.raw_name = raw_name
@@ -823,7 +825,7 @@ class Engine_description(object):
 
     @classmethod
     def from_controller(cls, controller):
-        """Return a new Engine_description, querying a controller.
+        """Return a new Engine_description, querying a controller for the data.
 
         May propagate GtpChannelError.
 

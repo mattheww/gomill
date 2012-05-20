@@ -7,6 +7,7 @@ import cPickle as pickle
 
 from gomill import competitions
 from gomill import playoffs
+from gomill.gtp_controller import Engine_description
 from gomill.gtp_games import Game_result
 from gomill.game_jobs import Game_job, Game_job_result
 from gomill.competitions import (
@@ -277,13 +278,10 @@ def test_play(tc):
     response1 = Game_job_result()
     response1.game_id = job1.game_id
     response1.game_result = result1
-    response1.engine_names = {
-        't1' : 't1 engine:v1.2.3',
-        't2' : 't2 engine',
-        }
     response1.engine_descriptions = {
-        't1' : 't1 engine:v1.2.3',
-        't2' : 't2 engine\ntest \xc2\xa3description',
+        't1' : Engine_description("t1 engine", "v1.2.3", None),
+        't2' : Engine_description("t1 engine", None,
+                                  't2 engine\ntest \xc2\xa3description'),
         }
     response1.game_data = job1.game_data
     fx.comp.process_game_result(response1)

@@ -235,8 +235,11 @@ class Tournament(Competition):
         return job
 
     def process_game_result(self, response):
-        self.engine_names.update(response.engine_names)
-        self.engine_descriptions.update(response.engine_descriptions)
+        for player_code, ed in response.engine_descriptions.iteritems():
+            self.engine_names[player_code] = \
+                ed.get_short_description() or player_code
+            self.engine_descriptions[player_code] = \
+                ed.get_long_description() or player_code
         matchup_id, game_number = response.game_data
         game_id = response.game_id
         self.working_matchups.add(matchup_id)

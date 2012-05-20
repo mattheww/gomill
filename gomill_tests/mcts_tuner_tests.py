@@ -13,6 +13,7 @@ from gomill.gtp_games import Game_result
 from gomill.mcts_tuners import Parameter_config
 from gomill.competitions import (
     Player_config, CompetitionError, ControlFileError)
+from gomill.gtp_controller import Engine_description
 
 from gomill_tests import gomill_test_support
 from gomill_tests import competition_test_support
@@ -397,13 +398,11 @@ def test_play(tc):
     response1 = Game_job_result()
     response1.game_id = job1.game_id
     response1.game_result = result1
-    response1.engine_names = {
-        'opp' : 'opp engine:v1.2.3',
-        '#0'  : 'candidate engine',
-        }
+
     response1.engine_descriptions = {
-        'opp' : 'opp engine:v1.2.3',
-        '#0'  : 'candidate engine description',
+        'opp' : Engine_description("opp engine", "v1.2.3", None),
+        '#0'  : Engine_description("candidate engine", None,
+                                   'candidate engine description'),
         }
     response1.game_data = job1.game_data
     comp.process_game_result(response1)

@@ -776,7 +776,7 @@ class Mcts_tuner(Competition):
     def process_game_result(self, response):
         self.halt_on_next_failure = False
         self.opponent_description = response.engine_descriptions[
-            self.opponent.code]
+            self.opponent.code].get_long_description() or self.opponent.code
         game_number = response.game_data
         self.scheduler.fix(game_number)
         # Counting no-result as loss for the candidate
