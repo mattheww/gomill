@@ -14,7 +14,7 @@ class Job(object):
 
     def run(self):
         sys.stderr.write("worker %d: %s\n" % (os.getpid(), self))
-        time.sleep(random.random()*6)
+        time.sleep(random.random()*2)
         if self.num == 4:
             int("forcefailure4")
         return "response to %s" % self
