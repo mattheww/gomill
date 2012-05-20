@@ -665,6 +665,10 @@ def test_engine_description(tc):
     tc.assertEqual(ed.get_long_description(),
                    "name:ratherlongversionover32characters")
 
+    ed = gtp_controller.Engine_description(None, "123", None)
+    tc.assertIsNone(ed.get_short_description())
+    tc.assertEqual(ed.get_long_description(), "version 123")
+
 def test_engine_description_from_channel(tc):
     channel = gtp_engine_fixtures.get_test_channel()
     controller = Gtp_controller(channel, 'player test')

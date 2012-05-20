@@ -413,7 +413,7 @@ def test_play(tc):
     tc.assertEqual(sum(node.visits-10 for node in tree.root.children), 1)
     tc.assertEqual(sum(node.wins-5 for node in tree.root.children), 1)
     tc.assertRegexpMatches(competition_test_support.get_short_report(comp),
-                           r"(?m)^opponent: opp engine:v1.2.3$")
+                           r"(?m)^opponent \(opp\): opp engine:v1.2.3$")
 
     comp2 = mcts_tuners.Mcts_tuner('mctstest')
     comp2.initialise_from_control_file(default_config())

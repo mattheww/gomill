@@ -865,16 +865,21 @@ class Engine_description(object):
 
         This may have multiple lines.
 
-        Returns None if both name and description are None.
+        Returns None if name, version, and description are all None.
 
         """
         if self.description is not None:
             return self.description
         if self.name is None:
-            return None
-        if self.clean_version is None:
-            return self.name
-        return self.name + ":" + self.clean_version
+            if self.clean_version is None:
+                return None
+            else:
+                return "version " + self.clean_version
+        else:
+            if self.clean_version is None:
+                return self.name
+            else:
+                return self.name + ":" + self.clean_version
 
 
 class Game_controller(object):
