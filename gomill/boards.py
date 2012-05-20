@@ -178,7 +178,7 @@ class Board(object):
                     self_capture = [group for group in surrounded
                                     if group.colour == colour]
                     if len(self_capture[0].points) == 1:
-                        simple_ko_point = iter(to_capture[0].points).next()
+                        (simple_ko_point,) = to_capture[0].points
             for group in to_capture:
                 for r, c in group.points:
                     self.board[r][c] = None
