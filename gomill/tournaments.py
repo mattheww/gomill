@@ -237,9 +237,9 @@ class Tournament(Competition):
     def process_game_result(self, response):
         for player_code, ed in response.engine_descriptions.iteritems():
             self.engine_names[player_code] = \
-                ed.get_short_description() or player_code
+                ed.get_short_description() or "[no name available]"
             self.engine_descriptions[player_code] = \
-                ed.get_long_description() or player_code
+                ed.get_long_description() or "[no description available]"
         matchup_id, game_number = response.game_data
         game_id = response.game_id
         self.working_matchups.add(matchup_id)

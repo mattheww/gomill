@@ -396,7 +396,7 @@ def test_engine_with_no_name(tc):
     """)
     expected_players = dedent("""\
     player t1: t1 engine:v1.2.3
-    player t2: t2
+    player t2: [no description available]
     """)
     fx.check_short_report(expected_report, expected_players)
 
