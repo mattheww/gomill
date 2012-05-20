@@ -59,12 +59,13 @@ def main():
         game_controller.close_players()
         sys.exit("error creating players:\n%s\n" % e)
 
+    eds = game_controller.engine_descriptions
     if options.verbose == '1':
-        print 'Black: %s' % game_controller.engine_names['b']
-        print 'White: %s' % game_controller.engine_names['w']
+        print 'Black: %s' % eds['b'].get_short_description()
+        print 'White: %s' % eds['w'].get_short_description()
     elif options.verbose == '2':
-        print 'Black:\n%s\n' % game_controller.engine_descriptions['b']
-        print 'White:\n%s\n' % game_controller.engine_descriptions['w']
+        print 'Black: %s\n' % eds['b'].get_long_description()
+        print 'White: %s\n' % eds['w'].get_long_description()
 
     for game_number in xrange(options.games):
         game = gtp_games.Gtp_game(
