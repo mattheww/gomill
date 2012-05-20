@@ -381,6 +381,25 @@ def test_jigo_reporting(tc):
                            3.5 50.00%     3.5 50.00%
     """))
 
+def test_engine_with_no_name(tc):
+    fx = Playoff_fixture(tc)
+    job = fx.comp.get_game()
+    response = fake_response(job, 'b')
+    response.engine_descriptions['t2'] = Engine_description(None, None, None)
+    fx.comp.process_game_result(response)
+    expected_report = dedent("""\
+    t1 v t2 (1 games)
+    board size: 13   komi: 7.5
+         wins
+    t1      1 100.00%   (black)
+    t2      0   0.00%   (white)
+    """)
+    expected_players = dedent("""\
+    player t1: t1 engine:v1.2.3
+    player t2: t2
+    """)
+    fx.check_short_report(expected_report, expected_players)
+
 def test_unknown_result_reporting(tc):
     fx = Playoff_fixture(tc)
 
