@@ -127,8 +127,7 @@ class Matchup_stats(object):
         self.total = len(results)
 
         js = self._jigo_score = 0.5 * sum(r.is_jigo for r in results)
-        self.unknown = sum(r.winning_player is None and not r.is_jigo
-                           for r in results)
+        self.unknown = sum(r.is_unknown for r in results)
 
         self.wins_1 = sum(r.winning_player == player_1 for r in results) + js
         self.wins_2 = sum(r.winning_player == player_2 for r in results) + js
