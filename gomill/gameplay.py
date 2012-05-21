@@ -656,9 +656,10 @@ class Game_runner(object):
         elif action == 'claim':
             game.record_claim_by(colour)
             return
-        else:
-            assert action == 'move'
+        elif action == 'move':
             move = detail
+        else:
+            raise ValueError("bad get_move action: %s" % action)
 
         comment = self.backend.get_last_move_comment(colour)
 
@@ -674,8 +675,8 @@ class Game_runner(object):
         elif status == 'error':
             game.record_forfeit_by(opponent, msg)
             return
-        else:
-            assert status == 'accept'
+        elif status != 'accept':
+            raise ValueError("bad notify_move status: %s" % status)
 
         self.moves.append((colour, move, comment))
 
