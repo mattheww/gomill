@@ -288,9 +288,7 @@ Game_result objects
    :attr:`~.Matchup_description.player_2` attributes.
 
    See :ref:`playing games` and :ref:`details of scoring` for an explanation
-   of the possible game results. Games with unknown result can be
-   distinguished as having :attr:`winning_player` ``None`` but :attr:`is_jigo`
-   ``False``.
+   of the possible game results.
 
    Game_results can be retrieved from
    :class:`.Tournament_results` objects.
@@ -337,6 +335,10 @@ Game_result objects
    .. attribute:: is_jigo
 
       Bool: ``True`` if the game was a :term:`jigo`.
+
+   .. attribute:: is_unknown
+
+      Bool: ``True`` if the game's result is unknown.
 
    .. attribute:: is_forfeit
 

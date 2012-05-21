@@ -290,6 +290,7 @@ class Result(object):
       losing_colour  -- 'b', 'w', or None
       is_jigo        -- bool
       is_forfeit     -- bool
+      is_unknown     -- bool
       sgf_result     -- string describing the game's result (for sgf RE)
       detail         -- additional information (string or None)
 
@@ -317,6 +318,10 @@ class Result(object):
         if self.winning_colour is None:
             return None
         return opponent_of(self.winning_colour)
+
+    @property
+    def is_unknown(self):
+        return (self.winning_colour is None) and (not self.is_jigo)
 
     @classmethod
     def from_score(cls, winner, margin, detail=None):

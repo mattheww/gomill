@@ -311,6 +311,7 @@ def test_result_from_score_unknown(tc):
     tc.assertIsNone(result.losing_colour)
     tc.assertIs(result.is_jigo, False)
     tc.assertIs(result.is_forfeit, False)
+    tc.assertIs(result.is_unknown, True)
 
 def test_result_from_score_jigo(tc):
     result = gameplay.Result.from_score(None, 0)
@@ -320,6 +321,7 @@ def test_result_from_score_jigo(tc):
     tc.assertIsNone(result.losing_colour)
     tc.assertIs(result.is_jigo, True)
     tc.assertIs(result.is_forfeit, False)
+    tc.assertIs(result.is_unknown, False)
 
 def test_result_from_score_margin_no_winner(tc):
     tc.assertRaisesRegexp(ValueError, "positive margin without winner",
@@ -333,6 +335,7 @@ def test_result_from_score_no_margin(tc):
     tc.assertEqual(result.losing_colour, 'w')
     tc.assertIs(result.is_jigo, False)
     tc.assertIs(result.is_forfeit, False)
+    tc.assertIs(result.is_unknown, False)
 
 def test_result_from_score_winner_zero_margin(tc):
     tc.assertRaisesRegexp(ValueError, "winner with zero margin",
@@ -346,6 +349,7 @@ def test_result_from_score_normal(tc):
     tc.assertEqual(result.losing_colour, 'b')
     tc.assertIs(result.is_jigo, False)
     tc.assertIs(result.is_forfeit, False)
+    tc.assertIs(result.is_unknown, False)
 
 def test_result_from_score_negative_margin(tc):
     tc.assertRaisesRegexp(ValueError, "negative margin",
@@ -381,6 +385,7 @@ def test_result_from_game_score(tc):
     tc.assertEqual(result.losing_colour, 'w')
     tc.assertIs(result.is_jigo, False)
     tc.assertIs(result.is_forfeit, False)
+    tc.assertIs(result.is_unknown, False)
 
 def test_result_from_game_score_no_margin(tc):
     gs = gameplay.Game_score('b', None)
@@ -391,6 +396,7 @@ def test_result_from_game_score_no_margin(tc):
     tc.assertEqual(result.losing_colour, 'w')
     tc.assertIs(result.is_jigo, False)
     tc.assertIs(result.is_forfeit, False)
+    tc.assertIs(result.is_unknown, False)
 
 
 ### Game_runner

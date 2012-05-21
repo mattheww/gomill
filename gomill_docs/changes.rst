@@ -20,7 +20,9 @@ Gomill FIXME (FIXME)
 * Improved player descriptions in |sgf| files and competition reports when the
   |gtp| :gtp:`!name` command isn't implemented.
 
-* Documented :attr:`.Game_result.cpu_times`.
+* Added the :attr:`.Game_result.is_unknown` attribute.
+
+* Documented the :attr:`.Game_result.cpu_times` attribute.
 
 * :func:`~.ascii_boards.interpret_diagram` now ignores leading whitespace (it
   already ignored trailing whitespace).

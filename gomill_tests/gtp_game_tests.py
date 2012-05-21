@@ -145,6 +145,7 @@ def test_game(tc):
     tc.assertEqual(fx.game.result.sgf_result, "B+18")
     tc.assertFalse(fx.game.result.is_forfeit)
     tc.assertIs(fx.game.result.is_jigo, False)
+    tc.assertIs(fx.game.result.is_unknown, False)
     tc.assertIsNone(fx.game.result.detail)
     tc.assertIsNone(fx.game.result.game_id)
     tc.assertEqual(fx.game.result.describe(), "one beat two B+18")
@@ -263,6 +264,7 @@ def test_unscored_game(tc):
     tc.assertEqual(fx.game.result.sgf_result, "?")
     tc.assertFalse(fx.game.result.is_forfeit)
     tc.assertIs(fx.game.result.is_jigo, False)
+    tc.assertIs(fx.game.result.is_unknown, True)
     tc.assertEqual(fx.game.result.detail, "no score reported")
     tc.assertEqual(fx.game.result.describe(),
                    "one vs two ? (no score reported)")
@@ -294,6 +296,7 @@ def test_jigo(tc):
     tc.assertEqual(fx.game.result.sgf_result, "0")
     tc.assertIs(fx.game.result.is_forfeit, False)
     tc.assertIs(fx.game.result.is_jigo, True)
+    tc.assertIs(fx.game.result.is_unknown, False)
     tc.assertIsNone(fx.game.result.detail)
     tc.assertEqual(fx.game.result.describe(), "one vs two jigo")
     tc.assertEqual(fx.game.describe_scoring(), "one vs two jigo")
@@ -685,6 +688,7 @@ def test_move_limit(tc):
     tc.assertIsNone(fx.game.result.winning_colour)
     tc.assertIs(fx.game.result.is_jigo, False)
     tc.assertIs(fx.game.result.is_forfeit, False)
+    tc.assertIs(fx.game.result.is_unknown, True)
     tc.assertEqual(fx.game.result.detail, "hit move limit")
     fx.check_moves([
         ('b', 'E1'), ('w', 'G1'),
