@@ -143,7 +143,7 @@ def test_game(tc):
     tc.assertEqual(fx.game.result.winning_player, 'one')
     tc.assertEqual(fx.game.result.losing_player, 'two')
     tc.assertEqual(fx.game.result.sgf_result, "B+18")
-    tc.assertFalse(fx.game.result.is_forfeit)
+    tc.assertIs(fx.game.result.is_forfeit, False)
     tc.assertIs(fx.game.result.is_jigo, False)
     tc.assertIs(fx.game.result.is_unknown, False)
     tc.assertIsNone(fx.game.result.detail)
@@ -262,7 +262,7 @@ def test_unscored_game(tc):
     tc.assertIsNone(fx.game.result.winning_player)
     tc.assertIsNone(fx.game.result.losing_player)
     tc.assertEqual(fx.game.result.sgf_result, "?")
-    tc.assertFalse(fx.game.result.is_forfeit)
+    tc.assertIs(fx.game.result.is_forfeit, False)
     tc.assertIs(fx.game.result.is_jigo, False)
     tc.assertIs(fx.game.result.is_unknown, True)
     tc.assertEqual(fx.game.result.detail, "no score reported")
@@ -289,10 +289,10 @@ def test_jigo(tc):
     tc.assertDictEqual(fx.game.result.players, {'b' : 'one', 'w' : 'two'})
     tc.assertEqual(fx.game.result.player_b, 'one')
     tc.assertEqual(fx.game.result.player_w, 'two')
-    tc.assertEqual(fx.game.result.winning_colour, None)
-    tc.assertEqual(fx.game.result.losing_colour, None)
-    tc.assertEqual(fx.game.result.winning_player, None)
-    tc.assertEqual(fx.game.result.losing_player, None)
+    tc.assertIsNone(fx.game.result.winning_colour)
+    tc.assertIsNone(fx.game.result.losing_colour)
+    tc.assertIsNone(fx.game.result.winning_player)
+    tc.assertIsNone(fx.game.result.losing_player)
     tc.assertEqual(fx.game.result.sgf_result, "0")
     tc.assertIs(fx.game.result.is_forfeit, False)
     tc.assertIs(fx.game.result.is_jigo, True)
@@ -527,7 +527,7 @@ def test_resign(tc):
     tc.assertEqual(fx.game.result.sgf_result, "W+R")
     tc.assertEqual(fx.game.result.winning_colour, 'w')
     tc.assertEqual(fx.game.result.winning_player, 'two')
-    tc.assertFalse(fx.game.result.is_forfeit)
+    tc.assertIs(fx.game.result.is_forfeit, False)
     tc.assertIs(fx.game.result.detail, None)
     tc.assertEqual(fx.game.result.describe(), "two beat one W+R")
     fx.check_moves(moves[:-1])
@@ -551,7 +551,7 @@ def test_claim(tc):
     tc.assertEqual(fx.game.result.detail, "claim")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
     tc.assertEqual(fx.game.result.winning_player, 'one')
-    tc.assertFalse(fx.game.result.is_forfeit)
+    tc.assertIs(fx.game.result.is_forfeit, False)
     tc.assertEqual(fx.game.result.describe(), "one beat two B+ (claim)")
     tc.assertEqual(fx.game.describe_scoring(), "one beat two B+ (claim)")
     fx.check_moves([
@@ -573,7 +573,7 @@ def test_forfeit_occupied_point(tc):
     tc.assertEqual(fx.game.result.sgf_result, "B+F")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
     tc.assertEqual(fx.game.result.winning_player, 'one')
-    tc.assertTrue(fx.game.result.is_forfeit)
+    tc.assertIs(fx.game.result.is_forfeit, True)
     tc.assertEqual(fx.game.result.detail,
                    "forfeit by two: attempted move to occupied point D4")
     tc.assertEqual(fx.game.result.describe(),
@@ -598,7 +598,7 @@ def test_forfeit_simple_ko(tc):
     tc.assertEqual(fx.game.result.sgf_result, "W+F")
     tc.assertEqual(fx.game.result.winning_colour, 'w')
     tc.assertEqual(fx.game.result.winning_player, 'two')
-    tc.assertTrue(fx.game.result.is_forfeit)
+    tc.assertIs(fx.game.result.is_forfeit, True)
     tc.assertEqual(fx.game.result.detail,
                    "forfeit by one: attempted move to ko-forbidden point E5")
     fx.check_moves(moves[:-1])
@@ -616,7 +616,7 @@ def test_forfeit_illformed_move(tc):
     tc.assertEqual(fx.game.result.sgf_result, "B+F")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
     tc.assertEqual(fx.game.result.winning_player, 'one')
-    tc.assertTrue(fx.game.result.is_forfeit)
+    tc.assertIs(fx.game.result.is_forfeit, True)
     tc.assertEqual(fx.game.result.detail,
                    "forfeit by two: attempted ill-formed move Z99")
     fx.check_moves(moves[:-1])
@@ -633,7 +633,7 @@ def test_forfeit_genmove_fails(tc):
     tc.assertEqual(fx.game.result.sgf_result, "W+F")
     tc.assertEqual(fx.game.result.winning_colour, 'w')
     tc.assertEqual(fx.game.result.winning_player, 'two')
-    tc.assertTrue(fx.game.result.is_forfeit)
+    tc.assertIs(fx.game.result.is_forfeit, True)
     tc.assertEqual(
         fx.game.result.detail,
         "forfeit by one: failure response from 'genmove b' to player one:\n"
@@ -654,7 +654,7 @@ def test_forfeit_rejected_as_illegal(tc):
     tc.assertEqual(fx.game.result.sgf_result, "B+F")
     tc.assertEqual(fx.game.result.winning_colour, 'b')
     tc.assertEqual(fx.game.result.winning_player, 'one')
-    tc.assertTrue(fx.game.result.is_forfeit)
+    tc.assertIs(fx.game.result.is_forfeit, True)
     tc.assertEqual(fx.game.result.detail,
                    "forfeit by two: one claims move E4 is illegal")
     fx.check_moves(moves[:-1])
@@ -673,7 +673,7 @@ def test_forfeit_play_failed(tc):
     tc.assertEqual(fx.game.result.sgf_result, "W+F")
     tc.assertEqual(fx.game.result.winning_colour, 'w')
     tc.assertEqual(fx.game.result.winning_player, 'two')
-    tc.assertTrue(fx.game.result.is_forfeit)
+    tc.assertIs(fx.game.result.is_forfeit, True)
     tc.assertEqual(
         fx.game.result.detail,
         "forfeit by one: failure response from 'play w E4' to player one:\n"
