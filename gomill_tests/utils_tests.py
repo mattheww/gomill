@@ -1,5 +1,10 @@
 """Tests for utils.py."""
 
+from __future__ import with_statement
+
+import errno
+import os
+
 from gomill_tests import gomill_test_support
 
 from gomill import utils
@@ -60,4 +65,15 @@ def test_nan(tc):
     tc.assertIs(utils.isnan(float("inf")), False)
     tc.assertIs(utils.isnan(float("-inf")), False)
     tc.assertIs(utils.isnan(float("NaN")), True)
+
+def test_ensure_dir(tc):
+    dirname = os.path.join(tc.sandbox(), "sub")
+    tc.assertFalse(os.path.exists(dirname))
+    utils.ensure_dir(dirname)
+    tc.assertTrue(os.path.isdir(dirname))
+    utils.ensure_dir(dirname)
+    tc.assertTrue(os.path.isdir(dirname))
+    with tc.assertRaises(EnvironmentError) as ar:
+        utils.ensure_dir(os.path.join(tc.sandbox(), "nonex", "sub"))
+    tc.assertEqual(ar.exception.errno, errno.ENOENT)
 
