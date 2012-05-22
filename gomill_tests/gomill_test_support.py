@@ -4,6 +4,7 @@ import re
 
 from gomill import __version__
 from gomill_tests.test_framework import unittest2
+from gomill_tests.fs_test_support import Sandbox_testcase_mixin
 from gomill_tests import test_framework
 
 from gomill.common import *
@@ -175,18 +176,22 @@ class Gomill_testcase_mixin(object):
         self.assertMultiLineEqual("\n".join(new_lines), expected)
 
 
-class Gomill_SimpleTestCase(
-    Gomill_testcase_mixin, test_framework.SimpleTestCase):
-    """SimpleTestCase with the Gomill mixin."""
+class Gomill_SimpleTestCase(Sandbox_testcase_mixin,
+                            Gomill_testcase_mixin,
+                            test_framework.SimpleTestCase):
+    """SimpleTestCase with the Gomill and sandbox mixins."""
     def __init__(self, *args, **kwargs):
         test_framework.SimpleTestCase.__init__(self, *args, **kwargs)
+        self.init_sandbox_testcase_mixin()
         self.init_gomill_testcase_mixin()
 
-class Gomill_ParameterisedTestCase(
-    Gomill_testcase_mixin, test_framework.ParameterisedTestCase):
+class Gomill_ParameterisedTestCase(Sandbox_testcase_mixin,
+                                   Gomill_testcase_mixin,
+                                   test_framework.ParameterisedTestCase):
     """ParameterisedTestCase with the Gomill mixin."""
     def __init__(self, *args, **kwargs):
         test_framework.ParameterisedTestCase.__init__(self, *args, **kwargs)
+        self.init_sandbox_testcase_mixin()
         self.init_gomill_testcase_mixin()
 
 
