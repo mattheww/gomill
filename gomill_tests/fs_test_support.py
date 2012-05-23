@@ -35,8 +35,6 @@ class Sandbox_testcase_mixin(object):
                 suffix = ""
             pathname = tempfile.mkdtemp(prefix='test-sandbox-', suffix=suffix)
             self.__sandboxes[code] = pathname
-            def cleanup():
-                shutil.rmtree(pathname)
-            self.addCleanup(cleanup)
+            self.addCleanup(shutil.rmtree, pathname)
         return pathname
 
