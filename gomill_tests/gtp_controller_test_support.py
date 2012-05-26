@@ -64,7 +64,7 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
     This raises an error if sent two commands without requesting a response in
     between, or if asked for a response when no command was sent since the last
     response. (GTP permits stacking up commands, but Gtp_controller should never
-    do it, so we want to report it).
+    do it, so we want to report it). Similarly we reject empty command lines.
 
     Unlike Internal_gtp_channel, this runs the command at the point when it is
     sent.
@@ -111,12 +111,10 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         if self.fail_command and command.startswith(self.fail_command):
             self.fail_command = None
             raise GtpTransportError("forced failure for send_command_line")
-        cmd_list = command.strip().split(" ")
-        is_error, response, end_session = \
-            self.engine.run_command(cmd_list[0], cmd_list[1:])
-        if end_session:
-            self.session_is_ended = True
-        self.stored_response = ("? " if is_error else "= ") + response + "\n\n"
+        self.stored_response, self.session_is_ended = \
+            self.engine.handle_line(command)
+        if self.stored_response is None:
+            raise SupporterError("empty command line")
 
     def get_response_line(self):
         if self.is_closed:
