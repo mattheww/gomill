@@ -233,6 +233,26 @@ def test_game_initial_board(tc):
     tc.assertIs(game.board, board)
     tc.assertBoardEqual(game.board, DIAGRAM2)
 
+def test_game_game_over_callback(tc):
+    log = []
+    def fn():
+        log.append("callback")
+        tc.assertIs(game.is_over, True)
+        tc.assertIs(game.passed_out, True)
+        tc.assertIsNone(game.next_player)
+
+    fx = Game_fixture(tc)
+    game = fx.game
+    game.set_game_over_callback(fn)
+    fx.check_legal_moves([
+        ('b', 'C5'), ('w', 'F5'),
+        ('b', 'pass'),
+        ])
+    tc.assertEqual(log, [])
+    game.record_move('w', None)
+    tc.assertEqual(log, ["callback"])
+    fx.check_over('passed_out')
+
 
 ### Scoring
 

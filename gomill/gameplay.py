@@ -74,6 +74,8 @@ class Game(object):
         self.winner = None
         self.forfeit_reason = None
 
+        self.game_over_callback = None
+
     def set_move_limit(self, move_limit):
         """Set or clear the move limit.
 
@@ -84,10 +86,20 @@ class Game(object):
         """
         self.move_limit = move_limit
 
+    def set_game_over_callback(self, fn):
+        """Specify a function to be called when the game is over.
+
+        fn -- callable (no parameters; result ignored)
+
+        """
+        self.game_over_callback = fn
+
     def _set_over(self):
         self.is_over = True
         self.next_player = None
         self.simple_ko_point = None
+        if self.game_over_callback is not None:
+            self.game_over_callback()
 
     def record_resignation_by(self, loser):
         """Record that a player has resigned.
