@@ -1,5 +1,7 @@
 """Tests for gtp_games.py"""
 
+from __future__ import with_statement
+
 import cPickle as pickle
 from textwrap import dedent
 
@@ -8,6 +10,7 @@ from gomill import gtp_controller
 from gomill import gtp_games
 from gomill import sgf
 from gomill.common import format_vertex
+from gomill.gtp_controller import GtpChannelError
 
 from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
@@ -951,3 +954,27 @@ def test_game_result_cpu_time_pickle_compatibility(tc):
     result.cpu_times = {'one' : 33.5, 'two' : '?'}
     result2 = pickle.loads(pickle.dumps(result))
     tc.assertEqual(result2.cpu_times, {'one' : 33.5, 'two' : None})
+
+
+def test_channel_error_from_genmove(tc):
+    def trigger_fail_next_genmove():
+        fx.channel_b.fail_command = "genmove"
+        return "C3"
+    moves = [
+        ('b', trigger_fail_next_genmove),
+        ('w', 'D3'),
+        ('b', "E3"),
+        ]
+    fx = Gtp_game_fixture(
+        tc, Programmed_player(moves), Programmed_player(moves))
+
+    fx.game.prepare()
+    with tc.assertRaises(GtpChannelError) as ar:
+        fx.game.run()
+    tc.assertEqual(str(ar.exception),
+                   "transport error sending 'genmove b' to player one:\n"
+                   "forced failure for send_command_line")
+    tc.assertIsNone(fx.game.result)
+    fx.check_moves([
+        ('b', 'C3'), ('w', 'D3'),
+        ])
