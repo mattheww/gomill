@@ -460,6 +460,8 @@ class Gtp_game(object):
         Propagates GtpChannelError if there is trouble communicating with an
         engine.
 
+        (Switches the game controller to non-cautious mode.)
+
         """
         self.game_runner.prepare()
 
@@ -497,6 +499,9 @@ class Gtp_game(object):
 
         If an exception is propagated, 'result' will not be set, but
         get_moves() will reflect the moves which were completed.
+
+        If no exception is propagated, the game controller will be left in
+        cautious mode (otherwise it might be in either mode).
 
         """
         self.game_runner.run()
