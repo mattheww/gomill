@@ -1019,6 +1019,9 @@ def test_channel_error_from_final_score(tc):
 
 def test_illegal_move_and_exit(tc):
     # Black returns an illegal move and immediately exits
+
+    # Implementing gomill-explain_last_move to make sure that we're in cautious
+    # mode when it's called.
     class Explaining_player(Programmed_player):
         def get_handlers(self):
             handlers = {'gomill-explain_last_move' : lambda args: "xxx"}
@@ -1031,20 +1034,18 @@ def test_illegal_move_and_exit(tc):
     fx = Gtp_game_fixture(
         tc, Explaining_player(moves), Explaining_player(moves))
 
-    # Current behaviour is poor: we should know that Black forfeited.
-    # This problem only occurs when gomill-explain_last_move is implemented.
     fx.game.prepare()
-    with tc.assertRaises(GtpChannelError) as ar:
-        fx.game.run()
-    tc.assertEqual(str(ar.exception),
-                   "error sending 'gomill-explain_last_move' to player one:\n"
-                   "engine has closed the command channel")
-    tc.assertIsNone(fx.game.result)
+    fx.game.run()
+    tc.assertEqual(fx.game.result.sgf_result, "W+F")
+    tc.assertEqual(fx.game.result.detail,
+                   "forfeit by one: attempted move to occupied point D3")
     fx.check_moves([
         ('b', 'C3'), ('w', 'D3'),
         ])
     fx.game_controller.close_players()
-    tc.assertIsNone(fx.game_controller.describe_late_errors())
+    tc.assertEqual(fx.game_controller.describe_late_errors(),
+                   "error sending 'gomill-explain_last_move' to player one:\n"
+                   "engine has closed the command channel")
 
 def test_pass_and_exit(tc):
     # Black passes and immediately exits; White passes

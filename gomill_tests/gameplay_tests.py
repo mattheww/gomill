@@ -577,8 +577,8 @@ def test_game_runner(tc):
         "get_last_move_comment <- b",
         "notify_move -> w pass",
         "get_move <- w: move/pass",
-        "get_last_move_comment <- w",
         "end_game",
+        "get_last_move_comment <- w",
         "notify_move -> b pass",
         "score_game",
         ])
@@ -633,8 +633,8 @@ def test_game_runner_move_callback(tc):
         "notify_move -> w pass",
         "[callback b pass]",
         "get_move <- w: move/pass",
-        "get_last_move_comment <- w",
         "end_game",
+        "get_last_move_comment <- w",
         "notify_move -> b pass",
         "[callback w pass]",
         "score_game",
@@ -755,8 +755,8 @@ def test_game_runner_illegal_move(tc):
         "notify_move -> b D1",
         "[callback w D1]",
         "get_move <- b: move/D1",
-        "get_last_move_comment <- b",
         "end_game",
+        "get_last_move_comment <- b",
         ])
     tc.assertIsNone(fx.game_runner.get_game_score())
     result = fx.game_runner.result
@@ -858,8 +858,8 @@ def test_game_runner_move_limit(tc):
         "notify_move -> b D1",
         "[callback w D1]",
         "get_move <- b: move/C2",
-        "get_last_move_comment <- b",
         "end_game",
+        "get_last_move_comment <- b",
         "notify_move -> w C2",
         "[callback b C2]",
         ])
@@ -904,8 +904,8 @@ def test_game_runner_last_move_comment(tc):
         "get_last_move_comment <- b",
         "notify_move -> w pass",
         "get_move <- w: move/pass",
-        "get_last_move_comment <- w",
         "end_game",
+        "get_last_move_comment <- w",
         "notify_move -> b pass",
         "score_game",
         ])

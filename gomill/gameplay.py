@@ -694,9 +694,11 @@ class Game_runner(object):
         else:
             raise ValueError("bad get_move action: %s" % action)
 
+        # Record the move before asking for the comment, so that end_game() has
+        # already been called if the move ends the game.
+        game.record_move(colour, move)
         comment = self.backend.get_last_move_comment(colour)
 
-        game.record_move(colour, move)
         if game.seen_forfeit:
             return
 
