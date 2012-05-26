@@ -669,7 +669,7 @@ def test_forfeit_play_failed(tc):
         ]
     fx = Gtp_game_fixture(
         tc,
-        Programmed_player(moves, reject=('E4', 'crash')),
+        Programmed_player(moves, reject=('E4', 'no thanks')),
         Programmed_player(moves))
     fx.game.prepare()
     fx.game.run()
@@ -680,7 +680,7 @@ def test_forfeit_play_failed(tc):
     tc.assertEqual(
         fx.game.result.detail,
         "forfeit by one: failure response from 'play w E4' to player one:\n"
-        "crash")
+        "no thanks")
     fx.check_moves(moves[:-1])
 
 def test_move_limit(tc):
@@ -1049,3 +1049,39 @@ def test_pass_and_exit(tc):
         ])
     fx.game_controller.close_players()
     tc.assertIsNone(fx.game_controller.describe_late_errors())
+
+def test_reject_second_pass(tc):
+    # Black returns an error response from 'play' for a game-ending pass
+    moves = [
+        ('b', 'C3'),   ('w', 'D3'),
+        ('b', 'pass'), ('w', 'pass'),
+        ]
+    fx = Gtp_game_fixture(
+        tc,
+        Programmed_player(moves, reject=('pass', "no thanks")),
+        Programmed_player(moves))
+
+    fx.game.prepare()
+    fx.game.run()
+    tc.assertEqual(fx.game.result.detail, "no score reported")
+    fx.check_moves([
+        ('b', 'C3'), ('w', 'D3'), ('b', 'pass'), ('w', 'pass'),
+        ])
+
+def test_reject_second_pass_as_illegal(tc):
+    # Black claims a game-ending pass is illegal
+    moves = [
+        ('b', 'C3'),   ('w', 'D3'),
+        ('b', 'pass'), ('w', 'pass'),
+        ]
+    fx = Gtp_game_fixture(
+        tc,
+        Programmed_player(moves, reject=('pass', "illegal move")),
+        Programmed_player(moves))
+
+    fx.game.prepare()
+    fx.game.run()
+    tc.assertEqual(fx.game.result.detail, "no score reported")
+    fx.check_moves([
+        ('b', 'C3'), ('w', 'D3'), ('b', 'pass'), ('w', 'pass'),
+        ])
