@@ -908,16 +908,18 @@ class Game_controller(object):
       players             -- map colour -> player code
       engine_descriptions -- map colour -> Engine_description
 
-    FIXME
 
-    Methods which communicate with engines will normally propagate
-    GtpChannelError if there is trouble communicating with the engine. But some
-    (those which might be used after the game result has been decided) are
-    documented as communicating 'cautiously'. These methods will set such
-    errors aside; retrieve them with describe_late_errors().
+    Methods which send commands to engines will normally propagate
+    GtpChannelError if there is trouble communicating with the engine.
+
+    But some commands are run 'cautiously'. In this case, such errors are set
+    aside (retrieve a description with describe_late_errors()).
+
+    The game controller can be placed into 'cautious mode', which means all
+    commands are sent cautiously. See the documentation for individual methods
+    to see how low-level errors are then indicated.
 
     """
-
     def __init__(self, player_b_code, player_w_code):
         if player_b_code == player_w_code:
             raise ValueError("player codes must be distinct")
@@ -1020,8 +1022,8 @@ class Game_controller(object):
 
         Also raises BadGtpResponse if the game controller is in cautious mode
         and a low-level error occurs (you can distinguish this case because the
-        gtp_* attributes are None). Use describe_late_errors() to get a proper
-        description.
+        gtp_* attributes are None). The exception does not contain a
+        description of the low-level error (but describe_late_errors() will).
 
         """
         controller = self.controllers[colour]
@@ -1062,7 +1064,12 @@ class Game_controller(object):
         return result
 
     def known_command(self, colour, command):
-        """Check whether the specified GTP command is supported."""
+        """Check whether the specified GTP command is supported.
+
+        If the game controller is in cautious mode and a low-level error
+        occurs, returns False.
+
+        """
         controller = self.controllers[colour]
         if self.in_cautious_mode:
             return controller.safe_known_command(command)
@@ -1072,7 +1079,7 @@ class Game_controller(object):
     def close_players(self):
         """Close both controllers (if they're open).
 
-        Always communicates cautiously.
+        Sends "quit"; always communicates cautiously.
 
         """
         for colour in ("b", "w"):
@@ -1130,7 +1137,6 @@ class Game_controller(object):
 
         This uses the gomill-cpu_time extension command, when available.
 
-        FIXME: is this what we want?
         Always communicates cautiously.
 
         Returns a pair (cpu_times, errors)
