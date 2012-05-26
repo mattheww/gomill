@@ -539,6 +539,16 @@ class Game_runner_fixture(object):
         return gomill_test_support.scrub_sgf(
             self.game_runner.make_sgf().serialise(wrap=None))
 
+    def sgf_moves_and_comments(self):
+        def fmt(node):
+            try:
+                s = node.get("C")
+            except KeyError:
+                s = "--"
+            colour, move = node.get_move()
+            return "%s %s: %s" % (colour, format_vertex(move), s)
+        return map(fmt, self.game_runner.make_sgf().get_main_sequence())
+
 
 def test_game_runner(tc):
     fx = Game_runner_fixture(
@@ -920,9 +930,44 @@ def test_game_runner_last_move_comment(tc):
         ('b', None, "..move/pass"),
         ('w', None, None),
         ])
-    tc.assertEqual(fx.sgf_string(), """\
-(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[11]RE[W+99]SZ[5];B[ce]C[..move/C1];W[de];B[cd]C[..move/C2];W[dd];B[tt]C[..move/pass];W[tt])
-""")
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        'None pass: --',
+        'b C1: ..move/C1',
+        'w D1: --',
+        'b C2: ..move/C2',
+        'w D2: --',
+        'b pass: ..move/pass',
+        'w pass: --',
+        ])
+
+def test_game_runner_last_move_comment_resign(tc):
+    fx = Game_runner_fixture(
+        tc,
+        moves=[('b', 'C1'), ('w', 'D1'), ('b', 'resign')])
+    fx.enable_get_last_move_comment('b')
+    fx.run_game()
+    tc.assertEqual(fx.backend.log, [
+        "start_new_game: size=5, komi=11.0",
+        "get_move <- b: move/C1",
+        "get_last_move_comment <- b",
+        "notify_move -> w C1",
+        "get_move <- w: move/D1",
+        "get_last_move_comment <- w",
+        "notify_move -> b D1",
+        "get_move <- b: resign/None",
+        "end_game",
+        ])
+    result = fx.game_runner.result
+    tc.assertEqual(result.sgf_result, "W+R")
+    tc.assertEqual(fx.game_runner.moves, [
+        ('b', (0, 2), "..move/C1"),
+        ('w', (0, 3), None),
+        ])
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        'None pass: --',
+        'b C1: ..move/C1',
+        'w D1: --',
+        ])
 
 def test_game_runner_zero_move_game(tc):
     # There's no reason for this to be a special case, but you have to be a bit
