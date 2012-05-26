@@ -878,9 +878,11 @@ def test_game_runner_last_move_comment(tc):
         def get_last_move_comment(self, colour):
             Testing_backend.get_last_move_comment(self, colour)
             if colour == 'b':
-                return ".." + self.log[-2].partition(": ")[2]
-            else:
-                return None
+                for s in reversed(self.log):
+                    _, found, msg = s.partition("get_move <- b: ")
+                    if found:
+                        return ".." + msg
+            return None
 
     fx = Game_runner_fixture(
         tc, backend_cls=_Backend,
