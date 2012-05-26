@@ -4,7 +4,7 @@ import os
 
 from gomill import gtp_controller
 from gomill import gtp_engine
-from gomill.gtp_engine import GtpError, GtpFatalError
+from gomill.gtp_engine import GtpError, GtpFatalError, GtpQuit
 from gomill.gtp_controller import GtpChannelError
 from gomill.common import *
 
@@ -152,10 +152,13 @@ class Programmed_player(object):
 
     Passes when it runs out of moves.
 
-    If 'vertex' is a tuple, it's interpreted as (row, col) and converted to a
-    gtp vertex. The special value 'fail' causes a GtpError. If vertex is a
-    callable, it's called and its result is substituted. Otherwise it's
-    returned literally.
+    If 'vertex':
+     - is a tuple: it's interpreted as (row, col) and converted to a GTP vertex
+     - is "fail": causes a GTP failure response (raises GtpError)
+     - ends with "&exit": returns the rest, and causes the engine to exit
+                          (raises GtpQuit)
+     - is a callable: it's called and the result is substituted
+     - otherwise, it's returned literally
 
     Public attributes:
       seen_played -- list of the vertices passed to 'play' commands
@@ -202,6 +205,8 @@ class Programmed_player(object):
                     vertex = vertex()
                 if vertex == 'fail':
                     raise GtpError("forced to fail")
+                if vertex.endswith('&exit'):
+                    raise GtpQuit(vertex[:-5])
                 return vertex
         return "pass"
 
