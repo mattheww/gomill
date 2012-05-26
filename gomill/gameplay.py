@@ -481,7 +481,7 @@ class Backend(object):
         'status' is a string:
           "accept" -- move was accepted; msg is None
           "reject" -- move was rejected as illegal; msg is descriptive text
-          "error"  -- move was rejected with an errror; msg is error message
+          "error"  -- move was rejected with an error; msg is error message
 
         """
         raise NotImplementedError
