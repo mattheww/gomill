@@ -66,7 +66,7 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
     response. (GTP permits stacking up commands, but Gtp_controller should never
     do it, so we want to report it).
 
-    Unlike Internal_gtp_channel, this runs the command as the point when it is
+    Unlike Internal_gtp_channel, this runs the command at the point when it is
     sent.
 
     If you send a command after the engine has exited, this raises
