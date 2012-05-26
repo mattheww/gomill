@@ -1047,6 +1047,35 @@ def test_illegal_move_and_exit(tc):
                    "error sending 'gomill-explain_last_move' to player one:\n"
                    "engine has closed the command channel")
 
+def test_rejected_move_and_exit(tc):
+    # Black returns a move that White will reject and immediately exits
+
+    # Demonstrates that currently we call gomill-explain_last_move before we
+    # enter cautious mode.
+    class Explaining_player(Programmed_player):
+        def get_handlers(self):
+            handlers = {'gomill-explain_last_move' : lambda args: "xxx"}
+            handlers.update(Programmed_player.get_handlers(self))
+            return handlers
+    moves = [
+        ('b', 'C3'),      ('w', 'D3'),
+        ('b', 'E3&exit'),
+        ]
+    fx = Gtp_game_fixture(
+        tc, Explaining_player(moves),
+        Explaining_player(moves, reject=('E3', "illegal move")))
+
+    fx.game.prepare()
+    with tc.assertRaises(GtpChannelClosed) as ar:
+        fx.game.run()
+    tc.assertEqual(str(ar.exception),
+                   "error sending 'gomill-explain_last_move' to player one:\n"
+                   "engine has closed the command channel")
+    tc.assertIsNone(fx.game.result)
+    fx.check_moves([
+        ('b', 'C3'), ('w', 'D3'),
+        ])
+
 def test_pass_and_exit(tc):
     # Black passes and immediately exits; White passes
     moves = [
