@@ -1036,19 +1036,16 @@ def test_pass_and_exit(tc):
     fx = Gtp_game_fixture(
         tc, Programmed_player(moves), Programmed_player(moves))
 
-    # It would be better to treat this as a completed game.
     fx.game.prepare()
-    with tc.assertRaises(GtpChannelError) as ar:
-        fx.game.run()
-    tc.assertEqual(str(ar.exception),
-                   "error sending 'play w pass' to player one:\n"
-                   "engine has closed the command channel")
-    tc.assertIsNone(fx.game.result)
+    fx.game.run()
+    tc.assertEqual(fx.game.result.detail, "no score reported")
     fx.check_moves([
-        ('b', 'C3'), ('w', 'D3'), ('b', 'pass'),
+        ('b', 'C3'), ('w', 'D3'), ('b', 'pass'), ('w', 'pass'),
         ])
     fx.game_controller.close_players()
-    tc.assertIsNone(fx.game_controller.describe_late_errors())
+    tc.assertEqual(fx.game_controller.describe_late_errors(),
+                   "error sending 'play w pass' to player one:\n"
+                   "engine has closed the command channel")
 
 def test_reject_second_pass(tc):
     # Black returns an error response from 'play' for a game-ending pass

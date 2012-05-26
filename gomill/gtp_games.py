@@ -193,13 +193,14 @@ class _Gtp_backend(gameplay.Backend):
         """Reset the engines' GTP game state (board size, contents, komi)."""
         assert board_size == self.board_size
         assert komi == self.komi
+        self.gc.set_cautious_mode(False)
         for colour in "b", "w":
             self.gc.send_command(colour, "boardsize", str(board_size))
             self.gc.send_command(colour, "clear_board")
             self.gc.send_command(colour, "komi", str(komi))
 
     def end_game(self):
-        pass
+        self.gc.set_cautious_mode(True)
 
     def get_free_handicap(self, handicap):
         assert handicap == self.handicap
@@ -274,6 +275,8 @@ class _Gtp_backend(gameplay.Backend):
                 return 'reject', ("%s claims move %s is illegal"
                                   % (self.gc.players[colour], vertex))
             else:
+                # If the game is over, this could be a channel error reported
+                # by cautious mode; that's fine (see test_pass_and_exit())
                 return 'error', str(e)
         return 'accept', None
 

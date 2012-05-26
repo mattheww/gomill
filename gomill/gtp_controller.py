@@ -881,7 +881,6 @@ class Engine_description(object):
             else:
                 return self.name + ":" + self.clean_version
 
-
 class Game_controller(object):
     """Manage a pair of GTP controllers representing game players.
 
@@ -909,6 +908,8 @@ class Game_controller(object):
       players             -- map colour -> player code
       engine_descriptions -- map colour -> Engine_description
 
+    FIXME
+
     Methods which communicate with engines will normally propagate
     GtpChannelError if there is trouble communicating with the engine. But some
     (those which might be used after the game result has been decided) are
@@ -924,6 +925,7 @@ class Game_controller(object):
         self.controllers = {}
         self.late_errors = []
         self.engine_descriptions = {'b' : None, 'w' : None}
+        self.in_cautious_mode = False
 
     ## Configuration API
 
@@ -989,6 +991,14 @@ class Game_controller(object):
 
     ## Generic GTP controller API
 
+    def set_cautious_mode(self, b):
+        """Turn cautious mode on or off.
+
+        b -- bool
+
+        """
+        self.in_cautious_mode = bool(b)
+
     def get_controller(self, colour):
         """Return the underlying Gtp_controller for the specified player.
 
@@ -1008,8 +1018,22 @@ class Game_controller(object):
 
         Raises BadGtpResponse if the engine returns a failure response.
 
+        Also raises BadGtpResponse if the game controller is in cautious mode
+        and a low-level error occurs (you can distinguish this case because the
+        gtp_* attributes are None). Use describe_late_errors() to get a proper
+        description.
+
         """
-        return self.controllers[colour].do_command(command, *arguments)
+        controller = self.controllers[colour]
+        if self.in_cautious_mode:
+            response = controller.safe_do_command(command, *arguments)
+            if response is None:
+                raise BadGtpResponse(
+                    "late low-level error from player %s" %
+                    self.players[colour])
+            return response
+        else:
+            return controller.do_command(command, *arguments)
 
     def maybe_send_command(self, colour, command, *arguments):
         """Send the specified GTP command, if supported.
@@ -1017,11 +1041,20 @@ class Game_controller(object):
         Variant of send_command(): if the command isn't supported by the
         engine, or gives a failure response, returns None.
 
+        If the game controller is in cautious mode and a low-level error
+        occurs, returns None.
+
         """
         controller = self.controllers[colour]
-        if controller.known_command(command):
+        if self.in_cautious_mode:
+            known_command = controller.safe_known_command
+            do_command = controller.safe_do_command
+        else:
+            known_command = controller.known_command
+            do_command = controller.do_command
+        if known_command(command):
             try:
-                result = controller.do_command(command, *arguments)
+                result = do_command(command, *arguments)
             except BadGtpResponse:
                 result = None
         else:
@@ -1030,12 +1063,16 @@ class Game_controller(object):
 
     def known_command(self, colour, command):
         """Check whether the specified GTP command is supported."""
-        return self.controllers[colour].known_command(command)
+        controller = self.controllers[colour]
+        if self.in_cautious_mode:
+            return controller.safe_known_command(command)
+        else:
+            return controller.known_command(command)
 
     def close_players(self):
         """Close both controllers (if they're open).
 
-        Communicates cautiously.
+        Always communicates cautiously.
 
         """
         for colour in ("b", "w"):
@@ -1093,7 +1130,8 @@ class Game_controller(object):
 
         This uses the gomill-cpu_time extension command, when available.
 
-        Communicates cautiously.
+        FIXME: is this what we want?
+        Always communicates cautiously.
 
         Returns a pair (cpu_times, errors)
           cpu_times -- (partial) dict colour -> float (representing seconds)

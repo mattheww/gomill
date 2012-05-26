@@ -503,7 +503,8 @@ class Backend(object):
           "reject" -- move was rejected as illegal; msg is descriptive text
           "error"  -- move was rejected with an error; msg is error message
 
-        This may be called after end_game().
+        This may be called after end_game() (in which case it doesn't matter
+        what status you return).
 
         """
         raise NotImplementedError
