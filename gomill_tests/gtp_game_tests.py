@@ -1024,4 +1024,28 @@ def test_illegal_move_and_exit(tc):
     fx.check_moves([
         ('b', 'C3'), ('w', 'D3'),
         ])
+    fx.game_controller.close_players()
+    tc.assertIsNone(fx.game_controller.describe_late_errors())
 
+def test_pass_and_exit(tc):
+    # Black passes and immediately exits; White passes
+    moves = [
+        ('b', 'C3'),        ('w', 'D3'),
+        ('b', 'pass&exit'), ('w', 'pass'),
+        ]
+    fx = Gtp_game_fixture(
+        tc, Programmed_player(moves), Programmed_player(moves))
+
+    # It would be better to treat this as a completed game.
+    fx.game.prepare()
+    with tc.assertRaises(GtpChannelError) as ar:
+        fx.game.run()
+    tc.assertEqual(str(ar.exception),
+                   "error sending 'play w pass' to player one:\n"
+                   "engine has closed the command channel")
+    tc.assertIsNone(fx.game.result)
+    fx.check_moves([
+        ('b', 'C3'), ('w', 'D3'), ('b', 'pass'),
+        ])
+    fx.game_controller.close_players()
+    tc.assertIsNone(fx.game_controller.describe_late_errors())
