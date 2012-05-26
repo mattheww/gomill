@@ -700,15 +700,18 @@ class Game_runner(object):
             return
 
         status, msg = self.backend.notify_move(opponent, move)
-        if status == 'reject':
-            # we assume the move really was illegal, so 'colour' should lose
-            game.record_forfeit_by(colour, msg)
-            return
-        elif status == 'error':
-            game.record_forfeit_by(opponent, msg)
-            return
-        elif status != 'accept':
+        if status not in ('reject', 'error', 'accept'):
             raise ValueError("bad notify_move status: %s" % status)
+        # If the game is over (typically a game-ending pass), there's no need to
+        # treat a failure response as a forfeit.
+        if not game.is_over:
+            if status == 'reject':
+                # we assume the move really was illegal, so 'colour' should lose
+                game.record_forfeit_by(colour, msg)
+                return
+            elif status == 'error':
+                game.record_forfeit_by(opponent, msg)
+                return
 
         self.moves.append((colour, move, comment))
 
