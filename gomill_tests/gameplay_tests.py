@@ -451,6 +451,7 @@ class Testing_backend(gameplay.Backend):
         for colour in 'b', 'w':
             self._move_iters[colour] = iter(
                 [x for (c, x) in moves if c == colour])
+        self.enabled_get_last_move_comment = set()
         self.score_to_return = gameplay.Game_score("w", 99)
         self.log = []
         self.board_scored = None
@@ -502,15 +503,24 @@ class Testing_backend(gameplay.Backend):
 
     def get_last_move_comment(self, colour):
         self.log.append("get_last_move_comment <- %s" % (colour,))
+        if colour in self.enabled_get_last_move_comment:
+            for s in reversed(self.log):
+                _, found, msg = s.partition("get_move <- %s: " % colour)
+                if found:
+                    return ".." + msg
         return None
+
 
 class Game_runner_fixture(object):
     def __init__(self, tc, moves, backend_cls=Testing_backend,
-                 size=5, komi=11, move_limit=None):
+                 size=5, komi=11, move_limit=None, **kwargs):
         self.tc = tc
-        self.backend = backend_cls(size, moves)
+        self.backend = backend_cls(size, moves, **kwargs)
         self.game_runner = gameplay.Game_runner(
             self.backend, board_size=size, komi=komi, move_limit=move_limit)
+
+    def enable_get_last_move_comment(self, colour):
+        self.backend.enabled_get_last_move_comment.add(colour)
 
     def enable_after_move_callback(self):
         self.callback_boards = []
@@ -874,19 +884,10 @@ def test_game_runner_move_limit(tc):
         ])
 
 def test_game_runner_last_move_comment(tc):
-    class _Backend(Testing_backend):
-        def get_last_move_comment(self, colour):
-            Testing_backend.get_last_move_comment(self, colour)
-            if colour == 'b':
-                for s in reversed(self.log):
-                    _, found, msg = s.partition("get_move <- b: ")
-                    if found:
-                        return ".." + msg
-            return None
-
     fx = Game_runner_fixture(
-        tc, backend_cls=_Backend,
+        tc,
         moves=[('b', 'C1'), ('w', 'D1'), ('b', 'C2'), ('w', 'D2')])
+    fx.enable_get_last_move_comment('b')
     fx.run_game()
     tc.assertEqual(fx.backend.log, [
         "start_new_game: size=5, komi=11.0",
@@ -911,7 +912,6 @@ def test_game_runner_last_move_comment(tc):
         "notify_move -> b pass",
         "score_game",
         ])
-    result = fx.game_runner.result
     tc.assertEqual(fx.game_runner.moves, [
         ('b', (0, 2), "..move/C1"),
         ('w', (0, 3), None),
