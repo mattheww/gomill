@@ -957,6 +957,15 @@ def test_game_result_cpu_time_pickle_compatibility(tc):
     tc.assertEqual(result2.cpu_times, {'one' : 33.5, 'two' : None})
 
 
+def test_cautious_mode_setting(tc):
+    fx = Gtp_game_fixture(tc)
+    fx.game_controller.set_cautious_mode(True)
+    fx.game.prepare()
+    tc.assertFalse(fx.game_controller.in_cautious_mode)
+    fx.game.run()
+    tc.assertTrue(fx.game_controller.in_cautious_mode)
+    tc.assertEqual(fx.game.result.detail, "no score reported")
+
 def test_channel_error_from_genmove(tc):
     def trigger_fail_next_genmove():
         fx.channel_b.fail_command = "genmove"
