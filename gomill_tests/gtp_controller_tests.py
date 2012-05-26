@@ -932,6 +932,81 @@ def test_game_controller_channel_errors(tc):
                    "error closing player one:\n"
                    "forced failure for close")
 
+def test_game_controller_cautious_mode(tc):
+    channel1 = gtp_engine_fixtures.get_test_channel()
+    controller1 = Gtp_controller(channel1, 'player one')
+    channel2 = gtp_engine_fixtures.get_test_channel()
+    controller2 = Gtp_controller(channel2, 'player two')
+    gc = gtp_controller.Game_controller('one', 'two')
+    gc.set_player_controller('b', controller1)
+    gc.set_player_controller('w', controller2)
+    tc.assertIs(gc.in_cautious_mode, False)
+    gc.set_cautious_mode(True)
+    tc.assertIs(gc.in_cautious_mode, True)
+
+    channel1.fail_command = "list_commands"
+    tc.assertEqual(gc.maybe_send_command('b', 'test'), "test response")
+    tc.assertIsNone(gc.maybe_send_command('b', 'error'))
+    tc.assertIsNone(gc.maybe_send_command('b', 'list_commands'))
+
+    channel2.fail_command = "known_command"
+    tc.assertEqual(gc.send_command('w', 'test'), "test response")
+    tc.assertIs(gc.known_command('w', 'list_commands'), False)
+
+    gc.close_players()
+    tc.assertEqual(
+        gc.describe_late_errors(),
+        "transport error sending 'list_commands' to player one:\n"
+        "forced failure for send_command_line\n"
+        "transport error sending 'known_command list_commands' to player two:\n"
+        "forced failure for send_command_line")
+
+def test_game_controller_cautious_mode_send_command(tc):
+    channel1 = gtp_engine_fixtures.get_test_channel()
+    controller1 = Gtp_controller(channel1, 'player one')
+    channel2 = gtp_engine_fixtures.get_test_channel()
+    controller2 = Gtp_controller(channel2, 'player two')
+    gc = gtp_controller.Game_controller('one', 'two')
+    gc.set_player_controller('b', controller1)
+    gc.set_player_controller('w', controller2)
+    gc.set_cautious_mode(True)
+
+    channel1.fail_command = "list_commands"
+    tc.assertEqual(gc.send_command('b', 'test'), "test response")
+    with tc.assertRaises(BadGtpResponse) as ar:
+        gc.send_command('b', 'list_commands')
+    tc.assertEqual(
+        str(ar.exception),
+        "late low-level error from player one")
+    tc.assertIsNone(ar.exception.gtp_command)
+    gc.close_players()
+    tc.assertEqual(
+        gc.describe_late_errors(),
+        "transport error sending 'list_commands' to player one:\n"
+        "forced failure for send_command_line")
+
+def test_game_controller_leave_cautious_mode(tc):
+    channel1 = gtp_engine_fixtures.get_test_channel()
+    controller1 = Gtp_controller(channel1, 'player one')
+    channel2 = gtp_engine_fixtures.get_test_channel()
+    controller2 = Gtp_controller(channel2, 'player two')
+    gc = gtp_controller.Game_controller('one', 'two')
+    gc.set_player_controller('b', controller1)
+    gc.set_player_controller('w', controller2)
+
+    channel1.fail_command = "list_commands"
+    gc.set_cautious_mode(True)
+    tc.assertIs(gc.in_cautious_mode, True)
+    tc.assertEqual(gc.send_command('b', 'test'), "test response")
+    gc.set_cautious_mode(False)
+    tc.assertIs(gc.in_cautious_mode, False)
+    with tc.assertRaises(GtpTransportError) as ar:
+        gc.send_command('b', 'list_commands')
+    tc.assertEqual(
+        str(ar.exception),
+        "transport error sending 'list_commands' to player one:\n"
+        "forced failure for send_command_line")
+
 def test_game_controller_get_gtp_cpu_times(tc):
     def controller1():
         channel = gtp_engine_fixtures.get_test_channel()
