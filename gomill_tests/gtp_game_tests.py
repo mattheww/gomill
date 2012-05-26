@@ -1008,6 +1008,15 @@ def test_channel_error_genmove_exits(tc):
         ('b', 'C3'), ('w', 'D3'), ('b', 'E3'),
         ])
 
+def test_channel_error_from_final_score(tc):
+    fx = Gtp_game_fixture(tc)
+    fx.channel_b.fail_command = "final_score"
+    fx.run_score_test("W+3", "B+4")
+    tc.assertEqual(fx.game.result.sgf_result, "B+4")
+    tc.assertIsNone(fx.game.result.detail)
+    tc.assertEqual(fx.game.result.winning_colour, 'b')
+    tc.assertEqual(fx.game.describe_scoring(), "one beat two B+4")
+
 def test_illegal_move_and_exit(tc):
     # Black returns an illegal move and immediately exits
     class Explaining_player(Programmed_player):
