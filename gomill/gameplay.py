@@ -435,6 +435,14 @@ class Backend(object):
         """
         raise NotImplementedError
 
+    def end_game(self):
+        """Note that the game is over.
+
+        This is called when it's known that no more moves will be played.
+
+        """
+        raise NotImplementedError
+
     def get_free_handicap(self, handicap):
         """Tell Black to choose free handicap stones, and return them.
 
@@ -495,6 +503,8 @@ class Backend(object):
           "reject" -- move was rejected as illegal; msg is descriptive text
           "error"  -- move was rejected with an error; msg is error message
 
+        This may be called after end_game().
+
         """
         raise NotImplementedError
 
@@ -504,6 +514,8 @@ class Backend(object):
         board -- boards.Board
 
         Returns a Game_score
+
+        This is called after end_game().
 
         """
         raise NotImplementedError
@@ -515,7 +527,9 @@ class Backend(object):
 
         Returns a nonempty utf-8 string or None.
 
-        There is a default implementatio, which always returns None.
+        This may be called after end_game().
+
+        There is a default implementation, which always returns None.
 
         """
         return None
@@ -658,6 +672,7 @@ class Game_runner(object):
             first_player = 'b'
         game = Game(board, first_player)
         game.set_move_limit(self.move_limit)
+        game.set_game_over_callback(self.backend.end_game)
         return game
 
     def _do_move(self, game):
@@ -720,6 +735,7 @@ class Game_runner(object):
           notify_move()
           score_game()
           get_last_move_comment()
+          end_game()
 
         Propagates any exceptions from any after-move callback.
 

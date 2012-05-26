@@ -198,6 +198,9 @@ class _Gtp_backend(gameplay.Backend):
             self.gc.send_command(colour, "clear_board")
             self.gc.send_command(colour, "komi", str(komi))
 
+    def end_game(self):
+        pass
+
     def get_free_handicap(self, handicap):
         assert handicap == self.handicap
         vertices = self.gc.send_command(

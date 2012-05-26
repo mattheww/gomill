@@ -460,6 +460,9 @@ class Testing_backend(gameplay.Backend):
         assert board_size == self._size
         self.log.append("start_new_game: size=%r, komi=%r" % (board_size, komi))
 
+    def end_game(self):
+        self.log.append("end_game")
+
     def notify_free_handicap(self, points):
         self.log.append("notify_free_handicap: %r" % (points,))
 
@@ -575,6 +578,7 @@ def test_game_runner(tc):
         "notify_move -> w pass",
         "get_move <- w: move/pass",
         "get_last_move_comment <- w",
+        "end_game",
         "notify_move -> b pass",
         "score_game",
         ])
@@ -630,6 +634,7 @@ def test_game_runner_move_callback(tc):
         "[callback b pass]",
         "get_move <- w: move/pass",
         "get_last_move_comment <- w",
+        "end_game",
         "notify_move -> b pass",
         "[callback w pass]",
         "score_game",
@@ -661,6 +666,7 @@ def test_game_runner_resign(tc):
         "get_last_move_comment <- b",
         "notify_move -> w C2",
         "get_move <- w: resign/None",
+        "end_game",
         ])
     tc.assertIsNone(fx.game_runner.get_game_score())
     result = fx.game_runner.result
@@ -691,6 +697,7 @@ def test_game_runner_claim(tc):
         "get_last_move_comment <- b",
         "notify_move -> w C2",
         "get_move <- w: claim/None",
+        "end_game",
         ])
     tc.assertIsNone(fx.game_runner.get_game_score())
     result = fx.game_runner.result
@@ -718,6 +725,7 @@ def test_game_runner_forfeit(tc):
         "get_last_move_comment <- w",
         "notify_move -> b D1",
         "get_move <- b: forfeit/'programmed forfeit'",
+        "end_game",
         ])
     tc.assertIsNone(fx.game_runner.get_game_score())
     result = fx.game_runner.result
@@ -748,6 +756,7 @@ def test_game_runner_illegal_move(tc):
         "[callback w D1]",
         "get_move <- b: move/D1",
         "get_last_move_comment <- b",
+        "end_game",
         ])
     tc.assertIsNone(fx.game_runner.get_game_score())
     result = fx.game_runner.result
@@ -784,6 +793,7 @@ def test_game_runner_move_rejected_as_illegal(tc):
         "get_move <- b: move/E1",
         "get_last_move_comment <- b",
         "notify_move -> w [rejecting]",
+        "end_game",
         ])
     tc.assertIsNone(fx.game_runner.get_game_score())
     result = fx.game_runner.result
@@ -820,6 +830,7 @@ def test_game_runner_notify_move_failed(tc):
         "get_move <- b: move/E1",
         "get_last_move_comment <- b",
         "notify_move -> w [error]",
+        "end_game",
         ])
     tc.assertIsNone(fx.game_runner.get_game_score())
     result = fx.game_runner.result
@@ -848,6 +859,7 @@ def test_game_runner_move_limit(tc):
         "[callback w D1]",
         "get_move <- b: move/C2",
         "get_last_move_comment <- b",
+        "end_game",
         "notify_move -> w C2",
         "[callback b C2]",
         ])
@@ -893,6 +905,7 @@ def test_game_runner_last_move_comment(tc):
         "notify_move -> w pass",
         "get_move <- w: move/pass",
         "get_last_move_comment <- w",
+        "end_game",
         "notify_move -> b pass",
         "score_game",
         ])
@@ -917,6 +930,7 @@ def test_game_runner_zero_move_game(tc):
     tc.assertEqual(fx.backend.log, [
         "start_new_game: size=5, komi=11.0",
         "get_move <- b: forfeit/'programmed forfeit'",
+        "end_game",
         ])
     result = fx.game_runner.result
     tc.assertEqual(result.sgf_result, 'W+F')
