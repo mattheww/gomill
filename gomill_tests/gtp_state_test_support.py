@@ -28,7 +28,7 @@ class Player(object):
         self.resign_next_move = True
 
     def genmove(self, game_state, player):
-        """Move generator returns points from the move list.
+        """Move generator: returns the move specified by set_next_move...
 
         game_state -- gtp_states.Game_state
         player     -- 'b' or 'w'
