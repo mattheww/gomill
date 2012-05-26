@@ -32,15 +32,16 @@ class Gtp_game_fixture(object):
     Additional keyword arguments are passed on to Gtp_game.
 
     attributes:
-      game         -- Gtp_game
-      controller_b -- Gtp_controller
-      controller_w -- Gtp_controller
-      channel_b    -- Testing_gtp_channel
-      channel_w    -- Testing_gtp_channel
-      engine_b     -- Test_gtp_engine_protocol
-      engine_w     -- Test_gtp_engine_protocol
-      player_b     -- player object
-      player_w     -- player object
+      game            -- Gtp_game
+      game_controller -- Game_controller
+      controller_b    -- Gtp_controller
+      controller_w    -- Gtp_controller
+      channel_b       -- Testing_gtp_channel
+      channel_w       -- Testing_gtp_channel
+      engine_b        -- Test_gtp_engine_protocol
+      engine_w        -- Test_gtp_engine_protocol
+      player_b        -- player object
+      player_w        -- player object
 
     """
     def __init__(self, tc, player_b=None, player_w=None, **kwargs):
