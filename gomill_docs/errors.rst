@@ -36,9 +36,9 @@ Details of scoring
 ^^^^^^^^^^^^^^^^^^
 
 If :setting:`scorer` is ``"players"`` but neither engine is able to score
-(whether because :gtp:`!final_score` isn't implemented, or it fails, or
-:setting:`is_reliable_scorer` is ``False``), the game result is reported as
-unknown (|sgf| result ``?``).
+(whether because :gtp:`!final_score` isn't implemented, or it fails, or the
+engine has exited, or :setting:`is_reliable_scorer` is ``False``), the game
+result is reported as unknown (|sgf| result ``?``).
 
 If both engines are able to score but they disagree about the winner, the game
 result is reported as unknown. The engines' responses to :gtp:`!final_score`

@@ -9,6 +9,13 @@ Gomill FIXME (FIXME)
   splitting out the :mod:`~!gomill.gameplay` module and
   :class:`!gtp_controllers.Game_controller`. Visible behaviour changes:
 
+  * Gomill reports game results, rather than treating games as void, in more
+    cases when a player exits unexpectedly after the result has been
+    determined.
+
+  * Gomill now ignores |gtp| failure responses from :gtp:`!play` for a
+    game-ending pass.
+
   * |gtp| :gtp:`!move` commands now send the vertex in upper case.
 
   * Text descriptions of forfeits (eg in :attr:`.Game_result.detail`) have
