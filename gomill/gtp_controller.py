@@ -1137,8 +1137,6 @@ class Game_controller(object):
 
         This uses the gomill-cpu_time extension command, when available.
 
-        Always communicates cautiously.
-
         Returns a pair (cpu_times, errors)
           cpu_times -- (partial) dict colour -> float (representing seconds)
           errors    -- set of colours
@@ -1147,18 +1145,18 @@ class Game_controller(object):
         in either 'cpu_times' or 'errors'.
 
         If an engine claims to support it, but gives an invalid or error
-        response, it will appear in 'errors'.
+        response (including a low-level error when in cautious mode), it will
+        appear in 'errors'.
 
         """
         result = {}
         errors = set()
         for colour in 'b', 'w':
-            controller = self.controllers[colour]
-            if controller.safe_known_command('gomill-cpu_time'):
+            if self.known_command(colour, 'gomill-cpu_time'):
                 try:
-                    s = controller.safe_do_command('gomill-cpu_time')
+                    s = self.maybe_send_command(colour, 'gomill-cpu_time')
                     result[colour] = float(s)
-                except (BadGtpResponse, ValueError, TypeError):
+                except (ValueError, TypeError):
                     errors.add(colour)
         return result, errors
 

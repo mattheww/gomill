@@ -1055,12 +1055,25 @@ def test_game_controller_get_gtp_cpu_times(tc):
     gc5 = gtp_controller.Game_controller('x', 'y')
     gc5.set_player_controller('b', controller1())
     gc5.set_player_controller('w', controller2())
+    gc5.set_cautious_mode(True)
     gc5.get_controller('w').channel.fail_command = 'gomill-cpu_time'
     tc.assertEqual(gc5.get_gtp_cpu_times(), ({}, set(['w'])))
     gc5.close_players()
     tc.assertEqual(gc5.describe_late_errors(),
                    "transport error sending 'gomill-cpu_time' to good:\n"
                    "forced failure for send_command_line")
+
+    gc6 = gtp_controller.Game_controller('x', 'y')
+    gc6.set_player_controller('b', controller1())
+    gc6.set_player_controller('w', controller2())
+    gc6.get_controller('w').channel.fail_command = 'gomill-cpu_time'
+    with tc.assertRaises(GtpTransportError) as ar:
+        gc6.get_gtp_cpu_times()
+    tc.assertEqual(str(ar.exception),
+                   "transport error sending 'gomill-cpu_time' to good:\n"
+                   "forced failure for send_command_line")
+    gc6.close_players()
+    tc.assertIsNone(gc6.describe_late_errors())
 
 def test_game_controller_set_player_subprocess(tc):
     msf = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
