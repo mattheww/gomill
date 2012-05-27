@@ -82,6 +82,12 @@ class Gtp_game_fixture(object):
                       for (colour, move, comment) in self.game.get_moves()]
         self.tc.assertListEqual(game_moves, expected_moves)
 
+    def check_final_diagnostics(self, colour, message):
+        d = self.game.get_final_diagnostics()
+        self.tc.assertIsNotNone(d)
+        self.tc.assertEqual(d.colour, colour)
+        self.tc.assertEqual(d.message, message)
+
     def run_score_test(self, b_score, w_score, allowed_scorers="bw"):
         """Run a game and let the players score it.
 
@@ -159,6 +165,7 @@ def test_game(tc):
     tc.assertEqual(game_score.player_scores, {'b' : None, 'w' : None})
     tc.assertIsNone(game_score.get_detail())
     tc.assertEqual(fx.game.describe_scoring(), "one beat two B+18")
+    tc.assertIsNone(fx.game.get_final_diagnostics())
     tc.assertListEqual(fx.game.get_moves(), [
         ('b', (0, 4), None), ('w', (0, 6), None),
         ('b', (1, 4), None), ('w', (1, 6), None),
@@ -754,6 +761,7 @@ def test_explain_last_move(tc):
                             handle_explain_last_move)
     fx.game.prepare()
     fx.game.run()
+    tc.assertIsNone(fx.game.get_final_diagnostics())
     tc.assertEqual(fx.sgf_moves_and_comments(), [
         "root: --",
         "b E1: EX1",
@@ -776,6 +784,42 @@ def test_explain_last_move(tc):
         "w G9: --",
         "b pass: EX10",
         "w pass: one vs two ? (no score reported)",
+        ])
+
+def test_explain_final_move(tc):
+    counter = [0]
+    def handle_explain_last_move(args):
+        counter[0] += 1
+        return "EX%d" % counter[0]
+    moves = [('b', 'C3'), ('w', 'D3'), ('b', 'resign')]
+    fx = Gtp_game_fixture(
+        tc, Programmed_player(moves), Programmed_player(moves))
+    fx.engine_b.add_command('gomill-explain_last_move',
+                            handle_explain_last_move)
+    fx.game.prepare()
+    fx.game.run()
+    fx.check_final_diagnostics('b', "EX2")
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        "root: --",
+        "b C3: EX1",
+        "w D3: final message from b: <<<\nEX2\n>>>\n\ntwo beat one W+R",
+        ])
+
+def test_explain_final_move_zero_move_game(tc):
+    counter = [0]
+    def handle_explain_last_move(args):
+        counter[0] += 1
+        return "EX%d" % counter[0]
+    moves = [('b', 'resign')]
+    fx = Gtp_game_fixture(
+        tc, Programmed_player(moves), Programmed_player(moves))
+    fx.engine_b.add_command('gomill-explain_last_move',
+                            handle_explain_last_move)
+    fx.game.prepare()
+    fx.game.run()
+    fx.check_final_diagnostics('b', "EX1")
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        "root: final message from b: <<<\nEX1\n>>>\n\ntwo beat one W+R",
         ])
 
 
@@ -1031,6 +1075,7 @@ def test_illegal_move_and_exit(tc):
     tc.assertEqual(fx.game.result.sgf_result, "W+F")
     tc.assertEqual(fx.game.result.detail,
                    "forfeit by one: attempted move to occupied point D3")
+    tc.assertIsNone(fx.game.get_final_diagnostics())
     fx.check_moves([
         ('b', 'C3'), ('w', 'D3'),
         ])
@@ -1064,6 +1109,7 @@ def test_rejected_move_and_exit(tc):
                    "error sending 'gomill-explain_last_move' to player one:\n"
                    "engine has closed the command channel")
     tc.assertIsNone(fx.game.result)
+    tc.assertIsNone(fx.game.get_final_diagnostics())
     fx.check_moves([
         ('b', 'C3'), ('w', 'D3'),
         ])
