@@ -582,6 +582,7 @@ class Game_runner(object):
         self.additional_sgf_props = []
         self.handicap_stones = None
         self.moves = []
+        self.final_diagnostics = None
         self.game_score = None
         self.result = None
         self._state = 0
@@ -680,17 +681,18 @@ class Game_runner(object):
         action, detail = self.backend.get_move(colour)
         if action == 'forfeit':
             game.record_forfeit_by(colour, detail)
-            return
         elif action == 'resign':
             game.record_resignation_by(colour)
-            return
         elif action == 'claim':
             game.record_claim_by(colour)
-            return
         elif action == 'move':
             move = detail
         else:
             raise ValueError("bad get_move action: %s" % action)
+
+        if game.is_over:
+            self.final_diagnostics = self.backend.get_last_move_comment(colour)
+            return
 
         # Record the move before asking for the comment, so that end_game() has
         # already been called if the move ends the game.
@@ -766,6 +768,14 @@ class Game_runner(object):
 
         """
         return self.moves
+
+    def get_final_diagnostics(self):
+        """FIXME
+
+        Returns a string or None
+
+        """
+        return self.final_diagnostics
 
     def get_game_score(self):
         """Retrieve scoring details from a passed-out game.

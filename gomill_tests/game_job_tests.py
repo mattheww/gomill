@@ -211,7 +211,7 @@ def test_game_job_forfeit_and_quit(tc):
          "handler forced to fail and exit"])
     tc.assertEqual(
         result.log_entries,
-        ["error sending 'known_command gomill-cpu_time' to player two:\n"
+        ["error sending 'known_command gomill-explain_last_move' to player two:\n"
          "engine has closed the command channel"])
     tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
 
