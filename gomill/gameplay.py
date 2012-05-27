@@ -408,6 +408,16 @@ class Result(object):
         return result
 
 
+class Diagnostics(object):
+    """Message text received from a player."""
+    def __init__(self, colour, message):
+        self.colour = colour
+        self.message = message
+
+    def __str__(self):
+        return "%s: %s" % (self.colour, self.message)
+
+
 class Backend(object):
     """Set of operations required to play a Go game.
 
@@ -663,6 +673,10 @@ class Game_runner(object):
         self.additional_sgf_props.append(('HA', handicap))
         self.handicap_stones = points
 
+    def _set_final_diagnostics(self, colour, comment):
+        if comment is not None:
+            self.final_diagnostics = Diagnostics(colour, comment)
+
     def _make_game(self):
         board = boards.Board(self.board_size)
         if self.handicap_stones:
@@ -691,7 +705,8 @@ class Game_runner(object):
             raise ValueError("bad get_move action: %s" % action)
 
         if game.is_over:
-            self.final_diagnostics = self.backend.get_last_move_comment(colour)
+            self._set_final_diagnostics(
+                colour, self.backend.get_last_move_comment(colour))
             return
 
         # Record the move before asking for the comment, so that end_game() has
@@ -700,7 +715,7 @@ class Game_runner(object):
         comment = self.backend.get_last_move_comment(colour)
 
         if game.seen_forfeit:
-            self.final_diagnostics = comment
+            self._set_final_diagnostics(colour, comment)
             return
 
         status, msg = self.backend.notify_move(opponent, move)
@@ -715,7 +730,7 @@ class Game_runner(object):
             else:
                 forfeiter = opponent
             game.record_forfeit_by(forfeiter, msg)
-            self.final_diagnostics = comment
+            self._set_final_diagnostics(colour, comment)
             return
 
         self.moves.append((colour, move, comment))
@@ -774,7 +789,7 @@ class Game_runner(object):
     def get_final_diagnostics(self):
         """FIXME
 
-        Returns a string or None
+        Returns a Diagnostics object or None.
 
         """
         return self.final_diagnostics
@@ -826,6 +841,6 @@ class Game_runner(object):
         final = self.get_final_diagnostics()
         if final is not None:
             sgf_game.get_last_node().add_comment_text(
-                "(((final diagnostics))): %s" % (final))
+                "(((final diagnostics))): %s" % (final.message))
         return sgf_game
 
