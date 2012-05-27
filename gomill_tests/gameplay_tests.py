@@ -986,6 +986,38 @@ def test_game_runner_last_move_comment_resign(tc):
         'w D1: (((final diagnostics))): ..resign/None',
         ])
 
+def test_game_runner_last_move_comment_from_both_resign(tc):
+    fx = Game_runner_fixture(
+        tc,
+        moves=[('b', 'C1'), ('w', 'D1'), ('b', 'resign')])
+    fx.enable_get_last_move_comment('b')
+    fx.enable_get_last_move_comment('w')
+    fx.run_game()
+    tc.assertEqual(fx.backend.log, [
+        "start_new_game: size=5, komi=11.0",
+        "get_move <- b: move/C1",
+        "get_last_move_comment <- b",
+        "notify_move -> w C1",
+        "get_move <- w: move/D1",
+        "get_last_move_comment <- w",
+        "notify_move -> b D1",
+        "get_move <- b: resign/None",
+        "end_game",
+        'get_last_move_comment <- b',
+        ])
+    result = fx.game_runner.result
+    tc.assertEqual(result.sgf_result, "W+R")
+    tc.assertEqual(fx.game_runner.get_final_diagnostics(), "..resign/None")
+    tc.assertEqual(fx.game_runner.get_moves(), [
+        ('b', (0, 2), "..move/C1"),
+        ('w', (0, 3), "..move/D1"),
+        ])
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        'root: --',
+        'b C1: ..move/C1',
+        'w D1: ..move/D1\n\n(((final diagnostics))): ..resign/None',
+        ])
+
 def test_game_runner_last_move_comment_forfeit_illegal(tc):
     fx = Game_runner_fixture(
         tc,
