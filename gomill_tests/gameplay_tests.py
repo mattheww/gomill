@@ -969,6 +969,74 @@ def test_game_runner_last_move_comment_resign(tc):
         'w D1: --',
         ])
 
+def test_game_runner_last_move_comment_forfeit_illegal(tc):
+    fx = Game_runner_fixture(
+        tc,
+        moves=[('b', 'C1'), ('w', 'D1'), ('b', 'C1')])
+    fx.enable_get_last_move_comment('b')
+    fx.run_game()
+    tc.assertEqual(fx.backend.log, [
+        "start_new_game: size=5, komi=11.0",
+        "get_move <- b: move/C1",
+        "get_last_move_comment <- b",
+        "notify_move -> w C1",
+        "get_move <- w: move/D1",
+        "get_last_move_comment <- w",
+        "notify_move -> b D1",
+        "get_move <- b: move/C1",
+        "end_game",
+        "get_last_move_comment <- b",
+        ])
+    result = fx.game_runner.result
+    tc.assertEqual(result.sgf_result, "W+F")
+    tc.assertEqual(fx.game_runner.moves, [
+        ('b', (0, 2), "..move/C1"),
+        ('w', (0, 3), None),
+        ])
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        'None pass: --',
+        'b C1: ..move/C1',
+        'w D1: --',
+        ])
+
+def test_game_runner_last_move_comment_rejected(tc):
+    class _Backend(Testing_backend):
+        def notify_move(self, colour, move):
+            if move == move_from_vertex('e1', self._size):
+                self.log.append("notify_move -> %s [rejecting]" % colour)
+                return 'reject', "programmed reject"
+            return Testing_backend.notify_move(self, colour, move)
+
+    fx = Game_runner_fixture(
+        tc, backend_cls=_Backend,
+        moves=[('b', 'C1'), ('w', 'D1'), ('b', 'E1')])
+    fx.enable_get_last_move_comment('b')
+    fx.run_game()
+    tc.assertEqual(fx.backend.log, [
+        "start_new_game: size=5, komi=11.0",
+        "get_move <- b: move/C1",
+        "get_last_move_comment <- b",
+        "notify_move -> w C1",
+        "get_move <- w: move/D1",
+        "get_last_move_comment <- w",
+        "notify_move -> b D1",
+        "get_move <- b: move/E1",
+        "get_last_move_comment <- b",
+        "notify_move -> w [rejecting]",
+        "end_game",
+        ])
+    result = fx.game_runner.result
+    tc.assertEqual(result.sgf_result, "W+F")
+    tc.assertEqual(fx.game_runner.moves, [
+        ('b', (0, 2), "..move/C1"),
+        ('w', (0, 3), None),
+        ])
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        'None pass: --',
+        'b C1: ..move/C1',
+        'w D1: --',
+        ])
+
 def test_game_runner_zero_move_game(tc):
     # There's no reason for this to be a special case, but you have to be a bit
     # careful of SGF output (because get_last_node() == get_root()).
@@ -983,6 +1051,9 @@ def test_game_runner_zero_move_game(tc):
     tc.assertEqual(result.sgf_result, 'W+F')
     tc.assertEqual(result.detail, "programmed forfeit")
     tc.assertEqual(fx.game_runner.moves, [
+        ])
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        'None pass: --',
         ])
     tc.assertEqual(fx.sgf_string(), """\
 (;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[11]RE[W+F]SZ[5])
