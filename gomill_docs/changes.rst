@@ -24,6 +24,9 @@ Gomill FIXME (FIXME)
   Updated the :script:`twogtp` example script to show the new programming
   interface. :script:`twogtp` now supports playing multiple games.
 
+* Engine comments (from :gtp:`gomill-explain_last_move`) for resignations and
+  forfeits are now included in |sgf| records.
+
 * Improved player descriptions in |sgf| files and competition reports when the
   |gtp| :gtp:`!name` command isn't implemented.
 
