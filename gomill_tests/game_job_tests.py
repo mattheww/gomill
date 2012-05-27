@@ -117,6 +117,10 @@ class Game_job_fixture(gtp_engine_fixtures.Mock_subprocess_fixture):
             channel.engine.force_fatal_error(command)
         self.init_player(colour, register)
 
+    def sgf_moves_and_comments(self):
+        return gomill_test_support.sgf_moves_and_comments_from_string(
+            self.job._get_sgf_written())
+
 
 def test_player_copy(tc):
     fx = Game_job_fixture(tc)
@@ -515,6 +519,42 @@ def test_game_job_player_descriptions(tc):
     SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];
     B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+10.5]W[tt])
     """))
+
+def test_game_job_explain_last_move(tc):
+    counter = [0]
+    def handle_explain_last_move(args):
+        counter[0] += 1
+        return "EX%d" % counter[0]
+    fx = Game_job_fixture(tc)
+    fx.add_handler('w', 'gomill-explain_last_move', handle_explain_last_move)
+    result = fx.job.run()
+    print "\n".join(fx.sgf_moves_and_comments())
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        "root: "
+          "Game id gameid\nDate ***\nResult one beat two B+10.5\n"
+          "one cpu time: 546.20s\ntwo cpu time: 567.20s\n"
+          "Black one\nWhite two",
+        "b E1: --",
+        "w G1: EX1",
+        "b E2: --",
+        "w G2: EX2",
+        "b E3: --",
+        "w G3: EX3",
+        "b E4: --",
+        "w G4: EX4",
+        "b E5: --",
+        "w G5: EX5",
+        "b E6: --",
+        "w G6: EX6",
+        "b E7: --",
+        "w G7: EX7",
+        "b E8: --",
+        "w G8: EX8",
+        "b E9: --",
+        "w G9: EX9",
+        "b pass: --",
+        "w pass: EX10\n\none beat two B+10.5",
+        ])
 
 
 ### check_player

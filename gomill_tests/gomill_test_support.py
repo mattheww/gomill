@@ -10,6 +10,7 @@ from gomill_tests import test_framework
 from gomill.common import *
 from gomill import ascii_boards
 from gomill import boards
+from gomill import sgf
 
 # This makes TestResult ignore lines from this module in tracebacks
 __unittest = True
@@ -92,7 +93,7 @@ def scrub_sgf(s):
     s = re.sub(r"gomill:" + re.escape(__version__), "gomill:VER", s)
     return s
 
-def sgf_moves_and_comments(sgf):
+def sgf_moves_and_comments(sgf_game):
     """Extract moves and comments from an Sgf_game.
 
     Returns a list of strings.
@@ -100,7 +101,7 @@ def sgf_moves_and_comments(sgf):
     """
     def fmt(node):
         colour, move = node.get_move()
-        if colour is None and node is sgf.get_root():
+        if colour is None and node is sgf_game.get_root():
             src = "root"
         else:
             src = "%s %s" % (colour, format_vertex(move))
@@ -109,7 +110,11 @@ def sgf_moves_and_comments(sgf):
         except KeyError:
             comment = "--"
         return "%s: %s" % (src, comment)
-    return map(fmt, sgf.get_main_sequence())
+    return map(fmt, sgf_game.get_main_sequence())
+
+def sgf_moves_and_comments_from_string(s):
+    """Variant of sgf_moves_and_comments taking a string parameter."""
+    return sgf_moves_and_comments(sgf.Sgf_game.from_string(s))
 
 
 traceback_line_re = re.compile(
