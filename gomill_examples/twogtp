@@ -45,6 +45,8 @@ def main():
     parser.add_option("--verbose", type="choice", choices=('0','1','2'),
                       default=0, metavar="0|1|2")
     parser.add_option("--sgfbase", type="string", metavar="FILENAME-PREFIX")
+    parser.add_option("--capture-stderr", type="choice", default="",
+                      choices=('', 'b', 'w', 'bw', 'wb'), metavar="b|w|bw")
 
     (options, args) = parser.parse_args()
     if args:
@@ -59,11 +61,15 @@ def main():
     if b_code == w_code:
         b_code += '-b'
         w_code += '-w'
+    b_stderr = 'capture' if 'b' in options.capture_stderr else None
+    w_stderr = 'capture' if 'w' in options.capture_stderr else None
 
     game_controller = gtp_controller.Game_controller(b_code, w_code)
     try:
-        game_controller.set_player_subprocess('b', black_command)
-        game_controller.set_player_subprocess('w', white_command)
+        game_controller.set_player_subprocess(
+            'b', black_command, stderr=b_stderr)
+        game_controller.set_player_subprocess(
+            'w', white_command, stderr=w_stderr)
     except GtpChannelError, e:
         game_controller.close_players()
         sys.exit("error creating players:\n%s\n" % e)
