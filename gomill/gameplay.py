@@ -800,9 +800,11 @@ class Game_runner(object):
 
         Doesn't set a root node comment. Doesn't put result.detail anywhere.
 
-        The moves described are the same as those from get_moves(). Anything
-        returned by backend.get_last_move_comment() is used as a comment on the
-        corresponding move.
+        The moves described are the same as those from get_moves().
+
+        Anything returned by backend.get_last_move_comment() is used as a
+        comment on the corresponding move (in the final node for comments on
+        resignation, forfeits and so on).
 
         """
         sgf_game = sgf.Sgf_game(self.board_size)
@@ -821,5 +823,9 @@ class Game_runner(object):
             node.set_move(colour, move)
             if comment is not None:
                 node.set("C", comment)
+        final = self.get_final_diagnostics()
+        if final is not None:
+            sgf_game.get_last_node().add_comment_text(
+                "(((final diagnostics))): %s" % (final))
         return sgf_game
 

@@ -989,7 +989,7 @@ def test_game_runner_last_move_comment_resign(tc):
     tc.assertEqual(fx.sgf_moves_and_comments(), [
         'None pass: --',
         'b C1: ..move/C1',
-        'w D1: --',
+        'w D1: (((final diagnostics))): ..resign/None',
         ])
 
 def test_game_runner_last_move_comment_forfeit_illegal(tc):
@@ -1020,7 +1020,7 @@ def test_game_runner_last_move_comment_forfeit_illegal(tc):
     tc.assertEqual(fx.sgf_moves_and_comments(), [
         'None pass: --',
         'b C1: ..move/C1',
-        'w D1: --',
+        'w D1: (((final diagnostics))): ..move/C1',
         ])
 
 def test_game_runner_last_move_comment_rejected(tc):
@@ -1053,7 +1053,7 @@ def test_game_runner_last_move_comment_rejected(tc):
     tc.assertEqual(fx.sgf_moves_and_comments(), [
         'None pass: --',
         'b C1: ..move/C1',
-        'w D1: --',
+        'w D1: (((final diagnostics))): ..move/E1',
         ])
 
 def test_game_runner_last_move_comment_zero_move_game(tc):
@@ -1075,11 +1075,8 @@ def test_game_runner_last_move_comment_zero_move_game(tc):
     tc.assertEqual(fx.game_runner.get_moves(), [
         ])
     tc.assertEqual(fx.sgf_moves_and_comments(), [
-        'None pass: --',
+        "None pass: (((final diagnostics))): ..forfeit/'programmed forfeit'",
         ])
-    tc.assertEqual(fx.sgf_string(), """\
-(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[11]RE[W+F]SZ[5])
-""")
 
 def test_game_runner_fixed_handicap(tc):
     fx = Game_runner_fixture(
