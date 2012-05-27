@@ -524,6 +524,7 @@ class Testing_backend(gameplay.Backend):
                 _, found, msg = s.partition("get_move <- %s: " % colour)
                 if found:
                     return ".." + msg
+            return "..(no moves played)"
         return None
 
 
