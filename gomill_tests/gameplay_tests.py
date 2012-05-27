@@ -444,6 +444,12 @@ class Testing_backend(gameplay.Backend):
 
       (score_to_return has white winning by 99)
 
+    To enable last-move comments, set the enabled_get_last_move_comment
+    attribute.
+
+    To force notify_move() to reject, set the reject_vertex and reject_as_error
+    attributes.
+
     """
     def __init__(self, size, moves):
         self._size = size
@@ -455,6 +461,8 @@ class Testing_backend(gameplay.Backend):
         self.score_to_return = gameplay.Game_score("w", 99)
         self.log = []
         self.board_scored = None
+        self.reject_vertex = None
+        self.reject_as_error = False
 
     def start_new_game(self, board_size, komi):
         # If this fails, the test is written wrongly
@@ -493,6 +501,14 @@ class Testing_backend(gameplay.Backend):
         return action, detail
 
     def notify_move(self, colour, move):
+        if (self.reject_vertex is not None and
+            move == move_from_vertex(self.reject_vertex, self._size)):
+            if self.reject_as_error:
+                self.log.append("notify_move -> %s [error]" % colour)
+                return 'error', "programmed error"
+            else:
+                self.log.append("notify_move -> %s [rejecting]" % colour)
+                return 'reject', "programmed reject"
         self.log.append("notify_move -> %s %s" % (colour, format_vertex(move)))
         return 'accept', None
 
@@ -513,9 +529,9 @@ class Testing_backend(gameplay.Backend):
 
 class Game_runner_fixture(object):
     def __init__(self, tc, moves, backend_cls=Testing_backend,
-                 size=5, komi=11, move_limit=None, **kwargs):
+                 size=5, komi=11, move_limit=None):
         self.tc = tc
-        self.backend = backend_cls(size, moves, **kwargs)
+        self.backend = backend_cls(size, moves)
         self.game_runner = gameplay.Game_runner(
             self.backend, board_size=size, komi=komi, move_limit=move_limit)
 
@@ -530,6 +546,10 @@ class Game_runner_fixture(object):
             self.callback_boards.append(board.copy())
             self.tc.assertEqual(kwargs, {})
         self.game_runner.set_move_callback(callback)
+
+    def force_reject(self, vertex, as_error=False):
+        self.backend.reject_vertex = vertex
+        self.backend.reject_as_error = as_error
 
     def run_game(self):
         self.game_runner.prepare()
@@ -788,16 +808,10 @@ def test_game_runner_illegal_move(tc):
         ])
 
 def test_game_runner_move_rejected_as_illegal(tc):
-    class _Backend(Testing_backend):
-        def notify_move(self, colour, move):
-            if move == move_from_vertex('e1', self._size):
-                self.log.append("notify_move -> %s [rejecting]" % colour)
-                return 'reject', "programmed reject"
-            return Testing_backend.notify_move(self, colour, move)
-
     fx = Game_runner_fixture(
-        tc, backend_cls=_Backend,
+        tc,
         moves=[('b', 'C1'), ('w', 'D1'), ('b', 'E1')])
+    fx.force_reject('E1')
     fx.enable_after_move_callback()
     fx.run_game()
     tc.assertEqual(fx.backend.log, [
@@ -825,16 +839,10 @@ def test_game_runner_move_rejected_as_illegal(tc):
         ])
 
 def test_game_runner_notify_move_failed(tc):
-    class _Backend(Testing_backend):
-        def notify_move(self, colour, move):
-            if move == move_from_vertex('e1', self._size):
-                self.log.append("notify_move -> %s [error]" % colour)
-                return 'error', "programmed error"
-            return Testing_backend.notify_move(self, colour, move)
-
     fx = Game_runner_fixture(
-        tc, backend_cls=_Backend,
+        tc,
         moves=[('b', 'C1'), ('w', 'D1'), ('b', 'E1')])
+    fx.force_reject('E1', as_error=True)
     fx.enable_after_move_callback()
     fx.run_game()
     tc.assertEqual(fx.backend.log, [
@@ -1000,16 +1008,10 @@ def test_game_runner_last_move_comment_forfeit_illegal(tc):
         ])
 
 def test_game_runner_last_move_comment_rejected(tc):
-    class _Backend(Testing_backend):
-        def notify_move(self, colour, move):
-            if move == move_from_vertex('e1', self._size):
-                self.log.append("notify_move -> %s [rejecting]" % colour)
-                return 'reject', "programmed reject"
-            return Testing_backend.notify_move(self, colour, move)
-
     fx = Game_runner_fixture(
-        tc, backend_cls=_Backend,
+        tc,
         moves=[('b', 'C1'), ('w', 'D1'), ('b', 'E1')])
+    fx.force_reject('E1')
     fx.enable_get_last_move_comment('b')
     fx.run_game()
     tc.assertEqual(fx.backend.log, [
