@@ -1055,10 +1055,10 @@ def test_game_runner_last_move_comment_rejected(tc):
         'w D1: --',
         ])
 
-def test_game_runner_zero_move_game(tc):
-    # There's no reason for this to be a special case, but you have to be a bit
-    # careful of SGF output (because get_last_node() == get_root()).
+def test_game_runner_last_move_comment_zero_move_game(tc):
+    # Checking SGF output when get_last_node() == get_root().
     fx = Game_runner_fixture(tc, moves=[('b', 'forfeit')])
+    fx.enable_get_last_move_comment('b')
     fx.run_game()
     tc.assertEqual(fx.backend.log, [
         "start_new_game: size=5, komi=11.0",
@@ -1069,7 +1069,8 @@ def test_game_runner_zero_move_game(tc):
     result = fx.game_runner.result
     tc.assertEqual(result.sgf_result, 'W+F')
     tc.assertEqual(result.detail, "programmed forfeit")
-    tc.assertIsNone(fx.game_runner.get_final_diagnostics())
+    tc.assertEqual(fx.game_runner.get_final_diagnostics(),
+                   "..forfeit/'programmed forfeit'")
     tc.assertEqual(fx.game_runner.get_moves(), [
         ])
     tc.assertEqual(fx.sgf_moves_and_comments(), [
