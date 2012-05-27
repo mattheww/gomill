@@ -398,7 +398,7 @@ def test_game_job_zero_move_game(tc):
         "root: "
           "Game id gameid\nDate ***\n"
           "one cpu time: 546.20s\ntwo cpu time: 567.20s\n"
-          "Black one\nWhite two\n"
+          "Black one\nWhite two\n\n"
           "two beat one W+F "
           "(forfeit by one: failure response from 'genmove b' to player one:\n"
           "handler forced to fail)",
@@ -606,7 +606,7 @@ def test_game_job_explain_final_move_zero_move_game(tc):
         "root: "
           "Game id gameid\nDate ***\n"
           "one cpu time: 546.20s\ntwo cpu time: 567.20s\n"
-          "Black one\nWhite two\n"
+          "Black one\nWhite two\n\n"
           "(((final diagnostics))): EX1\n\n"
           "two beat one W+R",
         ])

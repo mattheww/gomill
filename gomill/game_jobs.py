@@ -339,6 +339,7 @@ class Game_job(object):
             notes.append(note)
         try:
             existing_comment = root.get("C")
+            notes.append("")
             notes.append(existing_comment)
         except KeyError:
             pass
