@@ -363,7 +363,8 @@ class Linebased_gtp_channel(Gtp_channel):
 
         May raise GtpTransportError
 
-        This blocks until a byte is available, or end-of-file is reached.
+        This blocks until a byte is available, or end-of-file is reached (in
+        which case it returns an empty string).
 
         Subclasses don't have to implement this.
 
