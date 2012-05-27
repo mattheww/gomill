@@ -1011,7 +1011,7 @@ def test_game_runner_last_move_comment_forfeit_illegal(tc):
         ])
     result = fx.game_runner.result
     tc.assertEqual(result.sgf_result, "W+F")
-    tc.assertIsNone(fx.game_runner.get_final_diagnostics())
+    tc.assertEqual(fx.game_runner.get_final_diagnostics(), "..move/C1")
     tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), "..move/C1"),
         ('w', (0, 3), None),

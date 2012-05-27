@@ -700,6 +700,7 @@ class Game_runner(object):
         comment = self.backend.get_last_move_comment(colour)
 
         if game.seen_forfeit:
+            self.final_diagnostics = comment
             return
 
         status, msg = self.backend.notify_move(opponent, move)
