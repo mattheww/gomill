@@ -708,14 +708,15 @@ class Game_runner(object):
             raise ValueError("bad notify_move status: %s" % status)
         # If the game is over (typically a game-ending pass), there's no need to
         # treat a failure response as a forfeit.
-        if not game.is_over:
+        if (not game.is_over) and (status != 'accept'):
             if status == 'reject':
                 # we assume the move really was illegal, so 'colour' should lose
-                game.record_forfeit_by(colour, msg)
-                return
-            elif status == 'error':
-                game.record_forfeit_by(opponent, msg)
-                return
+                forfeiter = colour
+            else:
+                forfeiter = opponent
+            game.record_forfeit_by(forfeiter, msg)
+            self.final_diagnostics = comment
+            return
 
         self.moves.append((colour, move, comment))
 
