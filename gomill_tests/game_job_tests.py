@@ -387,6 +387,23 @@ def test_game_job_handicap(tc):
     # area score 53, less 7.5 komi, less 3 handicap compensation
     tc.assertEqual(result.game_result.sgf_result, "B+42.5")
 
+def test_game_job_zero_move_game(tc):
+    fx = Game_job_fixture(tc)
+    fx.force_error('b', 'genmove')
+    result = fx.job.run()
+    tc.assertEqual(result.game_result.sgf_result, "W+F")
+    tc.assertEqual(result.log_entries, [])
+    tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        "root: "
+          "Game id gameid\nDate ***\n"
+          "one cpu time: 546.20s\ntwo cpu time: 567.20s\n"
+          "Black one\nWhite two\n"
+          "two beat one W+F "
+          "(forfeit by one: failure response from 'genmove b' to player one:\n"
+          "handler forced to fail)",
+        ])
+
 def test_game_job_move_limit(tc):
     fx = Game_job_fixture(tc)
     fx.job.move_limit = 4
@@ -528,7 +545,6 @@ def test_game_job_explain_last_move(tc):
     fx = Game_job_fixture(tc)
     fx.add_handler('w', 'gomill-explain_last_move', handle_explain_last_move)
     result = fx.job.run()
-    print "\n".join(fx.sgf_moves_and_comments())
     tc.assertEqual(fx.sgf_moves_and_comments(), [
         "root: "
           "Game id gameid\nDate ***\nResult one beat two B+10.5\n"
@@ -554,6 +570,24 @@ def test_game_job_explain_last_move(tc):
         "w G9: EX9",
         "b pass: --",
         "w pass: EX10\n\none beat two B+10.5",
+        ])
+
+def test_game_job_explain_final_move_zero_move_game(tc):
+    counter = [0]
+    def handle_explain_last_move(args):
+        counter[0] += 1
+        return "EX%d" % counter[0]
+    fx = Game_job_fixture(tc)
+    fx.add_handler('b', 'genmove', lambda args:"resign")
+    fx.add_handler('b', 'gomill-explain_last_move', handle_explain_last_move)
+    result = fx.job.run()
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        "root: "
+          "Game id gameid\nDate ***\n"
+          "one cpu time: 546.20s\ntwo cpu time: 567.20s\n"
+          "Black one\nWhite two\n"
+          "(((final diagnostics))): EX1\n\n"
+          "two beat one W+R",
         ])
 
 

@@ -291,13 +291,13 @@ class Game_job(object):
         GN -- sgf_game_name
         EV -- sgf_event
 
-        Root node comment:
+        Prepends to the root node comment:
           game id
           date and time
-          result description
+          result description (except in zero-move games)
           sgf_note
           cpu times
-          engine description
+          engine descriptions
 
         Adds to the last node's comment:
           any game_end_message
@@ -309,6 +309,7 @@ class Game_job(object):
         notes = []
         sgf_game = game.make_sgf()
         root = sgf_game.get_root()
+        last_node = sgf_game.get_last_node()
         if self.sgf_game_name is not None:
             root.set('GN', self.sgf_game_name)
         if self.sgf_event is not None:
@@ -318,7 +319,7 @@ class Game_job(object):
             "Game id %s" % self.game_id,
             "Date %s" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
             ]
-        if game.result is not None:
+        if game.result is not None and root is not last_node:
             notes.append("Result %s" % game.result.describe())
         if self.sgf_note is not None:
             notes.append(self.sgf_note)
@@ -336,8 +337,12 @@ class Game_job(object):
             if longdesc:
                 note += " " + longdesc
             notes.append(note)
+        try:
+            existing_comment = root.get("C")
+            notes.append(existing_comment)
+        except KeyError:
+            pass
         root.set('C', "\n".join(notes))
-        last_node = sgf_game.get_last_node()
         if game_end_message is not None:
             last_node.add_comment_text(game_end_message)
         late_error_messages = game_controller.describe_late_errors()
