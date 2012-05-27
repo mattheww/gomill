@@ -264,7 +264,15 @@ class _Gtp_backend(gameplay.Backend):
         comment = sanitise_utf8(comment)
         if comment == "":
             comment = None
-        return comment
+        diag = self.gc.get_controller(colour).channel.retrieve_diagnostics()
+        diag = sanitise_utf8(diag)
+        if diag == "":
+            diag = None
+        if comment is not None and diag is not None:
+            return "%s\n\n%s" % (comment, diag)
+        if comment is not None:
+            return comment
+        return diag
 
     def notify_move(self, colour, move):
         vertex = format_vertex(move)

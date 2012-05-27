@@ -192,6 +192,10 @@ class Gtp_channel(object):
         """
         pass
 
+    def retrieve_diagnostics(self):
+        """FIXME"""
+        return None
+
     def send_command_impl(self, command, arguments):
         raise NotImplementedError
 
@@ -462,14 +466,14 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             raise GtpTransportError("\n".join(errors))
 
 
-def make_subprocess_gtp_channel(command, stderr=None, cwd=None, env=None):
+def make_subprocess_gtp_channel(command, stderr=None, **kwargs):
     """FIXME: what's a good name?"""
-    if stderr == "CAPTURE":
+    if stderr == "capture":
         from gomill import nonblocking_gtp_controller
         return nonblocking_gtp_controller.Subprocess_gtp_channel(
-            command, cwd=cwd, env=env)
+            command, **kwargs)
     else:
-        return Subprocess_gtp_channel(command, stderr=stderr, cwd=cwd, env=env)
+        return Subprocess_gtp_channel(command, stderr=stderr, **kwargs)
 
 
 class Gtp_controller(object):
@@ -975,7 +979,7 @@ class Game_controller(object):
         command                -- list of strings (as for subprocess.Popen)
         check_protocol_version -- bool (default True)
 
-        Any additional keyword arguments are passed to the
+        Any additional keyword arguments are passed to FIXME the
         Subprocess_gtp_channel constructor.
 
         Creates a Gtp_controller, named 'player <player code>'.
@@ -993,7 +997,7 @@ class Game_controller(object):
         """
         player_code = self.players[colour]
         try:
-            channel = Subprocess_gtp_channel(command, **kwargs)
+            channel = make_subprocess_gtp_channel(command, **kwargs)
         except GtpChannelError, e:
             raise GtpChannelError(
                 "error starting subprocess for player %s:\n%s" %
