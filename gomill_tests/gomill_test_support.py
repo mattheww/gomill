@@ -99,12 +99,16 @@ def sgf_moves_and_comments(sgf):
 
     """
     def fmt(node):
-        try:
-            s = node.get("C")
-        except KeyError:
-            s = "--"
         colour, move = node.get_move()
-        return "%s %s: %s" % (colour, format_vertex(move), s)
+        if colour is None and node is sgf.get_root():
+            src = "root"
+        else:
+            src = "%s %s" % (colour, format_vertex(move))
+        try:
+            comment = node.get("C")
+        except KeyError:
+            comment = "--"
+        return "%s: %s" % (src, comment)
     return map(fmt, sgf.get_main_sequence())
 
 

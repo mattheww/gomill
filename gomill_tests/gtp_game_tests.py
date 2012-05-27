@@ -755,7 +755,7 @@ def test_explain_last_move(tc):
     fx.game.prepare()
     fx.game.run()
     tc.assertEqual(fx.sgf_moves_and_comments(), [
-        "None pass: --",
+        "root: --",
         "b E1: EX1",
         "w G1: --",
         "b E2: EX2",
