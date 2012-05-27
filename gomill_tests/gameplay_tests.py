@@ -626,7 +626,7 @@ def test_game_runner(tc):
     result = fx.game_runner.result
     tc.assertEqual(result.sgf_result, 'W+99')
     tc.assertIsNone(result.detail)
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), None),
         ('w', (0, 3), None),
         ('b', (1, 2), None),
@@ -712,7 +712,7 @@ def test_game_runner_resign(tc):
     result = fx.game_runner.result
     tc.assertEqual(result.sgf_result, 'B+R')
     tc.assertIsNone(result.detail)
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), None),
         ('w', (0, 3), None),
         ('b', (1, 2), None),
@@ -743,7 +743,7 @@ def test_game_runner_claim(tc):
     result = fx.game_runner.result
     tc.assertEqual(result.sgf_result, 'W+')
     tc.assertEqual(result.detail, "claim")
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), None),
         ('w', (0, 3), None),
         ('b', (1, 2), None),
@@ -771,7 +771,7 @@ def test_game_runner_forfeit(tc):
     result = fx.game_runner.result
     tc.assertEqual(result.sgf_result, 'W+F')
     tc.assertEqual(result.detail, "programmed forfeit")
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), None),
         ('w', (0, 3), None),
         ])
@@ -802,7 +802,7 @@ def test_game_runner_illegal_move(tc):
     result = fx.game_runner.result
     tc.assertEqual(result.sgf_result, 'W+F')
     tc.assertEqual(result.detail, "attempted move to occupied point D1")
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), None),
         ('w', (0, 3), None),
         ])
@@ -833,7 +833,7 @@ def test_game_runner_move_rejected_as_illegal(tc):
     result = fx.game_runner.result
     tc.assertEqual(result.sgf_result, 'W+F')
     tc.assertEqual(result.detail, "programmed reject")
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), None),
         ('w', (0, 3), None),
         ])
@@ -864,7 +864,7 @@ def test_game_runner_notify_move_failed(tc):
     result = fx.game_runner.result
     tc.assertEqual(result.sgf_result, 'B+F')
     tc.assertEqual(result.detail, "programmed error")
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), None),
         ('w', (0, 3), None),
         ])
@@ -895,7 +895,7 @@ def test_game_runner_move_limit(tc):
     result = fx.game_runner.result
     tc.assertEqual(result.sgf_result, 'Void')
     tc.assertEqual(result.detail, "hit move limit")
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), None),
         ('w', (0, 3), None),
         ('b', (1, 2), None),
@@ -930,7 +930,7 @@ def test_game_runner_last_move_comment(tc):
         "notify_move -> b pass",
         "score_game",
         ])
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), "..move/C1"),
         ('w', (0, 3), None),
         ('b', (1, 2), "..move/C2"),
@@ -967,7 +967,7 @@ def test_game_runner_last_move_comment_resign(tc):
         ])
     result = fx.game_runner.result
     tc.assertEqual(result.sgf_result, "W+R")
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), "..move/C1"),
         ('w', (0, 3), None),
         ])
@@ -997,7 +997,7 @@ def test_game_runner_last_move_comment_forfeit_illegal(tc):
         ])
     result = fx.game_runner.result
     tc.assertEqual(result.sgf_result, "W+F")
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), "..move/C1"),
         ('w', (0, 3), None),
         ])
@@ -1029,7 +1029,7 @@ def test_game_runner_last_move_comment_rejected(tc):
         ])
     result = fx.game_runner.result
     tc.assertEqual(result.sgf_result, "W+F")
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), "..move/C1"),
         ('w', (0, 3), None),
         ])
@@ -1052,7 +1052,7 @@ def test_game_runner_zero_move_game(tc):
     result = fx.game_runner.result
     tc.assertEqual(result.sgf_result, 'W+F')
     tc.assertEqual(result.detail, "programmed forfeit")
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ])
     tc.assertEqual(fx.sgf_moves_and_comments(), [
         'None pass: --',
@@ -1170,7 +1170,7 @@ def test_game_runner_exception_from_get_move(tc):
         ])
     tc.assertIsNone(fx.game_runner.get_game_score())
     tc.assertIsNone(fx.game_runner.result)
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), None),
         ('w', (0, 3), None),
         ])
@@ -1203,7 +1203,7 @@ def test_game_runner_exception_from_notify_move(tc):
     tc.assertIsNone(fx.game_runner.get_game_score())
     tc.assertIsNone(fx.game_runner.result)
     # Note the move which triggered the exception doesn't appear
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), None),
         ('w', (0, 3), None),
         ])
@@ -1222,7 +1222,7 @@ def test_game_runner_exception_from_score_game(tc):
     tc.assertRaises(ZeroDivisionError, fx.run_game)
     tc.assertIsNone(fx.game_runner.get_game_score())
     tc.assertIsNone(fx.game_runner.result)
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), None),
         ('w', (0, 3), None),
         ('b', None, None),
@@ -1257,7 +1257,7 @@ def test_game_runner_exception_from_move_callback(tc):
         "notify_move -> w pass",
         "[callback b pass]",
         ])
-    tc.assertEqual(fx.game_runner.moves, [
+    tc.assertEqual(fx.game_runner.get_moves(), [
         ('b', (0, 2), None),
         ('w', (0, 3), None),
         ('b', None, None),
@@ -1270,7 +1270,7 @@ def test_game_runner_defaults(tc):
     gr.prepare()
     gr.run()
     tc.assertEqual(backend.log[0], "start_new_game: size=9, komi=0.0")
-    tc.assertEqual(gr.moves, [
+    tc.assertEqual(gr.get_moves(), [
         ('b', (0, 2), None),
         ('w', (0, 3), None),
         ('b', None, None),

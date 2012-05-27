@@ -525,7 +525,7 @@ class Gtp_game(object):
         it was).
 
         """
-        return self.game_runner.moves
+        return self.game_runner.get_moves()
 
     def get_game_score(self):
         """Retrieve scoring details from a passed-out game.

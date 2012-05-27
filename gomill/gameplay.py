@@ -559,8 +559,6 @@ class Game_runner(object):
 
     Public attributes, useful after run() has been called:
       result -- Result, or None
-      moves  -- list of tuples (colour, move, comment)
-                move is a pair (row, col), or None for a pass
 
     Game_runner enforces a simple ko rule, but no superko rule. It accepts
     self-capture moves. Two consecutive passes end the game and trigger
@@ -731,10 +729,7 @@ class Game_runner(object):
     def run(self):
         """Run the game, to completion.
 
-        Sets the 'moves' and 'result' attributes.
-
-        If a move is illegal, or the other player rejects it, it is not
-        included in 'moves' (result.detail indicates what the move was).
+        Sets the 'result' attribute.
 
         Propagates any exceptions from backend methods:
           get_move()
@@ -745,8 +740,8 @@ class Game_runner(object):
 
         Propagates any exceptions from any after-move callback.
 
-        If an exception is propagated, 'moves' will reflect the moves made so
-        far, and 'result' will not be set.
+        If an exception is propagated, 'result' will not be set, but
+        get_moves() will reflect the moves which were completed.
 
         """
         if self._state not in (1, 2):
@@ -756,6 +751,21 @@ class Game_runner(object):
         while not game.is_over:
             self._do_move(game)
         self._set_result(game)
+
+    def get_moves(self):
+        """Retrieve a list of the moves played.
+
+        Returns a list of tuples (colour, move, comment)
+          move is a pair (row, col), or None for a pass
+
+        Returns an empty list if run() has not been called.
+
+        If the game ended due to an illegal move (or a move rejected by the
+        other player), that move is not included (result.detail indicates what
+        it was).
+
+        """
+        return self.moves
 
     def get_game_score(self):
         """Retrieve scoring details from a passed-out game.
@@ -778,9 +788,9 @@ class Game_runner(object):
 
         Doesn't set a root node comment. Doesn't put result.detail anywhere.
 
-        The moves described are the same as those from the 'moves' attribute.
-        Anything returned by backend.get_last_move_comment() is used as a
-        comment on the corresponding move.
+        The moves described are the same as those from get_moves(). Anything
+        returned by backend.get_last_move_comment() is used as a comment on the
+        corresponding move.
 
         """
         sgf_game = sgf.Sgf_game(self.board_size)
