@@ -462,6 +462,16 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             raise GtpTransportError("\n".join(errors))
 
 
+def make_subprocess_gtp_channel(command, stderr=None, cwd=None, env=None):
+    """FIXME: what's a good name?"""
+    if stderr == "CAPTURE":
+        from gomill import nonblocking_gtp_controller
+        return nonblocking_gtp_controller.Subprocess_gtp_channel(
+            command, cwd=cwd, env=env)
+    else:
+        return Subprocess_gtp_channel(command, stderr=stderr, cwd=cwd, env=env)
+
+
 class Gtp_controller(object):
     """Implementation of the controller side of the GTP protocol.
 

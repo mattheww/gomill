@@ -755,6 +755,34 @@ def test_subprocess_channel_with_controller(tc):
     tc.assertTrue(hasattr(rusage, 'ru_utime'))
 
 
+### FIXME test nonblocking controller
+
+from gomill import nonblocking_gtp_controller
+
+def test_subprocess_channel_nb(tc):
+    # This tests that Subprocess_gtp_channel really launches a subprocess.
+    # It also checks that the 'stderr', 'env' and 'cwd' parameters work.
+    # This test relies on there being a 'python' executable on the PATH
+    # (doesn't have to be the same version as is running the testsuite).
+    fx = gtp_engine_fixtures.State_reporter_fixture(tc)
+    channel = nonblocking_gtp_controller.Subprocess_gtp_channel(
+        fx.cmd + ["--extra-stderr"],
+        env={'GOMILL_TEST' : "from_gtp_controller_tests"},
+        cwd="/")
+    tc.assertIsNone(channel.exit_status)
+    tc.assertIsNone(channel.resource_usage)
+    channel.send_command("tell", [])
+    tc.assertEqual(channel.get_response(),
+                   (False, "cwd: /\nGOMILL_TEST:from_gtp_controller_tests"))
+    tc.assertEqual(channel.retrieve_diagnostics(),
+                   "subprocess_state_reporter: testing\n" + "blah\n" * 500)
+    channel.close()
+    tc.assertEqual(channel.exit_status, 0)
+    rusage = channel.resource_usage
+    tc.assertTrue(hasattr(rusage, 'ru_utime'))
+    tc.assertTrue(hasattr(rusage, 'ru_stime'))
+
+
 ### Game_controller
 
 def test_game_controller(tc):
