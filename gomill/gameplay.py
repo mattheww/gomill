@@ -841,6 +841,7 @@ class Game_runner(object):
         final = self.get_final_diagnostics()
         if final is not None:
             sgf_game.get_last_node().add_comment_text(
-                "(((final diagnostics))): %s" % (final.message))
+                "final message from %s: <<<\n%s\n>>>" %
+                (final.colour, final.message))
         return sgf_game
 

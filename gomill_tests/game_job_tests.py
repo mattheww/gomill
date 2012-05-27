@@ -589,7 +589,7 @@ def test_game_job_explain_final_move(tc):
           "one cpu time: 546.20s\ntwo cpu time: 567.20s\n"
           "Black one\nWhite two",
         "b E1: EX1\n\n"
-          "(((final diagnostics))): EX2\n\n"
+          "final message from w: <<<\nEX2\n>>>\n\n"
           "one beat two B+R",
         ])
 
@@ -607,7 +607,7 @@ def test_game_job_explain_final_move_zero_move_game(tc):
           "Game id gameid\nDate ***\n"
           "one cpu time: 546.20s\ntwo cpu time: 567.20s\n"
           "Black one\nWhite two\n\n"
-          "(((final diagnostics))): EX1\n\n"
+          "final message from b: <<<\nEX1\n>>>\n\n"
           "two beat one W+R",
         ])
 

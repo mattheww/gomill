@@ -989,7 +989,7 @@ def test_game_runner_last_move_comment_resign(tc):
     tc.assertEqual(fx.sgf_moves_and_comments(), [
         'root: --',
         'b C1: b-move/C1',
-        'w D1: (((final diagnostics))): b-resign/None',
+        'w D1: final message from b: <<<\nb-resign/None\n>>>',
         ])
 
 def test_game_runner_last_move_comment_from_both_resign(tc):
@@ -1021,7 +1021,7 @@ def test_game_runner_last_move_comment_from_both_resign(tc):
     tc.assertEqual(fx.sgf_moves_and_comments(), [
         'root: --',
         'b C1: b-move/C1',
-        'w D1: w-move/D1\n\n(((final diagnostics))): b-resign/None',
+        'w D1: w-move/D1\n\nfinal message from b: <<<\nb-resign/None\n>>>',
         ])
 
 def test_game_runner_last_move_comment_forfeit_illegal(tc):
@@ -1052,7 +1052,7 @@ def test_game_runner_last_move_comment_forfeit_illegal(tc):
     tc.assertEqual(fx.sgf_moves_and_comments(), [
         'root: --',
         'b C1: b-move/C1',
-        'w D1: (((final diagnostics))): b-move/C1',
+        'w D1: final message from b: <<<\nb-move/C1\n>>>',
         ])
 
 def test_game_runner_last_move_comment_rejected(tc):
@@ -1085,7 +1085,7 @@ def test_game_runner_last_move_comment_rejected(tc):
     tc.assertEqual(fx.sgf_moves_and_comments(), [
         'root: --',
         'b C1: b-move/C1',
-        'w D1: (((final diagnostics))): b-move/E1',
+        'w D1: final message from b: <<<\nb-move/E1\n>>>',
         ])
 
 def test_game_runner_last_move_comment_zero_move_game(tc):
@@ -1106,7 +1106,7 @@ def test_game_runner_last_move_comment_zero_move_game(tc):
     tc.assertEqual(fx.game_runner.get_moves(), [
         ])
     tc.assertEqual(fx.sgf_moves_and_comments(), [
-        "root: (((final diagnostics))): b-forfeit/'programmed forfeit'",
+        "root: final message from b: <<<\nb-forfeit/'programmed forfeit'\n>>>",
         ])
 
 def test_game_runner_fixed_handicap(tc):
