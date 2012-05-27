@@ -561,14 +561,8 @@ class Game_runner_fixture(object):
             self.game_runner.make_sgf().serialise(wrap=None))
 
     def sgf_moves_and_comments(self):
-        def fmt(node):
-            try:
-                s = node.get("C")
-            except KeyError:
-                s = "--"
-            colour, move = node.get_move()
-            return "%s %s: %s" % (colour, format_vertex(move), s)
-        return map(fmt, self.game_runner.make_sgf().get_main_sequence())
+        return gomill_test_support.sgf_moves_and_comments(
+            self.game_runner.make_sgf())
 
 
 def test_game_runner(tc):

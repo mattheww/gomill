@@ -92,6 +92,21 @@ def scrub_sgf(s):
     s = re.sub(r"gomill:" + re.escape(__version__), "gomill:VER", s)
     return s
 
+def sgf_moves_and_comments(sgf):
+    """Extract moves and comments from an Sgf_game.
+
+    Returns a list of strings.
+
+    """
+    def fmt(node):
+        try:
+            s = node.get("C")
+        except KeyError:
+            s = "--"
+        colour, move = node.get_move()
+        return "%s %s: %s" % (colour, format_vertex(move), s)
+    return map(fmt, sgf.get_main_sequence())
+
 
 traceback_line_re = re.compile(
     r"  .*/([a-z0-9_]+)\.pyc?:[0-9]+ \(([a-z0-9_]+)\)")

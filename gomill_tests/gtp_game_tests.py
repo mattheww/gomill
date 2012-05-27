@@ -119,15 +119,7 @@ class Gtp_game_fixture(object):
         return self.game.make_sgf().get_last_node().get("C")
 
     def sgf_moves_and_comments(self):
-        def fmt(node):
-            try:
-                s = node.get("C")
-            except KeyError:
-                s = "--"
-            colour, move = node.get_move()
-            return "%s %s: %s" % (colour, format_vertex(move), s)
-        return map(fmt, self.game.make_sgf().get_main_sequence())
-
+        return gomill_test_support.sgf_moves_and_comments(self.game.make_sgf())
 
 def test_game(tc):
     fx = Gtp_game_fixture(tc)
