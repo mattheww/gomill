@@ -572,6 +572,27 @@ def test_game_job_explain_last_move(tc):
         "w pass: EX10\n\none beat two B+10.5",
         ])
 
+def test_game_job_explain_final_move(tc):
+    counter = [0]
+    def handle_explain_last_move(args):
+        counter[0] += 1
+        return "EX%d" % counter[0]
+    fx = Game_job_fixture(tc)
+    fx.add_handler('w', 'genmove', lambda args:"resign")
+    fx.add_handler('w', 'gomill-explain_last_move', handle_explain_last_move)
+    fx.add_handler('b', 'gomill-explain_last_move', handle_explain_last_move)
+    result = fx.job.run()
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        "root: "
+          "Game id gameid\nDate ***\n"
+          "Result one beat two B+R\n"
+          "one cpu time: 546.20s\ntwo cpu time: 567.20s\n"
+          "Black one\nWhite two",
+        "b E1: EX1\n\n"
+          "(((final diagnostics))): EX2\n\n"
+          "one beat two B+R",
+        ])
+
 def test_game_job_explain_final_move_zero_move_game(tc):
     counter = [0]
     def handle_explain_last_move(args):
