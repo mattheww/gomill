@@ -2,8 +2,8 @@
 
 Requires:
  - gnugo 3.8 in /usr/games/gnugo
- - gomill_process_tests/test_gtp_player
- - gomill_examples/test_gtp_player
+ - gomill_process_tests/gtp_test_player
+ - gomill_examples/gtp_test_player
 
 Test output may need adjusting if gnugo RNG changes.
 
