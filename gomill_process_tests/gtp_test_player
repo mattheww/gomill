@@ -28,7 +28,6 @@ unenlightening in the example.]]
 import os
 import random
 import sys
-import time
 from optparse import OptionParser
 
 from gomill import gtp_engine
@@ -45,6 +44,7 @@ class Test_player(object):
         self.delayed_error_move = None
         self.delayed_error_args = None
         self.seen_quit = False
+        self.chat_stderr = False
 
     def genmove(self, game_state, player):
         """Move generator function.
@@ -55,18 +55,28 @@ class Test_player(object):
         This honours gomill-delayed_error, and otherwise chooses a random empty
         point (which may be an illegal move).
 
+        Resigns with probability 0.1
+
         """
+        if self.chat_stderr:
+            print >>sys.stderr, "genmove: %s" % len(game_state.move_history)
+
         if (self.delayed_error_move and
             len(game_state.move_history) >= self.delayed_error_move-1):
             self.delayed_error_move = None
             self.handle_force_error(self.delayed_error_args)
+
+        result = gtp_states.Move_generator_result()
+
+        if random.random() < 0.1:
+            result.resign = True
+            return result
 
         board = game_state.board
         empties = []
         for row, col in board.board_points:
             if board.get(row, col) is None:
                 empties.append((row, col))
-        result = gtp_states.Move_generator_result()
         result.move = random.choice(empties)
         return result
 
@@ -136,13 +146,19 @@ def main():
     parser = OptionParser()
     parser.add_option("--fail-command", metavar="COMMAND",
                       help="force a specified gtp command to fail")
+    parser.add_option("--chat-stderr", action="store_true")
+    parser.add_option("--seed", type="int")
     (options, args) = parser.parse_args()
     if args:
         parser.error("too many arguments")
 
-    #time.sleep(1)
+    if options.seed is not None:
+        random.seed(options.seed)
+
     try:
         test_player = Test_player()
+        if options.chat_stderr:
+            test_player.chat_stderr = True
         engine = make_engine(test_player)
         if options.fail_command:
             engine.add_command(options.fail_command, fail_handler)
@@ -151,7 +167,6 @@ def main():
         sys.exit(1)
     if not test_player.seen_quit:
         sys.stderr.write("gtp_test_player terminated without quit command\n")
-        #time.sleep(5)
 
 if __name__ == "__main__":
     main()

@@ -49,7 +49,7 @@ code="failgtp",
 command="""
 gomill_examples/twogtp
 --black='echo fail'
---white='gomill_process_tests/gtp_test_player --fail-command=genmove'
+--white='gomill_process_tests/gtp_test_player'
 --size=9
 --verbose=1
 """,
@@ -146,13 +146,39 @@ command="""
 gomill_examples/twogtp
 --black='gnugo --mode=gtp --level=0 --seed=1'
 --white='/usr/games/gnugo --mode=gtp --level=0 --seed=2'
---size=3 --sgfbase=%(sgfbase)s
+--size=3
+--sgfbase=%(sgfbase)s
 """,
 output="""\
 gnugo beat /usr/games/gnugo B+R
 """,
-sgf="(;FF[4]AP[Gomill twogtp:VER]CA[UTF-8]DT[***]GM[1]KM[7.5]PB[GNU Go:3.8]"
-    "PW[GNU Go:3.8]RE[B+R]SZ[3];B[bb]C[gnugo beat /usr/games/gnugo B+R])"
+sgf="""
+(;FF[4]AP[Gomill twogtp:VER]CA[UTF-8]DT[***]GM[1]KM[7.5]PB[GNU Go:3.8]
+PW[GNU Go:3.8]RE[B+R]SZ[3];B[bb]C[gnugo beat /usr/games/gnugo B+R])
+"""
+),
+
+Test(
+code="stderr",
+command="""
+gomill_examples/twogtp
+--black='gomill_process_tests/gtp_test_player --seed=3 --chat-stderr'
+--white='gomill_process_tests/gtp_test_player --seed=3'
+--size=9
+--capture-stderr=bw
+--sgfbase=%(sgfbase)s
+""",
+output="""\
+gomill_process_tests/gtp_test_player-w beat gomill_process_tests/gtp_test_player-b W+R
+""",
+sgf="""
+(;FF[4]AP[Gomill twogtp:VER]CA[UTF-8]DT[***]GM[1]KM[7.5]PB[GTP test player]
+PW[GTP test player]RE[W+R]SZ[9];B[ie]C[genmove: 0];W[he];B[ed]C[genmove: 2];
+W[fd];B[fi]C[genmove: 4];
+C[final message from b: <<<genmove: 6>>>
+gomill_process_tests/gtp_test_player-w beat gomill_process_tests/gtp_test_player-b W+R]
+W[ei])
+"""
 ),
 
 ]
@@ -193,7 +219,7 @@ def testrun(test, sandbox_dir):
         print status
     if test.sgf:
         sgf_written = open("%s/%s000.sgf" % (sandbox_dir, test.code)).read()
-        if scrub_sgf(sgf_written) != test.sgf:
+        if scrub_sgf(sgf_written) != test.sgf.replace("\n", ""):
             passed = False
             print "BAD SGF"
             print sgf_written
