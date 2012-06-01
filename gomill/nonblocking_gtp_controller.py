@@ -32,7 +32,7 @@ def _popen(command, **kwargs):
     set_nonblocking(stderr_r)
     return p, stdout_r, stderr_r
 
-_readsize = 4096
+_readsize = 16384
 
 class Subprocess_gtp_channel(Linebased_gtp_channel):
     """A GTP channel to a subprocess.
