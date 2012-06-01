@@ -24,6 +24,13 @@ class Test(object):
         kwargs.setdefault('exit_status', 0)
         self.__dict__.update(kwargs)
 
+    def expected_sgf(self):
+        sgf = self.sgf
+        if "###" in sgf:
+            msg = (16385 * "x" + "|") * 10
+            sgf = sgf.replace("###", msg)
+        sgf = sgf.replace("\n", "")
+        return sgf
 
 tests = [
 
@@ -181,6 +188,29 @@ W[ei])
 """
 ),
 
+Test(
+code="stderr-large",
+command="""
+gomill_examples/twogtp
+--black='gomill_process_tests/gtp_test_player --seed=3 --copious-stderr'
+--white='gomill_process_tests/gtp_test_player --seed=3'
+--size=9
+--capture-stderr=b
+--sgfbase=%(sgfbase)s
+""",
+output="""\
+gomill_process_tests/gtp_test_player-w beat gomill_process_tests/gtp_test_player-b W+R
+""",
+sgf="""
+(;FF[4]AP[Gomill twogtp:VER]CA[UTF-8]DT[***]GM[1]KM[7.5]PB[GTP test player]
+PW[GTP test player]RE[W+R]SZ[9];B[ie]C[###];W[he];B[ed]C[###];
+W[fd];B[fi]C[###];
+C[final message from b: <<<###>>>
+gomill_process_tests/gtp_test_player-w beat gomill_process_tests/gtp_test_player-b W+R]
+W[ei])
+"""
+),
+
 ]
 
 def scrub_sgf(s):
@@ -219,10 +249,11 @@ def testrun(test, sandbox_dir):
         print status
     if test.sgf:
         sgf_written = open("%s/%s000.sgf" % (sandbox_dir, test.code)).read()
-        if scrub_sgf(sgf_written) != test.sgf.replace("\n", ""):
+        if scrub_sgf(sgf_written) != test.expected_sgf():
             passed = False
             print "BAD SGF"
-            print sgf_written
+            if len(sgf_written) < 4096:
+                print sgf_written
     if passed:
         print "TEST PASSED"
     else:

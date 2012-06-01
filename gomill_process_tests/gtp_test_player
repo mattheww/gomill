@@ -28,6 +28,7 @@ unenlightening in the example.]]
 import os
 import random
 import sys
+import time
 from optparse import OptionParser
 
 from gomill import gtp_engine
@@ -45,6 +46,7 @@ class Test_player(object):
         self.delayed_error_args = None
         self.seen_quit = False
         self.chat_stderr = False
+        self.copious_stderr = False
 
     def genmove(self, game_state, player):
         """Move generator function.
@@ -60,6 +62,11 @@ class Test_player(object):
         """
         if self.chat_stderr:
             print >>sys.stderr, "genmove: %s" % len(game_state.move_history)
+        elif self.copious_stderr:
+            for i in range(10):
+                msg = 16385 * "x" + "\n" + "|"
+                time.sleep(0.05)
+                sys.stderr.write(msg)
 
         if (self.delayed_error_move and
             len(game_state.move_history) >= self.delayed_error_move-1):
@@ -147,6 +154,7 @@ def main():
     parser.add_option("--fail-command", metavar="COMMAND",
                       help="force a specified gtp command to fail")
     parser.add_option("--chat-stderr", action="store_true")
+    parser.add_option("--copious-stderr", action="store_true")
     parser.add_option("--seed", type="int")
     (options, args) = parser.parse_args()
     if args:
@@ -159,6 +167,8 @@ def main():
         test_player = Test_player()
         if options.chat_stderr:
             test_player.chat_stderr = True
+        if options.copious_stderr:
+            test_player.copious_stderr = True
         engine = make_engine(test_player)
         if options.fail_command:
             engine.add_command(options.fail_command, fail_handler)
