@@ -129,6 +129,11 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             errors.append("error closing response pipe:\n%s" % e)
             errors.append(str(e))
         try:
+            self.error_pipe.close()
+        except EnvironmentError, e:
+            errors.append("error closing stderr pipe:\n%s" % e)
+            errors.append(str(e))
+        try:
             # We don't really care about the exit status, but we do want to be
             # sure it isn't still running.
             # Even if there were errors closing the pipes, it's most likely that
