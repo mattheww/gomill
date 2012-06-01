@@ -11,6 +11,29 @@ def set_nonblocking(fd):
     flags = flags | os.O_NONBLOCK
     fcntl.fcntl(fd, fcntl.F_SETFL, flags)
 
+def _popen(command, **kwargs):
+    stdout_r, stdout_w = os.pipe()
+    stderr_r, stderr_w = os.pipe()
+    try:
+        p = subprocess.Popen(
+            command,
+            preexec_fn=permit_sigpipe, close_fds=True,
+            stdin=subprocess.PIPE,
+            stdout=stdout_w, stderr=stderr_w,
+            **kwargs)
+    except:
+        os.close(stdout_r)
+        os.close(stderr_r)
+        raise
+    finally:
+        os.close(stdout_w)
+        os.close(stderr_w)
+    set_nonblocking(stdout_r)
+    set_nonblocking(stderr_r)
+    return p, stdout_r, stderr_r
+
+_readsize = 4096
+
 class Subprocess_gtp_channel(Linebased_gtp_channel):
     """A GTP channel to a subprocess.
 
@@ -36,23 +59,15 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
     def __init__(self, command, cwd=None, env=None):
         Linebased_gtp_channel.__init__(self)
         try:
-            p = subprocess.Popen(
-                command,
-                preexec_fn=permit_sigpipe, close_fds=True,
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, cwd=cwd, env=env)
+            self.subprocess, self.response_fd, self.error_fd = \
+                _popen(command, cwd=cwd, env=env)
         except EnvironmentError, e:
             raise GtpChannelError(str(e))
-        self.subprocess = p
-        self.command_pipe = p.stdin
-        self.response_pipe = p.stdout
-        self.error_pipe = p.stderr
-        set_nonblocking(self.response_pipe.fileno())
-        set_nonblocking(self.error_pipe.fileno())
+        self.command_pipe = self.subprocess.stdin
         self.response_data = ""
         self.seen_eof = False
         self.error_data = []
-        self.pipes_to_poll = [self.response_pipe, self.error_pipe]
+        self.pipes_to_poll = [self.response_fd, self.error_fd]
 
     def send_command_line(self, command):
         try:
@@ -66,25 +81,25 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
 
     def _handle_event(self):
         r, _, _ = select.select(self.pipes_to_poll, [], [])
-        if self.error_pipe in r:
+        if self.error_fd in r:
             self._handle_error_data()
-        elif self.response_pipe in r:
+        elif self.response_fd in r:
             self._handle_response_data()
 
     def _handle_response_data(self):
-        s = self.response_pipe.read()
+        s = os.read(self.response_fd, _readsize)
         if s:
             self.response_data += s
         else:
             self.seen_eof = True
-            self.pipes_to_poll.remove(self.response_pipe)
+            self.pipes_to_poll.remove(self.response_fd)
 
     def _handle_error_data(self):
-        s = self.error_pipe.read()
+        s = os.read(self.error_fd, _readsize)
         if s:
             self.error_data.append(s)
         else:
-            self.pipes_to_poll.remove(self.error_pipe)
+            self.pipes_to_poll.remove(self.error_fd)
 
     def get_response_line(self):
         while True:
@@ -124,12 +139,12 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
         except EnvironmentError, e:
             errors.append("error closing command pipe:\n%s" % e)
         try:
-            self.response_pipe.close()
+            os.close(self.response_fd)
         except EnvironmentError, e:
             errors.append("error closing response pipe:\n%s" % e)
             errors.append(str(e))
         try:
-            self.error_pipe.close()
+            os.close(self.error_fd)
         except EnvironmentError, e:
             errors.append("error closing stderr pipe:\n%s" % e)
             errors.append(str(e))
