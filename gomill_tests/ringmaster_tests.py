@@ -200,6 +200,7 @@ def test_get_job(tc):
     tc.assertIsNone(job.stderr_pathname)
     tc.assertIsNone(job.player_b.cwd)
     tc.assertIsNone(job.player_b.environ)
+    tc.assertIsNone(job.player_b.stderr_to)
     tc.assertEqual(fx.ringmaster.games_in_progress, {'0_000': job})
     tc.assertEqual(fx.get_log(),
                    "starting game 0_000: p1 (b) vs p2 (w)\n")
@@ -231,22 +232,24 @@ def test_settings(tc):
 
 def test_stderr_settings(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p2'] = Player('testb', discard_stderr=True)",
+        "players['p1'] = Player('testb', discard_stderr=True)",
+        "players['p2'] = Player('testw', capture_stderr=True)",
         "stderr_to_log = True",
         ])
     job = fx.get_job()
     tc.assertEqual(job.stderr_pathname, "/nonexistent/ctl/test.log")
-    tc.assertIsNone(job.player_b.stderr_to)
-    tc.assertEqual(job.player_w.stderr_to, 'discard')
+    tc.assertEqual(job.player_b.stderr_to, 'discard')
+    tc.assertEqual(job.player_w.stderr_to, 'capture')
 
 def test_stderr_settings_nolog(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p2'] = Player('testb', discard_stderr=True)",
+        "players['p1'] = Player('testb', discard_stderr=True)",
+        "players['p2'] = Player('testw', capture_stderr=True)",
         ])
     job = fx.get_job()
     tc.assertIs(job.stderr_pathname, None)
-    tc.assertIsNone(job.player_b.stderr_to)
-    tc.assertEqual(job.player_w.stderr_to, 'discard')
+    tc.assertEqual(job.player_b.stderr_to, 'discard')
+    tc.assertEqual(job.player_w.stderr_to, 'capture')
 
 
 def test_get_tournament_results(tc):

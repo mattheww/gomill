@@ -50,6 +50,7 @@ _player_settings = [
     Setting('startup_gtp_commands', allow_none(interpret_sequence),
             defaultmaker=list),
     Setting('discard_stderr', interpret_bool, default=False),
+    Setting('capture_stderr', interpret_bool, default=False),
     ]
 
 class Player_config(Quiet_config):
@@ -283,6 +284,11 @@ class Competition(object):
 
         if config['discard_stderr']:
             player.stderr_to = 'discard'
+        if config['capture_stderr']:
+            if player.stderr_to is not None:
+                raise ValueError(
+                    "both discard_stderr and capture_stderr are set")
+            player.stderr_to = 'capture'
 
         return player
 

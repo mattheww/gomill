@@ -116,13 +116,29 @@ def test_player_stderr(tc):
         'players' : {
             't1' : Player_config("test"),
             't2' : Player_config("test", discard_stderr=True),
-            't3' : Player_config("test", discard_stderr=False),
+            't3' : Player_config("test", capture_stderr=True),
+            't4' : Player_config("test",
+                                 discard_stderr=False, capture_stderr=False),
             }
         }
     comp.initialise_from_control_file(config)
     tc.assertIsNone(comp.players['t1'].stderr_to)
     tc.assertEqual(comp.players['t2'].stderr_to, 'discard')
-    tc.assertIsNone(comp.players['t3'].stderr_to)
+    tc.assertEqual(comp.players['t3'].stderr_to, 'capture')
+    tc.assertIsNone(comp.players['t4'].stderr_to)
+
+def test_bad_player_stderr(tc):
+    comp = competitions.Competition('test')
+    config = {
+        'players' : {
+            't1' : Player_config("test",
+                                 capture_stderr=True, discard_stderr=True),
+            }
+        }
+    tc.assertRaisesRegexp(
+        ControlFileError,
+        "player t1: both discard_stderr and capture_stderr are set",
+        comp.initialise_from_control_file, config)
 
 def test_player_startup_gtp_commands(tc):
     comp = competitions.Competition('test')
