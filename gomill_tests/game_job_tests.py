@@ -339,6 +339,13 @@ def test_game_job_stderr_discarded(tc):
     tc.assertIsInstance(channel.requested_stderr, file)
     tc.assertEqual(channel.requested_stderr.name, os.devnull)
 
+def test_game_job_stderr_captured(tc):
+    fx = Game_job_fixture(tc)
+    fx.job.player_b.stderr_to = 'capture'
+    result = fx.job.run()
+    channel = fx.get_channel('one')
+    tc.assertEqual(channel.requested_stderr, "[nonblocking]")
+
 def test_game_job_stderr_set(tc):
     fx = Game_job_fixture(tc)
     fx.job.stderr_pathname = "/dev/full"
@@ -355,6 +362,14 @@ def test_game_job_stderr_set_and_discarded(tc):
     channel = fx.get_channel('one')
     tc.assertIsInstance(channel.requested_stderr, file)
     tc.assertEqual(channel.requested_stderr.name, os.devnull)
+
+def test_game_job_stderr_set_and_captured(tc):
+    fx = Game_job_fixture(tc)
+    fx.job.stderr_pathname = "/dev/full"
+    fx.job.player_b.stderr_to = 'capture'
+    result = fx.job.run()
+    channel = fx.get_channel('one')
+    tc.assertEqual(channel.requested_stderr, "[nonblocking]")
 
 def test_game_job_gtp_aliases(tc):
     fx = Game_job_fixture(tc)

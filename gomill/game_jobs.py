@@ -202,14 +202,17 @@ class Game_job(object):
                       colour, player, gtp_log_file):
         if player.stderr_to == 'discard':
             stderr_pathname = os.devnull
+        elif player.stderr_to == 'capture':
+            stderr_pathname = None
         elif player.stderr_to is None:
             stderr_pathname = self.stderr_pathname
         else:
-            # FIXME: is this OK?
-            raise ValueError
+            raise ValueError("bad stderr_to: %s" % player.stderr_to)
         if stderr_pathname is not None:
             stderr = open(stderr_pathname, "a")
             self._files_to_close.append(stderr)
+        elif player.stderr_to == 'capture':
+            stderr = 'capture'
         else:
             stderr = None
         if not self.use_internal_scorer and player.is_reliable_scorer:
