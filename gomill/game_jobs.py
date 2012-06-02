@@ -22,7 +22,7 @@ class Player(object):
       allow_claim          -- bool (default False)
       gtp_aliases          -- map command string -> command string
       startup_gtp_commands -- list of pairs (command_name, arguments)
-      discard_stderr       -- bool (default False)
+      stderr_to            -- None, 'discard', or 'capture'
       cwd                  -- working directory to change to (default None)
       environ              -- maplike of environment variables (default None)
 
@@ -44,7 +44,7 @@ class Player(object):
         self.allow_claim = False
         self.gtp_aliases = {}
         self.startup_gtp_commands = []
-        self.discard_stderr = False
+        self.stderr_to = None
         self.cwd = None
         self.environ = None
 
@@ -70,7 +70,7 @@ class Player(object):
         result.allow_claim = self.allow_claim
         result.gtp_aliases = dict(self.gtp_aliases)
         result.startup_gtp_commands = list(self.startup_gtp_commands)
-        result.discard_stderr = self.discard_stderr
+        result.stderr_to = self.stderr_to
         result.cwd = self.cwd
         if self.environ is None:
             result.environ = None
@@ -149,8 +149,13 @@ class Game_job(object):
     If stderr_pathname is set, the specified file will be opened in append mode
     and both players' standard error streams will be sent there. Otherwise the
     players' standard error streams will be left as the standard error of the
-    calling process. But if a player has discard_stderr=True then its standard
-    error is sent to os.devnull instead.
+    calling process.
+
+    But if a player has stderr_to set to 'discard', then its standard error is
+    sent to os.devnull instead.
+
+    Or if a player has stderr_to set to 'capture' then its standard error is
+    captured and recorded in the game record.
 
     Game_jobs are suitable for pickling.
 
@@ -195,10 +200,13 @@ class Game_job(object):
 
     def _start_player(self, game_controller, game,
                       colour, player, gtp_log_file):
-        if player.discard_stderr:
+        if player.stderr_to == 'discard':
             stderr_pathname = os.devnull
-        else:
+        elif player.stderr_to is None:
             stderr_pathname = self.stderr_pathname
+        else:
+            # FIXME: is this OK?
+            raise ValueError
         if stderr_pathname is not None:
             stderr = open(stderr_pathname, "a")
             self._files_to_close.append(stderr)

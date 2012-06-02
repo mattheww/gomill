@@ -333,7 +333,7 @@ def test_game_job_cwd_env(tc):
 
 def test_game_job_stderr_discarded(tc):
     fx = Game_job_fixture(tc)
-    fx.job.player_b.discard_stderr = True
+    fx.job.player_b.stderr_to = 'discard'
     result = fx.job.run()
     channel = fx.get_channel('one')
     tc.assertIsInstance(channel.requested_stderr, file)
@@ -349,7 +349,7 @@ def test_game_job_stderr_set(tc):
 
 def test_game_job_stderr_set_and_discarded(tc):
     fx = Game_job_fixture(tc)
-    fx.job.player_b.discard_stderr = True
+    fx.job.player_b.stderr_to = 'discard'
     result = fx.job.run()
     channel = fx.get_channel('one')
     tc.assertIsInstance(channel.requested_stderr, file)

@@ -282,7 +282,7 @@ class Competition(object):
             raise ControlFileError("'gtp_aliases': %s" % e)
 
         if config['discard_stderr']:
-            player.discard_stderr = True
+            player.stderr_to = 'discard'
 
         return player
 

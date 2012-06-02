@@ -120,9 +120,9 @@ def test_player_stderr(tc):
             }
         }
     comp.initialise_from_control_file(config)
-    tc.assertIs(comp.players['t1'].discard_stderr, False)
-    tc.assertEqual(comp.players['t2'].discard_stderr, True)
-    tc.assertIs(comp.players['t3'].discard_stderr, False)
+    tc.assertIsNone(comp.players['t1'].stderr_to)
+    tc.assertEqual(comp.players['t2'].stderr_to, 'discard')
+    tc.assertIsNone(comp.players['t3'].stderr_to)
 
 def test_player_startup_gtp_commands(tc):
     comp = competitions.Competition('test')

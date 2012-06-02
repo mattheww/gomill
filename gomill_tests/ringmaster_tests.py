@@ -236,8 +236,8 @@ def test_stderr_settings(tc):
         ])
     job = fx.get_job()
     tc.assertEqual(job.stderr_pathname, "/nonexistent/ctl/test.log")
-    tc.assertIs(job.player_b.discard_stderr, False)
-    tc.assertIs(job.player_w.discard_stderr, True)
+    tc.assertIsNone(job.player_b.stderr_to)
+    tc.assertEqual(job.player_w.stderr_to, 'discard')
 
 def test_stderr_settings_nolog(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
@@ -245,8 +245,8 @@ def test_stderr_settings_nolog(tc):
         ])
     job = fx.get_job()
     tc.assertIs(job.stderr_pathname, None)
-    tc.assertIs(job.player_b.discard_stderr, False)
-    tc.assertIs(job.player_w.discard_stderr, True)
+    tc.assertIsNone(job.player_b.stderr_to)
+    tc.assertEqual(job.player_w.stderr_to, 'discard')
 
 
 def test_get_tournament_results(tc):
