@@ -197,7 +197,7 @@ class Gtp_channel(object):
 
         (((
 
-        Returns a nonempty string (representing raw bytes) or None.
+        Returns a nonempty 8-bit string (representing raw bytes) or None.
 
         Doesn't raise GtpTransportError.
 
@@ -482,7 +482,7 @@ def make_subprocess_gtp_channel(command, stderr=None, **kwargs):
     """FIXME
 
     (Same parameters as Subprocess_gtp_channel instantiation, but can also use
-    'stderr='capture'.)
+     stderr='capture'.)
 
     (((Returns a Subprocess_gtp_channel or plausible equivalent.)))
 
@@ -998,8 +998,8 @@ class Game_controller(object):
         command                -- list of strings (as for subprocess.Popen)
         check_protocol_version -- bool (default True)
 
-        Any additional keyword arguments are passed to FIXME the
-        Subprocess_gtp_channel constructor.
+        Any additional keyword arguments are passed to
+        make_subprocess_gtp_channel().
 
         Creates a Gtp_controller, named 'player <player code>'.
 
