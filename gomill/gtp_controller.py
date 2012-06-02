@@ -414,6 +414,8 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
 
     """
     def __init__(self, command, stderr=None, cwd=None, env=None):
+        if isinstance(stderr, (int, long)) and stderr < 0:
+            raise ValueError
         Linebased_gtp_channel.__init__(self)
         try:
             p = subprocess.Popen(
