@@ -349,6 +349,7 @@ def test_game_job_stderr_set(tc):
 
 def test_game_job_stderr_set_and_discarded(tc):
     fx = Game_job_fixture(tc)
+    fx.job.stderr_pathname = "/dev/full"
     fx.job.player_b.stderr_to = 'discard'
     result = fx.job.run()
     channel = fx.get_channel('one')
