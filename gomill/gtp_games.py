@@ -266,8 +266,6 @@ class _Gtp_backend(gameplay.Backend):
             comment = None
         diag = self.gc.get_controller(colour).channel.retrieve_diagnostics()
         diag = sanitise_utf8(diag)
-        if diag == "":
-            diag = None
         if comment is not None and diag is not None:
             return "%s\n\n%s" % (comment, diag)
         if comment is not None:

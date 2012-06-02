@@ -197,7 +197,7 @@ class Gtp_channel(object):
 
         (((
 
-        Returns a string (representing raw bytes) or None.
+        Returns a nonempty string (representing raw bytes) or None.
 
         Doesn't raise GtpTransportError.
 

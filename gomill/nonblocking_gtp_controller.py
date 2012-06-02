@@ -170,5 +170,5 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
         """
         result = "".join(self.error_data)
         self.error_data = []
-        return result
+        return result or None
 
