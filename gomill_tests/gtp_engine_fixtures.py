@@ -3,6 +3,7 @@
 import os
 
 from gomill import gtp_controller
+from gomill import nonblocking_gtp_controller
 from gomill import gtp_engine
 from gomill.gtp_engine import GtpError, GtpFatalError, GtpQuit
 from gomill.gtp_controller import GtpChannelError
@@ -375,12 +376,20 @@ class Mock_subprocess_gtp_channel(
         self.resource_usage = Mock_resource_usage(
             ru_utime=fake_time, ru_stime=0.2)
 
+class Mock_nonblocking_subprocess_gtp_channel(Mock_subprocess_gtp_channel):
+    def __init__(self, command, cwd=None, env=None):
+        Mock_subprocess_gtp_channel.__init__(self, command, cwd=cwd, env=env)
+        self.requested_stderr = "[nonblocking]"
+
 
 class Mock_subprocess_fixture(object):
     """Fixture for using Mock_subprocess_gtp_channel.
 
     While this fixture is active, attempts to instantiate a
     Subprocess_gtp_channel will produce a Testing_gtp_channel.
+
+    Attempts to instantiate a nonblocking Subprocess_gtp_channel produce a
+    Testing_gtp_channel with requested_stderr set to "[nonblocking]".
 
     """
     def __init__(self, tc):
@@ -389,13 +398,17 @@ class Mock_subprocess_fixture(object):
 
     def _patch(self):
         self._sgc = gtp_controller.Subprocess_gtp_channel
+        self._nsgc = nonblocking_gtp_controller.Subprocess_gtp_channel
         gtp_controller.Subprocess_gtp_channel = Mock_subprocess_gtp_channel
+        nonblocking_gtp_controller.Subprocess_gtp_channel = \
+            Mock_nonblocking_subprocess_gtp_channel
 
     def _unpatch(self):
         Mock_subprocess_gtp_channel.engine_registry.clear()
         Mock_subprocess_gtp_channel.callback_registry.clear()
         Mock_subprocess_gtp_channel.channels.clear()
         gtp_controller.Subprocess_gtp_channel = self._sgc
+        nonblocking_gtp_controller.Subprocess_gtp_channel = self._nsgc
 
     def register_engine(self, code, engine):
         """Specify an engine for a mock subprocess channel to run.

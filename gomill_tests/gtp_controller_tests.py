@@ -1141,3 +1141,17 @@ def test_game_controller_set_player_subprocess_error(tc):
     tc.assertRaises(KeyError, gc.get_controller, 'b')
     tc.assertEqual(gc.get_resource_usage_cpu_times(), {'b' : None, 'w' : None})
 
+def test_game_controller_set_player_subprocess_stderr(tc):
+    # This is mostly testing that the code for Mock_subprocess_fixture
+    # and requested_stderr is working.
+    fake_file = object()
+    msf = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    engine = gtp_engine_fixtures.get_test_engine()
+    gc = gtp_controller.Game_controller('one', 'two')
+    gc.set_player_subprocess('b', ['testb', 'id=one'], stderr=fake_file)
+    gc.set_player_subprocess('w', ['testw', 'id=two'], stderr="capture")
+    channel1 = msf.get_channel('one')
+    channel2 = msf.get_channel('two')
+    tc.assertIs(channel1.requested_stderr, fake_file)
+    tc.assertEqual(channel2.requested_stderr, "[nonblocking]")
+    gc.close_players()
