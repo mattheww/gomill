@@ -786,6 +786,51 @@ def test_explain_last_move(tc):
         "w pass: one vs two ? (no score reported)",
         ])
 
+def test_retrieve_diagnostics(tc):
+    moves = [
+        ('b', 'C3'), ('w', 'D3'),
+        ('b', 'C4'), ('w', 'D4'),
+        ]
+    fx = Gtp_game_fixture(
+        tc, Programmed_player(moves), Programmed_player(moves))
+    fx.channel_w.chatty = True
+    fx.game.prepare()
+    fx.game.run()
+    tc.assertIsNone(fx.game.get_final_diagnostics())
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        "root: --",
+        "b C3: --",
+        "w D3: last: known_command gomill-explain_last_move",
+        "b C4: --",
+        "w D4: last: genmove w",
+        "b pass: --",
+        "w pass: last: genmove w\n\none vs two ? (no score reported)",
+        ])
+
+def test_explain_last_move_and_retrieve_diagnostics(tc):
+    counter = [0]
+    def handle_explain_last_move(args):
+        counter[0] += 1
+        return "EX%d" % counter[0]
+    moves = [
+        ('b', 'C3'), ('w', 'D3'),
+        ('b', 'resign'),
+        ]
+    fx = Gtp_game_fixture(
+        tc, Programmed_player(moves), Programmed_player(moves))
+    fx.engine_b.add_command('gomill-explain_last_move',
+                            handle_explain_last_move)
+    fx.channel_b.chatty = True
+    fx.game.prepare()
+    fx.game.run()
+    fx.check_final_diagnostics('b', "EX2\n\nlast: gomill-explain_last_move")
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        "root: --",
+        "b C3: EX1\n\nlast: gomill-explain_last_move",
+        "w D3: final message from b: "
+          "<<<\nEX2\n\nlast: gomill-explain_last_move\n>>>\n\ntwo beat one W+R",
+        ])
+
 def test_explain_final_move(tc):
     counter = [0]
     def handle_explain_last_move(args):

@@ -58,8 +58,9 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
     This is used for testing how controllers handle GtpChannelError.
 
     Public attributes:
-      engine    -- the engine it was instantiated with
-      is_closed -- bool (closed() has been called without a forced error)
+      engine       -- the engine it was instantiated with
+      is_closed    -- bool (closed() has been called without a forced error)
+      last_command -- last command line, or None
 
     This raises an error if sent two commands without requesting a response in
     between, or if asked for a response when no command was sent since the last
@@ -82,6 +83,9 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
       force_next_response -- string (get_response_line uses this string)
       fail_close          -- bool (close raises GtpTransportError)
 
+    You can make retrieve_diagnostics() start returning strings by setting
+    the 'chatty' attribute true.
+
     """
     def __init__(self, engine):
         gtp_controller.Linebased_gtp_channel.__init__(self)
@@ -95,6 +99,8 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         self.force_next_response = None
         self.fail_close = False
         self.fail_command = None
+        self.chatty = False
+        self.last_command = None
 
     def send_command_line(self, command):
         if self.is_closed:
@@ -105,6 +111,7 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
             if self.engine_exit_breaks_commands:
                 raise GtpChannelClosed("engine has closed the command channel")
             return
+        self.last_command = command[:-1]
         if self.fail_next_command:
             self.fail_next_command = False
             raise GtpTransportError("forced failure for send_command_line")
@@ -137,3 +144,7 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
             raise GtpTransportError("forced failure for close")
         self.is_closed = True
 
+    def retrieve_diagnostics(self):
+        if not self.chatty:
+            return None
+        return "last: %s" % self.last_command
