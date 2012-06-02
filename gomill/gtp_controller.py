@@ -193,7 +193,19 @@ class Gtp_channel(object):
         pass
 
     def retrieve_diagnostics(self):
-        """FIXME"""
+        """FIXME
+
+        (((
+
+        Returns a string (representing raw bytes) or None.
+
+        Doesn't raise GtpTransportError.
+
+        It's safe to call this after the channel has been closed.
+
+        )))
+
+        """
         return None
 
     def send_command_impl(self, command, arguments):
@@ -467,7 +479,14 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
 
 
 def make_subprocess_gtp_channel(command, stderr=None, **kwargs):
-    """FIXME: what's a good name?"""
+    """FIXME
+
+    (Same parameters as Subprocess_gtp_channel instantiation, but can also use
+    'stderr='capture'.)
+
+    (((Returns a Subprocess_gtp_channel or plausible equivalent.)))
+
+    """
     if stderr == "capture":
         from gomill import nonblocking_gtp_controller
         return nonblocking_gtp_controller.Subprocess_gtp_channel(
