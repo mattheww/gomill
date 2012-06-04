@@ -931,7 +931,7 @@ class Game_controller(object):
     Public attributes for reading:
       players             -- map colour -> player code
       engine_descriptions -- map colour -> Engine_description
-
+      gang                -- FIXME (if nonblocking is true)
 
     Methods which send commands to engines will normally propagate
     GtpChannelError if there is trouble communicating with the engine.
@@ -955,6 +955,8 @@ class Game_controller(object):
         self.nonblocking = bool(nonblocking)
         if nonblocking:
             self.gang = set()
+        else:
+            self.gang = None
 
     ## Configuration API
 

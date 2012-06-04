@@ -1140,6 +1140,7 @@ def test_game_controller_set_player_subprocess(tc):
 
     channel1 = msf.get_channel('one')
     channel2 = msf.get_channel('two')
+    tc.assertIsNone(gc.gang)
     tc.assertFalse(channel1.is_nonblocking)
     tc.assertEqual(channel1.engine.commands_handled[0][0], 'name')
     tc.assertIsNone(channel1.requested_env)
@@ -1177,7 +1178,8 @@ def test_game_controller_set_player_subprocess_stderr(tc):
     tc.assertIs(channel1.requested_stderr, fake_file)
     tc.assertTrue(channel2.is_nonblocking)
     tc.assertEqual(channel2.requested_stderr, "capture")
-    tc.assertIs(channel1.requested_gang, channel2.requested_gang)
+    tc.assertIs(channel1.requested_gang, gc.gang)
+    tc.assertIs(channel1.requested_gang, gc.gang)
     gc.close_players()
 
 def test_game_controller_capture_without_nonblocking(tc):
