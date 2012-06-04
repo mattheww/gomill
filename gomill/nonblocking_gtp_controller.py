@@ -11,7 +11,42 @@ def set_nonblocking(fd):
     flags = flags | os.O_NONBLOCK
     fcntl.fcntl(fd, fcntl.F_SETFL, flags)
 
-def _popen(command, **kwargs):
+_readsize = 16384
+
+def _handle_gang_event(gang):
+    to_poll = sum((c.fds_to_poll for c in gang), [])
+    try:
+        r, _, _ = select.select(to_poll, [], [])
+    except select.error, e:
+        raise GtpTransportError(str(e))
+    for c in gang:
+        if c.diagnostic_fd in r:
+            c._handle_diagnostic_data()
+            return
+    for c in gang:
+        if c.response_fd in r:
+            c._handle_response_data()
+            return
+
+
+def _make_noncapturing_subprocess(command, stderr, **kwargs):
+    stdout_r, stdout_w = os.pipe()
+    try:
+        p = subprocess.Popen(
+            command,
+            preexec_fn=permit_sigpipe, close_fds=True,
+            stdin=subprocess.PIPE,
+            stdout=stdout_w, stderr=stderr,
+            **kwargs)
+    except:
+        os.close(stdout_r)
+        raise
+    finally:
+        os.close(stdout_w)
+    set_nonblocking(stdout_r)
+    return p, stdout_r, None
+
+def _make_capturing_subprocess(command, **kwargs):
     stdout_r, stdout_w = os.pipe()
     stderr_r, stderr_w = os.pipe()
     try:
@@ -32,13 +67,12 @@ def _popen(command, **kwargs):
     set_nonblocking(stderr_r)
     return p, stdout_r, stderr_r
 
-_readsize = 16384
-
 class Subprocess_gtp_channel(Linebased_gtp_channel):
     """A GTP channel to a subprocess.
 
     Instantiate with
       command -- list of strings (as for subprocess.Popen)
+      gang    -- set of nonblocking Subprocess_gtp_channels FIXME (optional)
       stderr  -- destination for standard error output (optional)
       cwd     -- working directory to change to (optional)
       env     -- new environment (optional)
@@ -47,27 +81,47 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
     This starts the subprocess and speaks GTP over its standard input and
     output.
 
-    By default, the subprocess's standard error is left as the standard error of
-    the calling process. The 'stderr' parameter is interpreted as for
-    subprocess.Popen (but don't set it to STDOUT or PIPE).
+    By default, the subprocess's standard error is left as the standard error
+    of the calling process. The 'stderr' parameter is interpreted as for
+    subprocess.Popen (but don't set it to STDOUT or PIPE). It can also be
+    "capture", in which case it is made available using retrieve_diagnostics().
 
     The 'cwd' and 'env' parameters are interpreted as for subprocess.Popen.
 
     Closing the channel waits for the subprocess to exit.
 
+    FIXME: explain about gangs.
+
     """
-    def __init__(self, command, cwd=None, env=None):
+    def __init__(self, command, gang=None, stderr=None, cwd=None, env=None):
         Linebased_gtp_channel.__init__(self)
         try:
-            self.subprocess, self.response_fd, self.error_fd = \
-                _popen(command, cwd=cwd, env=env)
+            (self.subprocess, self.response_fd, self.diagnostic_fd) = \
+                self._make_subprocess(command, stderr, cwd=cwd, env=env)
         except EnvironmentError, e:
             raise GtpChannelError(str(e))
         self.command_pipe = self.subprocess.stdin
         self.response_data = ""
         self.seen_eof = False
-        self.error_data = []
-        self.pipes_to_poll = [self.response_fd, self.error_fd]
+        self.seen_error = None
+        self.diagnostic_data = []
+        self.fds_to_poll = [self.response_fd]
+        if self.diagnostic_fd is not None:
+            self.fds_to_poll.append(self.diagnostic_fd)
+        if gang is None:
+            gang = set()
+        gang.add(self)
+        self.gang = gang
+
+    def _make_subprocess(self, command, stderr, **kwargs):
+        if stderr == 'capture':
+            return _make_capturing_subprocess(command, **kwargs)
+        else:
+            if isinstance(stderr, basestring):
+                raise ValueError
+            if isinstance(stderr, (int, long)) and stderr < 0:
+                raise ValueError
+            return _make_noncapturing_subprocess(command, stderr, **kwargs)
 
     def send_command_line(self, command):
         try:
@@ -79,27 +133,31 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             else:
                 raise GtpTransportError(str(e))
 
-    def _handle_event(self):
-        r, _, _ = select.select(self.pipes_to_poll, [], [])
-        if self.error_fd in r:
-            self._handle_error_data()
-        elif self.response_fd in r:
-            self._handle_response_data()
-
     def _handle_response_data(self):
-        s = os.read(self.response_fd, _readsize)
+        try:
+            s = os.read(self.response_fd, _readsize)
+        except EnvironmentError, e:
+            self.seen_error = e
+            self.fds_to_poll.remove(self.response_fd)
+            return
         if s:
             self.response_data += s
         else:
             self.seen_eof = True
-            self.pipes_to_poll.remove(self.response_fd)
+            self.fds_to_poll.remove(self.response_fd)
 
-    def _handle_error_data(self):
-        s = os.read(self.error_fd, _readsize)
+    def _handle_diagnostic_data(self):
+        try:
+            s = os.read(self.diagnostic_fd, _readsize)
+        except EnvironmentError, e:
+            self.diagnostic_data.append(
+                "\n[error reading from stderr: %s]" % e)
+            self.fds_to_poll.remove(self.diagnostic_fd)
+            return
         if s:
-            self.error_data.append(s)
+            self.diagnostic_data.append(s)
         else:
-            self.pipes_to_poll.remove(self.error_fd)
+            self.fds_to_poll.remove(self.diagnostic_fd)
 
     def get_response_line(self):
         while True:
@@ -109,11 +167,12 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
                 self.response_data = self.response_data[i+1:]
                 return line
             if self.seen_eof:
-                return self.response_data
-            try:
-                self._handle_event()
-            except EnvironmentError, e:
-                raise GtpTransportError(str(e))
+                line = self.response_data
+                self.response_data = ""
+                return line
+            if self.seen_error is not None:
+                raise GtpTransportError(self.seen_error)
+            _handle_gang_event(self.gang)
 
     def get_response_byte(self):
         while True:
@@ -123,16 +182,16 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
                 return byte
             if self.seen_eof:
                 return ""
-            try:
-                self._handle_event()
-            except EnvironmentError, e:
-                raise GtpTransportError(str(e))
+            if self.seen_error is not None:
+                raise GtpTransportError(self.seen_error)
+            _handle_gang_event(self.gang)
 
     def close(self):
         # Errors from closing pipes or wait4() are unlikely, but possible.
 
         # Ideally would give up waiting after a while and forcibly terminate the
         # subprocess.
+        self.gang.remove(self)
         errors = []
         try:
             self.command_pipe.close()
@@ -142,12 +201,11 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             os.close(self.response_fd)
         except EnvironmentError, e:
             errors.append("error closing response pipe:\n%s" % e)
-            errors.append(str(e))
-        try:
-            os.close(self.error_fd)
-        except EnvironmentError, e:
-            errors.append("error closing stderr pipe:\n%s" % e)
-            errors.append(str(e))
+        if self.diagnostic_fd is not None:
+            try:
+                os.close(self.diagnostic_fd)
+            except EnvironmentError, e:
+                errors.append("error closing stderr pipe:\n%s" % e)
         try:
             # We don't really care about the exit status, but we do want to be
             # sure it isn't still running.
@@ -164,11 +222,11 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
     def retrieve_diagnostics(self):
         """FIXME
 
-        FIXME: Explain that this is up-to-date as of the last call to
-        get_reponse_...().
+        FIXME: Explain up-to-date-ness rule.
 
         """
-        result = "".join(self.error_data)
-        self.error_data = []
+        # FIXME: improve?
+        result = "".join(self.diagnostic_data)
+        self.diagnostic_data = []
         return result or None
 

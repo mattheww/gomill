@@ -186,9 +186,13 @@ class Game_job(object):
 
         """
         self._files_to_close = []
+        self._game_controller_to_close = None
         try:
             return self._run()
         finally:
+            if self._game_controller_to_close is not None:
+                # This is safe to call more than once
+                self._game_controller_to_close.close_players()
             # These files are all either flushed after every write, or not
             # written to at all from this process, so there shouldn't be any
             # errors from close().
@@ -233,9 +237,11 @@ class Game_job(object):
     def _run(self):
         warnings = []
         log_entries = []
+        needs_nonblocking = 'capture' in (
+            self.player_b.stderr_to, self.player_w.stderr_to)
         try:
             game_controller = gtp_controller.Game_controller(
-                self.player_b.code, self.player_w.code)
+                self.player_b.code, self.player_w.code, needs_nonblocking)
             game = gtp_games.Gtp_game(
                 game_controller, self.board_size, self.komi, self.move_limit)
             game.set_game_id(self.game_id)
@@ -250,6 +256,7 @@ class Game_job(object):
         else:
             gtp_log_file = None
 
+        self._game_controller_to_close = game_controller
         try:
             self._start_player(game_controller, game,
                                'b', self.player_b, gtp_log_file)

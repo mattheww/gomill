@@ -1,0 +1,201 @@
+#!/usr/bin/env python
+"""GTP controller for error testing.
+
+This is a simplified 'twogtp' with some error-injection features.
+
+"""
+
+import os
+import shlex
+import sys
+from optparse import OptionParser, SUPPRESS_HELP
+
+from gomill import __version__
+from gomill import gtp_controller
+from gomill import gtp_games
+from gomill import nonblocking_gtp_controller
+from gomill.gtp_controller import GtpChannelError, BadGtpResponse
+from gomill.common import format_vertex
+
+def _fake_stdout_failing_state(channel):
+    fd = os.open("/tmp", os.O_RDONLY)
+    os.dup2(fd, channel.response_fd)
+    os.close(fd)
+
+def _fake_stderr_failing_state(channel):
+    assert channel.diagnostic_fd is not None
+    fd = os.open("/tmp", os.O_RDONLY)
+    os.dup2(fd, channel.diagnostic_fd)
+    os.close(fd)
+
+class Tnsgp(nonblocking_gtp_controller.Subprocess_gtp_channel):
+    def _set_triggers(self, message, action):
+        self._triggered = False
+        self._trigger_message = message
+        self._trigger_action = action
+
+    def _handle_diagnostic_data(self):
+        result = super(Tnsgp, self)._handle_diagnostic_data()
+        if (not self._triggered and
+            self._trigger_message and
+            self._trigger_message in self._peek_diagnostics()):
+            self._triggered = True
+            self._trigger()
+        return result
+
+    def _trigger(self):
+        if self._trigger_action == 'stdout-errors':
+            _fake_stdout_failing_state(self)
+        elif self._trigger_action == 'stderr-errors':
+            _fake_stderr_failing_state(self)
+        elif self._trigger_action == 'kill':
+            self.subprocess.kill()
+        elif self._trigger_action == 'opponent-stdout-errors':
+            for c in self.gang:
+                if c != self:
+                    _fake_stdout_failing_state(c)
+        elif self._trigger_action == 'opponent-stderr-errors':
+            for c in self.gang:
+                if c != self:
+                    _fake_stderr_failing_state(c)
+        elif self._trigger_action == 'opponent-kill':
+            for c in self.gang:
+                if c != self:
+                    c.subprocess.kill()
+
+    def _peek_diagnostics(self):
+        return "".join(self.diagnostic_data)
+
+
+def list_fds():
+    """Describe open fds from this process.
+
+    Returns a list of pairs (fd, target)
+
+    target is a string (filename or pipe description, from /proc/self/fd)
+
+    Won't include stdin, stdout, or stderr.
+
+    """
+    result = []
+    for filename in os.listdir("/proc/self/fd"):
+        try:
+            fd = int(filename)
+        except ValueError:
+            continue
+        if fd <= 2:
+            continue
+        try:
+            link = os.readlink(os.path.join("/proc/self/fd", filename))
+        except EnvironmentError:
+            continue
+        result.append((fd, link))
+    result.sort()
+    return result
+
+def clean_up(game_controller):
+    game_controller.close_players()
+    for colour in 'b', 'w':
+        try:
+            diag = game_controller.get_controller(colour)\
+                   .channel.retrieve_diagnostics()
+        except KeyError:
+            pass
+        else:
+            if diag:
+                print "%s says:\n%s" % (colour, diag)
+    late_error_messages = game_controller.describe_late_errors()
+    if late_error_messages:
+        print "late errors:"
+        print late_error_messages
+    open_fds = list_fds()
+    if open_fds:
+        print "unclosed fds"
+        for fd, target in open_fds:
+            print "%2d %s" % (fd, target)
+
+def main():
+    parser = OptionParser()
+    parser.add_option("--black", type="str", default="")
+    parser.add_option("--white", type="str", default="")
+    parser.add_option("--size", type="int", default=9)
+    parser.add_option("--games", type="int", default=1)
+    parser.add_option("--capture-stderr", type="choice", default="",
+                      choices=('', 'b', 'w', 'bw', 'wb'))
+    parser.add_option("--trigger-colour", type="choice", default=None,
+                      choices=('b', 'w'))
+    parser.add_option("--trigger-message", type="str", default=None)
+    parser.add_option("--trigger-action", type="choice", default=None,
+                      choices=('stdout-errors', 'opponent-stdout-errors',
+                               'stderr-errors', 'opponent-stderr-errors',
+                               'kill', 'opponent-kill'))
+
+    (options, args) = parser.parse_args()
+    if args:
+        parser.error("too many arguments")
+
+    base_command = [
+        "gomill_process_tests/gtp_test_player",
+        "--seed=3",
+        "--move-limit=4",
+        ]
+    black_command = base_command + shlex.split(options.black)
+    white_command = base_command + shlex.split(options.white)
+    b_code = 'black'
+    w_code = 'white'
+    b_stderr = 'capture' if 'b' in options.capture_stderr else None
+    w_stderr = 'capture' if 'w' in options.capture_stderr else None
+
+    game_controller = gtp_controller.Game_controller(
+        b_code, w_code, nonblocking=bool(options.capture_stderr))
+    try:
+        game_controller.set_player_subprocess(
+            'b', black_command, stderr=b_stderr)
+        game_controller.set_player_subprocess(
+            'w', white_command, stderr=w_stderr)
+    except GtpChannelError, e:
+        clean_up(game_controller)
+        print "error creating players:\n%s\n" % e
+        sys.exit(1)
+
+    if options.trigger_colour:
+        trigger_channel = (game_controller.
+                           get_controller(options.trigger_colour).channel)
+        assert (trigger_channel.__class__ is
+                nonblocking_gtp_controller.Subprocess_gtp_channel)
+        trigger_channel.__class__ = Tnsgp
+        trigger_channel._set_triggers(
+            options.trigger_message, options.trigger_action)
+
+    for game_number in xrange(options.games):
+        if options.games > 1:
+            print "game %d" % game_number
+        game = gtp_games.Gtp_game(
+            game_controller,
+            board_size=options.size,
+            move_limit=30)
+
+        game.use_internal_scorer()
+
+        try:
+            game.prepare()
+            game.run()
+        except (GtpChannelError, BadGtpResponse), e:
+            print "aborting run due to error:\n%s\n" % e
+            break
+        finally:
+            for colour, move, comment in game.get_moves():
+                s = comment.strip() if comment is not None else "--"
+                print colour, format_vertex(move), s
+            diag = game.get_final_diagnostics()
+            if diag:
+                print "final:", diag
+
+        print game.result.describe()
+        print
+
+    clean_up(game_controller)
+
+if __name__ == "__main__":
+    main()
+

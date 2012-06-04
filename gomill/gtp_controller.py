@@ -183,8 +183,9 @@ class Gtp_channel(object):
         Channel implementations may use this to clean up resources associated
         with the engine (eg, to terminate a subprocess).
 
-        Raises GtpTransportError if a serious error is detected while doing this
-        (this is unlikely in practice).
+        Raises GtpTransportError if a serious error is detected while doing
+        this (this is unlikely in practice). The channel should still be
+        considered closed if this happens.
 
         When it is meaningful (eg, for subprocess channels) this waits for the
         engine to exit. Nonzero exit status is not considered a serious error.
@@ -416,6 +417,8 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
     def __init__(self, command, stderr=None, cwd=None, env=None):
         if isinstance(stderr, (int, long)) and stderr < 0:
             raise ValueError
+        if isinstance(stderr, basestring):
+            raise ValueError
         Linebased_gtp_channel.__init__(self)
         try:
             p = subprocess.Popen(
@@ -465,7 +468,6 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             self.response_pipe.close()
         except EnvironmentError, e:
             errors.append("error closing response pipe:\n%s" % e)
-            errors.append(str(e))
         try:
             # We don't really care about the exit status, but we do want to be
             # sure it isn't still running.
@@ -478,23 +480,6 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             errors.append(str(e))
         if errors:
             raise GtpTransportError("\n".join(errors))
-
-
-def make_subprocess_gtp_channel(command, stderr=None, **kwargs):
-    """FIXME
-
-    (Same parameters as Subprocess_gtp_channel instantiation, but can also use
-     stderr='capture'.)
-
-    (((Returns a Subprocess_gtp_channel or plausible equivalent.)))
-
-    """
-    if stderr == "capture":
-        from gomill import nonblocking_gtp_controller
-        return nonblocking_gtp_controller.Subprocess_gtp_channel(
-            command, **kwargs)
-    else:
-        return Subprocess_gtp_channel(command, stderr=stderr, **kwargs)
 
 
 class Gtp_controller(object):
@@ -690,10 +675,11 @@ class Gtp_controller(object):
     def close(self):
         """Close the communication channel to the engine.
 
-        May propagate GtpTransportError.
+        May propagate GtpTransportError; the channel is still considered closed
+        if it does.
 
-        Unless you have a good reason, you should send 'quit' before closing the
-        connection (eg, by using safe_close() instead of close()).
+        Unless you have a good reason, you should send 'quit' before closing
+        the connection (eg, by using safe_close() instead of close()).
 
         When it is meaningful (eg, for subprocess channels) this waits for the
         engine to exit. Nonzero exit status is not considered an error.
@@ -704,9 +690,9 @@ class Gtp_controller(object):
         try:
             self.channel.close()
         except GtpTransportError, e:
-            raise GtpTransportError(
-                "error closing %s:\n%s" % (self.name, e))
-        self.channel_is_closed = True
+            raise GtpTransportError("error closing %s:\n%s" % (self.name, e))
+        finally:
+            self.channel_is_closed = True
 
     def safe_do_command(self, command, *arguments):
         """Variant of do_command which sets low-level exceptions aside.
@@ -773,7 +759,8 @@ class Gtp_controller(object):
             self.channel.close()
         except GtpTransportError, e:
             self.errors_seen.append("error closing %s:\n%s" % (self.name, e))
-        self.channel_is_closed = True
+        finally:
+            self.channel_is_closed = True
 
     def retrieve_error_messages(self):
         """Return error messages which have been set aside by 'safe' commands.
@@ -921,6 +908,7 @@ class Game_controller(object):
     """Manage a pair of GTP controllers representing game players.
 
     Instantiate with the player codes for black and white.
+    FIXME: nonblocking
 
     The player codes are short ascii strings, used to name the players in error
     messages and anywhere else the Game_controller's client wants. The two
@@ -956,7 +944,7 @@ class Game_controller(object):
     to see how low-level errors are then indicated.
 
     """
-    def __init__(self, player_b_code, player_w_code):
+    def __init__(self, player_b_code, player_w_code, nonblocking=False):
         if player_b_code == player_w_code:
             raise ValueError("player codes must be distinct")
         self.players = {'b' : player_b_code, 'w' : player_w_code}
@@ -964,6 +952,9 @@ class Game_controller(object):
         self.late_errors = []
         self.engine_descriptions = {'b' : None, 'w' : None}
         self.in_cautious_mode = False
+        self.nonblocking = bool(nonblocking)
+        if nonblocking:
+            self.gang = set()
 
     ## Configuration API
 
@@ -1000,8 +991,9 @@ class Game_controller(object):
         command                -- list of strings (as for subprocess.Popen)
         check_protocol_version -- bool (default True)
 
-        Any additional keyword arguments are passed to
-        make_subprocess_gtp_channel().
+        Any additional keyword arguments are passed to Subprocess_gtp_channel
+        (FIXME: or the nonblocking one). (((Note this means you can use
+        stderr='capture' iff you chose nonblocking.)))
 
         Creates a Gtp_controller, named 'player <player code>'.
 
@@ -1018,7 +1010,12 @@ class Game_controller(object):
         """
         player_code = self.players[colour]
         try:
-            channel = make_subprocess_gtp_channel(command, **kwargs)
+            if self.nonblocking:
+                from gomill import nonblocking_gtp_controller
+                channel = nonblocking_gtp_controller.Subprocess_gtp_channel(
+                    command, gang=self.gang, **kwargs)
+            else:
+                channel = Subprocess_gtp_channel(command, **kwargs)
         except GtpChannelError, e:
             raise GtpChannelError(
                 "error starting subprocess for player %s:\n%s" %
@@ -1117,13 +1114,19 @@ class Game_controller(object):
 
         Sends "quit"; always communicates cautiously.
 
+        It's safe to call this if you've seen a GtpChannelError (and you should
+        still do so).
+
+        It's safe to call this more than once.
+
         """
         for colour in ("b", "w"):
             controller = self.controllers.get(colour)
             if controller is None:
                 continue
-            controller.safe_close()
-            self.late_errors += controller.retrieve_error_messages()
+            if not controller.channel_is_closed:
+                controller.safe_close()
+                self.late_errors += controller.retrieve_error_messages()
 
     def describe_late_errors(self):
         """Retrieve the late error messages.

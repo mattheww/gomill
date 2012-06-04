@@ -322,7 +322,13 @@ class Mock_subprocess_gtp_channel(
     callback_registry = {}
     channels = {}
 
+    is_nonblocking = False
+
     def __init__(self, command, stderr=None, cwd=None, env=None):
+        if not self.is_nonblocking and isinstance(stderr, basestring):
+            raise SupporterError(
+                "stderr '%s' requested for blocking channel" % stderr)
+
         self.requested_command = command
         self.requested_stderr = stderr
         self.requested_cwd = cwd
@@ -377,9 +383,12 @@ class Mock_subprocess_gtp_channel(
             ru_utime=fake_time, ru_stime=0.2)
 
 class Mock_nonblocking_subprocess_gtp_channel(Mock_subprocess_gtp_channel):
-    def __init__(self, command, cwd=None, env=None):
-        Mock_subprocess_gtp_channel.__init__(self, command, cwd=cwd, env=env)
-        self.requested_stderr = "[nonblocking]"
+    is_nonblocking = True
+
+    def __init__(self, command, gang=None, stderr=None, cwd=None, env=None):
+        self.requested_gang = gang
+        Mock_subprocess_gtp_channel.__init__(
+            self, command, stderr=stderr, cwd=cwd, env=env)
 
 
 class Mock_subprocess_fixture(object):

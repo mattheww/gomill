@@ -59,7 +59,7 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
 
     Public attributes:
       engine       -- the engine it was instantiated with
-      is_closed    -- bool (closed() has been called without a forced error)
+      is_closed    -- bool (closed() has been called, maybe with forced error)
       last_command -- last command line, or None
 
     This raises an error if sent two commands without requesting a response in
@@ -140,9 +140,9 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         return line + "\n"
 
     def close(self):
+        self.is_closed = True
         if self.fail_close:
             raise GtpTransportError("forced failure for close")
-        self.is_closed = True
 
     def retrieve_diagnostics(self):
         if not self.chatty:

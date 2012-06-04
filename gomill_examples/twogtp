@@ -64,7 +64,8 @@ def main():
     b_stderr = 'capture' if 'b' in options.capture_stderr else None
     w_stderr = 'capture' if 'w' in options.capture_stderr else None
 
-    game_controller = gtp_controller.Game_controller(b_code, w_code)
+    game_controller = gtp_controller.Game_controller(
+        b_code, w_code, nonblocking=bool(options.capture_stderr))
     try:
         game_controller.set_player_subprocess(
             'b', black_command, stderr=b_stderr)

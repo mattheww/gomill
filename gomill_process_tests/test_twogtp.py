@@ -13,8 +13,8 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
-from operator import itemgetter
 
 from gomill import __version__
 
@@ -25,12 +25,7 @@ class Test(object):
         self.__dict__.update(kwargs)
 
     def expected_sgf(self):
-        sgf = self.sgf
-        if "###" in sgf:
-            msg = (16385 * "x" + "|") * 10
-            sgf = sgf.replace("###", msg)
-        sgf = sgf.replace("\n", "")
-        return sgf
+        return self.sgf.replace("\n", "")
 
 tests = [
 
@@ -189,26 +184,22 @@ W[ei])
 ),
 
 Test(
-code="stderr-large",
+code="dies",
 command="""
 gomill_examples/twogtp
---black='gomill_process_tests/gtp_test_player --seed=3 --copious-stderr'
+--black='gomill_process_tests/gtp_test_player --seed=3
+                                              --move-limit=2 --exit-uncleanly'
 --white='gomill_process_tests/gtp_test_player --seed=3'
 --size=9
---capture-stderr=b
 --sgfbase=%(sgfbase)s
 """,
 output="""\
-gomill_process_tests/gtp_test_player-w beat gomill_process_tests/gtp_test_player-b W+R
+aborting run due to error:
+error reading response to 'genmove b' from player gomill_process_tests/gtp_test_player-b:
+engine has closed the response channel
+
 """,
-sgf="""
-(;FF[4]AP[Gomill twogtp:VER]CA[UTF-8]DT[***]GM[1]KM[7.5]PB[GTP test player]
-PW[GTP test player]RE[W+R]SZ[9];B[ie]C[###];W[he];B[ed]C[###];
-W[fd];B[fi]C[###];
-C[final message from b: <<<###>>>
-gomill_process_tests/gtp_test_player-w beat gomill_process_tests/gtp_test_player-b W+R]
-W[ei])
-"""
+exit_status=1,
 ),
 
 ]
@@ -247,7 +238,7 @@ def testrun(test, sandbox_dir):
         passed = False
         print "BAD EXIT STATUS"
         print status
-    if test.sgf:
+    if test.sgf and (passed or status == 0):
         sgf_written = open("%s/%s000.sgf" % (sandbox_dir, test.code)).read()
         if scrub_sgf(sgf_written) != test.expected_sgf():
             passed = False
@@ -259,20 +250,29 @@ def testrun(test, sandbox_dir):
     else:
         print "TEST FAILED"
 
-#SKIP = set(['gnugo', 'verbose-1'])
-SKIP = set()
-
-def main():
+def run(include, skip):
     dirname = tempfile.mkdtemp(prefix='test_twogtp')
     try:
         for test in tests:
-            if test.code in SKIP:
+            if test.code in skip or (include and test.code not in include):
                 print "## %s: SKIP" % test.code
                 continue
             testrun(test, dirname)
     finally:
         shutil.rmtree(dirname)
 
+SLOW = set(['gnugo', 'verbose-1'])
+
+def main(argv):
+    skip = set()
+    include = None
+    if len(argv) > 0:
+        if argv[0] == "--quick":
+            skip = SLOW
+        else:
+            include = set(argv)
+    run(include, skip)
+
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
 

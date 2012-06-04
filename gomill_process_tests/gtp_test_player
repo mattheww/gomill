@@ -19,15 +19,17 @@ gomill-delayed_error causes a later genmove command to produce an error. This
 will happen the first time genmove is called for the move 'move_number' or
 later, counting from the start of the game.
 
-[[This is a variant of gtp_test_player from gomill_examples, from before I
-removed gtp_states from it, with added command-line stuff which I think is
-unenlightening in the example.]]
+[[This is a bit like gtp_test_player from gomill_examples, but it uses
+gtp_states and has lots of command-line stuff for provoking error behaviour.]]
 
 """
 
+import errno
+import fcntl
 import os
 import random
 import sys
+import threading
 import time
 from optparse import OptionParser
 
@@ -36,17 +38,70 @@ from gomill import gtp_states
 from gomill.gtp_engine import GtpError, GtpFatalError, GtpQuit
 
 
+def set_nonblocking(fd):
+    """Set a file descriptor to nonblocking mode."""
+    flags = fcntl.fcntl(fd, fcntl.F_GETFL, 0)
+    flags = flags | os.O_NONBLOCK
+    fcntl.fcntl(fd, fcntl.F_SETFL, flags)
+
+def set_blocking(fd):
+    """Set a file descriptor to blocking mode."""
+    flags = fcntl.fcntl(fd, fcntl.F_GETFL, 0)
+    flags = flags & ~os.O_NONBLOCK
+    fcntl.fcntl(fd, fcntl.F_SETFL, flags)
+
+class Ponderer(threading.Thread):
+
+    def run(self):
+        set_nonblocking(2)
+        time.sleep(0.25)
+        msg = "x" * 3072 + "|"
+        # On linux, 16 writes of over 2k should fill the pipe's buffer.
+        # So if we don't block, something is reading from the pipe.
+        # These should all be written in half a second.
+        for i in xrange(50):
+            try:
+                os.write(2, msg)
+            except EnvironmentError, e:
+                if e.errno in (errno.EAGAIN, errno.EWOULDBLOCK):
+                    set_blocking(2)
+                    os.write(2, "BLOCKED!")
+                    # stop producing output
+                    return
+                raise
+            time.sleep(0.01)
+
+
 def fail_handler(args):
     raise GtpError("forced to fail from command line")
 
 class Test_player(object):
-    """GTP test player used with gtp_state."""
+    """GTP test player used with gtp_state.
+
+    If exit_uncleanly is set, exits (with nonzero exit status) without
+    returning a response when it's sent quit.
+
+    """
     def __init__(self):
         self.delayed_error_move = None
         self.delayed_error_args = None
         self.seen_quit = False
         self.chat_stderr = False
         self.copious_stderr = False
+        self.fake_ponder = False
+        self.close_stderr = False
+        self.stderr_closed = False
+        self.move_limit = None
+        self.ignore_broken_stderr_pipe = False
+
+    def chat(self, msg):
+        if self.stderr_closed:
+            return
+        try:
+            sys.stderr.write(msg)
+        except EnvironmentError, e:
+            if e.errno != errno.EPIPE or not self.ignore_broken_stderr_pipe:
+                raise
 
     def genmove(self, game_state, player):
         """Move generator function.
@@ -57,25 +112,48 @@ class Test_player(object):
         This honours gomill-delayed_error, and otherwise chooses a random empty
         point (which may be an illegal move).
 
-        Resigns with probability 0.1
+        Resigns when the move_limit is reached, or with probability 0.1 if
+        move_limit isn't set.
+
+        If exit_uncleanly is set, exits (with nonzero exit status, without
+        returning a response) when the move limit is reached.
 
         """
+        move_count = len(game_state.move_history)
+
         if self.chat_stderr:
-            print >>sys.stderr, "genmove: %s" % len(game_state.move_history)
+            self.chat("genmove: %s\n" % move_count)
         elif self.copious_stderr:
             for i in range(10):
                 msg = 16385 * "x" + "\n" + "|"
                 time.sleep(0.05)
-                sys.stderr.write(msg)
+                self.chat(msg)
+
+        if self.fake_ponder:
+            self.fake_ponder = False
+            Ponderer().start()
+
+        if self.close_stderr and not self.stderr_closed:
+            self.stderr_closed = True
+            os.close(2)
 
         if (self.delayed_error_move and
-            len(game_state.move_history) >= self.delayed_error_move-1):
+            move_count >= self.delayed_error_move-1):
             self.delayed_error_move = None
             self.handle_force_error(self.delayed_error_args)
 
+        if self.move_sleep:
+            time.sleep(self.move_sleep)
+
         result = gtp_states.Move_generator_result()
 
-        if random.random() < 0.1:
+        if self.move_limit is not None and move_count >= self.move_limit:
+            if self.exit_uncleanly:
+                os.kill(os.getpid(), 15)
+            result.resign = True
+            return result
+
+        if self.move_limit is None and random.random() < 0.1:
             result.resign = True
             return result
 
@@ -119,6 +197,8 @@ class Test_player(object):
         self.delayed_error_args = args[1:]
 
     def handle_quit(self, args):
+        if self.exit_uncleanly:
+            os.kill(os.getpid(), 15)
         self.seen_quit = True
         raise GtpQuit
 
@@ -155,6 +235,12 @@ def main():
                       help="force a specified gtp command to fail")
     parser.add_option("--chat-stderr", action="store_true")
     parser.add_option("--copious-stderr", action="store_true")
+    parser.add_option("--fake-ponder", action="store_true")
+    parser.add_option("--close-stderr", action="store_true")
+    parser.add_option("--move-sleep", type="float")
+    parser.add_option("--move-limit", type="int")
+    parser.add_option("--exit-uncleanly", action="store_true")
+    parser.add_option("--ignore-broken-stderr-pipe", action="store_true")
     parser.add_option("--seed", type="int")
     (options, args) = parser.parse_args()
     if args:
@@ -165,10 +251,15 @@ def main():
 
     try:
         test_player = Test_player()
-        if options.chat_stderr:
-            test_player.chat_stderr = True
-        if options.copious_stderr:
-            test_player.copious_stderr = True
+        test_player.chat_stderr = options.chat_stderr
+        test_player.copious_stderr = options.copious_stderr
+        test_player.close_stderr = options.close_stderr
+        test_player.fake_ponder = options.fake_ponder
+        test_player.move_sleep = options.move_sleep
+        test_player.move_limit = options.move_limit
+        test_player.exit_uncleanly = options.exit_uncleanly
+        test_player.ignore_broken_stderr_pipe = \
+            options.ignore_broken_stderr_pipe
         engine = make_engine(test_player)
         if options.fail_command:
             engine.add_command(options.fail_command, fail_handler)
@@ -176,7 +267,7 @@ def main():
     except (KeyboardInterrupt, gtp_engine.ControllerDisconnected):
         sys.exit(1)
     if not test_player.seen_quit:
-        sys.stderr.write("gtp_test_player terminated without quit command\n")
+        test_player.chat("gtp_test_player terminated without quit command\n")
 
 if __name__ == "__main__":
     main()

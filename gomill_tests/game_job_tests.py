@@ -147,9 +147,11 @@ def test_game_job(tc):
     tc.assertIsNone(result.engine_descriptions['b'].get_short_description())
     tc.assertIsNone(result.engine_descriptions['w'].get_short_description())
     channel = fx.get_channel('one')
+    tc.assertFalse(channel.is_nonblocking)
     tc.assertIsNone(channel.requested_stderr)
     tc.assertIsNone(channel.requested_cwd)
     tc.assertIsNone(channel.requested_env)
+    tc.assertTrue(channel.is_closed)
     tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
     tc.assertIsNone(fx.job._mkdir_pathname)
     tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
@@ -217,6 +219,8 @@ def test_game_job_forfeit_and_quit(tc):
         result.log_entries,
         ["error sending 'known_command gomill-explain_last_move' to player two:\n"
          "engine has closed the command channel"])
+    tc.assertTrue(fx.get_channel('one').is_closed)
+    tc.assertTrue(fx.get_channel('two').is_closed)
     tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
 
 def test_game_job_exec_failure(tc):
@@ -242,6 +246,8 @@ def test_game_job_channel_error(tc):
                    "aborting game due to error:\n"
                    "transport error sending 'genmove w' to player two:\n"
                    "forced failure for send_command_line")
+    tc.assertTrue(fx.get_channel('one').is_closed)
+    tc.assertTrue(fx.get_channel('two').is_closed)
     tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.void/gjtest.sgf')
     tc.assertEqual(fx.job._mkdir_pathname, '/sgf/test.void')
     tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
@@ -267,6 +273,8 @@ def test_game_job_late_errors(tc):
     tc.assertEqual(result.warnings, [])
     tc.assertEqual(result.log_entries,
                    ["error closing player two:\nforced failure for close"])
+    tc.assertTrue(fx.get_channel('one').is_closed)
+    tc.assertTrue(fx.get_channel('two').is_closed)
     tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
     (;FF[4]AP[gomill:VER]
     C[Game id gameid
@@ -301,6 +309,8 @@ def test_game_job_late_error_from_void_game(tc):
         "also:\n"
         "error closing player two:\n"
         "forced failure for close")
+    tc.assertTrue(fx.get_channel('one').is_closed)
+    tc.assertTrue(fx.get_channel('two').is_closed)
     tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.void/gjtest.sgf')
     tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
     (;FF[4]AP[gomill:VER]
@@ -324,6 +334,7 @@ def test_game_job_cwd_env(tc):
     fx.job.player_b.environ = {'GOMILL_TEST' : 'gomill'}
     result = fx.job.run()
     channel = fx.get_channel('one')
+    tc.assertFalse(channel.is_nonblocking)
     tc.assertIsNone(channel.requested_stderr)
     tc.assertEqual(channel.requested_cwd, "/nonexistent_directory")
     tc.assertEqual(channel.requested_env['GOMILL_TEST'], 'gomill')
@@ -336,6 +347,7 @@ def test_game_job_stderr_discarded(tc):
     fx.job.player_b.stderr_to = 'discard'
     result = fx.job.run()
     channel = fx.get_channel('one')
+    tc.assertFalse(channel.is_nonblocking)
     tc.assertIsInstance(channel.requested_stderr, file)
     tc.assertEqual(channel.requested_stderr.name, os.devnull)
 
@@ -343,14 +355,19 @@ def test_game_job_stderr_captured(tc):
     fx = Game_job_fixture(tc)
     fx.job.player_b.stderr_to = 'capture'
     result = fx.job.run()
-    channel = fx.get_channel('one')
-    tc.assertEqual(channel.requested_stderr, "[nonblocking]")
+    channel1 = fx.get_channel('one')
+    tc.assertTrue(channel1.is_nonblocking)
+    tc.assertEqual(channel1.requested_stderr, "capture")
+    channel2 = fx.get_channel('two')
+    tc.assertTrue(channel2.is_nonblocking)
+    tc.assertIsNone(channel2.requested_stderr)
 
 def test_game_job_stderr_set(tc):
     fx = Game_job_fixture(tc)
     fx.job.stderr_pathname = "/dev/full"
     result = fx.job.run()
     channel = fx.get_channel('one')
+    tc.assertFalse(channel.is_nonblocking)
     tc.assertIsInstance(channel.requested_stderr, file)
     tc.assertEqual(channel.requested_stderr.name, "/dev/full")
 
@@ -360,6 +377,7 @@ def test_game_job_stderr_set_and_discarded(tc):
     fx.job.player_b.stderr_to = 'discard'
     result = fx.job.run()
     channel = fx.get_channel('one')
+    tc.assertFalse(channel.is_nonblocking)
     tc.assertIsInstance(channel.requested_stderr, file)
     tc.assertEqual(channel.requested_stderr.name, os.devnull)
 
@@ -368,8 +386,13 @@ def test_game_job_stderr_set_and_captured(tc):
     fx.job.stderr_pathname = "/dev/full"
     fx.job.player_b.stderr_to = 'capture'
     result = fx.job.run()
-    channel = fx.get_channel('one')
-    tc.assertEqual(channel.requested_stderr, "[nonblocking]")
+    channel1 = fx.get_channel('one')
+    tc.assertTrue(channel1.is_nonblocking)
+    tc.assertEqual(channel1.requested_stderr, "capture")
+    channel2 = fx.get_channel('two')
+    tc.assertTrue(channel2.is_nonblocking)
+    tc.assertIsInstance(channel2.requested_stderr, file)
+    tc.assertEqual(channel2.requested_stderr.name, "/dev/full")
 
 def test_game_job_gtp_aliases(tc):
     fx = Game_job_fixture(tc)
@@ -473,6 +496,8 @@ def test_game_job_startup_gtp_commands_error(tc):
         "aborting game due to error:\n"
         "failure response from 'failplease' to player two:\n"
         "handler forced to fail")
+    tc.assertTrue(fx.get_channel('one').is_closed)
+    tc.assertTrue(fx.get_channel('two').is_closed)
 
 def test_game_job_players_score(tc):
     clog = []
@@ -626,6 +651,15 @@ def test_game_job_explain_final_move_zero_move_game(tc):
           "final message from b: <<<\nEX1\n>>>\n\n"
           "two beat one W+R",
         ])
+
+def test_game_job_unhandled_error(tc):
+    # Check that we close the channels if there's an unhandled error
+    fx = Game_job_fixture(tc)
+    fx.job.handicap = 2.5
+    with tc.assertRaises(TypeError):
+        fx.job.run()
+    tc.assertTrue(fx.get_channel('one').is_closed)
+    tc.assertTrue(fx.get_channel('two').is_closed)
 
 
 ### check_player

@@ -767,6 +767,7 @@ def test_subprocess_channel_nb(tc):
     fx = gtp_engine_fixtures.State_reporter_fixture(tc)
     channel = nonblocking_gtp_controller.Subprocess_gtp_channel(
         fx.cmd + ["--extra-stderr"],
+        stderr='capture',
         env={'GOMILL_TEST' : "from_gtp_controller_tests"},
         cwd="/")
     tc.assertIsNone(channel.exit_status)
@@ -884,6 +885,24 @@ def test_game_controller_partial_close(tc):
     gc2.close_players()
     tc.assertIsNone(gc2.describe_late_errors())
     tc.assertIs(controller.channel_is_closed, True)
+
+def test_game_controller_repeated_close(tc):
+    channel1 = gtp_engine_fixtures.get_test_channel()
+    channel1.fail_close = True
+    controller1 = Gtp_controller(channel1, 'player one')
+    channel2 = gtp_engine_fixtures.get_test_channel()
+    controller2 = Gtp_controller(channel2, 'player two')
+    gc = gtp_controller.Game_controller('one', 'two')
+    gc.set_player_controller('b', controller1)
+    gc.set_player_controller('w', controller2)
+    gc.close_players()
+    tc.assertEqual(gc.describe_late_errors(),
+                   "error closing player one:\n"
+                   "forced failure for close")
+    gc.close_players()
+    tc.assertEqual(gc.describe_late_errors(),
+                   "error closing player one:\n"
+                   "forced failure for close")
 
 def test_game_controller_engine_descriptions(tc):
     channel1 = gtp_engine_fixtures.get_test_channel()
@@ -1121,8 +1140,10 @@ def test_game_controller_set_player_subprocess(tc):
 
     channel1 = msf.get_channel('one')
     channel2 = msf.get_channel('two')
+    tc.assertFalse(channel1.is_nonblocking)
     tc.assertEqual(channel1.engine.commands_handled[0][0], 'name')
     tc.assertIsNone(channel1.requested_env)
+    tc.assertFalse(channel2.is_nonblocking)
     tc.assertEqual(channel2.engine.commands_handled[0][0], 'protocol_version')
     tc.assertEqual(channel2.requested_env, {'a': 'b'})
 
@@ -1147,11 +1168,20 @@ def test_game_controller_set_player_subprocess_stderr(tc):
     fake_file = object()
     msf = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
     engine = gtp_engine_fixtures.get_test_engine()
-    gc = gtp_controller.Game_controller('one', 'two')
+    gc = gtp_controller.Game_controller('one', 'two', nonblocking=True)
     gc.set_player_subprocess('b', ['testb', 'id=one'], stderr=fake_file)
     gc.set_player_subprocess('w', ['testw', 'id=two'], stderr="capture")
     channel1 = msf.get_channel('one')
     channel2 = msf.get_channel('two')
+    tc.assertTrue(channel1.is_nonblocking)
     tc.assertIs(channel1.requested_stderr, fake_file)
-    tc.assertEqual(channel2.requested_stderr, "[nonblocking]")
+    tc.assertTrue(channel2.is_nonblocking)
+    tc.assertEqual(channel2.requested_stderr, "capture")
+    tc.assertIs(channel1.requested_gang, channel2.requested_gang)
     gc.close_players()
+
+def test_game_controller_capture_without_nonblocking(tc):
+    # Note no Mock_subprocess_fixture here
+    gc = gtp_controller.Game_controller('one', 'two')
+    with tc.assertRaises(ValueError) as ar:
+        gc.set_player_subprocess('b', ['testb', 'id=one'], stderr="capture")
