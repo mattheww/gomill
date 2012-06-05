@@ -99,6 +99,7 @@ white beat black W+R
 """,
 ),
 
+# NB, exact truncation position will vary according to pipe buffer size.
 Test(
 code="stderr-large",
 command="""
@@ -113,11 +114,8 @@ b B3 xxxx[16385]
 |xxxx[16385]
 |xxxx[16385]
 |xxxx[16385]
-|xxxx[16385]
-|xxxx[16385]
-|xxxx[16385]
-|xxxx[16385]
-|
+|xxxx[4078]
+[[truncated]]
 w C3 --
 b J5 xxxx[16385]
 |xxxx[16385]
@@ -125,11 +123,8 @@ b J5 xxxx[16385]
 |xxxx[16385]
 |xxxx[16385]
 |xxxx[16385]
-|xxxx[16385]
-|xxxx[16385]
-|xxxx[16385]
-|xxxx[16385]
-|
+|xxxx[4078]
+[[truncated]]
 w A6 --
 final: b: xxxx[16385]
 |xxxx[16385]
@@ -137,11 +132,8 @@ final: b: xxxx[16385]
 |xxxx[16385]
 |xxxx[16385]
 |xxxx[16385]
-|xxxx[16385]
-|xxxx[16385]
-|xxxx[16385]
-|xxxx[16385]
-|
+|xxxx[4078]
+[[truncated]]
 white beat black W+R
 """,
 ),
@@ -352,7 +344,8 @@ gomill_process_tests/gtp_test_controller
 output="""\
 b B3 --
 w C3 --
-b J5 """ + "xxxx[3072]|" * 50 + """
+b J5 """ + "xxxx[3072]|" * 33 + """xxxx[991]
+[[truncated]]
 w A6 --
 white beat black W+R
 """,

@@ -12,6 +12,7 @@ def set_nonblocking(fd):
     fcntl.fcntl(fd, fcntl.F_SETFL, flags)
 
 _readsize = 16384
+_max_diagnostic_buffer_size = 102400
 
 def _handle_gang_event(gang):
     to_poll = sum((c.fds_to_poll for c in gang), [])
@@ -105,6 +106,8 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
         self.seen_eof = False
         self.seen_error = None
         self.diagnostic_data = []
+        self.diagnostic_size = 0
+        self.max_diagnostic_buffer_size = _max_diagnostic_buffer_size
         self.fds_to_poll = [self.response_fd]
         if self.diagnostic_fd is not None:
             self.fds_to_poll.append(self.diagnostic_fd)
@@ -155,7 +158,17 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             self.fds_to_poll.remove(self.diagnostic_fd)
             return
         if s:
-            self.diagnostic_data.append(s)
+            if self.diagnostic_size == -1:
+                return
+            overflow = (self.diagnostic_size + len(s) -
+                        self.max_diagnostic_buffer_size)
+            if overflow > 0:
+                self.diagnostic_data.append(s[:-overflow])
+                self.diagnostic_data.append("\n[[truncated]]")
+                self.diagnostic_size = -1
+            else:
+                self.diagnostic_data.append(s)
+                self.diagnostic_size += len(s)
         else:
             self.fds_to_poll.remove(self.diagnostic_fd)
 
@@ -228,5 +241,6 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
         # FIXME: improve?
         result = "".join(self.diagnostic_data)
         self.diagnostic_data = []
+        self.diagnostic_size = 0
         return result or None
 
