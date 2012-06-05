@@ -233,12 +233,23 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             raise GtpTransportError("\n".join(errors))
 
     def retrieve_diagnostics(self):
-        """FIXME
+        """Retrieve diagnostics captured from standard error.
 
-        FIXME: Explain up-to-date-ness rule.
+        Returns a nonempty 8-bit string (representing raw bytes) or None.
+
+        If stderr is not 'capture', always returns None.
+
+        This returns stderr output captured after the last call to
+        retrieve_diagnostics(), up until the last time get_response() returned.
+
+        (Strictly, up until the last time get_response() on any channel in the
+        gang had to read from its response pipe.)
+
+        Truncates the data if there was more than _max_diagnostic_buffer_size.
 
         """
-        # FIXME: improve?
+        if self.diagnostic_fd is None:
+            return None
         result = "".join(self.diagnostic_data)
         self.diagnostic_data = []
         self.diagnostic_size = 0
