@@ -261,7 +261,7 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
         retrieve_diagnostics(), up until the last time get_response() returned.
 
         (Strictly, up until the last time get_response() on any channel in the
-        gang had to read from its response pipe.)
+        gang finished a read of its response pipe.)
 
         Truncates the data if there was more than _max_diagnostic_buffer_size.
 
