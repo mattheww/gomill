@@ -783,6 +783,21 @@ def test_subprocess_channel_nb(tc):
     tc.assertTrue(hasattr(rusage, 'ru_utime'))
     tc.assertTrue(hasattr(rusage, 'ru_stime'))
 
+def test_subprocess_channel_buffer_limit(tc):
+    fx = gtp_engine_fixtures.State_reporter_fixture(tc)
+    channel = nonblocking_gtp_controller.Subprocess_gtp_channel(
+        fx.cmd + ["--extra-stderr"],
+        stderr='capture',
+        cwd="/")
+    channel.max_diagnostic_buffer_size = 2000
+    channel.send_command("tell", [])
+    tc.assertEqual(channel.get_response(), (False, "cwd: /\nGOMILL_TEST:None"))
+    tc.assertMultiLineEqual(channel.retrieve_diagnostics(),
+                            ("subprocess_state_reporter: testing\n" +
+                             "blah\n" * 500)[:2000] + "\n[[truncated]]")
+    channel.close()
+    tc.assertEqual(channel.exit_status, 0)
+
 
 ### Game_controller
 
