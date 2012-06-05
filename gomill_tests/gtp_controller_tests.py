@@ -5,6 +5,7 @@ from __future__ import with_statement
 import os
 
 from gomill import gtp_controller
+from gomill import nonblocking_gtp_controller
 from gomill.gtp_controller import (
     GtpChannelError, GtpProtocolError, GtpTransportError, GtpChannelClosed,
     BadGtpResponse, Gtp_controller)
@@ -709,11 +710,12 @@ def test_engine_description_from_channel(tc):
 
 ### Subprocess-specific
 
+# The following tests rely on there being a 'python' executable on the PATH
+# (doesn't have to be the same version as is running the testsuite).
+
 def test_subprocess_channel(tc):
     # This tests that Subprocess_gtp_channel really launches a subprocess.
     # It also checks that the 'stderr', 'env' and 'cwd' parameters work.
-    # This test relies on there being a 'python' executable on the PATH
-    # (doesn't have to be the same version as is running the testsuite).
     fx = gtp_engine_fixtures.State_reporter_fixture(tc)
     rd, wr = os.pipe()
     try:
@@ -754,20 +756,10 @@ def test_subprocess_channel_with_controller(tc):
     rusage = channel.resource_usage
     tc.assertTrue(hasattr(rusage, 'ru_utime'))
 
-
-### FIXME test nonblocking controller
-
-from gomill import nonblocking_gtp_controller
-
-def test_subprocess_channel_nb(tc):
-    # This tests that Subprocess_gtp_channel really launches a subprocess.
-    # It also checks that the 'stderr', 'env' and 'cwd' parameters work.
-    # This test relies on there being a 'python' executable on the PATH
-    # (doesn't have to be the same version as is running the testsuite).
+def test_nonblocking_subprocess_channel_nocapture(tc):
     fx = gtp_engine_fixtures.State_reporter_fixture(tc)
     channel = nonblocking_gtp_controller.Subprocess_gtp_channel(
-        fx.cmd + ["--extra-stderr"],
-        stderr='capture',
+        fx.cmd, stderr=fx.devnull,
         env={'GOMILL_TEST' : "from_gtp_controller_tests"},
         cwd="/")
     tc.assertIsNone(channel.exit_status)
@@ -775,15 +767,29 @@ def test_subprocess_channel_nb(tc):
     channel.send_command("tell", [])
     tc.assertEqual(channel.get_response(),
                    (False, "cwd: /\nGOMILL_TEST:from_gtp_controller_tests"))
-    tc.assertEqual(channel.retrieve_diagnostics(),
-                   "subprocess_state_reporter: testing\n" + "blah\n" * 500)
     channel.close()
     tc.assertEqual(channel.exit_status, 0)
     rusage = channel.resource_usage
     tc.assertTrue(hasattr(rusage, 'ru_utime'))
     tc.assertTrue(hasattr(rusage, 'ru_stime'))
 
-def test_subprocess_channel_buffer_limit(tc):
+def test_nonblocking_subprocess_channel_capture(tc):
+    fx = gtp_engine_fixtures.State_reporter_fixture(tc)
+    channel = nonblocking_gtp_controller.Subprocess_gtp_channel(
+        fx.cmd + ["--extra-stderr"],
+        stderr='capture',
+        cwd="/")
+    tc.assertIsNone(channel.exit_status)
+    tc.assertIsNone(channel.resource_usage)
+    channel.send_command("tell", [])
+    tc.assertEqual(channel.get_response(),
+                   (False, "cwd: /\nGOMILL_TEST:None"))
+    tc.assertEqual(channel.retrieve_diagnostics(),
+                   "subprocess_state_reporter: testing\n" + "blah\n" * 500)
+    channel.close()
+    tc.assertEqual(channel.exit_status, 0)
+
+def test_nonblocking_subprocess_channel_buffer_limit(tc):
     fx = gtp_engine_fixtures.State_reporter_fixture(tc)
     channel = nonblocking_gtp_controller.Subprocess_gtp_channel(
         fx.cmd + ["--extra-stderr"],
