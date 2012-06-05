@@ -86,12 +86,16 @@ class Gtp_channel(object):
     In practice these attributes are only available for subprocess-based
     channels, and only after they've been closed.
 
+    FIXME: gang is here so that you can check whether a channel is blocking or
+    nonblocking (blocking has gang None).
+
     """
     def __init__(self):
         self.exit_status = None
         self.resource_usage = None
         self.log_dest = None
         self.log_prefix = None
+        self.gang = None
 
     def enable_logging(self, log_dest, prefix=""):
         """Log all messages sent and received over the channel.
@@ -978,7 +982,18 @@ class Game_controller(object):
         Propagates GtpChannelError if there's a low-level error checking the
         protocol version or from the engine-description commands.
 
+        FIXME: if we're nonblocking, the channel must be nonblocking and have
+        the right gang. Otherwise it must be blocking.
+
         """
+        if controller.channel.gang is not self.gang:
+            if self.gang is None:
+                s = "channel must be blocking"
+            elif controller.channel.gang is None:
+                s = "channel must be nonblocking"
+            else:
+                s = "channel has the wrong gang"
+            raise ValueError(s)
         self.controllers[colour] = controller
         if check_protocol_version:
             controller.check_protocol_version()

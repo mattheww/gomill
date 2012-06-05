@@ -870,6 +870,24 @@ def test_game_controller_same_player_code(tc):
     tc.assertRaisesRegexp(ValueError, "^player codes must be distinct$",
                           gtp_controller.Game_controller, 'one', 'one')
 
+def test_game_controller_blocking_consistency(tc):
+    channel1 = gtp_engine_fixtures.get_test_channel()
+    controller1 = Gtp_controller(channel1, 'player one')
+    channel2 = gtp_engine_fixtures.Mock_nonblocking_subprocess_gtp_channel(
+        ['testw', 'id=two'], gang=set())
+    controller2 = Gtp_controller(channel2, 'player two')
+    gc = gtp_controller.Game_controller('one', 'two', nonblocking=True)
+    with tc.assertRaises(ValueError) as ar:
+        gc.set_player_controller('b', controller1)
+    tc.assertEqual(str(ar.exception), "channel must be nonblocking")
+    with tc.assertRaises(ValueError) as ar:
+        gc.set_player_controller('w', controller2)
+    tc.assertEqual(str(ar.exception), "channel has the wrong gang")
+    gc2 = gtp_controller.Game_controller('one', 'two')
+    with tc.assertRaises(ValueError) as ar:
+        gc2.set_player_controller('w', controller2)
+    tc.assertEqual(str(ar.exception), "channel must be blocking")
+
 def test_game_controller_partial_close(tc):
     # checking close() works even if one or both players didn't start
 

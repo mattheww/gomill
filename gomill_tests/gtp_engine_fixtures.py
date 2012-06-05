@@ -386,9 +386,12 @@ class Mock_nonblocking_subprocess_gtp_channel(Mock_subprocess_gtp_channel):
     is_nonblocking = True
 
     def __init__(self, command, gang=None, stderr=None, cwd=None, env=None):
-        self.requested_gang = gang
         Mock_subprocess_gtp_channel.__init__(
             self, command, stderr=stderr, cwd=cwd, env=env)
+        self.requested_gang = gang
+        if gang is None:
+            gang = "self-made-gang"
+        self.gang = gang
 
 
 class Mock_subprocess_fixture(object):
