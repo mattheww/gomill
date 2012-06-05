@@ -1,9 +1,22 @@
+import errno
 import fcntl
 import os
 import select
 import subprocess
 
 from gomill.gtp_controller import *
+
+def _make_eagains():
+    result = set()
+    for s in ('EAGAIN', 'EWOULDBLOCK'):
+        try:
+            result.add(getattr(errno, s))
+        except AttributeError:
+            pass
+    if not result:
+        raise ValueError
+    return result
+EAGAINs = _make_eagains()
 
 def set_nonblocking(fd):
     """Set a file descriptor to nonblocking mode."""
@@ -23,11 +36,8 @@ def _handle_gang_event(gang):
     for c in gang:
         if c.diagnostic_fd in r:
             c._handle_diagnostic_data()
-            return
-    for c in gang:
         if c.response_fd in r:
             c._handle_response_data()
-            return
 
 
 def _make_noncapturing_subprocess(command, stderr, **kwargs):
@@ -137,40 +147,48 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
                 raise GtpTransportError(str(e))
 
     def _handle_response_data(self):
-        try:
-            s = os.read(self.response_fd, _readsize)
-        except EnvironmentError, e:
-            self.seen_error = e
-            self.fds_to_poll.remove(self.response_fd)
-            return
-        if s:
-            self.response_data += s
-        else:
-            self.seen_eof = True
-            self.fds_to_poll.remove(self.response_fd)
+        while True:
+            try:
+                s = os.read(self.response_fd, _readsize)
+            except EnvironmentError, e:
+                if e.errno in EAGAINs:
+                    break
+                self.seen_error = e
+                self.fds_to_poll.remove(self.response_fd)
+                break
+            if s:
+                self.response_data += s
+            else:
+                self.seen_eof = True
+                self.fds_to_poll.remove(self.response_fd)
+                break
 
     def _handle_diagnostic_data(self):
-        try:
-            s = os.read(self.diagnostic_fd, _readsize)
-        except EnvironmentError, e:
-            self.diagnostic_data.append(
-                "\n[error reading from stderr: %s]" % e)
-            self.fds_to_poll.remove(self.diagnostic_fd)
-            return
-        if s:
-            if self.diagnostic_size == -1:
-                return
-            overflow = (self.diagnostic_size + len(s) -
-                        self.max_diagnostic_buffer_size)
-            if overflow > 0:
-                self.diagnostic_data.append(s[:-overflow])
-                self.diagnostic_data.append("\n[[truncated]]")
-                self.diagnostic_size = -1
+        while True:
+            try:
+                s = os.read(self.diagnostic_fd, _readsize)
+            except EnvironmentError, e:
+                if e.errno in EAGAINs:
+                    break
+                self.diagnostic_data.append(
+                    "\n[error reading from stderr: %s]" % e)
+                self.fds_to_poll.remove(self.diagnostic_fd)
+                break
+            if s:
+                if self.diagnostic_size == -1:
+                    continue
+                overflow = (self.diagnostic_size + len(s) -
+                            self.max_diagnostic_buffer_size)
+                if overflow > 0:
+                    self.diagnostic_data.append(s[:-overflow])
+                    self.diagnostic_data.append("\n[[truncated]]")
+                    self.diagnostic_size = -1
+                else:
+                    self.diagnostic_data.append(s)
+                    self.diagnostic_size += len(s)
             else:
-                self.diagnostic_data.append(s)
-                self.diagnostic_size += len(s)
-        else:
-            self.fds_to_poll.remove(self.diagnostic_fd)
+                self.fds_to_poll.remove(self.diagnostic_fd)
+                break
 
     def get_response_line(self):
         while True:
