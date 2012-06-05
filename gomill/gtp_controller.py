@@ -198,17 +198,19 @@ class Gtp_channel(object):
         pass
 
     def retrieve_diagnostics(self):
-        """FIXME
+        """Retrieve any out-of-band diagnostic messages from the engine.
 
-        (((
+        (This is intended for capturing output on standard error; see
+        Nonblocking_subprocess_gtp_channel.)
 
         Returns a nonempty 8-bit string (representing raw bytes) or None.
 
-        Doesn't raise GtpTransportError.
+        This ought to represent any new messages received before the last time
+        get_response() returned (but don't rely on this being exact).
+
+        Doesn't raise GtpChannelError.
 
         It's safe to call this after the channel has been closed.
-
-        )))
 
         """
         return None
