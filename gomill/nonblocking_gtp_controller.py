@@ -232,11 +232,6 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             os.close(self.response_fd)
         except EnvironmentError, e:
             errors.append("error closing response pipe:\n%s" % e)
-        if self.diagnostic_fd is not None:
-            try:
-                os.close(self.diagnostic_fd)
-            except EnvironmentError, e:
-                errors.append("error closing stderr pipe:\n%s" % e)
         try:
             # We don't really care about the exit status, but we do want to be
             # sure it isn't still running.
@@ -247,6 +242,13 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             self.resource_usage = rusage
         except EnvironmentError, e:
             errors.append(str(e))
+        if self.diagnostic_fd is not None:
+            if self.diagnostic_fd in self.fds_to_poll:
+                self._handle_diagnostic_data()
+            try:
+                os.close(self.diagnostic_fd)
+            except EnvironmentError, e:
+                errors.append("error closing stderr pipe:\n%s" % e)
         if errors:
             raise GtpTransportError("\n".join(errors))
 
@@ -262,6 +264,9 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
 
         (Strictly, up until the last time get_response() on any channel in the
         gang finished a read of its response pipe.)
+
+        If called after close(), retrieves all remaining captured stderr
+        output.
 
         Truncates the data if there was more than _max_diagnostic_buffer_size.
 
