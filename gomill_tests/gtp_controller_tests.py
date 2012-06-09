@@ -965,7 +965,6 @@ def test_game_controller_engine_descriptions(tc):
     channel2.engine.force_error('gomill-describe_engine')
     gc = gtp_controller.Game_controller('one', 'two')
 
-    # This isn't documented behaviour
     tc.assertEqual(gc.engine_descriptions, {'b' : None, 'w' : None})
 
     gc.set_player_controller('b', controller1)

@@ -936,7 +936,7 @@ class Game_controller(object):
 
     Public attributes for reading:
       players             -- map colour -> player code
-      engine_descriptions -- map colour -> Engine_description
+      engine_descriptions -- map colour -> Engine_description, or None
       gang                -- FIXME (if nonblocking is true)
 
     Methods which send commands to engines will normally propagate

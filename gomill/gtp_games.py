@@ -573,8 +573,9 @@ class Gtp_game(object):
         root = sgf_game.get_root()
         for colour, prop in (('b', 'PB'), ('w', 'PW')):
             ed = self.game_controller.engine_descriptions[colour]
-            root.set(prop, ed.get_short_description() or
-                           self.game_controller.players[colour])
+            if ed is not None:
+                root.set(prop, ed.get_short_description() or
+                               self.game_controller.players[colour])
         if self.game_id:
             root.set('GN', self.game_id)
         last_node = sgf_game.get_last_node()

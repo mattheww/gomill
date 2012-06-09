@@ -742,6 +742,19 @@ def test_make_sgf_scoring_details(tc):
     one final_score: B+3
     two final_score: B+4"""))
 
+def test_make_sgf_one_player(tc):
+    game_controller = gtp_controller.Game_controller('one', 'two')
+    player_b = gtp_engine_fixtures.Test_player()
+    engine_b = gtp_engine_fixtures.make_player_engine(player_b)
+    channel_b = gtp_controller_test_support.Testing_gtp_channel(engine_b)
+    controller_b = gtp_controller.Gtp_controller(channel_b, 'player one')
+    game_controller.set_player_controller('b', controller_b)
+    game = gtp_games.Gtp_game(game_controller, board_size=9)
+    tc.assertMultiLineEqual(gomill_test_support.scrub_sgf(
+            game.make_sgf().serialise(wrap=None)), """\
+(;FF[4]AP[gomill:VER]CA[UTF-8]DT[***]GM[1]KM[0]PB[one]SZ[9])
+""")
+
 def test_game_id(tc):
     fx = Gtp_game_fixture(tc)
     fx.game.use_internal_scorer()
