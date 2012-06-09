@@ -291,6 +291,7 @@ class Mock_subprocess_gtp_channel(
         engine=<string> -- look up engine in the engine registry
         init=<string>   -- look up initialisation fn in the callback registry
         fail=startup    -- simulate exec failure
+        fail=usage      -- simulate printing usage to stderr and exiting
 
     By default, the underlying engine is a newly-created test player engine.
     You can override this using 'engine=xxx'.
@@ -360,6 +361,9 @@ class Mock_subprocess_gtp_channel(
                         % value)
             elif key == 'fail' and value == 'startup':
                 raise GtpChannelError("exec forced to fail")
+            elif key == 'fail' and value == 'usage':
+                callbacks.append(
+                    lambda channel:channel.fake_exit_with_usage_message())
             else:
                 raise SupporterError("Mock_subprocess_gtp_channel: "
                                      "bad command-line argument: %s" % arg)

@@ -60,7 +60,6 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
     Public attributes:
       engine       -- the engine it was instantiated with
       is_closed    -- bool (closed() has been called, maybe with forced error)
-      last_command -- last command line, or None
 
     This raises an error if sent two commands without requesting a response in
     between, or if asked for a response when no command was sent since the last
@@ -91,7 +90,7 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         gtp_controller.Linebased_gtp_channel.__init__(self)
         self.engine = engine
         self.stored_response = ""
-        self.session_is_ended = False
+        self.engine_has_exited = False
         self.is_closed = False
         self.engine_exit_breaks_commands = True
         self.fail_next_command = False
@@ -101,7 +100,6 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         self.fail_command = None
         self.chatty = False
         self.chat_messages = []
-        self.last_command = None
         self.genmoves_seen = 0
 
     def chat(self, msg):
@@ -113,12 +111,21 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         if self.chatty:
             self.chat_messages.append(msg)
 
+    def fake_exit_with_usage_message(self):
+        """Behave as if the engine was called with bad command-line parameters.
+
+        Call this before sending any commands.
+
+        """
+        self.engine_has_exited = True
+        self.chat("Usage: message\n")
+
     def send_command_line(self, command):
         if self.is_closed:
             raise SupporterError("channel is closed")
         if self.stored_response != "":
             raise SupporterError("two commands in a row")
-        if self.session_is_ended:
+        if self.engine_has_exited:
             if self.engine_exit_breaks_commands:
                 raise GtpChannelClosed("engine has closed the command channel")
             return
@@ -131,7 +138,7 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         if self.fail_command and command.startswith(self.fail_command):
             self.fail_command = None
             raise GtpTransportError("forced failure for send_command_line")
-        self.stored_response, self.session_is_ended = \
+        self.stored_response, self.engine_has_exited = \
             self.engine.handle_line(command)
         if self.stored_response is None:
             raise SupporterError("empty command line")
@@ -140,7 +147,7 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         if self.is_closed:
             raise SupporterError("channel is closed")
         if self.stored_response == "":
-            if self.session_is_ended:
+            if self.engine_has_exited:
                 return ""
             raise SupporterError("response request without command")
         if self.fail_next_response:

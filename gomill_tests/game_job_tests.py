@@ -43,6 +43,8 @@ class Test_game_job(game_jobs.Game_job):
 
     def _get_sgf_written(self):
         """Return the 'scrubbed' sgf contents."""
+        if self._sgf_written is None:
+            return None
         return gomill_test_support.scrub_sgf(self._sgf_written)
 
 class Game_job_fixture(gtp_engine_fixtures.Mock_subprocess_fixture):
@@ -686,6 +688,20 @@ def test_game_job_captured_stderr(tc):
         "w pass: asked for move: 10\n\none beat two B+10.5\n\n"
           "exit message from w: <<<\nclosing\n>>>"
         ])
+
+def test_game_job_captured_stderr_from_early_failure(tc):
+    fx = Game_job_fixture(tc)
+    fx.job.player_w.stderr_to = 'capture'
+    fx.job.player_w.cmd_args.append('fail=usage')
+    with tc.assertRaises(JobFailed) as ar:
+        fx.job.run()
+    tc.assertEqual(
+        str(ar.exception),
+        "aborting game due to error:\n"
+        "error sending first command (protocol_version) to player two:\n"
+        "engine has closed the command channel")
+    # FIXME: The usage message should be captured somewhere.
+    tc.assertIsNone(fx.job._get_sgf_written())
 
 def test_game_job_unhandled_error(tc):
     # Check that we close the channels if there's an unhandled error

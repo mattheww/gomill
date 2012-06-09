@@ -245,7 +245,7 @@ def test_testing_gtp_channel_sequencing(tc):
         SupporterError, "two commands in a row",
         channel.send_command, "test", [])
 
-def test_testing_gtp_force_error(tc):
+def test_testing_gtp_channel_force_error(tc):
     engine = gtp_engine_fixtures.get_test_engine()
     channel = gtp_controller_test_support.Testing_gtp_channel(engine)
     channel.fail_next_command = True
@@ -266,6 +266,16 @@ def test_testing_gtp_force_error(tc):
     tc.assertRaisesRegexp(
         GtpTransportError, "forced failure for close",
         channel.close)
+
+def test_testing_gtp_channel_fake_exit_with_usage_message(tc):
+    engine = gtp_engine_fixtures.get_test_engine()
+    channel = gtp_controller_test_support.Testing_gtp_channel(engine)
+    channel.chatty = True
+    channel.fake_exit_with_usage_message()
+    tc.assertEqual(channel.retrieve_diagnostics(), "Usage: message\n")
+    tc.assertRaisesRegexp(
+        GtpChannelClosed, "engine has closed the command channel",
+        channel.send_command, "protocol_version", [])
 
 
 ### Controller-level
