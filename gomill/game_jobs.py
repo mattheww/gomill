@@ -272,6 +272,7 @@ class Game_job(object):
         except (GtpChannelError, BadGtpResponse), e:
             game_controller.close_players()
             msg = "aborting game due to error:\n%s" % e
+            # FIXME: need to handle late diagnostics
             self._record_void_game(game_controller, game, msg)
             late_error_messages = game_controller.describe_late_errors()
             if late_error_messages is not None:
@@ -284,10 +285,14 @@ class Game_job(object):
         for colour in game.cpu_time_errors:
             del ru_cpu_times[colour]
         game.result.soft_update_cpu_times(ru_cpu_times)
+        late_diagnostics = {}
+        for colour in ('b', 'w'):
+            late_diagnostics[colour] = (game_controller.get_controller(colour)
+                                        .channel.retrieve_diagnostics())
         late_error_messages = game_controller.describe_late_errors()
         if late_error_messages:
             log_entries.append(late_error_messages)
-        self._record_game(game_controller, game)
+        self._record_game(game_controller, game, late_diagnostics)
         response = Game_job_result()
         response.game_id = self.game_id
         response.game_result = game.result
@@ -369,18 +374,31 @@ class Game_job(object):
             last_node.add_comment_text(late_error_messages)
         return sgf_game
 
-    def _record_game(self, game_controller, game):
-        """Record the game in the standard sgf directory."""
+    def _record_game(self, game_controller, game, late_diagnostics):
+        """Record the game in the standard sgf directory.
+
+        Adds any messages from late_diagnostics to the final-node comment.
+
+        """
         if self.sgf_dirname is None or self.sgf_filename is None:
             return
         pathname = os.path.join(self.sgf_dirname, self.sgf_filename)
-        sgf_game = self._make_sgf(game_controller, game)
+        exit_msgs = []
+        for colour in ('b', 'w'):
+            if late_diagnostics[colour] is not None:
+                exit_msgs.append("exit message from %s: <<<\n%s\n>>>" %
+                                 (colour, late_diagnostics[colour]))
+        game_end_message = "\n".join(exit_msgs) or None
+        sgf_game = self._make_sgf(game_controller, game, game_end_message)
         self._write_sgf(pathname, sgf_game.serialise())
 
     def _record_void_game(self, game_controller, game, game_end_message):
         """Record the game in the void sgf directory if it had any moves.
 
         Sets sgf RE to 'Void'.
+
+        Adds the 'aborting game due to error' message to the final-node
+        comment.
 
         """
         if not game.get_moves():

@@ -652,6 +652,41 @@ def test_game_job_explain_final_move_zero_move_game(tc):
           "two beat one W+R",
         ])
 
+def test_game_job_captured_stderr(tc):
+    def make_chatty(channel):
+        channel.chatty = True
+    fx = Game_job_fixture(tc)
+    fx.job.player_b.stderr_to = 'capture'
+    fx.init_player('w', make_chatty)
+    result = fx.job.run()
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        "root: "
+          "Game id gameid\nDate ***\nResult one beat two B+10.5\n"
+          "one cpu time: 546.20s\ntwo cpu time: 567.20s\n"
+          "Black one\nWhite two",
+        "b E1: --",
+        "w G1: last: known_command gomill-explain_last_move",
+        "b E2: --",
+        "w G2: last: genmove w",
+        "b E3: --",
+        "w G3: last: genmove w",
+        "b E4: --",
+        "w G4: last: genmove w",
+        "b E5: --",
+        "w G5: last: genmove w",
+        "b E6: --",
+        "w G6: last: genmove w",
+        "b E7: --",
+        "w G7: last: genmove w",
+        "b E8: --",
+        "w G8: last: genmove w",
+        "b E9: --",
+        "w G9: last: genmove w",
+        "b pass: --",
+        "w pass: last: genmove w\n\none beat two B+10.5\n\n"
+          "exit message from w: <<<\nlast: quit\n>>>"
+        ])
+
 def test_game_job_unhandled_error(tc):
     # Check that we close the channels if there's an unhandled error
     fx = Game_job_fixture(tc)
