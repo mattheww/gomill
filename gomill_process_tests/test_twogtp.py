@@ -184,6 +184,22 @@ W[ei])
 ),
 
 Test(
+code="exit-uncleanly",
+command="""
+gomill_examples/twogtp
+--black='gomill_process_tests/gtp_test_player --seed=3 --exit-uncleanly'
+--white='gomill_process_tests/gtp_test_player --seed=3'
+--size=9
+--sgfbase=%(sgfbase)s
+""",
+output="""\
+error reading response to 'quit' from player gomill_process_tests/gtp_test_player-b:
+engine has closed the response channel
+gomill_process_tests/gtp_test_player-w beat gomill_process_tests/gtp_test_player-b W+R
+""",
+),
+
+Test(
 code="dies",
 command="""
 gomill_examples/twogtp

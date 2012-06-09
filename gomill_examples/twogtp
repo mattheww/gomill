@@ -83,6 +83,12 @@ def main():
         print 'Black: %s\n' % eds['b'].get_long_description()
         print 'White: %s\n' % eds['w'].get_long_description()
 
+    def closedown():
+        game_controller.close_players()
+        late_error_messages = game_controller.describe_late_errors()
+        if late_error_messages:
+            print >>sys.stderr, late_error_messages
+
     for game_number in xrange(options.games):
         game = gtp_games.Gtp_game(
             game_controller,
@@ -101,8 +107,9 @@ def main():
             game.prepare()
             game.run()
         except (GtpChannelError, BadGtpResponse), e:
-            game_controller.close_players()
+            closedown()
             sys.exit("aborting run due to error:\n%s\n" % e)
+
         print game.result.describe()
 
         if options.sgfbase is not None:
@@ -113,10 +120,7 @@ def main():
             except EnvironmentError, e:
                 sys.exit("error writing SGF file: %s" % e)
 
-    game_controller.close_players()
-    late_error_messages = game_controller.describe_late_errors()
-    if late_error_messages:
-        sys.exit(late_error_messages)
+    closedown()
 
 if __name__ == "__main__":
     main()
