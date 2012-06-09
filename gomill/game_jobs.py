@@ -272,7 +272,6 @@ class Game_job(object):
         except (GtpChannelError, BadGtpResponse), e:
             game_controller.close_players()
             msg = "aborting game due to error:\n%s" % e
-            # FIXME: need to handle late diagnostics
             self._record_void_game(game_controller, game, msg)
             late_error_messages = game_controller.describe_late_errors()
             if late_error_messages is not None:
@@ -285,14 +284,10 @@ class Game_job(object):
         for colour in game.cpu_time_errors:
             del ru_cpu_times[colour]
         game.result.soft_update_cpu_times(ru_cpu_times)
-        late_diagnostics = {}
-        for colour in ('b', 'w'):
-            late_diagnostics[colour] = (game_controller.get_controller(colour)
-                                        .channel.retrieve_diagnostics())
         late_error_messages = game_controller.describe_late_errors()
         if late_error_messages:
             log_entries.append(late_error_messages)
-        self._record_game(game_controller, game, late_diagnostics)
+        self._record_game(game_controller, game)
         response = Game_job_result()
         response.game_id = self.game_id
         response.game_result = game.result
@@ -306,7 +301,8 @@ class Game_job(object):
         response.game_data = self.game_data
         return response
 
-    def _make_sgf(self, game_controller, game, game_end_message=None):
+    def _make_sgf(self, game_controller, game, late_diagnostics,
+                  game_end_message=None):
         """Return an Sgf_game with annotations.
 
         This adds the following to the result of Gtp_game.make_sgf:
@@ -323,6 +319,7 @@ class Game_job(object):
           engine descriptions
 
         Adds to the last node's comment:
+          any late diagnostics
           any game_end_message
           describe_late_errors() output
 
@@ -356,9 +353,10 @@ class Game_job(object):
         for colour, note in (('b', "Black %s" % b_player),
                              ('w', "White %s" % w_player)):
             ed = game_controller.engine_descriptions[colour]
-            longdesc = ed.get_long_description()
-            if longdesc:
-                note += " " + longdesc
+            if ed is not None:
+                longdesc = ed.get_long_description()
+                if longdesc:
+                    note += " " + longdesc
             notes.append(note)
         try:
             existing_comment = root.get("C")
@@ -367,6 +365,11 @@ class Game_job(object):
         except KeyError:
             pass
         root.set('C', "\n".join(notes))
+        for colour in ('b', 'w'):
+            if late_diagnostics.get(colour) is not None:
+                last_node.add_comment_text(
+                    "exit message from %s: <<<\n%s\n>>>" %
+                    (colour, late_diagnostics[colour]))
         if game_end_message is not None:
             last_node.add_comment_text(game_end_message)
         late_error_messages = game_controller.describe_late_errors()
@@ -374,7 +377,19 @@ class Game_job(object):
             last_node.add_comment_text(late_error_messages)
         return sgf_game
 
-    def _record_game(self, game_controller, game, late_diagnostics):
+    def _get_late_diagnostics(self, game_controller):
+        result = {}
+        for colour in ('b', 'w'):
+            try:
+                controller = game_controller.get_controller(colour)
+            except KeyError:
+                continue
+            diag = controller.channel.retrieve_diagnostics()
+            if diag is not None:
+                result[colour] = diag
+        return result
+
+    def _record_game(self, game_controller, game):
         """Record the game in the standard sgf directory.
 
         Adds any messages from late_diagnostics to the final-node comment.
@@ -384,12 +399,8 @@ class Game_job(object):
             return
         pathname = os.path.join(self.sgf_dirname, self.sgf_filename)
         exit_msgs = []
-        for colour in ('b', 'w'):
-            if late_diagnostics[colour] is not None:
-                exit_msgs.append("exit message from %s: <<<\n%s\n>>>" %
-                                 (colour, late_diagnostics[colour]))
-        game_end_message = "\n".join(exit_msgs) or None
-        sgf_game = self._make_sgf(game_controller, game, game_end_message)
+        late_diagnostics = self._get_late_diagnostics(game_controller)
+        sgf_game = self._make_sgf(game_controller, game, late_diagnostics)
         self._write_sgf(pathname, sgf_game.serialise())
 
     def _record_void_game(self, game_controller, game, game_end_message):
@@ -401,13 +412,15 @@ class Game_job(object):
         comment.
 
         """
-        if not game.get_moves():
+        late_diagnostics = self._get_late_diagnostics(game_controller)
+        if not game.get_moves() and not late_diagnostics:
             return
         if self.void_sgf_dirname is None or self.sgf_filename is None:
             return
         self._ensure_dir(self.void_sgf_dirname)
         pathname = os.path.join(self.void_sgf_dirname, self.sgf_filename)
-        sgf_game = self._make_sgf(game_controller, game, game_end_message)
+        sgf_game = self._make_sgf(game_controller, game, late_diagnostics,
+                                  game_end_message)
         sgf_game.get_root().set('RE', 'Void')
         self._write_sgf(pathname, sgf_game.serialise())
 

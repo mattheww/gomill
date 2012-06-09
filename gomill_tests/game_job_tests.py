@@ -700,8 +700,17 @@ def test_game_job_captured_stderr_from_early_failure(tc):
         "aborting game due to error:\n"
         "error sending first command (protocol_version) to player two:\n"
         "engine has closed the command channel")
-    # FIXME: The usage message should be captured somewhere.
-    tc.assertIsNone(fx.job._get_sgf_written())
+    tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.void/gjtest.sgf')
+    tc.assertEqual(fx.job._mkdir_pathname, '/sgf/test.void')
+    tc.assertEqual(fx.sgf_moves_and_comments(), [
+        "root: "
+          "Game id gameid\nDate ***\n"
+          "Black one\nWhite two\n\n"
+          "exit message from w: <<<\nUsage: message\n\nclosing\n>>>\n\n"
+          "aborting game due to error:\n"
+          "error sending first command (protocol_version) to player two:\n"
+          "engine has closed the command channel"
+        ])
 
 def test_game_job_unhandled_error(tc):
     # Check that we close the channels if there's an unhandled error

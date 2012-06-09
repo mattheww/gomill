@@ -362,8 +362,10 @@ class Mock_subprocess_gtp_channel(
             elif key == 'fail' and value == 'startup':
                 raise GtpChannelError("exec forced to fail")
             elif key == 'fail' and value == 'usage':
-                callbacks.append(
-                    lambda channel:channel.fake_exit_with_usage_message())
+                def failusage(channel):
+                    channel.chatty = True
+                    channel.fake_exit_with_usage_message()
+                callbacks.append(failusage)
             else:
                 raise SupporterError("Mock_subprocess_gtp_channel: "
                                      "bad command-line argument: %s" % arg)
