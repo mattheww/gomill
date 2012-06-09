@@ -232,6 +232,8 @@ class Subprocess_gtp_channel(Linebased_gtp_channel):
             os.close(self.response_fd)
         except EnvironmentError, e:
             errors.append("error closing response pipe:\n%s" % e)
+        if self.diagnostic_fd in self.fds_to_poll:
+            self._handle_diagnostic_data()
         try:
             # We don't really care about the exit status, but we do want to be
             # sure it isn't still running.
