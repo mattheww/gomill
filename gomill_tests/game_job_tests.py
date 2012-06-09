@@ -665,26 +665,26 @@ def test_game_job_captured_stderr(tc):
           "one cpu time: 546.20s\ntwo cpu time: 567.20s\n"
           "Black one\nWhite two",
         "b E1: --",
-        "w G1: last: known_command gomill-explain_last_move",
+        "w G1: asked for move: 1",
         "b E2: --",
-        "w G2: last: genmove w",
+        "w G2: asked for move: 2",
         "b E3: --",
-        "w G3: last: genmove w",
+        "w G3: asked for move: 3",
         "b E4: --",
-        "w G4: last: genmove w",
+        "w G4: asked for move: 4",
         "b E5: --",
-        "w G5: last: genmove w",
+        "w G5: asked for move: 5",
         "b E6: --",
-        "w G6: last: genmove w",
+        "w G6: asked for move: 6",
         "b E7: --",
-        "w G7: last: genmove w",
+        "w G7: asked for move: 7",
         "b E8: --",
-        "w G8: last: genmove w",
+        "w G8: asked for move: 8",
         "b E9: --",
-        "w G9: last: genmove w",
+        "w G9: asked for move: 9",
         "b pass: --",
-        "w pass: last: genmove w\n\none beat two B+10.5\n\n"
-          "exit message from w: <<<\nlast: quit\n>>>"
+        "w pass: asked for move: 10\n\none beat two B+10.5\n\n"
+          "exit message from w: <<<\nclosing\n>>>"
         ])
 
 def test_game_job_unhandled_error(tc):

@@ -100,7 +100,18 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
         self.fail_close = False
         self.fail_command = None
         self.chatty = False
+        self.chat_messages = []
         self.last_command = None
+        self.genmoves_seen = 0
+
+    def chat(self, msg):
+        """Add a message
+
+        Test functions may call this themselves, eg to create startup messages.
+
+        """
+        if self.chatty:
+            self.chat_messages.append(msg)
 
     def send_command_line(self, command):
         if self.is_closed:
@@ -111,7 +122,9 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
             if self.engine_exit_breaks_commands:
                 raise GtpChannelClosed("engine has closed the command channel")
             return
-        self.last_command = command[:-1]
+        if "genmove" in command:
+            self.genmoves_seen += 1
+            self.chat("asked for move: %s" % self.genmoves_seen)
         if self.fail_next_command:
             self.fail_next_command = False
             raise GtpTransportError("forced failure for send_command_line")
@@ -141,10 +154,13 @@ class Testing_gtp_channel(gtp_controller.Linebased_gtp_channel):
 
     def close(self):
         self.is_closed = True
+        self.chat("closing")
         if self.fail_close:
             raise GtpTransportError("forced failure for close")
 
     def retrieve_diagnostics(self):
         if not self.chatty:
             return None
-        return "last: %s" % self.last_command
+        result = "\n".join(self.chat_messages)
+        self.chat_messages = []
+        return result or None

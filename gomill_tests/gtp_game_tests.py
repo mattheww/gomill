@@ -800,11 +800,11 @@ def test_retrieve_diagnostics(tc):
     tc.assertEqual(fx.sgf_moves_and_comments(), [
         "root: --",
         "b C3: --",
-        "w D3: last: known_command gomill-explain_last_move",
+        "w D3: asked for move: 1",
         "b C4: --",
-        "w D4: last: genmove w",
+        "w D4: asked for move: 2",
         "b pass: --",
-        "w pass: last: genmove w\n\none vs two ? (no score reported)",
+        "w pass: asked for move: 3\n\none vs two ? (no score reported)",
         ])
 
 def test_explain_last_move_and_retrieve_diagnostics(tc):
@@ -823,12 +823,12 @@ def test_explain_last_move_and_retrieve_diagnostics(tc):
     fx.channel_b.chatty = True
     fx.game.prepare()
     fx.game.run()
-    fx.check_final_diagnostics('b', "EX2\n\nlast: gomill-explain_last_move")
+    fx.check_final_diagnostics('b', "EX2\n\nasked for move: 2")
     tc.assertEqual(fx.sgf_moves_and_comments(), [
         "root: --",
-        "b C3: EX1\n\nlast: gomill-explain_last_move",
+        "b C3: EX1\n\nasked for move: 1",
         "w D3: final message from b: "
-          "<<<\nEX2\n\nlast: gomill-explain_last_move\n>>>\n\ntwo beat one W+R",
+          "<<<\nEX2\n\nasked for move: 2\n>>>\n\ntwo beat one W+R",
         ])
 
 def test_explain_final_move(tc):
