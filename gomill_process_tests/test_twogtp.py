@@ -24,6 +24,9 @@ class Test(object):
         kwargs.setdefault('exit_status', 0)
         self.__dict__.update(kwargs)
 
+    def expected_output(self):
+        return self.output.strip()
+
     def expected_sgf(self):
         return self.sgf.replace("\n", "")
 
@@ -218,6 +221,26 @@ engine has closed the response channel
 exit_status=1,
 ),
 
+Test(
+code="badoption",
+command="""
+gomill_examples/twogtp
+--black='gomill_process_tests/gtp_test_player --seed=3'
+--white='gomill_process_tests/gtp_test_player --unknownoption'
+--size=9
+--sgfbase=%(sgfbase)s
+""",
+output="""\
+Usage: gtp_test_player [options]
+
+gtp_test_player: error: no such option: --unknownoption
+error creating players:
+error reading response to first command (protocol_version) from player gomill_process_tests/gtp_test_player-w:
+engine has closed the response channel
+""",
+exit_status=1,
+),
+
 ]
 
 def scrub_sgf(s):
@@ -246,7 +269,8 @@ def testrun(test, sandbox_dir):
         status = e.returncode
         output = e.output
     passed = True
-    if output != test.output:
+    output = output.strip()
+    if output != test.expected_output():
         passed = False
         print "BAD OUTPUT"
         print output

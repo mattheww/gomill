@@ -34,6 +34,12 @@ def print_board(colour, move, board, **kwargs):
     print ascii_boards.render_board(board)
     print
 
+def closedown(game_controller):
+    game_controller.close_players()
+    late_error_messages = game_controller.describe_late_errors()
+    if late_error_messages:
+        print >>sys.stderr, late_error_messages
+
 def main():
     usage = "%prog [options] --black='<command>' --white='<command>'"
     parser = OptionParser(usage=usage)
@@ -72,7 +78,7 @@ def main():
         game_controller.set_player_subprocess(
             'w', white_command, stderr=w_stderr)
     except GtpChannelError, e:
-        game_controller.close_players()
+        closedown(game_controller)
         sys.exit("error creating players:\n%s\n" % e)
 
     eds = game_controller.engine_descriptions
@@ -82,12 +88,6 @@ def main():
     elif options.verbose == '2':
         print 'Black: %s\n' % eds['b'].get_long_description()
         print 'White: %s\n' % eds['w'].get_long_description()
-
-    def closedown():
-        game_controller.close_players()
-        late_error_messages = game_controller.describe_late_errors()
-        if late_error_messages:
-            print >>sys.stderr, late_error_messages
 
     for game_number in xrange(options.games):
         game = gtp_games.Gtp_game(
@@ -107,7 +107,7 @@ def main():
             game.prepare()
             game.run()
         except (GtpChannelError, BadGtpResponse), e:
-            closedown()
+            closedown(game_controller)
             sys.exit("aborting run due to error:\n%s\n" % e)
 
         print game.result.describe()
@@ -120,7 +120,7 @@ def main():
             except EnvironmentError, e:
                 sys.exit("error writing SGF file: %s" % e)
 
-    closedown()
+    closedown(game_controller)
 
 if __name__ == "__main__":
     main()
