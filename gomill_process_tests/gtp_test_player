@@ -240,6 +240,7 @@ def main():
     parser.add_option("--move-sleep", type="float")
     parser.add_option("--move-limit", type="int")
     parser.add_option("--exit-uncleanly", action="store_true")
+    parser.add_option("--late-chat", action="store_true")
     parser.add_option("--ignore-broken-stderr-pipe", action="store_true")
     parser.add_option("--seed", type="int")
     (options, args) = parser.parse_args()
@@ -268,6 +269,9 @@ def main():
         sys.exit(1)
     if not test_player.seen_quit:
         test_player.chat("gtp_test_player terminated without quit command\n")
+    if options.late_chat:
+        time.sleep(0.1)
+        test_player.chat("about to exit")
 
 if __name__ == "__main__":
     main()

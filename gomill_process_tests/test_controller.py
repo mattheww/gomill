@@ -351,6 +351,25 @@ white beat black W+R
 """,
 ),
 
+Test(
+code="late-chat",
+command="""
+gomill_process_tests/gtp_test_controller
+--black='--late-chat'
+--capture-stderr=bw
+""",
+output="""\
+b B3 --
+w C3 --
+b J5 --
+w A6 --
+white beat black W+R
+
+b says:
+about to exit
+""",
+),
+
 ]
 
 
