@@ -228,12 +228,33 @@ gomill_examples/twogtp
 --black='gomill_process_tests/gtp_test_player --seed=3'
 --white='gomill_process_tests/gtp_test_player --unknownoption'
 --size=9
---sgfbase=%(sgfbase)s
 """,
 output="""\
 Usage: gtp_test_player [options]
 
 gtp_test_player: error: no such option: --unknownoption
+error creating players:
+error reading response to first command (protocol_version) from player gomill_process_tests/gtp_test_player-w:
+engine has closed the response channel
+""",
+exit_status=1,
+),
+
+Test(
+code="badoption-capture",
+command="""
+gomill_examples/twogtp
+--black='gomill_process_tests/gtp_test_player --seed=3'
+--white='gomill_process_tests/gtp_test_player --unknownoption'
+--capture-stderr=bw
+--size=9
+""",
+output="""\
+gomill_process_tests/gtp_test_player-w says:
+Usage: gtp_test_player [options]
+
+gtp_test_player: error: no such option: --unknownoption
+
 error creating players:
 error reading response to first command (protocol_version) from player gomill_process_tests/gtp_test_player-w:
 engine has closed the response channel

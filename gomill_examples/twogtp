@@ -36,6 +36,16 @@ def print_board(colour, move, board, **kwargs):
 
 def closedown(game_controller):
     game_controller.close_players()
+    # FIXME: Game_controller should do this
+    for colour in 'b', 'w':
+        try:
+            diag = (game_controller.get_controller(colour)
+                    .channel.retrieve_diagnostics())
+        except KeyError:
+            continue
+        if diag:
+            print >>sys.stderr, "%s says:\n%s" % (
+                game_controller.players[colour], diag)
     late_error_messages = game_controller.describe_late_errors()
     if late_error_messages:
         print >>sys.stderr, late_error_messages
