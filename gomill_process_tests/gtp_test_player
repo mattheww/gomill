@@ -136,9 +136,16 @@ def main():
     parser = OptionParser()
     parser.add_option("--fail-command", metavar="COMMAND",
                       help="force a specified gtp command to fail")
+    parser.add_option("--report-environ", action="store_true",
+                      help="report GOMILL_ environment variables to stderr")
     (options, args) = parser.parse_args()
     if args:
         parser.error("too many arguments")
+
+    if options.report_environ:
+        for key, value in sorted(os.environ.iteritems()):
+            if key.startswith("GOMILL_"):
+                print >>sys.stderr, "%s=%s" % (key, value)
 
     #time.sleep(1)
     try:
