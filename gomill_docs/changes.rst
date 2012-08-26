@@ -2,6 +2,9 @@ Changes
 =======
 
 
+* Added the :envvar:`GOMILL_GAME_ID` and :envvar:`GOMILL_SLOT` environment
+  variables.
+
 * :mod:`~!gomill.gtp_games` now permits free-handicap games with the maximum
   number of handicap stones permitted by |gtp| (the previous restriction was
   one less).
