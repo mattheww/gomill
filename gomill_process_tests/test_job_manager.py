@@ -12,8 +12,9 @@ class Job(object):
     def __repr__(self):
         return "game %d" % self.num
 
-    def run(self):
-        sys.stderr.write("worker %d: %s\n" % (os.getpid(), self))
+    def run(self, worker_id):
+        sys.stderr.write("worker %s (%d): %s\n" %
+                         (worker_id, os.getpid(), self))
         time.sleep(random.random()*2)
         if self.num == 4:
             int("forcefailure4")
@@ -54,7 +55,7 @@ def test2():
     assert job_source.errors_seen == [
         "ValueError: invalid literal for int() with base 10: 'forcefailure4'\n"
         "traceback (most recent call last):\n"
-        "  gomill_process_tests/test_job_manager.py:19 (run)\n"
+        "  gomill_process_tests/test_job_manager.py:20 (run)\n"
         "failing line:\n"
         "int(\"forcefailure4\")\n"
         ]

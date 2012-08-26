@@ -10,26 +10,6 @@ bug.
    :backlinks: none
 
 
-.. _game id:
-
-Game identification
-^^^^^^^^^^^^^^^^^^^
-
-Each game played in a competition is identified using a short string (the
-:dfn:`game_id`). This is used in the |sgf| :ref:`game record <game records>`
-filename and game name (``GN``), the :ref:`log files <logging>`, the live
-display, and so on.
-
-For playoff tournaments, game ids are made up from the :pl-setting:`matchup id
-<id>` and the number of the game within the matchup; for example, the first
-game played might be ``0_0`` or ``0_000`` (depending on the value of
-:pl-setting:`number_of_games`).
-
-Similarly for all-play-all tournaments, game ids are like ``AvB_0``, using the
-competitor letters shown in the results grid, with the length depending on the
-:aa-setting:`rounds` setting.
-
-
 .. _details of scoring:
 
 Details of scoring
