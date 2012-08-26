@@ -228,7 +228,7 @@ class Competition(object):
         Raises ControlFileError with a description if there is an error in the
         configuration.
 
-        Returns an incomplete game_jobs.Player (see get_game() for details).
+        Returns a game_jobs.Player.
 
         """
         arguments = player_config.resolve_arguments()
