@@ -149,7 +149,9 @@ def test_game_job(tc):
     channel = fx.get_channel('one')
     tc.assertIsNone(channel.requested_stderr)
     tc.assertIsNone(channel.requested_cwd)
-    tc.assertIsNone(channel.requested_env)
+    tc.assertIn('PATH', channel.requested_env)
+    tc.assertEqual(channel.requested_env['GOMILL_GAME_ID'], 'gameid')
+    tc.assertNotIn('GOMILL_SLOT', channel.requested_env)
     tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
     tc.assertIsNone(fx.job._mkdir_pathname)
     tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
@@ -328,8 +330,17 @@ def test_game_job_cwd_env(tc):
     tc.assertEqual(channel.requested_cwd, "/nonexistent_directory")
     tc.assertEqual(channel.requested_env['GOMILL_TEST'], 'gomill')
     # Check environment was merged, not replaced
+    tc.assertEqual(channel.requested_env['GOMILL_GAME_ID'], 'gameid')
     tc.assertIn('PATH', channel.requested_env)
     tc.assertEqual(fx.job._sgf_pathname_written, '/sgf/test.games/gjtest.sgf')
+
+def test_game_job_worker_id(tc):
+    fx = gtp_engine_fixtures.Mock_subprocess_fixture(tc)
+    gj = Game_job_fixture(tc)
+    result = gj.job.run(0)
+    channel = fx.get_channel('one')
+    tc.assertEqual(channel.requested_env['GOMILL_GAME_ID'], 'gameid')
+    tc.assertEqual(channel.requested_env['GOMILL_SLOT'], '0')
 
 def test_game_job_stderr_discarded(tc):
     fx = Game_job_fixture(tc)
@@ -641,7 +652,8 @@ def test_check_player(tc):
     channel = fx.get_channel('test')
     tc.assertIsNone(channel.requested_stderr)
     tc.assertIsNone(channel.requested_cwd)
-    tc.assertIsNone(channel.requested_env)
+    tc.assertIn('PATH', channel.requested_env)
+    tc.assertEqual(channel.requested_env['GOMILL_GAME_ID'], 'startup-check')
 
 def test_check_player_discard_stderr(tc):
     fx = Player_check_fixture(tc)
@@ -692,7 +704,9 @@ def test_check_player_env(tc):
     tc.assertEqual(game_jobs.check_player(fx.check), [])
     channel = fx.get_channel('test')
     tc.assertEqual(channel.requested_env['GOMILL_TEST'], 'gomill')
+    tc.assertNotIn('GOMILL_SLOT', channel.requested_env)
     # Check environment was merged, not replaced
+    tc.assertEqual(channel.requested_env['GOMILL_GAME_ID'], 'startup-check')
     tc.assertIn('PATH', channel.requested_env)
 
 def test_check_player_exec_failure(tc):

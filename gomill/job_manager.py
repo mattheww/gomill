@@ -33,7 +33,7 @@ class Worker_finish_signal(object):
     pass
 worker_finish_signal = Worker_finish_signal()
 
-def worker_run_jobs(job_queue, response_queue):
+def worker_run_jobs(job_queue, response_queue, worker_id):
     try:
         #pid = os.getpid()
         #sys.stderr.write("worker %d starting\n" % pid)
@@ -43,7 +43,7 @@ def worker_run_jobs(job_queue, response_queue):
             if isinstance(job, Worker_finish_signal):
                 break
             try:
-                response = job.run()
+                response = job.run(worker_id)
             except JobFailed, e:
                 response = JobError(job, str(e))
                 sys.exc_clear()
@@ -84,7 +84,7 @@ class Multiprocessing_job_manager(Job_manager):
         for i in range(self.number_of_workers):
             worker = multiprocessing.Process(
                 target=worker_run_jobs,
-                args=(self.job_queue, self.response_queue))
+                args=(self.job_queue, self.response_queue, i))
             self.workers.append(worker)
         for worker in self.workers:
             worker.start()
@@ -161,7 +161,7 @@ class In_process_job_manager(Job_manager):
             if job is NoJobAvailable:
                 break
             try:
-                response = job.run()
+                response = job.run(None)
             except Exception, e:
                 if isinstance(e, JobFailed):
                     msg = str(e)

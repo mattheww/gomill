@@ -51,14 +51,12 @@ class Player(object):
     def make_environ(self):
         """Return environment variables to use with the player's subprocess.
 
-        Returns a dict suitable for use with a Subprocess_channel, or None.
+        Returns a dict suitable for use with a Subprocess_gtp_channel.
 
         """
+        environ = os.environ.copy()
         if self.environ is not None:
-            environ = os.environ.copy()
             environ.update(self.environ)
-        else:
-            environ = None
         return environ
 
     def copy(self, code):
@@ -172,14 +170,17 @@ class Game_job(object):
 
     # The code here has to be happy to run in a separate process.
 
-    def run(self):
+    def run(self, worker_id=None):
         """Run the job.
 
         This method is called by the job manager.
 
+        worker_id -- int or None
+
         Returns a Game_job_result, or raises JobFailed.
 
         """
+        self._worker_id = worker_id
         self._files_to_close = []
         try:
             return self._run()
@@ -208,9 +209,13 @@ class Game_job(object):
             game.allow_scorer(colour)
         if player.allow_claim:
             game.set_claim_allowed(colour)
+        env = player.make_environ()
+        env['GOMILL_GAME_ID'] = self.game_id
+        if self._worker_id is not None:
+            env['GOMILL_SLOT'] = str(self._worker_id)
         game_controller.set_player_subprocess(
             colour, player.cmd_args,
-            env=player.make_environ(), cwd=player.cwd, stderr=stderr)
+            env=env, cwd=player.cwd, stderr=stderr)
         controller = game_controller.get_controller(colour)
         controller.set_gtp_aliases(player.gtp_aliases)
         if gtp_log_file is not None:
@@ -430,10 +435,12 @@ def check_player(player_check, discard_stderr=False):
     else:
         stderr = None
     try:
+        env = player.make_environ()
+        env['GOMILL_GAME_ID'] = 'startup-check'
         try:
             channel = gtp_controller.Subprocess_gtp_channel(
                 player.cmd_args,
-                env=player.make_environ(), cwd=player.cwd, stderr=stderr)
+                env=env, cwd=player.cwd, stderr=stderr)
         except GtpChannelError, e:
             raise GtpChannelError(
                 "error starting subprocess for %s:\n%s" % (player.code, e))

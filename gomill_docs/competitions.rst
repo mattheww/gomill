@@ -25,6 +25,28 @@ For all-play-all tournaments, the ringmaster will again prefer the pair of
 For tuning events, the pairings are specified by a tuning algorithm.
 
 
+.. index:: game_id
+
+.. _game id:
+
+Game identification
+^^^^^^^^^^^^^^^^^^^
+
+Each game played in a competition is identified using a short string (the
+:dfn:`game_id`). This is used in the |sgf| :ref:`game record <game records>`
+filename and game name (``GN``), the :ref:`log files <logging>`, the live
+display, and so on.
+
+For playoff tournaments, game ids are made up from the :pl-setting:`matchup id
+<id>` and the number of the game within the matchup; for example, the first
+game played might be ``0_0`` or ``0_000`` (depending on the value of
+:pl-setting:`number_of_games`).
+
+Similarly for all-play-all tournaments, game ids are like ``AvB_0``, using the
+competitor letters shown in the results grid, with the length depending on the
+:aa-setting:`rounds` setting.
+
+
 .. _simultaneous games:
 
 Simultaneous games
@@ -110,7 +132,8 @@ speak :term:`GTP` version 2 on their standard input and output streams.
 
 It launches the executables itself, with command line arguments and other
 environment as detailed by the :ref:`player settings <player configuration>`
-in the control file.
+in the control file. See also :ref:`environment variables` and :ref:`standard
+error` below.
 
 It launches a new engine subprocess for each game and closes it when the game
 is terminated.
@@ -248,6 +271,10 @@ The checks are as follows:
 - the engine accepts the required board size and komi
 - the engine accepts the :gtp:`!clear_board` |gtp| command
 
+If your engine needs to know whether it is being run for the purpose of
+startup checks, it can check the :envvar:`GOMILL_GAME_ID` environment
+variable.
+
 
 .. _quiet mode:
 
@@ -346,6 +373,45 @@ Also, if the :option:`--log-gtp <ringmaster --log-gtp>` command line option is
 passed, the ringmaster logs all |gtp| commands and responses. It writes a
 separate log file for each game, in the :file:`{code}.gtplogs` directory.
 
+
+.. _environment variables:
+
+Players' environment variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The players are given a copy of the ringmaster's environment variables,
+supplemented (or overridden) by any variables specified by the
+:setting:`environ` player setting.
+
+The following environment variables are also set:
+
+.. envvar:: GOMILL_GAME_ID
+
+  The :ref:`game_id <game id>` of the game which will be played.
+
+  When an engine is launched for the :ref:`startup checks <startup checks>`,
+  this variable's value is ``startup-check``.
+
+.. envvar:: GOMILL_SLOT
+
+  If the ringmaster is configured to play up to N :ref:`simultaneous games
+  <simultaneous games>`, this variable is set to one of N distinct strings,
+  such that both of the engines playing one game are given the same string,
+  but otherwise no two engines which are running simultaneously are given the
+  same string.
+
+  (Less formally: the ringmaster uses N worker processes to manage the games,
+  and the slot values are simply integers from 0 to N-1 identifying the
+  workers.)
+
+  If the ringmaster is not configured to play simultaneous games, this
+  variable is left unset.
+
+  When an engine is launched for the :ref:`startup checks <startup checks>`,
+  this variable is left unset.
+
+
+.. index:: standard error, stderr
 
 .. _standard error:
 
