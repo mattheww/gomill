@@ -233,6 +233,8 @@ def main():
     parser = OptionParser()
     parser.add_option("--fail-command", metavar="COMMAND",
                       help="force a specified gtp command to fail")
+    parser.add_option("--report-environ", action="store_true",
+                      help="report GOMILL_ environment variables to stderr")
     parser.add_option("--chat-stderr", action="store_true")
     parser.add_option("--copious-stderr", action="store_true")
     parser.add_option("--fake-ponder", action="store_true")
@@ -249,6 +251,11 @@ def main():
 
     if options.seed is not None:
         random.seed(options.seed)
+
+    if options.report_environ:
+        for key, value in sorted(os.environ.iteritems()):
+            if key.startswith("GOMILL_"):
+                print >>sys.stderr, "%s=%s" % (key, value)
 
     try:
         test_player = Test_player()
