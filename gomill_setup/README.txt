@@ -186,4 +186,4 @@ Changelog
 
 See the 'Changes' page in the HTML documentation (docs/changes.rst).
 
-                                                                mjw 2012-05-02
+                                                                mjw 2012-08-26

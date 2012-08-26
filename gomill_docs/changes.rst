@@ -42,8 +42,8 @@ Gomill FIXME (FIXME)
   coordinates (previously behaviour was explicitly unspecified).
 
 
-Gomill 0.7.4 (FIXME)
---------------------
+Gomill 0.7.4 (2012-08-26)
+-------------------------
 
 * Added the :envvar:`GOMILL_GAME_ID` and :envvar:`GOMILL_SLOT` environment
   variables.
