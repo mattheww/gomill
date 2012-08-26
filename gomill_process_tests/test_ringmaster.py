@@ -5,6 +5,7 @@ Doesn't cover very much at the moment.
 """
 
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -44,6 +45,7 @@ class TestFailed(Exception):
 class Test(object):
     def __init__(self, **kwargs):
         kwargs.setdefault('game_log', None)
+        kwargs.setdefault('args', [])
         self.__dict__.update(kwargs)
 
     def make_ctl_file(self, dirname):
@@ -52,33 +54,11 @@ class Test(object):
         with open(self.ctl_pathname, "w") as f:
             f.write(base_ctl + self.ctl)
 
-    def extract_game_log(self):
-        """Read the log entries for a single game from the event log.
-
-        Returns the lines logged from the first game in the log.
-
-        Raises ValueError if the log isn't as expected.
-
-        """
-        log_pathname = os.path.join(self.competition_directory, "rr.log")
-        loglines = open(log_pathname).readlines()
-        if not loglines[0].startswith("run started at"):
-            raise ValueError
-        if not loglines[1].startswith("starting game"):
-            raise ValueError
-        result = []
-        for line in loglines[2:]:
-            if line.startswith("response from game"):
-                break
-            result.append(line.rstrip())
-        return result
-
     def run_ringmaster(self):
+        args = ["python", "-m", "gomill.ringmaster_command_line",
+                 self.ctl_pathname, "run", "--quiet"] + self.args
         try:
-            output = subprocess.check_output(
-                ["python", "-m", "gomill.ringmaster_command_line",
-                 self.ctl_pathname, "run", "--quiet"],
-                stderr=subprocess.STDOUT)
+            output = subprocess.check_output(args, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError, e:
             print e.output
             raise TestFailed("ringmaster exit status: %d" % e.returncode)
@@ -86,9 +66,39 @@ class Test(object):
             print output
             raise TestFailed("unexpected output from ringmaster")
 
+    def parse_game_log(self, loglines):
+        """Read the log entries for a single game from the event log.
+
+        Returns the lines logged from the first game in the log.
+
+        Raises ValueError if the log isn't as expected.
+
+        """
+        it = iter(loglines)
+        if not re.match(r"run started at [-0-9]+ [:0-9]+ with max_games None$",
+                        it.next()):
+            raise ValueError("no run start")
+        if "--parallel" in self.args:
+            if not re.match(r"using \d worker processes$", it.next()):
+                raise ValueError("no worker line")
+        if not it.next().startswith("starting game"):
+            raise ValueError("no game start")
+        result = []
+        for line in it:
+            if line.startswith("response from game"):
+                break
+            result.append(line.rstrip())
+        return result
+
     def run_checks(self):
         if self.game_log is not None:
-            game_log = self.extract_game_log()
+            log_pathname = os.path.join(self.competition_directory, "rr.log")
+            loglines = open(log_pathname).readlines()
+            try:
+                game_log = self.parse_game_log(loglines)
+            except ValueError, e:
+                print "".join(loglines)
+                raise TestFailed("can't parse event log: %s" % e)
             if game_log != self.game_log:
                 print game_log
                 raise TestFailed("log not as expected")
@@ -116,6 +126,16 @@ ctl="""\
 players['p1'] = Player([test_player, '--report-environ'])
 """,
 game_log=['GOMILL_GAME_ID=0_0']
+),
+
+Test(
+code="environ-prl",
+args=["--parallel", "2"],
+ctl="""\
+players['p1'] = Player([test_player, '--report-environ'])
+""",
+game_log=['GOMILL_GAME_ID=0_0',
+          'GOMILL_SLOT=0']
 ),
 
 ]
