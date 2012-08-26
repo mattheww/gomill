@@ -2,6 +2,10 @@ Changes
 =======
 
 
+* :mod:`~!gomill.gtp_games` now permits free-handicap games with the maximum
+  number of handicap stones permitted by |gtp| (the previous restriction was
+  one less).
+
 * Bug fix: :meth:`.Board.is_empty()` was wrong after a self-capture which
   leaves the board empty.
 

@@ -433,7 +433,7 @@ class Game(object):
         if is_free:
             max_points = handicap_layout.max_free_handicap_for_board_size(
                 self.board_size)
-            if not 2 <= handicap < max_points:
+            if not 2 <= handicap <= max_points:
                 raise ValueError
             vertices = self.send_command(
                 "b", "place_free_handicap", str(handicap))
