@@ -91,6 +91,9 @@ class Game(object):
 
         fn -- callable (no parameters; result ignored)
 
+        This function is called from the record_xxx() method which causes the
+        game to end, immediately before that method returns.
+
         """
         self.game_over_callback = fn
 
@@ -448,7 +451,8 @@ class Backend(object):
     def end_game(self):
         """Note that the game is over.
 
-        This is called when it's known that no more moves will be played.
+        This is called as soon as it's known that no more moves will be
+        played.
 
         """
         raise NotImplementedError
@@ -709,8 +713,8 @@ class Game_runner(object):
                 colour, self.backend.get_last_move_comment(colour))
             return
 
-        # Record the move before asking for the comment, so that end_game() has
-        # already been called if the move ends the game.
+        # Record the move, and so call end_game() if the move ends the game,
+        # before asking for the comment.
         game.record_move(colour, move)
         comment = self.backend.get_last_move_comment(colour)
 

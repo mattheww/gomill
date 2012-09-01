@@ -1172,6 +1172,8 @@ class Game_controller(object):
 
         cpu_time is a float, or None if the information isn't available.
 
+        CPU time will not be available until the controller has been closed.
+
         It's safe to call this even if one or both of the engines was never
         successfully started.
 
