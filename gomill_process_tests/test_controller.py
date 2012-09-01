@@ -2,6 +2,7 @@
 
 Requires:
  - gomill_process_tests/gtp_test_player
+ - gomill_process_tests/gtp_test_controller
 
 """
 
@@ -14,7 +15,6 @@ from gomill import __version__
 
 class Test(object):
     def __init__(self, **kwargs):
-        kwargs.setdefault('sgf', None)
         kwargs.setdefault('exit_status', 0)
         self.__dict__.update(kwargs)
 
