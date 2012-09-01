@@ -56,6 +56,7 @@ class Testing_ringmaster(ringmasters.Ringmaster):
         self._test_status = None
         self._written_status = None
         ringmasters.Ringmaster.__init__(self, '/nonexistent/ctl/test.ctl')
+        self.set_stdout(StringIO())
 
     _presenter_classes = {
         'test' : Test_presenter,
@@ -90,4 +91,7 @@ class Testing_ringmaster(ringmasters.Ringmaster):
 
     def _write_status(self, value):
         self._written_status = value
+
+    def retrieve_printed_output(self):
+        return self.stdout.getvalue()
 

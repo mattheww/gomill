@@ -296,6 +296,7 @@ def test_process_response(tc):
 def test_check_players(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl)
     tc.assertTrue(fx.ringmaster.check_players(discard_stderr=True))
+    tc.assertEqual(fx.ringmaster.retrieve_printed_output(), "")
 
 def test_run(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl)
@@ -367,6 +368,11 @@ def test_check_players_fail(tc):
         "players['p2'] = Player('test fail=startup')"
         ])
     tc.assertFalse(fx.ringmaster.check_players(discard_stderr=True))
+    tc.assertEqual(fx.ringmaster.retrieve_printed_output(), dedent("""\
+    player p2 failed startup check:
+    error starting subprocess for p2:
+    exec forced to fail
+    """))
 
 def test_run_fail(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
