@@ -71,6 +71,9 @@ class Ringmaster(object):
     # For --version command
     public_version = "gomill ringmaster v0.8pre1"
 
+    # Channel used for printing
+    stdout = sys.stdout
+
     def __init__(self, control_pathname):
         """Instantiate and initialise a Ringmaster.
 
@@ -112,6 +115,16 @@ class Ringmaster(object):
         except ControlFileError, e:
             raise RingmasterError("error in control file:\n%s" % e)
 
+    def set_stdout(self, f):
+        """Set the ringmaster's standard output.
+
+        f -- writeable file-like object
+
+        Sets the destination for methods documented as 'printing' (default is
+        standard output).
+
+        """
+        self.stdout = f
 
     def _read_control_file(self):
         """Return the contents of the control file as an 8-bit string."""
@@ -442,8 +455,8 @@ class Ringmaster(object):
         """Print the contents of the persistent state file, for debugging."""
         from pprint import pprint
         status_format_version, status = self._load_status()
-        print "status_format_version:", status_format_version
-        pprint(status)
+        print >>self.stdout, "status_format_version:", status_format_version
+        pprint(status, self.stdout)
 
     def write_command(self, command):
         """Write a command to the command file.
@@ -484,12 +497,12 @@ class Ringmaster(object):
         f.close()
 
     def print_status_report(self):
-        """Write current competition status to standard output.
+        """Print the current competition status.
 
         This is for the 'show' command.
 
         """
-        self.competition.write_short_report(sys.stdout)
+        self.competition.write_short_report(self.stdout)
 
     def _halt_competition(self, reason):
         """Make the competition stop submitting new games.
@@ -754,16 +767,16 @@ class Ringmaster(object):
             raise RingmasterError(e)
         for check in to_check:
             if not discard_stderr:
-                print "checking player %s" % check.player.code
+                print >>self.stdout, "checking player %s" % check.player.code
             try:
                 msgs = game_jobs.check_player(check, discard_stderr)
             except game_jobs.CheckFailed, e:
-                print "player %s failed startup check:\n%s" % (
+                print >>self.stdout, "player %s failed startup check:\n%s" % (
                     check.player.code, e)
                 return False
             else:
                 if not discard_stderr:
                     for msg in msgs:
-                        print msg
+                        print >>self.stdout, msg
         return True
 
