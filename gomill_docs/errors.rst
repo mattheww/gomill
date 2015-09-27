@@ -164,5 +164,5 @@ Non-ASCII characters in the control file must be encoded in UTF-8.
 :gtp:`!version`, :gtp:`gomill-describe_engine`, or
 :gtp:`gomill-explain_last_move`.
 
-SGF files written by Gomill always explicitly specify UTF-8 encoding.
+SGF files written by the ringmaster always explicitly specify UTF-8 encoding.
 
