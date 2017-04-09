@@ -23,7 +23,7 @@ import re
 import string
 
 
-_propident_re = re.compile(r"\A[A-Z]{1,8}\Z")
+_propident_re = re.compile(r"\A[A-Z]{1,64}\Z")
 _propvalue_re = re.compile(r"\A [^\\\]]* (?: \\. [^\\\]]* )* \Z",
                            re.VERBOSE | re.DOTALL)
 _find_start_re = re.compile(r"\(\s*;")
@@ -32,7 +32,7 @@ _tokenise_re = re.compile(r"""
 (?:
     \[ (?P<V> [^\\\]]* (?: \\. [^\\\]]* )* ) \]   # PropValue
     |
-    (?P<I> [A-Z]{1,8} )                           # PropIdent
+    (?P<I> [A-Z]{1,64} )                          # PropIdent
     |
     (?P<D> [;()] )                                # delimiter
 )
@@ -49,8 +49,9 @@ def is_valid_property_identifier(s):
     Details:
      - it doesn't permit lower-case letters (these are allowed in some ancient
        SGF variants)
-     - it accepts at most 8 letters (there is no limit in the spec; no standard
-       property has more than 2)
+     - it accepts at most 64 letters (there is no limit in the spec; no
+       standard property has more than 2; a report from 2017-04 says the
+       longest found in the wild is "MULTIGOGM")
 
     """
     return bool(_propident_re.search(s))

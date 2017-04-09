@@ -5,6 +5,9 @@ Changes
 Gomill FIXME (FIXME)
 --------------------
 
+* :ref:`SGF parsing <parsing_details>`: increased the length limit on
+  *PropIdents* from 8 to 64.
+
 * Reworked the :mod:`~!gomill.gtp_games` interface and implementation,
   splitting out the :mod:`~!gomill.gameplay` module and
   :class:`!gtp_controllers.Game_controller`. Visible behaviour changes:

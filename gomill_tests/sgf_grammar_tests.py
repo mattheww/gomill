@@ -14,7 +14,9 @@ def test_is_valid_property_identifier(tc):
     tc.assertIs(ivpi("B"), True)
     tc.assertIs(ivpi("PB"), True)
     tc.assertIs(ivpi("ABCDEFGH"), True)
-    tc.assertIs(ivpi("ABCDEFGHI"), False)
+    tc.assertIs(ivpi("MULTIGOGM"), True)
+    tc.assertIs(ivpi(64*"X"), True)
+    tc.assertIs(ivpi(65*"X"), False)
     tc.assertIs(ivpi(""), False)
     tc.assertIs(ivpi("b"), False)
     tc.assertIs(ivpi("Player"), False)
@@ -94,6 +96,12 @@ def test_tokeniser(tc):
     tc.assertEqual(check_complete("( ;\nB\t[ah]\f[ef]\v)"), 6)
     tc.assertEqual(check_complete("(;[Ran\xc2\xa3dom :\nstu@ff][ef]"), 4)
     tc.assertEqual(check_complete("(;[ah)])"), 4)
+
+    # check PropIdent rule
+    tc.assertEqual(check_complete("(;%s" % (8*"X")), 3)
+    tc.assertEqual(check_complete("(;%s" % (9*"X")), 3)
+    tc.assertEqual(check_complete("(;%s" % (64*"X")), 3)
+    tc.assertEqual(check_complete("(;%s" % (65*"X")), 4)
 
     tc.assertEqual(check_incomplete("(;B[ag"), (3, 3))
     tc.assertEqual(check_incomplete("(;B[ag)"), (3, 3))
