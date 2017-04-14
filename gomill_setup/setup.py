@@ -105,7 +105,7 @@ class uninstall(Command):
 cmdclass['uninstall'] = uninstall
 
 
-GOMILL_URL = "http://mjw.woodcraft.me.uk/gomill/"
+GOMILL_URL = "https://mjw.woodcraft.me.uk/gomill/"
 
 LONG_DESCRIPTION = """\
 Gomill is a suite of tools, and a Python library, for use in developing and
@@ -117,17 +117,15 @@ and keeps track of the results.
 
 There is also experimental support for automatically tuning program parameters.
 
-Download: http://mjw.woodcraft.me.uk/gomill/download/gomill-%(VERSION)s.tar.gz
+Download: https://mjw.woodcraft.me.uk/gomill/download/gomill-0.8.tar.gz
 
-Documentation: http://mjw.woodcraft.me.uk/gomill/download/gomill-doc-%(VERSION)s.tar.gz
+Documentation: https://mjw.woodcraft.me.uk/gomill/download/gomill-doc-0.8.tar.gz
 
-Online Documentation: http://mjw.woodcraft.me.uk/gomill/doc/%(VERSION)s/
+Online Documentation: https://mjw.woodcraft.me.uk/gomill/doc/0.8/
 
-Changelog: http://mjw.woodcraft.me.uk/gomill/doc/%(VERSION)s/changes.html
+Changelog: https://mjw.woodcraft.me.uk/gomill/doc/0.8/changes.html
 
-Git: http://mjw.woodcraft.me.uk/gomill/git/
-
-Gitweb: http://mjw.woodcraft.me.uk/gitweb/gomill/
+Github: https://github.com/mattheww/gomill
 
 """ % vars()
 
