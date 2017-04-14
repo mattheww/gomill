@@ -136,7 +136,7 @@ The documentation will be generated in build/sphinx/html.
 Requirements:
 
    Sphinx [1] version 1.0 or later
-              (at least 1.0.4 recommended; tested with 1.0 and 1.1)
+              (at least 1.0.4 recommended; tested with 1.0, 1.1, and 1.2)
    LaTeX  [2]
    dvipng [3]
 
@@ -148,7 +148,7 @@ Requirements:
 Licence
 -------
 
-Gomill is copyright 2009-2012 Matthew Woodcraft
+Gomill is copyright 2009-2017 Matthew Woodcraft
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -186,4 +186,4 @@ Changelog
 
 See the 'Changes' page in the HTML documentation (docs/changes.rst).
 
-                                                                mjw 2012-08-26
+                                                                mjw 2017-04-14

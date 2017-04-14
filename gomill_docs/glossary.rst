@@ -10,7 +10,7 @@ Glossary
     uses only GTP version 2, which is specified at
     http://www.lysator.liu.se/~gunnar/gtp/gtp2-spec-draft2/gtp2-spec.html.
 
-    (As of May 2012, the specification describes itself as a draft, but it
+    (As of April 2017, the specification describes itself as a draft, but it
     has remained stable for several years and is widely implemented.)
 
 

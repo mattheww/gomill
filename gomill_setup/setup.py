@@ -5,7 +5,7 @@ import sys
 from distutils import dir_util
 from distutils.core import setup, Command
 
-VERSION = "0.8pre1"
+VERSION = "0.8"
 
 
 try:

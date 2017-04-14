@@ -2,8 +2,8 @@ Changes
 =======
 
 
-Gomill FIXME (FIXME)
---------------------
+Gomill 0.8 (2017-04-14)
+-----------------------
 
 * :ref:`SGF parsing <parsing_details>`: increased the length limit on
   *PropIdents* from 8 to 64.
