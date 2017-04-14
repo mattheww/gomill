@@ -84,6 +84,7 @@ def test_parameter_config(tc):
     """), fixups=[
     ("float() argument must be a string or a number", "expected-float"),
     ("expected float, got NoneType object", "expected-float"),
+    ("unsupported operand type for float(): 'NoneType'", "expected-float"),
     ])
 
     tc.assertRaisesRegexp(
