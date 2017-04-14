@@ -791,9 +791,12 @@ class Game_runner(object):
         return self.moves
 
     def get_final_diagnostics(self):
-        """FIXME
+        """Retrieve any comment from a resignation or game-forfeiting move.
 
-        Returns a Diagnostics object or None.
+        Returns a Diagnostics instance if the game has been resigned or
+        forfeited, and the resigning or forfeiting player provided a comment.
+
+        Otherwise returns None.
 
         """
         return self.final_diagnostics
