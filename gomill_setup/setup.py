@@ -117,13 +117,13 @@ and keeps track of the results.
 
 There is also experimental support for automatically tuning program parameters.
 
-Download: https://mjw.woodcraft.me.uk/gomill/download/gomill-0.8.tar.gz
+Download: https://mjw.woodcraft.me.uk/gomill/download/gomill-%(VERSION)s.tar.gz
 
-Documentation: https://mjw.woodcraft.me.uk/gomill/download/gomill-doc-0.8.tar.gz
+Documentation: https://mjw.woodcraft.me.uk/gomill/download/gomill-doc-%(VERSION)s.tar.gz
 
-Online Documentation: https://mjw.woodcraft.me.uk/gomill/doc/0.8/
+Online Documentation: https://mjw.woodcraft.me.uk/gomill/doc/%(VERSION)s/
 
-Changelog: https://mjw.woodcraft.me.uk/gomill/doc/0.8/changes.html
+Changelog: https://mjw.woodcraft.me.uk/gomill/doc/%(VERSION)s/changes.html
 
 Github: https://github.com/mattheww/gomill
 
