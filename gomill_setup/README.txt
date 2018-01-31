@@ -136,7 +136,7 @@ The documentation will be generated in build/sphinx/html.
 Requirements:
 
    Sphinx [1] version 1.0 or later
-              (at least 1.0.4 recommended; tested with 1.0, 1.1, and 1.2)
+              (at least 1.0.4 recommended; tested with 1.4)
    LaTeX  [2]
    dvipng [3]
 

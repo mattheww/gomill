@@ -1,6 +1,11 @@
 Changes
 =======
 
+Gomill 0.8.1pre
+---------------
+
+* Updated documentation to build with Sphinx 1.4
+
 
 Gomill 0.8 (2017-04-14)
 -----------------------
