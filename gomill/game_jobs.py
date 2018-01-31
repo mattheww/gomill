@@ -282,8 +282,8 @@ class Game_job(object):
         response.log_entries = log_entries
 
         response.engine_descriptions = {
-            'b' : game_controller.engine_descriptions['b'],
-            'w' : game_controller.engine_descriptions['w'],
+            self.player_b.code : game_controller.engine_descriptions['b'],
+            self.player_w.code : game_controller.engine_descriptions['w'],
             }
         response.game_data = self.game_data
         return response
