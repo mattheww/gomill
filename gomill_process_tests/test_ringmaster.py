@@ -39,12 +39,18 @@ matchups = [
 
 """ % os.path.join(test_dir, "gtp_test_player")
 
+def normalise_report(s):
+    """Remove nondeterminancy in a ringmaster report."""
+    # This is for 'avg cpu' lines
+    return re.sub(r"[0-9]\.[0-9]{2}$", "x.xx", s, flags=re.MULTILINE)
+
 class TestFailed(Exception):
     pass
 
 class Test(object):
     def __init__(self, **kwargs):
         kwargs.setdefault('game_log', None)
+        kwargs.setdefault('report', None)
         kwargs.setdefault('args', [])
         self.__dict__.update(kwargs)
 
@@ -90,18 +96,30 @@ class Test(object):
             result.append(line.rstrip())
         return result
 
+    def check_game_log(self):
+        log_pathname = os.path.join(self.competition_directory, "rr.log")
+        loglines = open(log_pathname).readlines()
+        try:
+            game_log = self.parse_game_log(loglines)
+        except ValueError, e:
+            print "".join(loglines)
+            raise TestFailed("can't parse event log: %s" % e)
+        if game_log != self.game_log:
+            print game_log
+            raise TestFailed("log not as expected")
+
+    def check_report(self):
+        report_pathname = os.path.join(self.competition_directory, "rr.report")
+        report = normalise_report(open(report_pathname).read())
+        if report != self.report:
+            print report
+            raise TestFailed("report not as expected")
+
     def run_checks(self):
         if self.game_log is not None:
-            log_pathname = os.path.join(self.competition_directory, "rr.log")
-            loglines = open(log_pathname).readlines()
-            try:
-                game_log = self.parse_game_log(loglines)
-            except ValueError, e:
-                print "".join(loglines)
-                raise TestFailed("can't parse event log: %s" % e)
-            if game_log != self.game_log:
-                print game_log
-                raise TestFailed("log not as expected")
+            self.check_game_log()
+        if self.report is not None:
+            self.check_report()
 
     def run(self):
         print "** %s" % self.code
@@ -125,7 +143,22 @@ code="environ",
 ctl="""\
 players['p1'] = Player([test_player, '--report-environ'])
 """,
-game_log=['GOMILL_GAME_ID=0_0']
+game_log=['GOMILL_GAME_ID=0_0'],
+report="""\
+playoff: rr
+test_ringmaster
+
+p1 v p2 (1/1 games)
+unknown results: 1 100.00%
+board size: 9   komi: 7.5
+     wins                 avg cpu
+p1      0 0.00%   (black)    x.xx
+p2      0 0.00%   (white)    x.xx
+
+player p1: GTP test player
+player p2: GTP test player
+
+""",
 ),
 
 Test(
