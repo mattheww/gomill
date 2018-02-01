@@ -507,6 +507,11 @@ class LOG(Config_proxy):
 class EXPLICIT(Config_proxy):
     underlying = Explicit_scale_fn
 
+def interpret_candidate_colour(v):
+    if v in ('r', 'random'):
+        return 'random'
+    else:
+        return interpret_colour(v)
 
 class Mcts_tuner(Competition):
     """A Competition for parameter tuning using the Monte-carlo tree search.
@@ -532,7 +537,7 @@ class Mcts_tuner(Competition):
     global_settings = (Competition.global_settings +
                        competitions.game_settings + [
         Setting('number_of_games', allow_none(interpret_int), default=None),
-        Setting('candidate_colour', interpret_colour),
+        Setting('candidate_colour', interpret_candidate_colour),
         Setting('log_tree_to_history_period',
                 allow_none(interpret_positive_int), default=None),
         Setting('summary_spec', interpret_sequence_of(interpret_int),
@@ -738,6 +743,12 @@ class Mcts_tuner(Competition):
             result.append(check)
         return result
 
+    def choose_candidate_colour(self):
+        if self.candidate_colour == 'random':
+            return random.choice('bw')
+        else:
+            return self.candidate_colour
+
     def get_game(self):
         if (self.number_of_games is not None and
             self.scheduler.issued >= self.number_of_games):
@@ -754,7 +765,7 @@ class Mcts_tuner(Competition):
         job = game_jobs.Game_job()
         job.game_id = str(game_number)
         job.game_data = game_number
-        if self.candidate_colour == 'b':
+        if self.choose_candidate_colour() == 'b':
             job.player_b = candidate
             job.player_w = self.opponent
         else:
@@ -781,7 +792,7 @@ class Mcts_tuner(Competition):
         self.scheduler.fix(game_number)
         # Counting no-result as loss for the candidate
         candidate_won = (
-            response.game_result.winning_colour == self.candidate_colour)
+            response.game_result.losing_player == self.opponent.code)
         simulation = self.outstanding_simulations.pop(game_number)
         simulation.update_stats(candidate_won)
         self.log_history(simulation.describe())

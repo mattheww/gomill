@@ -227,7 +227,7 @@ required):
 
 .. mc-setting:: candidate_colour
 
-  String: ``"b"`` or ``"w"``
+  String: ``"b"``, ``"w"``, or ``"random"``
 
   The colour for the candidates to take in every game.
 

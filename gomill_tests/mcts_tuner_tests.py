@@ -455,6 +455,41 @@ def test_play(tc):
                    "status file is inconsistent with control file")
 
 
+def test_random_candidate_colour(tc):
+    comp = mcts_tuners.Mcts_tuner('mctstest')
+    config = default_config()
+    config['candidate_colour'] = 'random'
+    random.seed(1001)
+    comp.initialise_from_control_file(config)
+    comp.set_clean_status()
+    tree = comp.tree
+
+    job1 = comp.get_game()
+    tc.assertIsInstance(job1, Game_job)
+    tc.assertEqual(job1.player_b.code, '#0')
+    tc.assertEqual(job1.player_w.code, 'opp')
+
+    job2 = comp.get_game()
+    tc.assertIsInstance(job2, Game_job)
+    tc.assertEqual(job2.player_b.code, 'opp')
+    tc.assertEqual(job2.player_w.code, '#1')
+
+    result1 = Game_result.from_score('b', 7.5)
+    result1.set_players({'b' : '#0', 'w' : 'opp'})
+    response1 = Game_job_result()
+    response1.game_id = job1.game_id
+    response1.game_result = result1
+    response1.engine_descriptions = {
+        'opp' : Engine_description("opp engine", None, None),
+        '#0'  : Engine_description("candidate engine", None, None),
+        }
+    response1.game_data = job1.game_data
+    comp.process_game_result(response1)
+
+    tc.assertEqual(tree.root.visits, 11)
+    tc.assertEqual(tree.root.wins, 6)
+
+
 def _disabled_test_tree_run(tc):
     # Something like this test can be useful when changing the tree code,
     # if you want to verify that you're not changing behaviour.
