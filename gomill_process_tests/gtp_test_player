@@ -45,6 +45,10 @@ class Test_player(object):
         self.delayed_error_move = None
         self.delayed_error_args = None
         self.seen_quit = False
+        self.gtp_name = "GTP test player"
+
+    def set_gtp_name(self, name):
+        self.gtp_name = name
 
     def genmove(self, game_state, player):
         """Move generator function.
@@ -106,7 +110,7 @@ class Test_player(object):
         raise GtpQuit
 
     def handle_name(self, args):
-        return "GTP test player"
+        return self.gtp_name
 
     def handle_version(self, args):
         return ""
@@ -138,6 +142,8 @@ def main():
                       help="force a specified gtp command to fail")
     parser.add_option("--report-environ", action="store_true",
                       help="report GOMILL_ environment variables to stderr")
+    parser.add_option("--gtp-name",
+                      help="string to report for gtp 'name'")
     (options, args) = parser.parse_args()
     if args:
         parser.error("too many arguments")
@@ -153,6 +159,8 @@ def main():
     try:
         test_player = Test_player()
         engine = make_engine(test_player)
+        if options.gtp_name is not None:
+            test_player.set_gtp_name(options.gtp_name)
         if options.fail_command:
             engine.add_command(options.fail_command, fail_handler)
         gtp_engine.run_interactive_gtp_session(engine)
