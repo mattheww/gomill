@@ -22,7 +22,7 @@ test_player = "%s"
 
 players = {
   'p1' : Player([test_player]),
-  'p2' : Player([test_player]),
+  'p2' : Player([test_player, '--gtp-name=Player two']),
   }
 
 move_limit = 10
@@ -156,7 +156,7 @@ p1      0 0.00%   (black)    x.xx
 p2      0 0.00%   (white)    x.xx
 
 player p1: GTP test player
-player p2: GTP test player
+player p2: Player two
 
 """,
 ),
