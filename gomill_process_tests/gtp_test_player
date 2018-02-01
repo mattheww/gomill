@@ -147,6 +147,8 @@ def main():
             if key.startswith("GOMILL_"):
                 print >>sys.stderr, "%s=%s" % (key, value)
 
+    random.seed(361)
+
     #time.sleep(1)
     try:
         test_player = Test_player()
