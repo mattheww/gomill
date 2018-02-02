@@ -172,8 +172,8 @@ def test_play(tc):
     job1 = comp.get_game()
     tc.assertIsInstance(job1, Game_job)
     tc.assertEqual(job1.game_id, 'g0#0r0')
-    tc.assertEqual(job1.player_b.code, 'g0#0')
-    tc.assertEqual(job1.player_w.code, 'opp')
+    tc.assertEqual(job1.player_b.code, 'opp')
+    tc.assertEqual(job1.player_w.code, 'g0#0')
     tc.assertEqual(job1.board_size, 13)
     tc.assertEqual(job1.komi, 7.5)
     tc.assertEqual(job1.move_limit, 1000)
@@ -186,8 +186,8 @@ def test_play(tc):
     job2 = comp.get_game()
     tc.assertIsInstance(job2, Game_job)
     tc.assertEqual(job2.game_id, 'g0#1r0')
-    tc.assertEqual(job2.player_b.code, 'g0#1')
-    tc.assertEqual(job2.player_w.code, 'opp')
+    tc.assertEqual(job2.player_b.code, 'opp')
+    tc.assertEqual(job2.player_w.code, 'g0#1')
 
     tc.assertEqual(comp.wins, [0, 0, 0, 0])
 

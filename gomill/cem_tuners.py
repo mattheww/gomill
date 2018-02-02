@@ -132,6 +132,7 @@ class Cem_tuner(Competition):
 
     global_settings = (Competition.global_settings +
                        competitions.game_settings + [
+        Setting('candidate_colour', interpret_colour),
         Setting('batch_size', interpret_positive_int),
         Setting('samples_per_generation', interpret_positive_int),
         Setting('number_of_generations', interpret_positive_int),
@@ -406,8 +407,12 @@ class Cem_tuner(Competition):
         job = game_jobs.Game_job()
         job.game_id = "%sr%d" % (candidate.code, round_id)
         job.game_data = (candidate_number, candidate.code, round_id)
-        job.player_b = candidate
-        job.player_w = self.opponent
+        if self.candidate_colour == 'b':
+            job.player_b = candidate
+            job.player_w = self.opponent
+        else:
+            job.player_b = self.opponent
+            job.player_w = candidate
         job.board_size = self.board_size
         job.komi = self.komi
         job.move_limit = self.move_limit

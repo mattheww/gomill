@@ -7,6 +7,9 @@ Gomill 0.8.1pre
 * The :mc-setting:`candidate_colour` setting for the Monte Carlo tuner can now
   be ``"random"``.
 
+* Bug fix: :ce-setting:`candidate_colour` was being ignored for the
+  cross-entropy tuner (the candidate always played black).
+
 * Bug fix: :class:`!Game_job_result.engine_descriptions` in 0.8 was using
   colours rather than player codes for its keys. The effect was crashes with
   ``cem_tuner`` and ``mc_tuner``, and mangled player descriptions at the end
