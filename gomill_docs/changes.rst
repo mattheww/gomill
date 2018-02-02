@@ -4,8 +4,10 @@ Changes
 Gomill 0.8.1pre
 ---------------
 
-* The :mc-setting:`candidate_colour` setting for the Monte Carlo tuner can now
-  be ``"random"``.
+* The :setting:`!candidate_colour` setting
+  :mc-setting:`[1] <candidate_colour>`
+  :ce-setting:`[2] <candidate_colour>`
+  for the Monte Carlo tuner and cross-entropy tuner can now be ``"random"``.
 
 * Bug fix: :ce-setting:`candidate_colour` was being ignored for the
   cross-entropy tuner (the candidate always played black).

@@ -2,6 +2,7 @@
 
 from __future__ import division
 
+import random
 from random import gauss as random_gauss
 from math import sqrt
 
@@ -112,6 +113,12 @@ class Parameter_spec(object):
 
     """
 
+def interpret_candidate_colour(v):
+    if v in ('r', 'random'):
+        return 'random'
+    else:
+        return interpret_colour(v)
+
 class Cem_tuner(Competition):
     """A Competition for parameter tuning using the cross-entropy method.
 
@@ -132,7 +139,7 @@ class Cem_tuner(Competition):
 
     global_settings = (Competition.global_settings +
                        competitions.game_settings + [
-        Setting('candidate_colour', interpret_colour),
+        Setting('candidate_colour', interpret_candidate_colour),
         Setting('batch_size', interpret_positive_int),
         Setting('samples_per_generation', interpret_positive_int),
         Setting('number_of_generations', interpret_positive_int),
@@ -394,6 +401,12 @@ class Cem_tuner(Competition):
             result.append(check)
         return result
 
+    def choose_candidate_colour(self):
+        if self.candidate_colour == 'random':
+            return random.choice('bw')
+        else:
+            return self.candidate_colour
+
     def get_game(self):
         if self.scheduler.nothing_issued_yet():
             self.log_event("\nstarting generation %d" % self.generation)
@@ -407,7 +420,7 @@ class Cem_tuner(Competition):
         job = game_jobs.Game_job()
         job.game_id = "%sr%d" % (candidate.code, round_id)
         job.game_data = (candidate_number, candidate.code, round_id)
-        if self.candidate_colour == 'b':
+        if self.choose_candidate_colour() == 'b':
             job.player_b = candidate
             job.player_w = self.opponent
         else:

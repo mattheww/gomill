@@ -2,6 +2,7 @@
 
 from __future__ import with_statement, division
 
+import random
 import cPickle as pickle
 from textwrap import dedent
 
@@ -222,4 +223,37 @@ def test_play(tc):
     comp.process_game_result(response2)
 
     tc.assertEqual(comp.wins, [1, 0.5, 0, 0])
+
+
+def test_random_candidate_colour(tc):
+    comp = cem_tuners.Cem_tuner('cemtest')
+    config = default_config()
+    config['candidate_colour'] = 'random'
+    random.seed(1002)
+    comp.initialise_from_control_file(config)
+    comp.set_clean_status()
+
+    job1 = comp.get_game()
+    tc.assertIsInstance(job1, Game_job)
+    tc.assertEqual(job1.player_b.code, 'g0#0')
+    tc.assertEqual(job1.player_w.code, 'opp')
+
+    job2 = comp.get_game()
+    tc.assertIsInstance(job2, Game_job)
+    tc.assertEqual(job2.player_b.code, 'g0#1')
+    tc.assertEqual(job2.player_w.code, 'opp')
+
+    result1 = Game_result.from_score('b', 8.5)
+    result1.set_players({'b' : 'g0#0', 'w' : 'opp'})
+    response1 = Game_job_result()
+    response1.game_id = job1.game_id
+    response1.game_result = result1
+    response1.engine_descriptions = {
+        'opp' : Engine_description("opp engine", "v1.2.3", None),
+        '#0'  : Engine_description("candidate engine", None, None),
+        }
+    response1.game_data = job1.game_data
+    comp.process_game_result(response1)
+
+    tc.assertEqual(comp.wins, [1, 0, 0, 0])
 
