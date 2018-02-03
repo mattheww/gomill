@@ -148,7 +148,7 @@ Requirements:
 Licence
 -------
 
-Gomill is copyright 2009-2017 Matthew Woodcraft
+Gomill is copyright 2009-2018 Matthew Woodcraft
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -186,4 +186,4 @@ Changelog
 
 See the 'Changes' page in the HTML documentation (docs/changes.rst).
 
-                                                                mjw 2017-04-14
+                                                                mjw 2018-02-03

@@ -1,8 +1,8 @@
 Changes
 =======
 
-Gomill 0.8.1pre
----------------
+Gomill 0.8.1 (2018-02-03)
+-------------------------
 
 * The :setting:`!candidate_colour` setting
   :mc-setting:`[1] <candidate_colour>`
