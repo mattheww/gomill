@@ -633,10 +633,16 @@ class Gtp_controller(object):
             protocol_version = self.do_command("protocol_version")
         except BadGtpResponse:
             return
-        if protocol_version != "2":
-            raise BadGtpResponse(
-                "%s reports GTP protocol version %s" %
-                (self.name, protocol_version))
+        # Engines returning "2.0" have been seen in the wild.
+        # See https://github.com/mattheww/gomill/issues/5
+        try:
+            if float(protocol_version) == 2.0:
+                return
+        except ValueError:
+            pass
+        raise BadGtpResponse(
+            "%s reports GTP protocol version %s" %
+            (self.name, protocol_version))
 
     def list_commands(self):
         """Return the engine's declared command list.

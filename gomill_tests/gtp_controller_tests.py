@@ -534,7 +534,8 @@ def test_check_protocol_version(tc):
     controller.check_protocol_version()
 
 def test_check_protocol_version_2(tc):
-    channel = Preprogrammed_gtp_channel("= 1\n\n? error\n\n# unreached\n\n")
+    channel = Preprogrammed_gtp_channel(
+        "= 1\n\n? error\n\n= 2.0\n\n= 2.1\n\n= abc\n\n# unreached\n\n")
     controller = Gtp_controller(channel, 'pv2 test')
     with tc.assertRaises(BadGtpResponse) as ar:
         controller.check_protocol_version()
@@ -542,6 +543,18 @@ def test_check_protocol_version_2(tc):
     tc.assertEqual(ar.exception.gtp_error_message, None)
     # check error is not treated as a check failure
     controller.check_protocol_version()
+    # check '2.0' is accepted
+    controller.check_protocol_version()
+    with tc.assertRaises(BadGtpResponse) as ar:
+        controller.check_protocol_version()
+    tc.assertEqual(str(ar.exception),
+                   "pv2 test reports GTP protocol version 2.1")
+    tc.assertEqual(ar.exception.gtp_error_message, None)
+    with tc.assertRaises(BadGtpResponse) as ar:
+        controller.check_protocol_version()
+    tc.assertEqual(str(ar.exception),
+                   "pv2 test reports GTP protocol version abc")
+    tc.assertEqual(ar.exception.gtp_error_message, None)
 
 def test_list_commands(tc):
     channel = gtp_engine_fixtures.get_test_channel()
