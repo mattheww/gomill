@@ -721,6 +721,10 @@ def test_node_set(tc):
     XX[nonsense [none\\]sense more n\\\\onsens\\\\e])
     """))
 
+    tc.assertRaisesRegexp(ValueError, "ill-formed property identifier",
+                          root.set, 'Black', (1, 2))
+
+
 def test_node_unset(tc):
     sgf_game = sgf.Sgf_game.from_string("(;FF[4]GM[1]SZ[9]HA[3])")
     root = sgf_game.get_root()

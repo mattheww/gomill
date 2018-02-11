@@ -368,7 +368,8 @@ The principal methods for accessing the node's properties are:
    *value* should be a native Python representation of the required property
    value (as returned by :meth:`get`).
 
-   Raises :exc:`ValueError` if the property value isn't acceptable.
+   Raises :exc:`ValueError` if the identifier isn't a well-formed *PropIdent*,
+   or if the property value isn't acceptable.
 
    See :ref:`sgf_property_types` below for details of how property values
    should be represented in Python.

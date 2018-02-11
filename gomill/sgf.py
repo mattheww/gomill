@@ -190,6 +190,8 @@ class Node(object):
         See sgf_properties.Presenter.serialise() for details.
 
         """
+        if not sgf_grammar.is_valid_property_identifier(identifier):
+            raise ValueError("ill-formed property identifier")
         self._set_raw_list(
             identifier, self._presenter.serialise(identifier, value))
 

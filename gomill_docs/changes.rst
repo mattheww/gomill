@@ -4,6 +4,9 @@ Changes
 Gomill 0.8.2pre
 ---------------
 
+* Bug fix: :meth:`.Tree_node.set` didn't check its ``identifier`` parameter
+  was a well-formed *PropIdent*.
+
 * Made the |gtp| :gtp:`protocol_version` check more lenient: it now
   accepts ``2.0`` and similar forms as equivalent to ``2``.
 
