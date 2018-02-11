@@ -358,9 +358,8 @@ The principal methods for accessing the node's properties are:
    See :ref:`sgf_property_types` below for details of how property values are
    represented in Python.
 
-   See :ref:`sgf_property_list` below for a list of the known properties.
-   Setting nonstandard properties is permitted; they are treated as having
-   type Text.
+   See :ref:`sgf_property_list` below for a list of the known properties. Any
+   other property is treated as having type Text.
 
 .. method:: Tree_node.set(identifier, value)
 
@@ -374,8 +373,9 @@ The principal methods for accessing the node's properties are:
    See :ref:`sgf_property_types` below for details of how property values
    should be represented in Python.
 
-   See :ref:`sgf_property_list` below for a list of the known properties. Any
-   other property is treated as having type Text.
+   See :ref:`sgf_property_list` below for a list of the known properties.
+   Setting nonstandard properties is permitted; they are treated as having
+   type Text.
 
 .. method:: Tree_node.unset(identifier)
 
