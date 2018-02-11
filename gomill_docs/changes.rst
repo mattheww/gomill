@@ -1,8 +1,8 @@
 Changes
 =======
 
-Gomill 0.8.2pre
----------------
+Gomill 0.8.2 (2018-02-11)
+-------------------------
 
 * :ref:`SGF parsing <parsing_details>`: the parser now permits lower-case
   letters in *PropIdents*.
