@@ -29,7 +29,7 @@ div.caution {
 }
 
 abbr {
-  border-bottom: none; cursor:help;
+  border-bottom: none; text-decoration: none;
 }
 
 th.field-name {
