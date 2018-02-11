@@ -4,6 +4,9 @@ Changes
 Gomill 0.8.2pre
 ---------------
 
+* :ref:`SGF parsing <parsing_details>`: the parser now permits lower-case
+  letters in *PropIdents*.
+
 * Bug fix: :meth:`.Tree_node.set` didn't check its ``identifier`` parameter
   was a well-formed *PropIdent*.
 

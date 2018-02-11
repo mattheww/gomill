@@ -433,6 +433,12 @@ def test_serialise_transcoding(tc):
     g3.get_root().unset("CA")
     tc.assertRaises(UnicodeEncodeError, g3.serialise)
 
+def test_lower_case_propidents(tc):
+    g1 = sgf.Sgf_game.from_string("(;FileFormat[4]SiZe[9]CoPyright[ccc])")
+    tc.assertEqual(g1.get_size(), 9)
+    tc.assertEqual(g1.get_root().get("CP"), "ccc")
+    tc.assertRaises(KeyError, g1.get_root().get, "CoPyright")
+
 def test_tree_mutation(tc):
     sgf_game = sgf.Sgf_game(9)
     root = sgf_game.get_root()

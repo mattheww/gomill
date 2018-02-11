@@ -32,7 +32,7 @@ _tokenise_re = re.compile(r"""
 (?:
     \[ (?P<V> [^\\\]]* (?: \\. [^\\\]]* )* ) \]   # PropValue
     |
-    (?P<I> [A-Z]{1,64} )                          # PropIdent
+    (?P<I> [A-Za-z]{1,64} )                       # PropIdent (accepting lc)
     |
     (?P<D> [;()] )                                # delimiter
 )
@@ -44,14 +44,14 @@ def is_valid_property_identifier(s):
 
     s -- 8-bit string
 
-    This accepts the same values as the tokeniser.
-
     Details:
-     - it doesn't permit lower-case letters (these are allowed in some ancient
-       SGF variants)
+     - it doesn't permit lower-case letters
      - it accepts at most 64 letters (there is no limit in the spec; no
        standard property has more than 2; a report from 2017-04 says the
        longest found in the wild is "MULTIGOGM")
+
+    This accepts the same values as the tokeniser, except that the tokeniser
+    does permit lower-case letters.
 
     """
     return bool(_propident_re.search(s))
@@ -66,6 +66,9 @@ def is_valid_property_value(s):
 
     """
     return bool(_propvalue_re.search(s))
+
+
+_lcchars = string.ascii_lowercase
 
 def tokenise(s, start_position=0):
     """Tokenise a string containing SGF data.
@@ -89,6 +92,11 @@ def tokenise(s, start_position=0):
     The first two tokens are always '(' and ';' (otherwise it won't find the
     start of the content).
 
+    Accepts lower-case letters in PropIdents (these were allowed in some
+    ancient SGF variants, and are still seen in the wild); the returned
+    PropIdent has the lower-case letters removed (for example, 'AddBlack' is
+    returned as 'AB'), and therefore passes is_valid_property_identifier().
+
     """
     result = []
     m = _find_start_re.search(s, start_position)
@@ -102,6 +110,8 @@ def tokenise(s, start_position=0):
             break
         group = m.lastgroup
         token = m.group(m.lastindex)
+        if group == 'I':
+            token = token.translate(None, _lcchars)
         result.append((group, token))
         i = m.end()
         if group == 'D':

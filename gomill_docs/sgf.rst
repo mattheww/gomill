@@ -856,8 +856,10 @@ The parser doesn't, in general, attempt to 'fix' ill-formed |sgf| content. As
 an exception, if a *PropIdent* appears more than once in a node it is
 converted to a single property with multiple values.
 
-The parser doesn't permit lower-case letters in *PropIdents* (these are
-allowed in some ancient |sgf| variants).
+The parser permits lower-case letters in *PropIdents* (these are allowed in
+some ancient |sgf| variants, and are apparently seen in the wild). It ignores
+those letters, so for example ``CoPyright`` is treated as a synonym for ``CP``
+and should be retrieved using ``node.get("CP")``.
 
 
 The :mod:`!sgf_moves` module
