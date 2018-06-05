@@ -6,7 +6,7 @@ Gomill's home page is http://mjw.woodcraft.me.uk/gomill/.
 Updated versions will be made available for download from that site, as well
 as the `Python package index`__.
 
-.. __: https://pypi.python.org/pypi/sgfmill/
+.. __: https://pypi.python.org/pypi/gomill/
 
 I'm happy to receive any bug reports, suggestions, patches, questions and so
 on at <matthew@woodcraft.me.uk>.
