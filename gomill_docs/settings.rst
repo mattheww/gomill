@@ -384,6 +384,14 @@ The arguments are:
   :gtp:`gomill-genmove_ex`). See :ref:`claiming wins`.
 
 
+.. setting:: override_name
+
+  Boolean (default ``False``)
+
+  If this is ``True``, override ``PW`` or ``PB`` property in any result
+  :term:`SGF` with :ref:`player code <player codes>`.
+
+
 .. _game settings:
 
 Game settings

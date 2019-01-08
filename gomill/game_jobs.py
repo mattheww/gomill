@@ -25,6 +25,7 @@ class Player(object):
       discard_stderr       -- bool (default False)
       cwd                  -- working directory to change to (default None)
       environ              -- maplike of environment variables (default None)
+      override_name        -- override engine name in SGF (default False)
 
     See gtp_controllers.Gtp_controller for an explanation of gtp_aliases.
 
@@ -47,6 +48,7 @@ class Player(object):
         self.discard_stderr = False
         self.cwd = None
         self.environ = None
+        self.override_name = False
 
     def make_environ(self):
         """Return environment variables to use with the player's subprocess.
@@ -66,9 +68,10 @@ class Player(object):
         result.cmd_args = list(self.cmd_args)
         result.is_reliable_scorer = self.is_reliable_scorer
         result.allow_claim = self.allow_claim
+        result.discard_stderr = self.discard_stderr
+        result.override_name = self.override_name
         result.gtp_aliases = dict(self.gtp_aliases)
         result.startup_gtp_commands = list(self.startup_gtp_commands)
-        result.discard_stderr = self.discard_stderr
         result.cwd = self.cwd
         if self.environ is None:
             result.environ = None
@@ -335,20 +338,22 @@ class Game_job(object):
                     notes.append("%s cpu time: %ss" %
                                  (player, "%.2f" % cpu_time))
 
-        for colour, note in (('b', "Black %s" % b_player),
-                             ('w', "White %s" % w_player)):
+        for player, colour, note in ((self.player_b, 'b', "Black"),
+                                     (self.player_w, 'w', "White")):
+            note += " " + player.code
             ed = game_controller.engine_descriptions[colour]
             longdesc = ed.get_long_description()
             if longdesc:
                 note += " " + longdesc
             notes.append(note)
-        try:
+            if player.override_name:
+                root.set('P' + colour.upper(), player.code)
+
+        if root.has_property("C"):
             existing_comment = root.get("C")
             notes.append("")
             notes.append(existing_comment)
-        except KeyError:
-            pass
-        root.set('C', "\n".join(notes))
+        root.set("C", "\n".join(notes))
         if game_end_message is not None:
             last_node.add_comment_text(game_end_message)
         late_error_messages = game_controller.describe_late_errors()
