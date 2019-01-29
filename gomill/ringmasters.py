@@ -307,6 +307,7 @@ class Ringmaster(object):
     ringmaster_settings = [
         Setting('record_games', interpret_bool, True),
         Setting('stderr_to_log', interpret_bool, True),
+        Setting('skip_player_checks', interpret_bool, False),
         ]
 
     def _initialise_from_control_file(self, config):
@@ -752,7 +753,7 @@ class Ringmaster(object):
                 except EnvironmentError, e:
                     print >>sys.stderr, e
 
-    def check_players(self, discard_stderr=False):
+    def check_players(self, quiet=False, discard_stderr=False):
         """Check that the engines required for the competition will run.
 
         If an engine fails, prints a description of the problem and returns
@@ -765,6 +766,10 @@ class Ringmaster(object):
             to_check = self.competition.get_player_checks()
         except CompetitionError, e:
             raise RingmasterError(e)
+        if self.skip_player_checks:
+            if not quiet:
+                print >>self.stdout, "Skipping %s Player checks" % len(to_check)
+            return True
         for check in to_check:
             if not discard_stderr:
                 print >>self.stdout, "checking player %s" % check.player.code

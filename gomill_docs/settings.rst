@@ -209,6 +209,13 @@ competition types.
   <logging>`. See :ref:`standard error`.
 
 
+.. setting:: skip_player_checks
+
+  Boolean (default ``False``)
+
+  Skip :setting-cls:`Player` startup check.
+
+
 .. _player codes:
 
 .. index:: player code
