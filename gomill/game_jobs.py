@@ -25,7 +25,7 @@ class Player(object):
       discard_stderr       -- bool (default False)
       cwd                  -- working directory to change to (default None)
       environ              -- maplike of environment variables (default None)
-      override_name        -- override engine name in SGF (default False)
+      sgf_player_name_from_gtp -- Use gtp player name in sgf files (default True)
 
     See gtp_controllers.Gtp_controller for an explanation of gtp_aliases.
 
@@ -48,7 +48,7 @@ class Player(object):
         self.discard_stderr = False
         self.cwd = None
         self.environ = None
-        self.override_name = False
+        self.sgf_player_name_from_gtp = True
 
     def make_environ(self):
         """Return environment variables to use with the player's subprocess.
@@ -69,7 +69,7 @@ class Player(object):
         result.is_reliable_scorer = self.is_reliable_scorer
         result.allow_claim = self.allow_claim
         result.discard_stderr = self.discard_stderr
-        result.override_name = self.override_name
+        result.sgf_player_name_from_gtp = self.sgf_player_name_from_gtp
         result.gtp_aliases = dict(self.gtp_aliases)
         result.startup_gtp_commands = list(self.startup_gtp_commands)
         result.cwd = self.cwd
@@ -346,7 +346,7 @@ class Game_job(object):
             if longdesc:
                 note += " " + longdesc
             notes.append(note)
-            if player.override_name:
+            if not player.sgf_player_name_from_gtp:
                 root.set('P' + colour.upper(), player.code)
 
         if root.has_property("C"):

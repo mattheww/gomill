@@ -50,7 +50,7 @@ _player_settings = [
     Setting('startup_gtp_commands', allow_none(interpret_sequence),
             defaultmaker=list),
     Setting('discard_stderr', interpret_bool, default=False),
-    Setting('override_name', interpret_bool, default=False),
+    Setting('sgf_player_name_from_gtp', interpret_bool, default=True),
     ]
 
 class Player_config(Quiet_config):
@@ -254,7 +254,7 @@ class Competition(object):
         player.is_reliable_scorer = config['is_reliable_scorer']
         player.allow_claim = config['allow_claim']
         player.discard_stderr = config['discard_stderr']
-        player.override_name = config['override_name']
+        player.sgf_player_name_from_gtp = config['sgf_player_name_from_gtp']
 
         player.startup_gtp_commands = []
         try:

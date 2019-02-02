@@ -549,11 +549,11 @@ def test_game_job_player_descriptions(tc):
     B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+10.5]W[tt])
     """))
 
-def test_game_job_override_name(tc):
+def test_game_job_sgf_player_name_from_gtp(tc):
     fx = Game_job_fixture(tc)
     fx.add_handler('b', 'name', lambda args: "blackname")
     fx.add_handler('w', 'name', lambda args: "whitename")
-    fx.job.player_w.override_name = True
+    fx.job.player_w.sgf_player_name_from_gtp = False
     result = fx.job.run()
     tc.assertEqual(result.engine_descriptions['one'].name, "blackname")
     tc.assertEqual(result.engine_descriptions['two'].name, "whitename")
