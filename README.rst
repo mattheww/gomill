@@ -44,3 +44,11 @@ Requirements:
 .. __: http://www.latex-project.org/
 .. __: http://www.nongnu.org/dvipng/
 
+
+Running the tests
+-----------------
+
+To run the tests::
+
+    python -m gomill_tests.run_gomill_testsuite
+
