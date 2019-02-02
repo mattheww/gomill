@@ -29,14 +29,14 @@ Building the documentation
 
 To build the HTML documentation yourself::
 
-   python setup.py build_sphinx
+   sphinx-build -c gomill_docs -b html gomill_docs build/html_docs
 
-The documentation will be generated in ``build/sphinx/html``.
+The documentation will be generated in ``build/html_docs``.
 
 Requirements:
 
 - Sphinx__ version 1.0 or later
-  (at least 1.0.4 recommended; tested with 1.0 and 1.1)
+  (at least 1.0.4 recommended; tested with 1.4)
 - LaTeX__
 - dvipng__
 
