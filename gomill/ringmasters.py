@@ -766,7 +766,7 @@ class Ringmaster(object):
             to_check = self.competition.get_player_checks()
         except CompetitionError, e:
             raise RingmasterError(e)
-        if self.skip_player_checks:
+        if self.skip_player_checks and discard_stderr:
             if not quiet:
                 print >>self.stdout, "Skipping %s Player checks" % len(to_check)
             return True

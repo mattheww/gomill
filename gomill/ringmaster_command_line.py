@@ -50,7 +50,7 @@ def do_reset(ringmaster, options):
     ringmaster.delete_state_and_output()
 
 def do_check(ringmaster, options):
-    if not ringmaster.check_players(quiet=options.quiet, discard_stderr=True):
+    if not ringmaster.check_players(quiet=options.quiet, discard_stderr=False):
         return 1
 
 def do_debugstatus(ringmaster, options):
