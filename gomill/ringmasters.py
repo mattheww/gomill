@@ -753,7 +753,7 @@ class Ringmaster(object):
                 except EnvironmentError, e:
                     print >>sys.stderr, e
 
-    def check_players(self, quiet=False, discard_stderr=False):
+    def check_players(self, discard_stderr=False, quiet=False):
         """Check that the engines required for the competition will run.
 
         If an engine fails, prints a description of the problem and returns
