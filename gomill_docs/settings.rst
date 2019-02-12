@@ -388,9 +388,10 @@ The arguments are:
 
   Boolean (default ``True``)
 
-  If this is ``True``, set ``PB`` or ``PW`` property in any result
-  :term:`SGF` from |gtp| command :gtp:`!player` and :gtp:`!version`.
-  Ff ``False`` use :ref:`player code <player codes>`.
+  If this is ``True``, the ``PB`` or ``PW`` property for the player in any
+  |sgf| :ref:`game record <game records>` is taken from the |gtp| command
+  :gtp:`!player` and :gtp:`!version`. Otherwise it uses the :ref:`player code
+  <player codes>`.
 
 
 .. _game settings:

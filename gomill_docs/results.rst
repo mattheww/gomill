@@ -70,10 +70,14 @@ The game record includes a description of the players in the root node comment
 [#]_. If an engine implements :gtp:`gomill-describe_engine`, its output is
 included.
 
+The ``PB`` and ``PW`` property values are normally taken from the response to
+the |gtp| :gtp:`!name` and :gtp:`!version` commands. If :gtp:`!name` isn't
+implemented, or the player :setting:`sgf_player_name_from_gtp` setting is
+``True``, the property is taken from the :ref:`player code <player codes>`.
+
 .. [#] The root node comment is used rather than the game comment because (in
    my experience) |sgf| viewers tend to make it easier to see information
    there.
-
 
 .. index:: CPU time
 .. index:: time; CPU
