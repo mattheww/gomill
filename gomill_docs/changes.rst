@@ -1,6 +1,9 @@
 Changes
 =======
 
+* Added the :setting:`skip_player_checks` setting (thanks to Seth Troisi).
+
+
 Gomill 0.8.2 (2018-02-11)
 -------------------------
 

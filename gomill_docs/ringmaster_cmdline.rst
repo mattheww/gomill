@@ -45,7 +45,8 @@ The following actions are available:
 
   Runs a test invocation of the competition's players. This is the same as the
   :ref:`startup checks`, except that any output the players send to their
-  standard error stream will be printed.
+  standard error stream will be printed, and the :setting:`skip_player_checks`
+  setting is ignored.
 
 .. action:: report
 

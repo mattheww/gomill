@@ -241,9 +241,9 @@ The |sgf| result of a claimed game will simply be ``B+`` or ``W+``.
 Startup checks
 ^^^^^^^^^^^^^^
 
-Whenever the ringmaster starts a run, before starting any games, it launches
-an instance of each engine that will be required for the run and checks that
-it operates reasonably.
+When the ringmaster starts a run, before starting any games, it launches an
+instance of each engine that will be required for the run and checks that it
+operates reasonably.
 
 If any engine fails the checks, the run is cancelled. The standard error
 stream from the engines is suppressed for these automatic startup checks.
@@ -251,6 +251,10 @@ stream from the engines is suppressed for these automatic startup checks.
 The :action:`check` command line action runs the same checks, but it leaves
 the engines' standard error going to the console (any
 :setting:`discard_stderr` player settings are ignored).
+
+If the :setting:`skip_player_checks` setting is ``True``, these checks are
+not performed for a normal run, but the :action:`check` command line action
+still works.
 
 For playoff tournaments, only players listed in matchups are checked (and
 matchups with :pl-setting:`number_of_games` set to ``0`` are ignored). If a

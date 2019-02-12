@@ -201,19 +201,19 @@ competition types.
   Write |sgf| :ref:`game records <game records>`.
 
 
+.. setting:: skip_player_checks
+
+  Boolean (default ``False``)
+
+  Skip the player :ref:`startup checks <startup checks>`.
+
+
 .. setting:: stderr_to_log
 
   Boolean (default ``True``)
 
   Redirect all players' standard error streams to the :ref:`event log
   <logging>`. See :ref:`standard error`.
-
-
-.. setting:: skip_player_checks
-
-  Boolean (default ``False``)
-
-  Skip :setting-cls:`Player` startup check.
 
 
 .. _player codes:
