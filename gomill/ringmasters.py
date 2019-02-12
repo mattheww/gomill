@@ -768,7 +768,7 @@ class Ringmaster(object):
             raise RingmasterError(e)
         if self.skip_player_checks and discard_stderr:
             if not quiet:
-                print >>self.stdout, "Skipping %s Player checks" % len(to_check)
+                print >>self.stdout, "skipping %s Player checks" % len(to_check)
             return True
         for check in to_check:
             if not discard_stderr:
