@@ -2,6 +2,8 @@ Changes
 =======
 
 
+* Added the :setting:`skip_player_checks` setting (thanks to Seth Troisi).
+
 * Added the :setting:`sgf_player_name_from_gtp` setting (thanks to Seth
   Troisi).
 

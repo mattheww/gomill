@@ -362,10 +362,42 @@ def test_run_allplayall(tc):
 
 def test_check_players_fail(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
-        "players['p2'] = Player('test fail=startup')"
+        "players['p2'] = Player('test fail=startup')",
         ])
     tc.assertFalse(fx.ringmaster.check_players(discard_stderr=True))
     tc.assertEqual(fx.ringmaster.retrieve_printed_output(), dedent("""\
+    player p2 failed startup check:
+    error starting subprocess for p2:
+    exec forced to fail
+    """))
+
+def test_skip_player_checks_setting_false(tc):
+    fx = Ringmaster_fixture(tc, playoff_ctl, [
+        "players['p2'] = Player('test fail=startup')",
+        "skip_player_checks = False"
+        ])
+    tc.assertFalse(fx.ringmaster.check_players(discard_stderr=True))
+
+
+def test_skip_player_checks_setting_true(tc):
+    fx = Ringmaster_fixture(tc, playoff_ctl, [
+        "players['p2'] = Player('test fail=startup')",
+        "skip_player_checks = True"
+        ])
+    tc.assertTrue(fx.ringmaster.check_players(discard_stderr=True))
+    tc.assertEqual(fx.ringmaster.retrieve_printed_output(),
+                   "Skipping 2 Player checks\n")
+
+def test_explicit_check_not_skipped(tc):
+    fx = Ringmaster_fixture(tc, playoff_ctl, [
+        "players['p2'] = Player('test fail=startup')",
+        "skip_player_checks = True"
+        ])
+    tc.assertFalse(fx.ringmaster.check_players(discard_stderr=False))
+
+    tc.assertEqual(fx.ringmaster.retrieve_printed_output(), dedent("""\
+    checking player p1
+    checking player p2
     player p2 failed startup check:
     error starting subprocess for p2:
     exec forced to fail
