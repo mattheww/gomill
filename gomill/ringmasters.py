@@ -761,6 +761,9 @@ class Ringmaster(object):
 
         Otherwise returns True.
 
+        Skips the checks if the skip_player_checks setting is true (but always
+        runs the checks if discard_stderr is false).
+
         """
         try:
             to_check = self.competition.get_player_checks()
