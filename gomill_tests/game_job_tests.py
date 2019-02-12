@@ -549,6 +549,29 @@ def test_game_job_player_descriptions(tc):
     B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+10.5]W[tt])
     """))
 
+def test_game_job_sgf_player_name_from_gtp(tc):
+    fx = Game_job_fixture(tc)
+    fx.add_handler('b', 'name', lambda args: "blackname")
+    fx.add_handler('w', 'name', lambda args: "whitename")
+    fx.job.player_w.sgf_player_name_from_gtp = False
+    result = fx.job.run()
+    tc.assertEqual(result.engine_descriptions['one'].name, "blackname")
+    tc.assertEqual(result.engine_descriptions['two'].name, "whitename")
+    tc.assertMultiLineEqual(fx.job._get_sgf_written(), dedent("""\
+    (;FF[4]AP[gomill:VER]
+    C[Game id gameid
+    Date ***
+    Result one beat two B+10.5
+    one cpu time: 546.20s
+    two cpu time: 567.20s
+    Black one blackname
+    White two whitename]
+    CA[UTF-8]DT[***]GM[1]GN[gameid]KM[7.5]PB[blackname]PW[two]RE[B+10.5]
+    SZ[9];B[ei];W[gi];B[eh];W[gh];B[eg];W[gg];B[ef];W[gf];B[ee];W[ge];B[ed];W[gd];
+    B[ec];W[gc];B[eb];W[gb];B[ea];W[ga];B[tt];C[one beat two B+10.5]W[tt])
+    """))
+
+
 def test_game_job_explain_last_move(tc):
     counter = [0]
     def handle_explain_last_move(args):

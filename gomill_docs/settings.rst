@@ -384,6 +384,16 @@ The arguments are:
   :gtp:`gomill-genmove_ex`). See :ref:`claiming wins`.
 
 
+.. setting:: sgf_player_name_from_gtp
+
+  Boolean (default ``True``)
+
+  If this is ``True``, the ``PB`` or ``PW`` property for the player in any
+  |sgf| :ref:`game record <game records>` is taken from the |gtp| command
+  :gtp:`!player` and :gtp:`!version`. Otherwise it uses the :ref:`player code
+  <player codes>`.
+
+
 .. _game settings:
 
 Game settings

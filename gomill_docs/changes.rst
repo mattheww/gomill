@@ -1,6 +1,11 @@
 Changes
 =======
 
+
+* Added the :setting:`sgf_player_name_from_gtp` setting (thanks to Seth
+  Troisi).
+
+
 Gomill 0.8.2 (2018-02-11)
 -------------------------
 
