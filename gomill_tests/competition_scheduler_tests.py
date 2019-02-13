@@ -60,37 +60,37 @@ def test_grouped(tc):
     def issue(n):
         return [sc.issue() for _ in xrange(n)]
 
-    sc.set_groups([('m1', 4), ('m2', None)])
+    sc.set_groups([('mz', 4), ('my', None)])
 
     tc.assertTrue(sc.nothing_issued_yet())
     tc.assertFalse(sc.all_fixed())
 
     tc.assertListEqual(issue(3), [
-        ('m1', 0),
-        ('m2', 0),
-        ('m1', 1),
+        ('mz', 0),
+        ('my', 0),
+        ('mz', 1),
         ])
 
     tc.assertFalse(sc.nothing_issued_yet())
 
-    sc.fix('m1', 1)
+    sc.fix('mz', 1)
     sc.rollback()
     issued = issue(14)
     tc.assertListEqual(issued, [
-        ('m2', 0),
-        ('m1', 0),
-        ('m2', 1),
-        ('m1', 2),
-        ('m2', 2),
-        ('m1', 3),
-        ('m2', 3),
-        ('m2', 4),
-        ('m2', 5),
-        ('m2', 6),
-        ('m2', 7),
-        ('m2', 8),
-        ('m2', 9),
-        ('m2', 10),
+        ('my', 0),
+        ('mz', 0),
+        ('my', 1),
+        ('mz', 2),
+        ('my', 2),
+        ('mz', 3),
+        ('my', 3),
+        ('my', 4),
+        ('my', 5),
+        ('my', 6),
+        ('my', 7),
+        ('my', 8),
+        ('my', 9),
+        ('my', 10),
         ])
     tc.assertFalse(sc.all_fixed())
     for token in issued:
