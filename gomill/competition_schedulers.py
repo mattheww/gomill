@@ -79,8 +79,8 @@ class Group_scheduler(object):
 
     This schedules for a number of _groups_, each of which may have a limit on
     the number of games to play. It schedules from the group (of those which
-    haven't reached their limit) with the fewest issued games, with smallest
-    group code breaking ties.
+    haven't reached their limit) with the fewest issued games, with ties broken
+    using the group order given to set_groups().
 
     group codes might be ints or short strings
     (any sortable, pickleable and hashable object should do).
@@ -92,12 +92,22 @@ class Group_scheduler(object):
     def __init__(self):
         self.allocators = {}
         self.limits = {}
+        # map group_code -> priority (low number is high priority)
+        self.priorities = {}
 
     def __getstate__(self):
-        return (self.allocators, self.limits)
+        return (self.allocators, self.limits, self.priorities)
 
     def __setstate__(self, state):
-        (self.allocators, self.limits) = state
+        if len(state) == 2:
+            # state file written by gomill <= 0.8.2
+            (self.allocators, self.limits) = state
+            self.priorities = dict([
+                (group_code, priority)
+                for (priority, group_code) in enumerate(sorted(self.allocators))
+            ])
+        else:
+            (self.allocators, self.limits, self.priorities) = state
 
     def set_groups(self, group_specs):
         """Set the groups to be scheduled.
@@ -111,14 +121,17 @@ class Group_scheduler(object):
         """
         new_allocators = {}
         new_limits = {}
-        for group_code, limit in group_specs:
+        new_priorities = {}
+        for priority, (group_code, limit) in enumerate(group_specs):
             if group_code in self.allocators:
                 new_allocators[group_code] = self.allocators[group_code]
             else:
                 new_allocators[group_code] = Simple_scheduler()
             new_limits[group_code] = limit
+            new_priorities[group_code] = priority
         self.allocators = new_allocators
         self.limits = new_limits
+        self.priorities = new_priorities
 
     def issue(self):
         """Choose the next game to start.
@@ -133,13 +146,13 @@ class Group_scheduler(object):
             for (group_code, allocator) in self.allocators.iteritems()
             ]
         available = [
-            (issue_count, group_code)
+            (issue_count, self.priorities[group_code], group_code)
             for (group_code, issue_count, limit) in groups
             if limit is None or issue_count < limit
             ]
         if not available:
             return None, None
-        _, group_code = min(available)
+        group_code = min(available)[2]
         return group_code, self.allocators[group_code].issue()
 
     def fix(self, group_code, game_number):

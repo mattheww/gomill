@@ -1,6 +1,8 @@
 Changes
 =======
 
+* Make :doc:`playoff tournaments <playoffs>` use control file order when
+  choosing which matchup to play from next (thanks to Seth Troisi)
 
 * Added the :setting:`skip_player_checks` setting (thanks to Seth Troisi).
 
