@@ -386,7 +386,7 @@ def test_skip_player_checks_setting_true(tc):
         ])
     tc.assertTrue(fx.ringmaster.check_players(discard_stderr=True))
     tc.assertEqual(fx.ringmaster.retrieve_printed_output(),
-                   "Skipping 2 Player checks\n")
+                   "skipping 2 Player checks\n")
 
 def test_explicit_check_not_skipped(tc):
     fx = Ringmaster_fixture(tc, playoff_ctl, [
