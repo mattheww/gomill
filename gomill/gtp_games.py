@@ -3,7 +3,6 @@
 from gomill.utils import *
 from gomill.common import *
 from gomill import gameplay
-from gomill import gtp_controller
 from gomill.gtp_controller import BadGtpResponse
 
 class Game_result(gameplay.Result):

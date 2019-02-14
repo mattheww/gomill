@@ -6,7 +6,6 @@ import os
 from gomill import gtp_controller
 from gomill import gtp_games
 from gomill import job_manager
-from gomill import sgf
 from gomill import utils
 from gomill.gtp_controller import BadGtpResponse, GtpChannelError
 

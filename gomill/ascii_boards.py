@@ -1,6 +1,5 @@
 """ASCII board representation."""
 
-from gomill.common import *
 from gomill import boards
 from gomill.common import column_letters
 
