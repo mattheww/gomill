@@ -10,7 +10,6 @@ from gomill.gtp_controller import (
     BadGtpResponse, Gtp_controller)
 from gomill.gtp_proxy import BackEndError
 
-from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
 from gomill_tests import gtp_controller_test_support
 from gomill_tests import gtp_engine_fixtures

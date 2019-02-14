@@ -8,7 +8,6 @@ from gomill.gtp_engine import GtpError, GtpFatalError, GtpQuit
 from gomill.gtp_controller import GtpChannelError
 from gomill.common import *
 
-from gomill_tests import test_framework
 from gomill_tests import gtp_controller_test_support
 from gomill_tests.test_framework import SupporterError
 

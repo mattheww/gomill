@@ -4,7 +4,6 @@ import os
 import re
 from textwrap import dedent
 
-from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
 from gomill_tests import ringmaster_test_support
 from gomill_tests import gtp_engine_fixtures

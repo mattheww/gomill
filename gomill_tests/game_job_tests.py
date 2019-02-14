@@ -5,11 +5,9 @@ from __future__ import with_statement
 import os
 from textwrap import dedent
 
-from gomill import gtp_controller
 from gomill import game_jobs
 from gomill.job_manager import JobFailed
 
-from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
 from gomill_tests import gtp_engine_fixtures
 

@@ -8,11 +8,9 @@ from textwrap import dedent
 from gomill import boards
 from gomill import gtp_controller
 from gomill import gtp_games
-from gomill import sgf
 from gomill.common import format_vertex
 from gomill.gtp_controller import GtpChannelError, GtpChannelClosed
 
-from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
 from gomill_tests import gtp_controller_test_support
 from gomill_tests import gtp_engine_fixtures

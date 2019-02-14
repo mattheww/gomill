@@ -11,12 +11,11 @@ from gomill.gtp_controller import Engine_description
 from gomill.gtp_games import Game_result
 from gomill.game_jobs import Game_job, Game_job_result
 from gomill.competitions import (
-    Player_config, NoGameAvailable, CompetitionError, ControlFileError)
+    Player_config, CompetitionError, ControlFileError)
 from gomill.playoffs import Matchup_config
 
 from gomill_tests import competition_test_support
 from gomill_tests import gomill_test_support
-from gomill_tests import test_framework
 from gomill_tests.competition_test_support import (
     fake_response, check_screen_report)
 

@@ -7,7 +7,6 @@ from gomill import gtp_engine
 from gomill import gtp_states
 from gomill.common import format_vertex
 
-from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
 from gomill_tests import gtp_engine_test_support
 from gomill_tests import gtp_state_test_support

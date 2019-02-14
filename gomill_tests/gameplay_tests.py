@@ -2,12 +2,11 @@
 
 from textwrap import dedent
 
-from gomill.common import opponent_of, move_from_vertex, format_vertex
+from gomill.common import move_from_vertex, format_vertex
 from gomill import ascii_boards
 from gomill import boards
 from gomill import gameplay
 
-from gomill_tests import test_framework
 from gomill_tests import gomill_test_support
 
 def make_tests(suite):
