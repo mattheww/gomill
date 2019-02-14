@@ -14,7 +14,6 @@ import re
 import shutil
 import subprocess
 import tempfile
-from operator import itemgetter
 
 from gomill import __version__
 

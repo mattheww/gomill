@@ -7,7 +7,6 @@ This demonstrates retrieving and processing results from a tournament.
 import sys
 from optparse import OptionParser
 
-from gomill.common import opponent_of
 from gomill.ringmasters import Ringmaster, RingmasterError
 
 def show_result(matchup, result, filename):

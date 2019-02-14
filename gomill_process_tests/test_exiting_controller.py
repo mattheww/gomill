@@ -1,13 +1,11 @@
 """Test engine behaviour when controller disappears."""
 
-import os
 import signal
 import subprocess
 import sys
 import time
 
 from gomill import gtp_engine
-from gomill.gtp_engine import GtpError, GtpFatalError
 
 exit_status_by_mode = {
     'noisy' : 1,
