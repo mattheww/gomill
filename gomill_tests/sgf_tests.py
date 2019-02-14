@@ -25,7 +25,7 @@ def test_new_sgf_game(tc):
         'GM': ['1'],
         'SZ': ['9'],
         'CA': ['UTF-8'],
-        });
+        })
     tc.assertEqual(list(root), [])
     tc.assertEqual(root.parent, None)
     tc.assertIs(root.owner, g1)

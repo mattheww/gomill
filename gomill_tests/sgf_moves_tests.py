@@ -51,7 +51,7 @@ def test_get_setup_and_moves(tc):
 
     g2 = sgf.Sgf_game(size=9)
     root = g2.get_root()
-    root.set("AB", [(1, 2), (3, 4)]);
+    root.set("AB", [(1, 2), (3, 4)])
     node = g2.extend_main_sequence()
     node.set("B", (5, 6))
     node = g2.extend_main_sequence()
@@ -80,7 +80,7 @@ def test_get_setup_and_moves_move_in_root(tc):
     # setup stones.
     g1 = sgf.Sgf_game(size=9)
     root = g1.get_root()
-    root.set("B", (1, 2));
+    root.set("B", (1, 2))
     node = g1.extend_main_sequence()
     node.set("W", (3, 4))
     board1, plays1 = sgf_moves.get_setup_and_moves(g1)
@@ -90,8 +90,8 @@ def test_get_setup_and_moves_move_in_root(tc):
 
     g2 = sgf.Sgf_game(size=9)
     root = g2.get_root()
-    root.set("B", (1, 2));
-    root.set("AW", [(3, 3)]);
+    root.set("B", (1, 2))
+    root.set("AW", [(3, 3)])
     node = g2.extend_main_sequence()
     node.set("W", (3, 4))
     tc.assertRaisesRegexp(ValueError, "mixed setup and moves in root node",
