@@ -89,7 +89,6 @@ class uninstall(Command):
             if len(egg_infos) > 1:
                 self.warn("multiple .egg-info files; not removing any:\n%s"
                           % "\n".join(egg_infos))
-                egg_info_pathname = None
             elif len(egg_infos) == 1:
                 pathname = egg_infos[0]
                 if os.path.isdir(pathname):
