@@ -960,7 +960,6 @@ class Game_controller(object):
         self.controllers[colour] = controller
         if check_protocol_version:
             controller.check_protocol_version()
-        player_code = self.players[colour]
         self.engine_descriptions[colour] = \
             Engine_description.from_controller(controller)
 
