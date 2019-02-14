@@ -512,7 +512,7 @@ def test_savesgf(tc):
         "SZ[9];B[df];C[preprogrammed move C3]W[cg])")
     fx.check_command(
         'gomill-savesgf',
-        ['out2.sgf', "PB=testplayer", "PW=GNU\_Go:3.8", "RE=W+3.5"],
+        ['out2.sgf', "PB=testplayer", r"PW=GNU\_Go:3.8", "RE=W+3.5"],
         "")
     tc.assertEqual(
         scrub_sgf(fx.gtp_state._load_file('out2.sgf')).replace("\n", ""),

@@ -414,7 +414,7 @@ def test_serialise_transcoding(tc):
     (;FF[4]C[\xa3]CA[latin-1]GM[1]SZ[19])
     """))
     g1.get_root().set("CA", "unknown")
-    tc.assertRaisesRegexp(ValueError, "unsupported charset: \['unknown']",
+    tc.assertRaisesRegexp(ValueError, r"unsupported charset: \['unknown']",
                           g1.serialise)
 
     # improperly-encoded from the start
