@@ -72,7 +72,7 @@ The control file is a plain text configuration file.
 It is interpreted in the same way as a Python source file. See the
 :ref:`sample control file` above for an example of the syntax.
 
-  .. __: http://docs.python.org/release/2.7/reference/index.html
+  .. __: https://docs.python.org/release/2.7/reference/index.html
 
 The control file is made up of a series of top-level :dfn:`settings`, in the
 form of assignment statements: :samp:`{setting_name} = {value}`.
@@ -452,7 +452,7 @@ particular competition type for details.
 
   This is ignored if :setting:`handicap` is unset.
 
-  .. _GTP specification: http://www.lysator.liu.se/~gunnar/gtp/gtp2-spec-draft2/gtp2-spec.html#SECTION00051000000000000000
+  .. _GTP specification: https://www.lysator.liu.se/~gunnar/gtp/gtp2-spec-draft2/gtp2-spec.html#SECTION00051000000000000000
 
 
 

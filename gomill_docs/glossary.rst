@@ -8,7 +8,7 @@ Glossary
 
     A communication protocol used to control Go-playing programs. Gomill
     uses only GTP version 2, which is specified at
-    http://www.lysator.liu.se/~gunnar/gtp/gtp2-spec-draft2/gtp2-spec.html.
+    https://www.lysator.liu.se/~gunnar/gtp/gtp2-spec-draft2/gtp2-spec.html.
 
     (As of April 2017, the specification describes itself as a draft, but it
     has remained stable for several years and is widely implemented.)
@@ -20,7 +20,7 @@ Glossary
     A text-based file format used for storing Go game records.
 
     Gomill uses version FF[4], which is specified at
-    http://www.red-bean.com/sgf/index.html.
+    https://www.red-bean.com/sgf/index.html.
 
 
   jigo
@@ -97,7 +97,7 @@ Glossary
     value is initially unknown, trading off time spent on the action with the
     best estimated value against time spent evaluating other actions.
 
-    See http://en.wikipedia.org/wiki/Multi-armed_bandit
+    See https://en.wikipedia.org/wiki/Multi-armed_bandit
 
 
   UCB
@@ -112,5 +112,5 @@ Glossary
     A variant of UCB for bandit problems in which the actions are arranged in
     the form of a tree.
 
-    See http://senseis.xmp.net/?UCT.
+    See https://senseis.xmp.net/?UCT.
 

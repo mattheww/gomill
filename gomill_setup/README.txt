@@ -5,16 +5,16 @@ Gomill is a suite of tools, and a Python library, for use in developing and
 testing Go-playing programs.
 
 Updated versions of Gomill will be made available at
-http://mjw.woodcraft.me.uk/gomill/
+https://mjw.woodcraft.me.uk/gomill/
 
 The documentation is distributed separately in HTML form. It can be downloaded
 from the above web site, or viewed online at
-http://mjw.woodcraft.me.uk/gomill/doc/
+https://mjw.woodcraft.me.uk/gomill/doc/
 
 A Git repository containing Gomill releases (but not detailed history) is
 available:
-  git clone http://mjw.woodcraft.me.uk/gomill/git/
-It has a web interface at http://mjw.woodcraft.me.uk/gitweb/gomill/
+  git clone https://mjw.woodcraft.me.uk/gomill/git/
+It has a web interface at https://mjw.woodcraft.me.uk/gitweb/gomill/
 
 
 Contents
@@ -41,7 +41,7 @@ For Python 2.5 only, the --parallel feature requires the external
 
 Gomill is intended to run on any modern Unix-like system.
 
-[1] http://pypi.python.org/pypi/multiprocessing
+[1] https://pypi.org/pypi/multiprocessing
 
 
 Running the ringmaster
@@ -76,7 +76,7 @@ To install, first change to the distribution directory, then:
    (in this case the ringmaster executable will be placed in ~/.local/bin.)
 
 Pass --dry-run to see what these will do.
-See http://docs.python.org/2.7/install/ for more information.
+See https://docs.python.org/2.7/install/ for more information.
 
 
 Uninstallation
@@ -108,7 +108,7 @@ distribution directory and run
 With Python versions earlier than 2.7, the unittest2 library [1] is required
 to run the testsuite.
 
-[1] http://pypi.python.org/pypi/unittest2/
+[1] https://pypi.org/project/unittest2/
 
 
 Running the example scripts
@@ -140,9 +140,9 @@ Requirements:
    LaTeX  [2]
    dvipng [3]
 
-[1] http://sphinx.pocoo.org/
-[2] http://www.latex-project.org/
-[3] http://www.nongnu.org/dvipng/
+[1] https://www.sphinx-doc.org/
+[2] https://www.latex-project.org/
+[3] https://www.nongnu.org/dvipng/
 
 
 Licence

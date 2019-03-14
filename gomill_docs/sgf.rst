@@ -7,7 +7,7 @@ SGF support
 .. versionadded:: 0.7
 
 Gomill's |sgf| support is intended for use with version FF[4], which is
-specified at http://www.red-bean.com/sgf/index.html. It has support for the
+specified at https://www.red-bean.com/sgf/index.html. It has support for the
 game-specific properties for Go, but not those of other games. Point, Move and
 Stone values are interpreted as Go points.
 
@@ -329,7 +329,7 @@ value false. For example, to find all leaf nodes::
           else:
               print "--"
 
-.. __: http://docs.python.org/release/2.7/library/stdtypes.html#mutable-sequence-types
+.. __: https://docs.python.org/release/2.7/library/stdtypes.html#mutable-sequence-types
 
 
 .. rubric:: Property access
@@ -800,7 +800,7 @@ represented using the names or aliases of Python built-in codecs (eg
 ``"UTF-8"`` or ``"ISO-8859-1"``). See `standard encodings`__ for a list.
 Values of the ``CA`` property are interpreted in the same way.
 
-  .. __: http://docs.python.org/release/2.7/library/codecs.html#standard-encodings
+  .. __: https://docs.python.org/release/2.7/library/codecs.html#standard-encodings
 
 Each :class:`.Sgf_game` and :class:`.Tree_node` has a fixed :dfn:`raw property
 encoding`, which is the encoding used internally to store the property values.

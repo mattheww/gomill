@@ -14,7 +14,7 @@ Gomill requires Python 2.5, 2.6, or 2.7.
 For Python 2.5 only, the :option:`--parallel <ringmaster --parallel>` feature
 requires the external `multiprocessing`__ package.
 
-.. __: http://pypi.python.org/pypi/multiprocessing
+.. __: https://pypi.org/pypi/multiprocessing
 
 Gomill is intended to run on any modern Unix-like system.
 
@@ -46,13 +46,13 @@ Downloading sources and documentation
 -------------------------------------
 
 The source distribution can be downloaded from the `Python Package index`__,
-or from http://mjw.woodcraft.me.uk/gomill/, as a file named
+or from https://mjw.woodcraft.me.uk/gomill/, as a file named
 :file:`gomill-{version}.tar.gz`.
 
-.. __: https://pypi.python.org/pypi/gomill
+.. __: https://pypi.org/project/gomill/
 
 This documentation is distributed separately in html form at
-http://mjw.woodcraft.me.uk/gomill/ as :file:`gomill-doc-{version}.tar.gz`.
+https://mjw.woodcraft.me.uk/gomill/ as :file:`gomill-doc-{version}.tar.gz`.
 
 The version-control history is available at
 https://github.com/mattheww/gomill.
@@ -80,7 +80,7 @@ Installing from the source distribution
   :file:`~/.local/bin`.)
 
 Pass :option:`!--dry-run` to see what these will do. See
-http://docs.python.org/2.7/install/ for more information.
+https://docs.python.org/2.7/install/ for more information.
 
 To remove a version of Gomill installed in this way, run ::
 
@@ -120,7 +120,7 @@ the distribution directory and run ::
 With Python versions earlier than 2.7, the unittest2__ library is required
 to run the testsuite.
 
-.. __: http://pypi.python.org/pypi/unittest2/
+.. __: https://pypi.org/project/unittest2/
 
 
 .. _running the example scripts:
@@ -156,7 +156,7 @@ Requirements:
 - LaTeX__
 - dvipng__
 
-.. __: http://sphinx.pocoo.org/
-.. __: http://www.latex-project.org/
-.. __: http://www.nongnu.org/dvipng/
+.. __: https://www.sphinx-doc.org/
+.. __: https://www.latex-project.org/
+.. __: https://www.nongnu.org/dvipng/
 

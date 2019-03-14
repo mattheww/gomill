@@ -61,7 +61,7 @@ pngmath_use_preview = True
 
 todo_include_todos = True
 
-intersphinx_mapping = {'python': ('http://docs.python.org/2.7',
+intersphinx_mapping = {'python': ('https://docs.python.org/2.7',
                                   'python-inv.txt')}
 
 

@@ -8,7 +8,7 @@ the Smart Game Format (SGF).
 
 Full documentation and contact information is available from the `home page`__.
 
-.. __: http://mjw.woodcraft.me.uk/gomill/
+.. __: https://mjw.woodcraft.me.uk/gomill/
 
 
 Requirements
@@ -40,9 +40,9 @@ Requirements:
 - LaTeX__
 - dvipng__
 
-.. __: http://sphinx.pocoo.org/
-.. __: http://www.latex-project.org/
-.. __: http://www.nongnu.org/dvipng/
+.. __: https://www.sphinx-doc.org/
+.. __: https://www.latex-project.org/
+.. __: https://www.nongnu.org/dvipng/
 
 
 Running the tests

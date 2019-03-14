@@ -420,7 +420,7 @@ The arguments are:
   should be safe to use for all types of value. See `string formatting
   operations`__ for details.
 
-  .. __: http://docs.python.org/release/2.7/library/stdtypes.html#string-formatting-operations
+  .. __: https://docs.python.org/release/2.7/library/stdtypes.html#string-formatting-operations
 
   Format strings should be kept short, as screen space is limited.
 

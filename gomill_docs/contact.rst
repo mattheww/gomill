@@ -1,12 +1,12 @@
 Contact
 =======
 
-Gomill's home page is http://mjw.woodcraft.me.uk/gomill/.
+Gomill's home page is https://mjw.woodcraft.me.uk/gomill/.
 
 Updated versions will be made available for download from that site, as well
 as the `Python package index`__.
 
-.. __: https://pypi.python.org/pypi/gomill/
+.. __: https://pypi.org/project/gomill/
 
 I'm happy to receive any bug reports, suggestions, patches, questions and so
 on at <matthew@woodcraft.me.uk>.

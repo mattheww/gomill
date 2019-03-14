@@ -72,7 +72,7 @@ scripts.
   records including the engine's commentary, if the engine supports
   :gtp:`gomill-savesgf`.
 
-  .. _`kgsGtp`: http://senseis.xmp.net/?KgsGtp
+  .. _`kgsGtp`: https://senseis.xmp.net/?KgsGtp
 
   This demonstrates the :mod:`!gtp_proxy` module, and may be independently
   useful.
@@ -84,7 +84,7 @@ scripts.
   Mogo with a |gtp| controller (eg `Quarry`_) which doesn't get on with Mogo's
   |gtp| implementation.
 
-  .. _`Mogo`: http://www.lri.fr/~teytaud/mogo.html
+  .. _`Mogo`: https://www.lri.fr/~teytaud/mogo.html
   .. _`Quarry`: http://home.gna.org/quarry/
 
   This demonstrates the :mod:`!gtp_proxy` module, and may be independently
@@ -95,7 +95,7 @@ scripts.
 
   An experimental script for using Gomill as a back end for Rémi Coulom's CLOP
   optimisation system. It has been tested with ``CLOP-0.0.8``, which can be
-  downloaded from http://remi.coulom.free.fr/CLOP/ .
+  downloaded from https://remi.coulom.free.fr/CLOP/ .
 
   To use it, write a control file based on :file:`clop_example.ctl` in the
   :file:`gomill_examples/` directory, and run ::
