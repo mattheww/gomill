@@ -1,7 +1,7 @@
 Licence
 =======
 
-Gomill is copyright 2009-2017 Matthew Woodcraft
+Gomill is copyright 2009-2019 Matthew Woodcraft and the gomill contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,4 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 .. Note:: This is the licence commonly known as the 'MIT' Licence.
+
+
+Contributors
+------------
+
+* Matthew Woodcraft
+* Seth Troisi
 
