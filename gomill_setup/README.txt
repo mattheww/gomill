@@ -192,4 +192,4 @@ Changelog
 
 See the 'Changes' page in the HTML documentation (docs/changes.rst).
 
-                                                                mjw 2018-02-11
+                                                                mjw 2019-03-14

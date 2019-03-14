@@ -69,7 +69,7 @@ class Ringmaster(object):
     status_format_version = 0
 
     # For --version command
-    public_version = "gomill ringmaster v0.8.2"
+    public_version = "gomill ringmaster v0.8.3"
 
     # Channel used for printing
     stdout = sys.stdout

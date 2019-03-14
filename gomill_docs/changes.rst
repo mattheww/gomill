@@ -1,6 +1,9 @@
 Changes
 =======
 
+Gomill 0.8.3 (2019-03-14)
+-------------------------
+
 * Make :doc:`playoff tournaments <playoffs>` use control file order when
   choosing which matchup to play from next (thanks to Seth Troisi)
 
